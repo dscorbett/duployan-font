@@ -118,11 +118,6 @@ and a consonant which would otherwise cross the curved consonant?
 How is the underline encoded in the abbreviation for “New York” (NOuRK + underline)?
 Proper nouns are underlined, so I suppose this is the same thing.
 
-How are “chemin de fer” and “C[ompagn]ie de chemin de fer” (musique-ancienne.fr) encoded?
-They look like TxT and TxKxT but are clearly pictographs of railroad lines.
-CT&P 13e leçon gives a better rendition.
-Unify with equals sign?
-
 Similary, some Romanian abbreivations incorporate an equals sign for “aceeași” and “egal”.
 “Egalitate” is an equals sign with the bottom line extended right.
 
@@ -158,10 +153,6 @@ S-D punctuation: long and short wavy lines
 
 SOPU: small connected “3” is “șt” (ro) or “sh” (en)
 It seems to be a double U+1BC7B according to L2/10-202.
-
-CT&P: “A bref délai” (12e leçon) looks like A inside B R as if A x B R.
-
-CT&P 14e leçon distinguishes D x F with F on right from F on left.
 
 ## Extra characters used in Duployan
 
@@ -209,6 +200,4 @@ CT&P 14e leçon distinguishes D x F with F on right from F on left.
 * <http://eco.canadiana.ca/view/oocihm.8_04645_1/4?r=0&s=1>
   * Kamloops Wawa, No. 1
   * No. 2 has more letters’ descriptions.
-* <https://books.google.com/books?id=62ANAAAAYAAJ>
-  * Cours théorique et pratique de sténo-métagraphie
 
