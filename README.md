@@ -109,8 +109,6 @@ UTN #37 says they float by default;
 are those floaters just the Perrault-en acute and grave above and below?
 In which case, they would have much simpler joining behavior.
 
-Perrault’s medial O is below in TO! What?!
-
 Is there any way to distinguish I from E between a curved consonant
 and a consonant which would otherwise cross the curved consonant?
 <http://www.musique-ancienne.fr/duploye/01/Al_03.html> suggests not (“planète” vs. “nickel”).
@@ -134,10 +132,6 @@ How should the reverse circle consonant ligatures (not vowels!) from
 <http://www.musique-ancienne.fr/duploye/codifie/su1/cercles.html> be encoded?
 “Reverse circle vowels are not known to interact typographically with other vowel characters”
 is therefore literally true but glyphically false.
-
-How about the reverse circle vowels of Perrault’s abbreviations?
-
-How about “admirons la bravure” (Perrault 69) where R overlaps B in ADMIRxLABAVOR?
 
 Perrault-en says long U is “written in any direction whatever” but code chart says it is invariant.
 
@@ -176,8 +170,6 @@ It seems to be a double U+1BC7B according to L2/10-202.
 * <http://web.archive.org/web/20130809144951/http://www.stenographie.ch/fr_introd.html>
 * <http://forumsteno.vosforums.com>
   * Semi-active forum in French
-* <http://www.archive.org/stream/cihm_11987#page/n5/mode/2up>
-  * French Duployan manual by Perrault
 * <http://numerique.banq.qc.ca/patrimoine/details/52327/1988503>
   * English Duployan manual by Perrault
 * <https://archive.org/stream/reportersrulesab00sloaiala#page/6/mode/2up>
