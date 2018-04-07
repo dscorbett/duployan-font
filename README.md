@@ -109,13 +109,6 @@ UTN #37 says they float by default;
 are those floaters just the Perrault-en acute and grave above and below?
 In which case, they would have much simpler joining behavior.
 
-Is there any way to distinguish I from E between a curved consonant
-and a consonant which would otherwise cross the curved consonant?
-<http://www.musique-ancienne.fr/duploye/01/Al_03.html> suggests not (“planète” vs. “nickel”).
-
-How is the underline encoded in the abbreviation for “New York” (NOuRK + underline)?
-Proper nouns are underlined, so I suppose this is the same thing.
-
 Similary, some Romanian abbreivations incorporate an equals sign for “aceeași” and “egal”.
 “Egalitate” is an equals sign with the bottom line extended right.
 
@@ -133,8 +126,6 @@ How should the reverse circle consonant ligatures (not vowels!) from
 “Reverse circle vowels are not known to interact typographically with other vowel characters”
 is therefore literally true but glyphically false.
 
-Perrault-en says long U is “written in any direction whatever” but code chart says it is invariant.
-
 Sloan-Duployan half-thickened large semicircle
 
 Pernin retracted short vowels via backwards tick
@@ -147,6 +138,8 @@ S-D punctuation: long and short wavy lines
 
 SOPU: small connected “3” is “șt” (ro) or “sh” (en)
 It seems to be a double U+1BC7B according to L2/10-202.
+
+Perrault-en p. 92 passim have examples of drop caps.
 
 ## Extra characters used in Duployan
 
