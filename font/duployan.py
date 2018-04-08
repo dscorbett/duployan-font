@@ -20,33 +20,54 @@ import fontforge
 import psMat
 
 BASELINE = 402
+CURSIVE_ANCHOR = 'cursive'
+CURSIVE_LOOKUP = "'curs'"
+CURSIVE_SUBTABLE = CURSIVE_LOOKUP + '-1'
 SIDE_BEARING = 85
 STROKE_WIDTH = 70
 
+def add_lookups(font):
+    font.addLookup(CURSIVE_LOOKUP,
+        'gpos_cursive',
+        ('ignore_marks',),
+        (('curs', (('dupl', ('dflt',)),)),))
+    font.addLookupSubtable(CURSIVE_LOOKUP, CURSIVE_SUBTABLE)
+    font.addAnchorClass(CURSIVE_SUBTABLE, CURSIVE_ANCHOR)
+
 def b(glyph, pen, size):
     pen.moveTo((0, 500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
     pen.lineTo((0, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def d(glyph, pen, size):
     pen.moveTo((0, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
     pen.lineTo((500 * size, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def v(glyph, pen, size):
     pen.moveTo((0, 500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
     pen.lineTo((500 * size, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def g(glyph, pen, size):
     pen.moveTo((0, 500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
     pen.lineTo((0, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
     glyph.transform(psMat.skew(math.radians(30)), ('round',))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def r(glyph, pen, size):
-    pen.moveTo((0, 500 * size))
-    pen.lineTo((0, 0))
+    pen.moveTo((0, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+    pen.lineTo((0, 500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 500 * size)
     glyph.transform(psMat.skew(math.radians(60)), ('round',))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -83,6 +104,7 @@ DUPLOYAN = {
 }
 
 def augment(font):
+    add_lookups(font)
     for cp, schema in DUPLOYAN.items ():
         draw_glyph(font, cp, schema)
 
