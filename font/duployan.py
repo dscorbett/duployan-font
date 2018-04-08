@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import division
+
 __all__ = ['augment']
 
 import math
@@ -71,6 +73,28 @@ def r(glyph, pen, size):
     glyph.transform(psMat.skew(math.radians(60)), ('round',))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
+def m(glyph, pen, size):
+    cp = (4 * (2 ** 0.5 - 1) / 3) * size * 500
+    pen.moveTo((0, 500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
+    pen.curveTo((-cp, 500 * size), (-500 * size, cp), (-500 * size, 0))
+    pen.curveTo((-500 * size, -cp), (-cp, -500 * size), (0, -500 * size))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, -500 * size)
+    glyph.transform(psMat.scale(0.75, 1))
+    glyph.stroke('circular', STROKE_WIDTH, 'round')
+
+def n(glyph, pen, size):
+    m(glyph, pen, size)
+    glyph.transform(psMat.scale(-1, 1))
+
+def j(glyph, pen, size):
+    n(glyph, pen, size)
+    glyph.transform(psMat.rotate(math.radians(90)))
+
+def s(glyph, pen, size):
+    m(glyph, pen, size)
+    glyph.transform(psMat.rotate(math.radians(90)))
+
 def draw_glyph(font, cp, schema):
     glyph = font.createChar(cp, str(schema))
     glyph.glyphclass = 'baseglyph'
@@ -101,6 +125,10 @@ DUPLOYAN = {
     0x1BC09: Schema(v, 2),
     0x1BC0A: Schema(g, 2),
     0x1BC0B: Schema(r, 2),
+    0x1BC19: Schema(m, 2),
+    0x1BC1A: Schema(n, 2),
+    0x1BC1B: Schema(j, 2),
+    0x1BC1C: Schema(s, 2),
 }
 
 def augment(font):
