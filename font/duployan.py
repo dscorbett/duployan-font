@@ -36,64 +36,102 @@ def add_lookups(font):
     font.addLookupSubtable(CURSIVE_LOOKUP, CURSIVE_SUBTABLE)
     font.addAnchorClass(CURSIVE_SUBTABLE, CURSIVE_ANCHOR)
 
-def b(glyph, pen, size):
-    pen.moveTo((0, 500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
-    pen.lineTo((0, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
+def line(glyph, pen, size, angle):
+    pen.moveTo((0, 0))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+    if angle % 180 == 90:
+        pen.lineTo((500 * size, 0))
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
+    else:
+        pen.lineTo((0, 500 * size))
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 500 * size)
+        if 90 < angle < 270:
+            skew = 180 - angle
+        else:
+            skew = angle
+        glyph.transform(psMat.skew(math.radians(skew)), ('round',))
+        if 90 < angle < 270:
+            glyph.transform(psMat.scale(1, -1))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
+
+def b(glyph, pen, size):
+    line(glyph, pen, size, 180)
 
 def d(glyph, pen, size):
-    pen.moveTo((0, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-    pen.lineTo((500 * size, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
-    glyph.stroke('circular', STROKE_WIDTH, 'round')
+    line(glyph, pen, size, 90)
 
 def v(glyph, pen, size):
-    pen.moveTo((0, 500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
-    pen.lineTo((500 * size, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
-    glyph.stroke('circular', STROKE_WIDTH, 'round')
+    line(glyph, pen, size, 135)
 
 def g(glyph, pen, size):
-    pen.moveTo((0, 500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
-    pen.lineTo((0, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
-    glyph.transform(psMat.skew(math.radians(30)), ('round',))
-    glyph.stroke('circular', STROKE_WIDTH, 'round')
+    line(glyph, pen, size, 210)
 
 def r(glyph, pen, size):
-    pen.moveTo((0, 0))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-    pen.lineTo((0, 500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 500 * size)
-    glyph.transform(psMat.skew(math.radians(60)), ('round',))
+    line(glyph, pen, size, 60)
+
+def curve(glyph, pen, size, angle_in, angle_out, clockwise):
+    if clockwise and angle_out < angle_in:
+        angle_out += 360
+    elif not clockwise and angle_out > angle_in:
+        angle_out -= 360
+    a1 = (180 if clockwise else 0) - angle_in
+    a2 = (180 if clockwise else 0) - angle_out
+    r = 250 * size
+    da = a2 - a1
+    beziers_needed = int(math.ceil(abs(da) / 90))
+    beziers_needed *= 4  # TODO: real curves
+    bezier_arc = da / beziers_needed
+    cp = (4 / 3) * math.tan(math.pi / (2 * beziers_needed))
+    x = r * math.cos(math.radians(a1))
+    y = r * math.sin(math.radians(a1))
+    pen.moveTo((x, y))
+    print 'move to', a1
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
+    for i in range(1, beziers_needed):
+        #pen.curveTo((, ), (, ), (, ))
+        pen.lineTo((r * math.cos(math.radians(a1 + i * bezier_arc)), r * math.sin(math.radians(a1 + i * bezier_arc))))
+        print 'line to', a1 + i * bezier_arc
+    x = r * math.cos(math.radians(a2))
+    y = r * math.sin(math.radians(a2))
+    #pen.curveTo((, ), (, ), (x, y))
+    pen.lineTo((x, y))
+    print 'line to', a2
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, y)
+    pen.endPath()
+    #pen.moveTo((-50, 0))
+    #pen.lineTo((50, 0))
+    #pen.endPath()
+    #pen.moveTo((0, -50))
+    #pen.lineTo((0, 50))
+    #glyph.stroke('circular', STROKE_WIDTH, 'round')
+    #pen.endPath()
+    #pen.moveTo((r * math.cos(math.radians(a1)), r * math.sin(math.radians(a1))))
+    #pen.lineTo((r * math.cos(math.radians(a1)) + 100, r * math.sin(math.radians(a1))))
+    #pen.endPath()
+    #pen.moveTo((r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2))))
+    #pen.lineTo((r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2)) + 100))
+    #pen.endPath()
+    print angle_in, angle_out, clockwise, '=>', a1, a2, '=>', (r * math.cos(math.radians(a1)), r * math.sin(math.radians(a1))), (r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2))), beziers_needed
     glyph.stroke('circular', STROKE_WIDTH, 'round')
+
+def test(glyph, pen, size):
+    curve(glyph, pen, size, 10, 350, False)
+    #curve(glyph, pen, size, 10, 350, True)
+    #curve(glyph, pen, size, 350, 10, False)
+    #curve(glyph, pen, size, 350, 10, True)
+    #curve(glyph, pen, size, 270, 90, False)
 
 def m(glyph, pen, size):
-    cp = (4 * (2 ** 0.5 - 1) / 3) * size * 500
-    pen.moveTo((0, 500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 500 * size)
-    pen.curveTo((-cp, 500 * size), (-500 * size, cp), (-500 * size, 0))
-    pen.curveTo((-500 * size, -cp), (-cp, -500 * size), (0, -500 * size))
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, -500 * size)
-    glyph.transform(psMat.scale(0.75, 1))
-    glyph.stroke('circular', STROKE_WIDTH, 'round')
+    curve(glyph, pen, size, 270, 90, False)
 
 def n(glyph, pen, size):
-    m(glyph, pen, size)
-    glyph.transform(psMat.scale(-1, 1))
+    curve(glyph, pen, size, 90, 270, True)
 
 def j(glyph, pen, size):
-    n(glyph, pen, size)
-    glyph.transform(psMat.rotate(math.radians(90)))
+    curve(glyph, pen, size, 0, 180, True)
 
 def s(glyph, pen, size):
-    m(glyph, pen, size)
-    glyph.transform(psMat.rotate(math.radians(90)))
+    curve(glyph, pen, size, 180, 0, False)
 
 def draw_glyph(font, cp, schema):
     glyph = font.createChar(cp, str(schema))
