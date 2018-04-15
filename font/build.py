@@ -27,9 +27,7 @@ def build_font(options, font):
     font.selection.all()
     font.correctReferences()
     font.selection.none()
-    flags = []
-    if args.output.endswith('.ttf'):
-        flags += ['opentype', 'dummy-dsig', 'omit-instructions']
+    flags = ['dummy-dsig', 'no-hints', 'omit-instructions', 'opentype']
     font.generate(options.output, flags=flags)
 
 def make_font(options):

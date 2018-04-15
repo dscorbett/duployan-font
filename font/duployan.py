@@ -69,6 +69,9 @@ def g(glyph, pen, size):
 def r(glyph, pen, size):
     line(glyph, pen, size, 60)
 
+def rect(r, theta):
+    return (r * math.cos(theta), r * math.sin(theta))
+
 def curve(glyph, pen, size, angle_in, angle_out, clockwise):
     if clockwise and angle_out < angle_in:
         angle_out += 360
@@ -79,47 +82,25 @@ def curve(glyph, pen, size, angle_in, angle_out, clockwise):
     r = 250 * size
     da = a2 - a1
     beziers_needed = int(math.ceil(abs(da) / 90))
-    beziers_needed *= 4  # TODO: real curves
     bezier_arc = da / beziers_needed
-    cp = (4 / 3) * math.tan(math.pi / (2 * beziers_needed))
+    cp = r * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
+    cp_distance = math.hypot(cp, r)
+    cp_angle = math.asin(cp / cp_distance)
     x = r * math.cos(math.radians(a1))
     y = r * math.sin(math.radians(a1))
-    pen.moveTo((x, y))
-    print 'move to', a1
+    pen.moveTo(rect(r, math.radians(a1)))
     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
-    for i in range(1, beziers_needed):
-        #pen.curveTo((, ), (, ), (, ))
-        pen.lineTo((r * math.cos(math.radians(a1 + i * bezier_arc)), r * math.sin(math.radians(a1 + i * bezier_arc))))
-        print 'line to', a1 + i * bezier_arc
-    x = r * math.cos(math.radians(a2))
-    y = r * math.sin(math.radians(a2))
-    #pen.curveTo((, ), (, ), (x, y))
-    pen.lineTo((x, y))
-    print 'line to', a2
-    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, y)
+    for i in range(1, beziers_needed + 1):
+        theta0 = math.radians(a1 + (i - 1) * bezier_arc)
+        p0 = rect(r, theta0)
+        p1 = rect(cp_distance, theta0 + cp_angle)
+        theta3 = math.radians(a2 if i == beziers_needed else a1 + i * bezier_arc)
+        p3 = rect(r, theta3)
+        p2 = rect(cp_distance, theta3 - cp_angle)
+        pen.curveTo(p1, p2, p3)
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
     pen.endPath()
-    #pen.moveTo((-50, 0))
-    #pen.lineTo((50, 0))
-    #pen.endPath()
-    #pen.moveTo((0, -50))
-    #pen.lineTo((0, 50))
-    #glyph.stroke('circular', STROKE_WIDTH, 'round')
-    #pen.endPath()
-    #pen.moveTo((r * math.cos(math.radians(a1)), r * math.sin(math.radians(a1))))
-    #pen.lineTo((r * math.cos(math.radians(a1)) + 100, r * math.sin(math.radians(a1))))
-    #pen.endPath()
-    #pen.moveTo((r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2))))
-    #pen.lineTo((r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2)) + 100))
-    #pen.endPath()
-    print angle_in, angle_out, clockwise, '=>', a1, a2, '=>', (r * math.cos(math.radians(a1)), r * math.sin(math.radians(a1))), (r * math.cos(math.radians(a2)), r * math.sin(math.radians(a2))), beziers_needed
     glyph.stroke('circular', STROKE_WIDTH, 'round')
-
-def test(glyph, pen, size):
-    curve(glyph, pen, size, 10, 350, False)
-    #curve(glyph, pen, size, 10, 350, True)
-    #curve(glyph, pen, size, 350, 10, False)
-    #curve(glyph, pen, size, 350, 10, True)
-    #curve(glyph, pen, size, 270, 90, False)
 
 def m(glyph, pen, size):
     curve(glyph, pen, size, 270, 90, False)
