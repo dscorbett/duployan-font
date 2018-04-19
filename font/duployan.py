@@ -114,6 +114,28 @@ def j(glyph, pen, size):
 def s(glyph, pen, size):
     curve(glyph, pen, size, 180, 0, False)
 
+def circle(glyph, pen, size, angle_in, angle_out, clockwise):
+    if clockwise and angle_out < angle_in:
+        angle_out += 360
+    elif not clockwise and angle_out > angle_in:
+        angle_out -= 360
+    a1 = (180 if clockwise else 0) - angle_in
+    a2 = (180 if clockwise else 0) - angle_out
+    r = 100 * size
+    cp = r * (4 / 3) * math.tan(math.pi / 8)
+    pen.moveTo((0, r))
+    pen.curveTo((cp, r), (r, cp), (r, 0))
+    pen.curveTo((r, -cp), (cp, -r), (0, -r))
+    pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
+    pen.curveTo((-r, cp), (-cp, r), (0, r))
+    pen.endPath()
+    glyph.stroke('circular', STROKE_WIDTH, 'round')
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+
+def o(glyph, pen, size):
+    circle(glyph, pen, size, 90, 90, False)
+
 def draw_glyph(font, cp, schema):
     glyph = font.createChar(cp, str(schema))
     glyph.glyphclass = 'baseglyph'
@@ -148,6 +170,7 @@ DUPLOYAN = {
     0x1BC1A: Schema(n, 2),
     0x1BC1B: Schema(j, 2),
     0x1BC1C: Schema(s, 2),
+    0x1BC44: Schema(o, 2),
 }
 
 def augment(font):

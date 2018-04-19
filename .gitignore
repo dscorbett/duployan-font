@@ -1,4 +1,6 @@
+.DS_Store
 *.otf
+*.png
 *.pyc
 *.pyo
 *.ttf
