@@ -54,21 +54,6 @@ def line(glyph, pen, size, angle):
             glyph.transform(psMat.scale(1, -1))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
-def b(glyph, pen, size):
-    line(glyph, pen, size, 270)
-
-def d(glyph, pen, size):
-    line(glyph, pen, size, 0)
-
-def v(glyph, pen, size):
-    line(glyph, pen, size, 315)
-
-def g(glyph, pen, size):
-    line(glyph, pen, size, 240)
-
-def r(glyph, pen, size):
-    line(glyph, pen, size, 30)
-
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
@@ -102,18 +87,6 @@ def curve(glyph, pen, size, angle_in, angle_out, clockwise):
     pen.endPath()
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
-def m(glyph, pen, size):
-    curve(glyph, pen, size, 180, 0, False)
-
-def n(glyph, pen, size):
-    curve(glyph, pen, size, 0, 180, True)
-
-def j(glyph, pen, size):
-    curve(glyph, pen, size, 90, 270, True)
-
-def s(glyph, pen, size):
-    curve(glyph, pen, size, 270, 90, False)
-
 def circle(glyph, pen, size, angle_in, angle_out, clockwise):
     if clockwise and angle_out > angle_in:
         angle_out -= 360
@@ -133,9 +106,6 @@ def circle(glyph, pen, size, angle_in, angle_out, clockwise):
     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
 
-def o(glyph, pen, size):
-    circle(glyph, pen, size, 0, 0, False)
-
 def draw_glyph(font, cp, schema):
     glyph = font.createChar(cp, str(schema))
     glyph.glyphclass = 'baseglyph'
@@ -146,6 +116,36 @@ def draw_glyph(font, cp, schema):
     bbox = glyph.boundingBox()
     center = (bbox[3] - bbox[1]) / 2 + bbox[1]
     glyph.transform(psMat.translate(0, BASELINE - center))
+
+def b(glyph, pen, size):
+    line(glyph, pen, size, 270)
+
+def d(glyph, pen, size):
+    line(glyph, pen, size, 0)
+
+def v(glyph, pen, size):
+    line(glyph, pen, size, 315)
+
+def g(glyph, pen, size):
+    line(glyph, pen, size, 240)
+
+def r(glyph, pen, size):
+    line(glyph, pen, size, 30)
+
+def m(glyph, pen, size):
+    curve(glyph, pen, size, 180, 0, False)
+
+def n(glyph, pen, size):
+    curve(glyph, pen, size, 0, 180, True)
+
+def j(glyph, pen, size):
+    curve(glyph, pen, size, 90, 270, True)
+
+def s(glyph, pen, size):
+    curve(glyph, pen, size, 270, 90, False)
+
+def o(glyph, pen, size):
+    circle(glyph, pen, size, 0, 0, False)
 
 class Schema(object):
     def __init__(self, path, size):
