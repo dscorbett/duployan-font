@@ -39,46 +39,46 @@ def add_lookups(font):
 def line(glyph, pen, size, angle):
     pen.moveTo((0, 0))
     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-    if angle % 180 == 90:
+    if angle % 180 == 0:
         pen.lineTo((500 * size, 0))
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
     else:
         pen.lineTo((0, 500 * size))
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 500 * size)
-        if 90 < angle < 270:
-            skew = 180 - angle
+        if 180 < angle:
+            skew = angle + 270
         else:
-            skew = angle
+            skew = -angle - 90
         glyph.transform(psMat.skew(math.radians(skew)), ('round',))
-        if 90 < angle < 270:
+        if 180 < angle:
             glyph.transform(psMat.scale(1, -1))
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def b(glyph, pen, size):
-    line(glyph, pen, size, 180)
+    line(glyph, pen, size, 270)
 
 def d(glyph, pen, size):
-    line(glyph, pen, size, 90)
+    line(glyph, pen, size, 0)
 
 def v(glyph, pen, size):
-    line(glyph, pen, size, 135)
+    line(glyph, pen, size, 315)
 
 def g(glyph, pen, size):
-    line(glyph, pen, size, 210)
+    line(glyph, pen, size, 240)
 
 def r(glyph, pen, size):
-    line(glyph, pen, size, 60)
+    line(glyph, pen, size, 30)
 
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
 def curve(glyph, pen, size, angle_in, angle_out, clockwise):
-    if clockwise and angle_out < angle_in:
-        angle_out += 360
-    elif not clockwise and angle_out > angle_in:
+    if clockwise and angle_out > angle_in:
         angle_out -= 360
-    a1 = (180 if clockwise else 0) - angle_in
-    a2 = (180 if clockwise else 0) - angle_out
+    elif not clockwise and angle_out < angle_in:
+        angle_out += 360
+    a1 = (90 if clockwise else -90) + angle_in
+    a2 = (90 if clockwise else -90) + angle_out
     r = 250 * size
     da = a2 - a1
     beziers_needed = int(math.ceil(abs(da) / 90))
@@ -103,24 +103,24 @@ def curve(glyph, pen, size, angle_in, angle_out, clockwise):
     glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 def m(glyph, pen, size):
-    curve(glyph, pen, size, 270, 90, False)
-
-def n(glyph, pen, size):
-    curve(glyph, pen, size, 90, 270, True)
-
-def j(glyph, pen, size):
-    curve(glyph, pen, size, 0, 180, True)
-
-def s(glyph, pen, size):
     curve(glyph, pen, size, 180, 0, False)
 
+def n(glyph, pen, size):
+    curve(glyph, pen, size, 0, 180, True)
+
+def j(glyph, pen, size):
+    curve(glyph, pen, size, 90, 270, True)
+
+def s(glyph, pen, size):
+    curve(glyph, pen, size, 270, 90, False)
+
 def circle(glyph, pen, size, angle_in, angle_out, clockwise):
-    if clockwise and angle_out < angle_in:
-        angle_out += 360
-    elif not clockwise and angle_out > angle_in:
+    if clockwise and angle_out > angle_in:
         angle_out -= 360
-    a1 = (180 if clockwise else 0) - angle_in
-    a2 = (180 if clockwise else 0) - angle_out
+    elif not clockwise and angle_out < angle_in:
+        angle_out += 360
+    a1 = (90 if clockwise else -90) + angle_in
+    a2 = (90 if clockwise else -90) + angle_out
     r = 100 * size
     cp = r * (4 / 3) * math.tan(math.pi / 8)
     pen.moveTo((0, r))
@@ -134,7 +134,7 @@ def circle(glyph, pen, size, angle_in, angle_out, clockwise):
     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
 
 def o(glyph, pen, size):
-    circle(glyph, pen, size, 90, 90, False)
+    circle(glyph, pen, size, 0, 0, False)
 
 def draw_glyph(font, cp, schema):
     glyph = font.createChar(cp, str(schema))
