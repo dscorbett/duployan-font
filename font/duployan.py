@@ -25,6 +25,7 @@ BASELINE = 402
 CURSIVE_ANCHOR = 'cursive'
 CURSIVE_LOOKUP = "'curs'"
 CURSIVE_SUBTABLE = CURSIVE_LOOKUP + '-1'
+RADIUS = 100
 SIDE_BEARING = 85
 STROKE_WIDTH = 70
 
@@ -64,7 +65,7 @@ def curve(glyph, pen, size, angle_in, angle_out, clockwise):
         angle_out += 360
     a1 = (90 if clockwise else -90) + angle_in
     a2 = (90 if clockwise else -90) + angle_out
-    r = 250 * size
+    r = RADIUS * size
     da = a2 - a1
     beziers_needed = int(math.ceil(abs(da) / 90))
     bezier_arc = da / beziers_needed
@@ -94,7 +95,7 @@ def circle(glyph, pen, size, angle_in, angle_out, clockwise):
         angle_out += 360
     a1 = (90 if clockwise else -90) + angle_in
     a2 = (90 if clockwise else -90) + angle_out
-    r = 100 * size
+    r = RADIUS * size
     cp = r * (4 / 3) * math.tan(math.pi / 8)
     pen.moveTo((0, r))
     pen.curveTo((cp, r), (r, cp), (r, 0))
@@ -166,10 +167,11 @@ DUPLOYAN = {
     0x1BC09: Schema(v, 2),
     0x1BC0A: Schema(g, 2),
     0x1BC0B: Schema(r, 2),
-    0x1BC19: Schema(m, 2),
-    0x1BC1A: Schema(n, 2),
-    0x1BC1B: Schema(j, 2),
-    0x1BC1C: Schema(s, 2),
+    0x1BC19: Schema(m, 3),
+    0x1BC1A: Schema(n, 3),
+    0x1BC1B: Schema(j, 3),
+    0x1BC1C: Schema(s, 3),
+    0x1BC41: Schema(o, 1),
     0x1BC44: Schema(o, 2),
 }
 
