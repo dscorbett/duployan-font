@@ -33,7 +33,7 @@ def build_font(options, font):
 def make_font(options):
     font = fontforge.open(options.input)
     font.encoding = 'UnicodeFull'
-    duployan.augment(font)
+    font = duployan.augment(font)
     build_font(options, font)
 
 if __name__ == '__main__':
