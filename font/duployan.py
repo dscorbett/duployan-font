@@ -177,7 +177,8 @@ class GlyphManager(object):
     def __init__(self, font, schemas):
         self.font = font
         self.schemas = schemas
-        self.classes = collections.defaultdict(set)
+        self.classes = collections.defaultdict(list)
+        self._canonical_classes = collections.defaultdict(set)
         self.angles_in = set()
         self.angles_out = set()
         for schema in self.schemas:
@@ -221,14 +222,27 @@ class GlyphManager(object):
         glyph = self.draw_glyph(schema)
         angle_in = schema.path.angle_in if angle_in is None else angle_in
         angle_out = schema.path.angle_out if angle_out is None else angle_out
-        self.classes['i{}'.format(angle_in)].add(glyph.glyphname)
-        self.classes['o{}'.format(angle_out)].add(glyph.glyphname)
-        self.classes['i{}o{}'.format(angle_in, angle_out)].add(glyph.glyphname)
+        self.classes['i{}'.format(angle_in)].append(glyph.glyphname)
+        self.classes['o{}'.format(angle_out)].append(glyph.glyphname)
+        if schema.orienting:
+            if '.' in glyph.glyphname and '_' in glyph.glyphname:
+                self.classes['medial_{}_{}'.format(angle_in, angle_out)].append(glyph.glyphname)
+                if angle_in == angle_out:
+                    final_class = 'final_{}'.format(angle_in)
+                    canonical = glyph.glyphname.split('_')[0]
+                    if canonical not in self._canonical_classes[final_class]:
+                        self._canonical_classes[final_class].add(canonical)
+                        self.classes[final_class].append(glyph.glyphname)
+                    initial_class = 'initial_{}'.format(angle_out)
+                    canonical = glyph.glyphname.split('.')[0] + '.' + glyph.glyphname.split('_')[1]
+                    if canonical not in self._canonical_classes[initial_class]:
+                        self._canonical_classes[initial_class].add(canonical)
+                        self.classes[initial_class].append(glyph.glyphname)
+            else:
+                self.classes['orienting'].append(glyph.glyphname)
         return glyph
 
     def run(self):
-        lookup_string = ('feature rclt {\n'
-            '    languagesystem dupl dflt;\n')
         for schema in self.schemas:
             self.draw_and_categorize_glyph(schema)
             if schema.orienting:
@@ -237,21 +251,30 @@ class GlyphManager(object):
                         glyph = self.draw_and_categorize_glyph(schema.contextualize(angle_in, angle_out),
                             angle_in, angle_out)
         self.refresh()
+        final_lookup_string = ('feature rclt {\n'
+            '    languagesystem dupl dflt;\n')
+        nonfinal_lookup_string = final_lookup_string
         for glyph_class, glyphs in self.classes.items():
-            if 'i' in glyph_class and 'o' in glyph_class:
-                angle_in = 'o' + glyph_class.split('o')[0][1:]
-                angle_out = 'i' + glyph_class.split('o')[1]
-                glyphs = filter(lambda s: '.' in s, sorted(glyphs))
-                lookup_string += "    substitute @{} [{}]' @{} by [{}];\n".format(
-                    angle_in,
-                    ' '.join(map(lambda s: s.split('.')[0], glyphs)),
-                    angle_out,
-                    ' '.join(glyphs))
-        lookup_string += '} rclt;\n'
+            class_fields = glyph_class.split('_')
+            if glyph_class.startswith('final_'):
+                prev_class = 'o' + class_fields[1]
+                final_lookup_string += "    substitute @{} @orienting' by @{};\n".format(
+                    prev_class, glyph_class)
+            elif glyph_class.startswith('medial_'):
+                target_class = 'final_' + class_fields[1]
+                next_class = 'i' + class_fields[2]
+                nonfinal_lookup_string += "    substitute @{}' @{} by @{};\n".format(
+                    target_class, next_class, glyph_class)
+            elif glyph_class.startswith('initial_'):
+                next_class = 'i' + class_fields[1]
+                nonfinal_lookup_string += "    substitute @orienting' @{} by @{};\n".format(
+                    next_class, glyph_class)
+        final_lookup_string += '} rclt;\n'
+        nonfinal_lookup_string += '} rclt;\n'
         classes_string = ''
         for glyph_class, glyphs in self.classes.items():
-            classes_string += '@{} = [{}];\n'.format(glyph_class, ' '.join(sorted(glyphs)))
-        merge_feature(self.font, classes_string + lookup_string)
+            classes_string += '@{} = [{}];\n'.format(glyph_class, ' '.join(glyphs))
+        merge_feature(self.font, classes_string + final_lookup_string + nonfinal_lookup_string)
         return self.font
 
 B = Line('b', 270)
