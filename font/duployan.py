@@ -44,10 +44,23 @@ def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
 class Line(object):
-    def __init__(self, name, angle):
-        self.name = name
+    def __init__(self, angle):
         self.angle_in = angle
         self.angle_out = angle
+
+    def __str__(self):
+        name = ''
+        if self.angle_in == 0:
+            name = 'D'
+        if self.angle_in == 30:
+            name = 'R'
+        if self.angle_in == 240:
+            name = 'G'
+        if self.angle_in == 270:
+            name = 'B'
+        if self.angle_in == 315:
+            name = 'V'
+        return 'ligne{}.{}.{}'.format(name, self.angle_in, self.angle_out)
 
     def __call__(self, glyph, pen, size):
         pen.moveTo((0, 0))
@@ -68,11 +81,23 @@ class Line(object):
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 class Curve(object):
-    def __init__(self, name, angle_in, angle_out, clockwise):
-        self.name = name
+    def __init__(self, angle_in, angle_out, clockwise):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
+
+    def __str__(self):
+        name = ''
+        if self.angle_in == 0 and self.angle_out == 180 and self.clockwise:
+            name = 'N'
+        if self.angle_in == 90 and self.angle_out == 270 and self.clockwise:
+            name = 'J'
+        if self.angle_in == 180 and self.angle_out == 0 and not self.clockwise:
+            name = 'M'
+        if self.angle_in == 270 and self.angle_out == 90 and not self.clockwise:
+            name = 'S'
+        return 'courbe{}.{}.{}.{}'.format(
+            name, self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
 
     def __call__(self, glyph, pen, size):
         angle_out = self.angle_out
@@ -106,17 +131,20 @@ class Curve(object):
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, angle_in, angle_out):
-        return Curve(self.name,
+        return Curve(
             angle_in,
             (self.angle_out + self.angle_in - angle_in) % 360,
             self.clockwise)
 
 class Circle(object):
-    def __init__(self, name, angle_in, angle_out, clockwise):
-        self.name = name
+    def __init__(self, angle_in, angle_out, clockwise):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
+
+    def __str__(self):
+        return 'cercle.{}.{}.{}'.format(
+            self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
 
     def __call__(self, glyph, pen, size):
         angle_out = self.angle_out
@@ -140,20 +168,19 @@ class Circle(object):
 
     def contextualize(self, angle_in, angle_out):
         if angle_in == angle_out:
-            return Circle(self.name, angle_in, angle_out, self.clockwise)
-        return Curve(self.name, angle_in, angle_out,
+            return Circle(angle_in, angle_out, self.clockwise)
+        return Curve(angle_in, angle_out,
             (abs(angle_out - angle_in) >= 180) != (angle_out > angle_in))
 
 class Schema(object):
-    def __init__(self, cp, path, size, orienting=False, extra_name=None):
+    def __init__(self, cp, path, size, orienting=False):
         self.cp = cp
         self.path = path
         self.size = size
         self.orienting = orienting
-        self.extra_name = '.' + extra_name if extra_name else ''
 
     def __str__(self):
-        return self.path.name + str(self.size) + self.extra_name
+        return '{}.{}'.format(self.path, self.size)
 
     def contextualize(self, angle_in, angle_out):
         assert self.orienting
@@ -161,8 +188,11 @@ class Schema(object):
         return Schema(-1,
             path,
             self.size,
-            self.orienting,
-            str(angle_in) + '_' + str(angle_out))
+            self.orienting)
+
+def class_key(class_item):
+    glyph_class, glyphs = class_item
+    return -glyph_class.count('_'), glyph_class, glyphs
 
 def merge_feature(font, feature_string):
     fea_path = tempfile.mkstemp(suffix='.fea')[1]
@@ -207,6 +237,9 @@ class GlyphManager(object):
 
     def draw_glyph(self, schema):
         glyph_name = str(schema)
+        self.refresh()
+        if glyph_name in self.font:
+            return self.font[glyph_name]
         glyph = self.font.createChar(schema.cp, glyph_name)
         glyph.glyphclass = 'baseglyph'
         pen = glyph.glyphPen()
@@ -220,25 +253,32 @@ class GlyphManager(object):
 
     def draw_and_categorize_glyph(self, schema, angle_in=None, angle_out=None):
         glyph = self.draw_glyph(schema)
+        nominal = angle_in == None
         angle_in = schema.path.angle_in if angle_in is None else angle_in
         angle_out = schema.path.angle_out if angle_out is None else angle_out
-        self.classes['i{}'.format(angle_in)].append(glyph.glyphname)
-        self.classes['o{}'.format(angle_out)].append(glyph.glyphname)
+        if glyph.glyphname not in self.classes['i{}'.format(angle_in)]:
+            self.classes['i{}'.format(angle_in)].append(glyph.glyphname)
+        if glyph.glyphname not in self.classes['o{}'.format(angle_out)]:
+            self.classes['o{}'.format(angle_out)].append(glyph.glyphname)
         if schema.orienting:
-            if '.' in glyph.glyphname and '_' in glyph.glyphname:
-                self.classes['medial_{}_{}'.format(angle_in, angle_out)].append(glyph.glyphname)
-                if angle_in == angle_out:
-                    final_class = 'final_{}'.format(angle_in)
-                    canonical = glyph.glyphname.split('_')[0]
-                    if canonical not in self._canonical_classes[final_class]:
-                        self._canonical_classes[final_class].add(canonical)
-                        self.classes[final_class].append(glyph.glyphname)
-                    initial_class = 'initial_{}'.format(angle_out)
-                    canonical = glyph.glyphname.split('.')[0] + '.' + glyph.glyphname.split('_')[1]
-                    if canonical not in self._canonical_classes[initial_class]:
-                        self._canonical_classes[initial_class].add(canonical)
-                        self.classes[initial_class].append(glyph.glyphname)
-            else:
+            medial_class = 'medial_{}_{}'.format(angle_in, angle_out)
+            canonical = glyph.glyphname
+            if canonical not in self._canonical_classes[medial_class]:
+                self._canonical_classes[medial_class].add(canonical)
+                self.classes[medial_class].append(glyph.glyphname)
+            if angle_in == angle_out:
+                name_pieces = glyph.glyphname.split('.')
+                final_class = 'final_{}'.format(angle_in)
+                canonical = '{0[0]}-{0[2]}-{0[3]}-{0[4]}'.format(name_pieces)
+                if canonical not in self._canonical_classes[final_class]:
+                    self._canonical_classes[final_class].add(canonical)
+                    self.classes[final_class].append(glyph.glyphname)
+                initial_class = 'initial_{}'.format(angle_out)
+                canonical = '{0[0]}-{0[1]}-{0[3]}-{0[4]}'.format(name_pieces)
+                if canonical not in self._canonical_classes[initial_class]:
+                    self._canonical_classes[initial_class].add(canonical)
+                    self.classes[initial_class].append(glyph.glyphname)
+            if nominal:
                 self.classes['orienting'].append(glyph.glyphname)
         return glyph
 
@@ -254,7 +294,7 @@ class GlyphManager(object):
         final_lookup_string = ('feature rclt {\n'
             '    languagesystem dupl dflt;\n')
         nonfinal_lookup_string = final_lookup_string
-        for glyph_class, glyphs in self.classes.items():
+        for glyph_class, glyphs in sorted(self.classes.items(), key=class_key):
             class_fields = glyph_class.split('_')
             if glyph_class.startswith('final_'):
                 prev_class = 'o' + class_fields[1]
@@ -277,16 +317,16 @@ class GlyphManager(object):
         merge_feature(self.font, classes_string + final_lookup_string + nonfinal_lookup_string)
         return self.font
 
-B = Line('b', 270)
-D = Line('d', 0)
-V = Line('v', 315)
-G = Line('g', 240)
-R = Line('r', 30)
-M = Curve('m', 180, 0, False)
-N = Curve('n', 0, 180, True)
-J = Curve('j', 90, 270, True)
-S = Curve('s', 270, 90, False)
-O = Circle('o', 0, 0, False)
+B = Line(270)
+D = Line(0)
+V = Line(315)
+G = Line(240)
+R = Line(30)
+M = Curve(180, 0, False)
+N = Curve(0, 180, True)
+J = Curve(90, 270, True)
+S = Curve(270, 90, False)
+O = Circle(0, 0, False)
 
 SCHEMAS = [
     Schema(0x1BC02, B, 1),
