@@ -131,6 +131,7 @@ class Curve(object):
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, angle_in, angle_out):
+        angle_in = angle_in or 0
         return Curve(
             angle_in,
             (self.angle_out + self.angle_in - angle_in) % 360,
@@ -167,6 +168,13 @@ class Circle(object):
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
 
     def contextualize(self, angle_in, angle_out):
+        if angle_in is None:
+            if angle_out is None:
+                angle_in = 0
+            else:
+                angle_in = angle_out
+        if angle_out is None:
+            angle_out = angle_in
         if angle_in == angle_out:
             return Circle(angle_in, angle_out, self.clockwise)
         return Curve(angle_in, angle_out,
@@ -180,13 +188,13 @@ class Schema(object):
         self.orienting = orienting
 
     def __str__(self):
-        return '{}.{}'.format(self.path, self.size)
+        return '{}.{}.{}'.format(self.path, self.size,
+            'con' if self.orienting and self.cp == -1 else 'nom')
 
     def contextualize(self, angle_in, angle_out):
         assert self.orienting
-        path = self.path.contextualize(angle_in, angle_out)
         return Schema(-1,
-            path,
+            self.path.contextualize(angle_in, angle_out),
             self.size,
             self.orienting)
 
@@ -249,47 +257,29 @@ class GlyphManager(object):
         bbox = glyph.boundingBox()
         center = (bbox[3] - bbox[1]) / 2 + bbox[1]
         glyph.transform(psMat.translate(0, BASELINE - center))
-        return glyph
-
-    def draw_and_categorize_glyph(self, schema, angle_in=None, angle_out=None):
-        glyph = self.draw_glyph(schema)
-        nominal = angle_in == None
-        angle_in = schema.path.angle_in if angle_in is None else angle_in
-        angle_out = schema.path.angle_out if angle_out is None else angle_out
+        angle_in = schema.path.angle_in
+        angle_out = schema.path.angle_out
         if glyph.glyphname not in self.classes['i{}'.format(angle_in)]:
             self.classes['i{}'.format(angle_in)].append(glyph.glyphname)
         if glyph.glyphname not in self.classes['o{}'.format(angle_out)]:
             self.classes['o{}'.format(angle_out)].append(glyph.glyphname)
-        if schema.orienting:
-            medial_class = 'medial_{}_{}'.format(angle_in, angle_out)
-            canonical = glyph.glyphname
-            if canonical not in self._canonical_classes[medial_class]:
-                self._canonical_classes[medial_class].add(canonical)
-                self.classes[medial_class].append(glyph.glyphname)
-            if angle_in == angle_out:
-                name_pieces = glyph.glyphname.split('.')
-                final_class = 'final_{}'.format(angle_in)
-                canonical = '{0[0]}-{0[2]}-{0[3]}-{0[4]}'.format(name_pieces)
-                if canonical not in self._canonical_classes[final_class]:
-                    self._canonical_classes[final_class].add(canonical)
-                    self.classes[final_class].append(glyph.glyphname)
-                initial_class = 'initial_{}'.format(angle_out)
-                canonical = '{0[0]}-{0[1]}-{0[3]}-{0[4]}'.format(name_pieces)
-                if canonical not in self._canonical_classes[initial_class]:
-                    self._canonical_classes[initial_class].add(canonical)
-                    self.classes[initial_class].append(glyph.glyphname)
-            if nominal:
-                self.classes['orienting'].append(glyph.glyphname)
         return glyph
 
     def run(self):
         for schema in self.schemas:
-            self.draw_and_categorize_glyph(schema)
+            glyph = self.draw_glyph(schema)
             if schema.orienting:
+                self.classes['nominal'].append(glyph.glyphname)
                 for angle_in in self.angles_out:
                     for angle_out in self.angles_in:
-                        glyph = self.draw_and_categorize_glyph(schema.contextualize(angle_in, angle_out),
-                            angle_in, angle_out)
+                        glyph = self.draw_glyph(schema.contextualize(angle_in, angle_out))
+                        self.classes['medial_{}_{}'.format(angle_in, angle_out)].append(glyph.glyphname)
+                for angle_in in self.angles_out:
+                    glyph = self.draw_glyph(schema.contextualize(angle_in, None))
+                    self.classes['final_{}'.format(angle_in)].append(glyph.glyphname)
+                for angle_out in self.angles_in:
+                    glyph = self.draw_glyph(schema.contextualize(None, angle_out))
+                    self.classes['initial_{}'.format(angle_out)].append(glyph.glyphname)
         self.refresh()
         final_lookup_string = ('feature rclt {\n'
             '    languagesystem dupl dflt;\n')
@@ -298,7 +288,7 @@ class GlyphManager(object):
             class_fields = glyph_class.split('_')
             if glyph_class.startswith('final_'):
                 prev_class = 'o' + class_fields[1]
-                final_lookup_string += "    substitute @{} @orienting' by @{};\n".format(
+                final_lookup_string += "    substitute @{} @nominal' by @{};\n".format(
                     prev_class, glyph_class)
             elif glyph_class.startswith('medial_'):
                 target_class = 'final_' + class_fields[1]
@@ -307,7 +297,7 @@ class GlyphManager(object):
                     target_class, next_class, glyph_class)
             elif glyph_class.startswith('initial_'):
                 next_class = 'i' + class_fields[1]
-                nonfinal_lookup_string += "    substitute @orienting' @{} by @{};\n".format(
+                nonfinal_lookup_string += "    substitute @nominal' @{} by @{};\n".format(
                     next_class, glyph_class)
         final_lookup_string += '} rclt;\n'
         nonfinal_lookup_string += '} rclt;\n'
