@@ -131,11 +131,15 @@ class Curve(object):
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, angle_in, angle_out):
-        angle_in = angle_in or 0
+        if angle_in is None:
+            if angle_out is not None:
+                angle_in = (angle_out + self.angle_in - self.angle_out) % 360
+            else:
+                angle_in = self.angle_in
         return Curve(
             angle_in,
-            (self.angle_out + self.angle_in - angle_in) % 360,
-            self.clockwise)
+            (angle_in + self.angle_out - self.angle_in) % 360,
+            self.clockwise if angle_out is None else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
 
 class Circle(object):
     def __init__(self, angle_in, angle_out, clockwise):
@@ -227,13 +231,13 @@ class GlyphManager(object):
                 deltas = {delta}
                 ndelta = delta
                 while True:
-                    ndelta += delta % 360
+                    ndelta = (ndelta + delta) % 360
                     if ndelta in deltas:
                         break
                     deltas.add(ndelta)
                 for angle_out in set(self.angles_out):
                     for delta in deltas:
-                        self.angles_out.add(angle_out + delta)
+                        self.angles_out.add((angle_out + delta) % 360)
 
     def refresh(self):
         # Work around https://github.com/fontforge/fontforge/issues/3278
@@ -335,6 +339,8 @@ SCHEMAS = [
     Schema(0x1BC1C, S, 3),
     Schema(0x1BC41, O, 1, True),
     Schema(0x1BC44, O, 2, True),
+    Schema(0x1BC46, M, 1, True),
+    Schema(0x1BC47, S, 1, True),
 ]
 
 def augment(font):
