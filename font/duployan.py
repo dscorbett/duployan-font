@@ -249,10 +249,10 @@ class GlyphManager(object):
 
     def draw_glyph(self, schema):
         glyph_name = str(schema)
-        self.refresh()
-        if glyph_name in self.font:
-            return self.font[glyph_name]
+        if glyph_name in self.font.temporary:
+            return self.font.temporary[glyph_name]
         glyph = self.font.createChar(schema.cp, glyph_name)
+        self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseglyph'
         pen = glyph.glyphPen()
         schema.path(glyph, pen, schema.size)
@@ -270,6 +270,7 @@ class GlyphManager(object):
         return glyph
 
     def run(self):
+        self.font.temporary = {}
         for schema in self.schemas:
             glyph = self.draw_glyph(schema)
             if schema.orienting:
