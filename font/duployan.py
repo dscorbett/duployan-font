@@ -223,7 +223,10 @@ class GlyphManager(object):
         self._canonical_classes = collections.defaultdict(set)
         self.angles_in = set()
         self.angles_out = set()
+        code_points = collections.defaultdict(int)
         for schema in self.schemas:
+            if schema.cp != -1:
+                code_points[schema.cp] += 1
             self.angles_in.add(schema.path.angle_in)
             self.angles_out.add(schema.path.angle_out)
             if schema.orienting:
@@ -238,6 +241,9 @@ class GlyphManager(object):
                 for angle_out in set(self.angles_out):
                     for delta in deltas:
                         self.angles_out.add((angle_out + delta) % 360)
+        code_points = {cp: count for cp, count in code_points.items() if count > 1}
+        assert not code_points, ('Duplicate code points:\n    ' +
+            '\n    '.join(map(hex, sorted(code_points.keys()))))
 
     def refresh(self):
         # Work around https://github.com/fontforge/fontforge/issues/3278
