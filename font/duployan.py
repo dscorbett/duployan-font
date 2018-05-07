@@ -430,6 +430,13 @@ M = Curve(180, 0, False)
 N = Curve(0, 180, True)
 J = Curve(90, 270, True)
 S = Curve(270, 90, False)
+S_T = Curve(270, 0, False)
+S_P = Curve(270, 180, True)
+T_S = Curve(0, 270, True)
+W = Curve(180, 270, False)
+S_N = Curve(0, 90, False)
+G_R_S = Curve(90, 180, False)
+S_K = Curve(90, 0, True)
 O = Circle(0, 0, False)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
@@ -446,6 +453,11 @@ SCHEMAS = [
     Schema(0x1BC09, V, 2),
     Schema(0x1BC0A, G, 2),
     Schema(0x1BC0B, R, 2),
+    Schema(0x1BC0C, B, 3),
+    Schema(0x1BC0D, D, 3),
+    Schema(0x1BC0E, V, 3),
+    Schema(0x1BC0F, G, 3),
+    Schema(0x1BC10, R, 3),
     Schema(0x1BC11, D, 1, marks=[DOT_1]),
     Schema(0x1BC12, D, 1, marks=[DOT_2]),
     Schema(0x1BC13, D, 2, marks=[DOT_1]),
@@ -463,13 +475,37 @@ SCHEMAS = [
     Schema(0x1BC24, J, 3, marks=[DOT_1, DOT_2]),
     Schema(0x1BC25, S, 3, marks=[DOT_1]),
     Schema(0x1BC26, S, 3, marks=[DOT_2]),
+    Schema(0x1BC27, M, 4),
+    Schema(0x1BC28, N, 4),
+    Schema(0x1BC29, J, 4),
+    Schema(0x1BC2A, S, 4),
+    Schema(0x1BC2F, J, 4, marks=[DOT_1]),
+    Schema(0x1BC32, S_T, 2),
+    Schema(0x1BC33, S_T, 3),
+    Schema(0x1BC34, S_P, 2),
+    Schema(0x1BC35, S_P, 3),
+    Schema(0x1BC36, T_S, 2),
+    Schema(0x1BC37, T_S, 3),
+    Schema(0x1BC38, W, 2),
+    Schema(0x1BC39, W, 2, marks=[DOT_1]),
+    Schema(0x1BC3A, W, 3),
+    Schema(0x1BC3B, S_N, 2),
+    Schema(0x1BC3C, S_N, 3),
+    Schema(0x1BC3D, G_R_S, 2),
+    Schema(0x1BC3E, G_R_S, 3),
+    Schema(0x1BC3F, S_K, 2),
+    Schema(0x1BC40, S_K, 3),
     Schema(0x1BC41, O, 1, True),
     Schema(0x1BC44, O, 2, True),
     Schema(0x1BC46, M, 1, True),
     Schema(0x1BC47, S, 1, True),
     Schema(0x1BC4C, S, 1, True, marks=[DOT_1]),
     Schema(0x1BC4D, S, 1, True, marks=[DOT_2]),
+    Schema(0x1BC51, S_T, 1, True),
+    Schema(0x1BC53, S_T, 1, True, marks=[DOT_1]),
     Schema(0x1BC5A, O, 2, True, marks=[DOT_1]),
+    Schema(0x1BC65, S_P, 1, True),
+    Schema(0x1BC66, W, 1, True),
 ]
 
 def augment(font):
