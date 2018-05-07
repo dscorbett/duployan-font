@@ -97,23 +97,12 @@ class Line(object):
         assert anchor is None
         pen.moveTo((0, 0))
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-        if self.angle_in % 180 == 0:
-            pen.lineTo((500 * size, 0))
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 500 * size, 0)
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', 250 * size, STROKE_WIDTH)
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', 250 * size, -STROKE_WIDTH)
-        else:
-            pen.lineTo((0, 500 * size))
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 500 * size)
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', -STROKE_WIDTH, 250 * size)
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', STROKE_WIDTH, 250 * size)
-            if 180 < self.angle_in:
-                skew = self.angle_in + 270
-            else:
-                skew = -self.angle_in - 90
-            glyph.transform(psMat.skew(math.radians(skew)), ('round',))
-            if 180 < self.angle_in:
-                glyph.transform(psMat.scale(1, -1))
+        length = 500 * size / (abs(math.sin(math.radians(self.angle_in))) or 1)
+        pen.lineTo((length, 0))
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
+        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
+        glyph.transform(psMat.rotate(math.radians(self.angle_in)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 class Curve(object):
@@ -461,8 +450,8 @@ SCHEMAS = [
     Schema(0x1BC11, D, 1, marks=[DOT_1]),
     Schema(0x1BC12, D, 1, marks=[DOT_2]),
     Schema(0x1BC13, D, 2, marks=[DOT_1]),
-    Schema(0x1BC14, G, 1, marks=[DOT_1]),
-    Schema(0x1BC15, G, 2, marks=[DOT_2]),
+    Schema(0x1BC14, G, 1, marks=[DOT_2]),
+    Schema(0x1BC15, G, 2, marks=[DOT_1]),
     Schema(0x1BC16, R, 1, marks=[DOT_1]),
     Schema(0x1BC17, R, 1, marks=[DOT_2]),
     Schema(0x1BC19, M, 3),
