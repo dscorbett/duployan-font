@@ -167,9 +167,11 @@ class Curve(object):
         pen.endPath()
         glyph.stroke('circular', STROKE_WIDTH, 'round')
         relative_mark_angle = (a1 + a2) / 2
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(
-            min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
-            math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
+        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
+            *(rect(0, 0) if da > 180 else rect(
+                min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
+                math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
 
     def contextualize(self, angle_in, angle_out):
