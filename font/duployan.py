@@ -58,13 +58,27 @@ def add_lookups(font):
     font.addLookupSubtable(RELATIVE_2_LOOKUP, RELATIVE_2_SUBTABLE)
     font.addAnchorClass(RELATIVE_2_SUBTABLE, RELATIVE_2_ANCHOR)
 
+class Context(object):
+    def __init__(self, angle=None, clockwise=None):
+        self.angle = angle
+        self.curve = '' if clockwise is None else 'neg' if clockwise else 'pos'
+
+    def __str__(self):
+        if self.angle is None:
+            return ''
+        return '{}{}'.format(self.angle, self.curve)
+
+    def __eq__(self, other):
+        return self.angle == other.angle and self.curve == other.curve
+
+    def __hash__(self):
+        return hash(self.angle) ^ hash(self.curve)
+
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
 class Dot(object):
     def __str__(self):
-        self.angle_in = None
-        self.angle_out = None
         return 'point'
 
     def __call__(self, glyph, pen, size, anchor):
@@ -74,36 +88,47 @@ class Dot(object):
         glyph.glyphclass = 'mark'
         glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
 
+    def context_in(self):
+        return Context()
+
+    def context_out(self):
+        return Context()
+
 class Line(object):
     def __init__(self, angle):
-        self.angle_in = angle
-        self.angle_out = angle
+        self.angle = angle
 
     def __str__(self):
         name = ''
-        if self.angle_in == 0:
+        if self.angle == 0:
             name = 'D'
-        if self.angle_in == 30:
+        if self.angle == 30:
             name = 'R'
-        if self.angle_in == 240:
+        if self.angle == 240:
             name = 'G'
-        if self.angle_in == 270:
+        if self.angle == 270:
             name = 'B'
-        if self.angle_in == 315:
+        if self.angle == 315:
             name = 'V'
-        return 'ligne{}.{}.{}'.format(name, self.angle_in, self.angle_out)
+        return 'ligne{}.{}'.format(name, self.angle)
 
     def __call__(self, glyph, pen, size, anchor):
         assert anchor is None
         pen.moveTo((0, 0))
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-        length = 500 * size / (abs(math.sin(math.radians(self.angle_in))) or 1)
+        length = 500 * size / (abs(math.sin(math.radians(self.angle))) or 1)
         pen.lineTo((length, 0))
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
-        glyph.transform(psMat.rotate(math.radians(self.angle_in)), ('round',))
+        glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
+
+    def context_out(self):
+        return Context(self.angle)
+
+    def context_in(self):
+        return Context(self.angle)
 
 class Curve(object):
     def __init__(self, angle_in, angle_out, clockwise):
@@ -163,7 +188,9 @@ class Curve(object):
                 math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
 
-    def contextualize(self, angle_in, angle_out):
+    def contextualize(self, context_in, context_out):
+        angle_in = context_in.angle
+        angle_out = context_out.angle
         if angle_in is None:
             if angle_out is not None:
                 angle_in = (angle_out + self.angle_in - self.angle_out) % 360
@@ -173,6 +200,12 @@ class Curve(object):
             angle_in,
             (angle_in + self.angle_out - self.angle_in) % 360,
             self.clockwise if angle_out is None else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
+
+    def context_in(self):
+        return Context(self.angle_in)
+
+    def context_out(self):
+        return Context(self.angle_out, self.clockwise)
 
 class Circle(object):
     def __init__(self, angle_in, angle_out, clockwise):
@@ -207,7 +240,9 @@ class Circle(object):
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
 
-    def contextualize(self, angle_in, angle_out):
+    def contextualize(self, context_in, context_out):
+        angle_in = context_in.angle
+        angle_out = context_out.angle
         if angle_in is None:
             if angle_out is None:
                 angle_in = 0
@@ -219,6 +254,12 @@ class Circle(object):
             return Circle(angle_in, angle_out, self.clockwise)
         return Curve(angle_in, angle_out,
             (abs(angle_out - angle_in) >= 180) != (angle_out > angle_in))
+
+    def context_in(self):
+        return Context(self.angle_in)
+
+    def context_out(self):
+        return Context(self.angle_out, self.clockwise)
 
 class Schema(object):
     def __init__(self, cp, path, size, orienting=False, anchor=None, marks=None, _contextual=False):
@@ -239,10 +280,12 @@ class Schema(object):
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
-    def contextualize(self, angle_in, angle_out):
+    def contextualize(self, context_in, context_out):
         assert self.orienting
+        angle_in = context_in.angle
+        angle_out = context_out.angle
         return Schema(-1,
-            self.path.contextualize(angle_in, angle_out),
+            self.path.contextualize(context_in, context_out),
             self.size,
             self.orienting,
             _contextual=True)
@@ -252,7 +295,7 @@ class Schema(object):
 
 def class_key(class_item):
     glyph_class, glyphs = class_item
-    return -glyph_class.count('_'), glyph_class, glyphs
+    return -len(filter(None, glyph_class.split('_'))), glyph_class, glyphs
 
 def merge_feature(font, feature_string):
     fea_path = tempfile.mkstemp(suffix='.fea')[1]
@@ -275,18 +318,17 @@ class GlyphManager(object):
         self.schemas = schemas
         self.classes = collections.defaultdict(list)
         self._canonical_classes = collections.defaultdict(set)
-        self.angles_in = set()
-        self.angles_out = set()
+        self.contexts_in = {Context()}
+        self.contexts_out = {Context()}
         code_points = collections.defaultdict(int)
         for schema in self.schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
-            if schema.path.angle_in is not None:
-                self.angles_in.add(schema.path.angle_in)
-            if schema.path.angle_out is not None:
-                self.angles_out.add(schema.path.angle_out)
+            self.contexts_in.add(schema.path.context_in())
+            self.contexts_out.add(schema.path.context_out())
             if schema.orienting:
-                delta = int((schema.path.angle_out - schema.path.angle_in) % 360)
+                angle_out = schema.path.context_out().angle
+                delta = int((angle_out - schema.path.context_in().angle) % 360)
                 deltas = {delta}
                 ndelta = delta
                 while True:
@@ -294,9 +336,9 @@ class GlyphManager(object):
                     if ndelta in deltas:
                         break
                     deltas.add(ndelta)
-                for angle_out in set(self.angles_out):
+                for context_out in set(self.contexts_out):
                     for delta in deltas:
-                        self.angles_out.add((angle_out + delta) % 360)
+                        self.contexts_out.add(Context((angle_out + delta) % 360))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    ' +
             '\n    '.join(map(hex, sorted(code_points.keys()))))
@@ -353,12 +395,12 @@ class GlyphManager(object):
         bbox = glyph.boundingBox()
         center = (bbox[3] - bbox[1]) / 2 + bbox[1]
         glyph.transform(psMat.translate(0, BASELINE - center))
-        angle_in = schema.path.angle_in
-        angle_out = schema.path.angle_out
-        if angle_in is not None and glyph.glyphname not in self.classes['i{}'.format(angle_in)]:
-            self.classes['i{}'.format(angle_in)].append(glyph.glyphname)
-        if angle_out is not None and glyph.glyphname not in self.classes['o{}'.format(angle_out)]:
-            self.classes['o{}'.format(angle_out)].append(glyph.glyphname)
+        class_in = 'i{}'.format(schema.path.context_in())
+        class_out = 'o{}'.format(schema.path.context_out())
+        if glyph.glyphname not in self.classes[class_in]:
+            self.classes[class_in].append(glyph.glyphname)
+        if glyph.glyphname not in self.classes[class_out]:
+            self.classes[class_out].append(glyph.glyphname)
         return glyph
 
     def run(self):
@@ -371,33 +413,30 @@ class GlyphManager(object):
                     glyph.glyphname, ' '.join(reversed([r[0] for r in glyph.references])))
             elif schema.orienting:
                 self.classes['nominal'].append(glyph.glyphname)
-                for angle_in in self.angles_out:
-                    for angle_out in self.angles_in:
-                        glyph = self.draw_glyph(schema.contextualize(angle_in, angle_out))
-                        self.classes['medial_{}_{}'.format(angle_in, angle_out)].append(glyph.glyphname)
-                for angle_in in self.angles_out:
-                    glyph = self.draw_glyph(schema.contextualize(angle_in, None))
-                    self.classes['final_{}'.format(angle_in)].append(glyph.glyphname)
-                for angle_out in self.angles_in:
-                    glyph = self.draw_glyph(schema.contextualize(None, angle_out))
-                    self.classes['initial_{}'.format(angle_out)].append(glyph.glyphname)
+                for context_in in self.contexts_out:
+                    for context_out in self.contexts_in:
+                        glyph = self.draw_glyph(schema.contextualize(context_in, context_out))
+                        self.classes['contextual_{}_{}'.format(context_in, context_out)].append(glyph.glyphname)
         final_lookup_string = ''
         nonfinal_lookup_string = ''
         for glyph_class, glyphs in sorted(self.classes.items(), key=class_key):
             class_fields = glyph_class.split('_')
-            if glyph_class.startswith('final_'):
-                prev_class = 'o' + class_fields[1]
-                final_lookup_string += "    substitute @{} @nominal' by @{};\n".format(
-                    prev_class, glyph_class)
-            elif glyph_class.startswith('medial_'):
-                target_class = 'final_' + class_fields[1]
-                next_class = 'i' + class_fields[2]
-                nonfinal_lookup_string += "    substitute @{}' @{} by @{};\n".format(
-                    target_class, next_class, glyph_class)
-            elif glyph_class.startswith('initial_'):
-                next_class = 'i' + class_fields[1]
-                nonfinal_lookup_string += "    substitute @nominal' @{} by @{};\n".format(
-                    next_class, glyph_class)
+            if glyph_class.startswith('contextual_'):
+                next_class = class_fields[2] and '@i' + class_fields[2]
+                prev_class = '' if next_class else class_fields[1] and '@o' + class_fields[1]
+                if prev_class or next_class:
+                    target_class = ('@contextual_{}_'.format(class_fields[1])
+                        if class_fields[1] and class_fields[2]
+                        else '@nominal')
+                    if ((not prev_class or prev_class[1:] in self.classes) and
+                            (not target_class or target_class[1:] in self.classes) and
+                            (not prev_class or prev_class[1:] in self.classes)):
+                        topographical_lookup_string = "    substitute {} {}' {} by @{};\n".format(
+                            prev_class, target_class, next_class, glyph_class)
+                        if prev_class:
+                            final_lookup_string += topographical_lookup_string
+                        else:
+                            nonfinal_lookup_string += topographical_lookup_string
         classes_string = ''
         for glyph_class, glyphs in self.classes.items():
             classes_string += '@{} = [{}];\n'.format(glyph_class, ' '.join(glyphs))
