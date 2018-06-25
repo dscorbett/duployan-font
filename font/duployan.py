@@ -25,6 +25,9 @@ import fontforge
 import psMat
 
 BASELINE = 402
+DEFAULT_SIDE_BEARING = 85
+RADIUS = 100
+STROKE_WIDTH = 70
 CURSIVE_LOOKUP = "'curs'"
 CURSIVE_SUBTABLE = CURSIVE_LOOKUP + '-1'
 CURSIVE_ANCHOR = 'cursive'
@@ -34,9 +37,6 @@ RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_LOOKUP = "'mark' relative mark outside or below"
 RELATIVE_2_SUBTABLE = RELATIVE_2_LOOKUP + '-1'
 RELATIVE_2_ANCHOR = 'rel2'
-RADIUS = 100
-SIDE_BEARING = 85
-STROKE_WIDTH = 70
 
 def add_lookups(font):
     font.addLookup(CURSIVE_LOOKUP,
@@ -76,6 +76,13 @@ class Context(object):
 
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
+
+class Space(object):
+    def __str__(self):
+        return 'espace'
+
+    def __call__(self, glyph, pen, size, anchor):
+        pass
 
 class Dot(object):
     def __str__(self):
@@ -264,37 +271,76 @@ class Circle(object):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
+class Enum(object):
+    def __init__(self, names):
+        for i, name in enumerate(names):
+            setattr(self, name, i)
+
+TYPE = Enum([
+    'JOINING',
+    'ORIENTING',
+    'NON_JOINING',
+    'ZWNJ',
+])
+
 class Schema(object):
-    def __init__(self, cp, path, size, orienting=False, anchor=None, marks=None, _contextual=False):
+    def __init__(
+            self,
+            cp,
+            path,
+            size,
+            joining_type=TYPE.JOINING,
+            side_bearing=DEFAULT_SIDE_BEARING,
+            anchor=None,
+            marks=None,
+            _contextual=False):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         if anchor:
             assert cp == -1, 'A relative diacritic schema has a Unicode character: {}'.format(cp)
         self.cp = cp
         self.path = path
         self.size = size
-        self.orienting = orienting
+        self.joining_type = joining_type
+        self.side_bearing = side_bearing
         self.anchor = anchor
         self.marks = marks or []
         self._contextual = _contextual
 
     def __str__(self):
-        return '{}.{}.{}{}{}'.format(self.path, self.size,
-            'con' if self._contextual else 'nom',
+        return '{}.{}.{}{}{}{}'.format(
+            self.path,
+            self.size,
+            str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
+            ('neu' if (self.joining_type == TYPE.NON_JOINING
+                    or self.joining_type == TYPE.ZWNJ)
+                else 'con' if self._contextual
+                else 'nom'),
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
     def contextualize(self, context_in, context_out):
-        assert self.orienting
+        assert self.joining_type == TYPE.ORIENTING
         angle_in = context_in.angle
         angle_out = context_out.angle
         return Schema(-1,
             self.path.contextualize(context_in, context_out),
             self.size,
-            self.orienting,
+            self.joining_type,
+            self.side_bearing,
             _contextual=True)
 
     def without_marks(self):
-        return Schema(-1, self.path, self.size, self.orienting, self.anchor)
+        return Schema(
+            -1,
+            self.path,
+            self.size,
+            self.joining_type,
+            self.side_bearing,
+            self.anchor)
+
+def add_context(contexts, context):
+    if context is not None:
+        contexts.add(context)
 
 def class_key(class_item):
     glyph_class, glyphs = class_item
@@ -327,9 +373,12 @@ class GlyphManager(object):
         for schema in self.schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
+            if (schema.joining_type == TYPE.NON_JOINING
+                    or schema.joining_type == TYPE.ZWNJ):
+                continue
             self.contexts_in.add(schema.path.context_in())
             self.contexts_out.add(schema.path.context_out())
-            if schema.orienting:
+            if schema.joining_type == TYPE.ORIENTING:
                 angle_out = schema.path.context_out().angle
                 delta = int((angle_out - schema.path.context_in().angle) % 360)
                 deltas = {delta}
@@ -393,33 +442,42 @@ class GlyphManager(object):
             glyph = self.draw_glyph_with_marks(schema, glyph_name)
         else:
             glyph = self.draw_base_glyph(schema, glyph_name)
-        glyph.left_side_bearing = SIDE_BEARING
-        glyph.right_side_bearing = SIDE_BEARING
+        glyph.left_side_bearing = schema.side_bearing
+        glyph.right_side_bearing = schema.side_bearing
         bbox = glyph.boundingBox()
         center = (bbox[3] - bbox[1]) / 2 + bbox[1]
         glyph.transform(psMat.translate(0, BASELINE - center))
-        class_in = 'i{}'.format(schema.path.context_in())
-        class_out = 'o{}'.format(schema.path.context_out())
-        if glyph.glyphname not in self.classes[class_in]:
-            self.classes[class_in].append(glyph.glyphname)
-        if glyph.glyphname not in self.classes[class_out]:
-            self.classes[class_out].append(glyph.glyphname)
+        if (schema.joining_type != TYPE.NON_JOINING
+                and schema.joining_type != TYPE.ZWNJ):
+            class_in = 'i{}'.format(schema.path.context_in())
+            class_out = 'o{}'.format(schema.path.context_out())
+            if glyph.glyphname not in self.classes[class_in]:
+                self.classes[class_in].append(glyph.glyphname)
+            if glyph.glyphname not in self.classes[class_out]:
+                self.classes[class_out].append(glyph.glyphname)
         return glyph
 
     def run(self):
         self.font.temporary = {}
+        ignorable_lookup_string_1 = ''
+        ignorable_lookup_string_2 = ''
         decomposition_lookup_string = ''
         for schema in self.schemas:
             glyph = self.draw_glyph(schema)
             if schema.marks:
                 decomposition_lookup_string += '    substitute {} by {};\n'.format(
                     glyph.glyphname, ' '.join(reversed([r[0] for r in glyph.references])))
-            elif schema.orienting:
+            elif schema.joining_type == TYPE.ORIENTING:
                 self.classes['nominal'].append(glyph.glyphname)
                 for context_in in self.contexts_out:
                     for context_out in self.contexts_in:
                         glyph = self.draw_glyph(schema.contextualize(context_in, context_out))
                         self.classes['contextual_{}_{}'.format(context_in, context_out)].append(glyph.glyphname)
+            elif schema.joining_type == TYPE.ZWNJ:
+                ignorable_lookup_string_1 += '    substitute {} by {} {};\n'.format(
+                    glyph.glyphname, glyph.glyphname, glyph.glyphname)
+                ignorable_lookup_string_2 += '    substitute {} {} by {};\n'.format(
+                    glyph.glyphname, glyph.glyphname, glyph.glyphname)
         final_lookup_string = ''
         nonfinal_lookup_string = ''
         for glyph_class, glyphs in sorted(self.classes.items(), key=class_key):
@@ -446,11 +504,14 @@ class GlyphManager(object):
         self.refresh()
         merge_feature(self.font,
             classes_string
+            + wrap('ccmp', ignorable_lookup_string_1)
+            + wrap('ccmp', ignorable_lookup_string_2)
             + wrap('ccmp', decomposition_lookup_string)
             + wrap('rclt', final_lookup_string)
             + wrap('rclt', nonfinal_lookup_string))
         return self.font
 
+SPACE = Space()
 H = Dot()
 B = Line(270)
 D = Line(0)
@@ -474,6 +535,8 @@ DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 
 SCHEMAS = [
+    Schema(0x00A0, SPACE, 1, TYPE.NON_JOINING, 260),
+    Schema(0x200C, SPACE, 1, TYPE.ZWNJ, 0),
     Schema(0x1BC02, B, 1),
     Schema(0x1BC03, D, 1),
     Schema(0x1BC04, V, 1),
@@ -526,17 +589,17 @@ SCHEMAS = [
     Schema(0x1BC3E, G_R_S, 3),
     Schema(0x1BC3F, S_K, 2),
     Schema(0x1BC40, S_K, 3),
-    Schema(0x1BC41, O, 1, True),
-    Schema(0x1BC44, O, 2, True),
-    Schema(0x1BC46, M, 1, True),
-    Schema(0x1BC47, S, 1, True),
-    Schema(0x1BC4C, S, 1, True, marks=[DOT_1]),
-    Schema(0x1BC4D, S, 1, True, marks=[DOT_2]),
-    Schema(0x1BC51, S_T, 1, True),
-    Schema(0x1BC53, S_T, 1, True, marks=[DOT_1]),
-    Schema(0x1BC5A, O, 2, True, marks=[DOT_1]),
-    Schema(0x1BC65, S_P, 1, True),
-    Schema(0x1BC66, W, 1, True),
+    Schema(0x1BC41, O, 1, TYPE.ORIENTING),
+    Schema(0x1BC44, O, 2, TYPE.ORIENTING),
+    Schema(0x1BC46, M, 1, TYPE.ORIENTING),
+    Schema(0x1BC47, S, 1, TYPE.ORIENTING),
+    Schema(0x1BC4C, S, 1, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4D, S, 1, TYPE.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC51, S_T, 1, TYPE.ORIENTING),
+    Schema(0x1BC53, S_T, 1, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC5A, O, 2, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
+    Schema(0x1BC66, W, 1, TYPE.ORIENTING),
 ]
 
 def augment(font):
