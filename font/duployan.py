@@ -196,10 +196,13 @@ class Curve(object):
                 angle_in = (angle_out + self.angle_in - self.angle_out) % 360
             else:
                 angle_in = self.angle_in
+        da = self.angle_out - self.angle_in
         return Curve(
             angle_in,
-            (angle_in + self.angle_out - self.angle_in) % 360,
-            self.clockwise if angle_out is None else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
+            (angle_in + da) % 360,
+            (self.clockwise
+                if angle_out is None or da != 180
+                else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in)))
 
     def context_in(self):
         return Context(self.angle_in)
