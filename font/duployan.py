@@ -58,6 +58,17 @@ def add_lookups(font):
     font.addLookupSubtable(RELATIVE_2_LOOKUP, RELATIVE_2_SUBTABLE)
     font.addAnchorClass(RELATIVE_2_SUBTABLE, RELATIVE_2_ANCHOR)
 
+class Enum(object):
+    def __init__(self, names):
+        for i, name in enumerate(names):
+            setattr(self, name, i)
+
+TYPE = Enum([
+    'JOINING',
+    'ORIENTING',
+    'NON_JOINING',
+])
+
 class Context(object):
     def __init__(self, angle=None, clockwise=None):
         self.angle = angle
@@ -81,14 +92,22 @@ class Space(object):
     def __str__(self):
         return 'espace'
 
-    def __call__(self, glyph, pen, size, anchor):
-        pass
+    def __call__(self, glyph, pen, size, anchor, joining_type):
+        if joining_type != TYPE.NON_JOINING:
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -size, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
+
+    def context_in(self):
+        return Context()
+
+    def context_out(self):
+        return Context()
 
 class Dot(object):
     def __str__(self):
         return 'point'
 
-    def __call__(self, glyph, pen, size, anchor):
+    def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
@@ -119,13 +138,14 @@ class Line(object):
             name = 'V'
         return 'ligne{}.{}'.format(name, self.angle)
 
-    def __call__(self, glyph, pen, size, anchor):
+    def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
         pen.moveTo((0, 0))
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
         length = 500 * size / (abs(math.sin(math.radians(self.angle))) or 1)
         pen.lineTo((length, 0))
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+        if joining_type != TYPE.NON_JOINING:
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
@@ -156,7 +176,7 @@ class Curve(object):
         return 'courbe{}.{}.{}.{}'.format(
             name, self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
 
-    def __call__(self, glyph, pen, size, anchor):
+    def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
@@ -172,10 +192,7 @@ class Curve(object):
         cp = r * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
         cp_distance = math.hypot(cp, r)
         cp_angle = math.asin(cp / cp_distance)
-        x = r * math.cos(math.radians(a1))
-        y = r * math.sin(math.radians(a1))
         pen.moveTo(rect(r, math.radians(a1)))
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
         for i in range(1, beziers_needed + 1):
             theta0 = math.radians(a1 + (i - 1) * bezier_arc)
             p0 = rect(r, theta0)
@@ -184,10 +201,14 @@ class Curve(object):
             p3 = rect(r, theta3)
             p2 = rect(cp_distance, theta3 - cp_angle)
             pen.curveTo(p1, p2, p3)
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
         pen.endPath()
         glyph.stroke('circular', STROKE_WIDTH, 'round')
         relative_mark_angle = (a1 + a2) / 2
+        if joining_type != TYPE.NON_JOINING:
+            x = r * math.cos(math.radians(a1))
+            y = r * math.sin(math.radians(a1))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
             *(rect(0, 0) if da > 180 else rect(
@@ -227,7 +248,7 @@ class Circle(object):
         return 'cercle.{}.{}.{}'.format(
             self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
 
-    def __call__(self, glyph, pen, size, anchor):
+    def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
@@ -245,8 +266,9 @@ class Circle(object):
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
         glyph.stroke('circular', STROKE_WIDTH, 'round')
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+        if joining_type != TYPE.NON_JOINING:
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
 
@@ -271,18 +293,6 @@ class Circle(object):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
-class Enum(object):
-    def __init__(self, names):
-        for i, name in enumerate(names):
-            setattr(self, name, i)
-
-TYPE = Enum([
-    'JOINING',
-    'ORIENTING',
-    'NON_JOINING',
-    'ZWNJ',
-])
-
 class Schema(object):
     def __init__(
             self,
@@ -293,6 +303,7 @@ class Schema(object):
             side_bearing=DEFAULT_SIDE_BEARING,
             anchor=None,
             marks=None,
+            default_ignorable=False,
             _contextual=False):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         if anchor:
@@ -304,6 +315,7 @@ class Schema(object):
         self.side_bearing = side_bearing
         self.anchor = anchor
         self.marks = marks or []
+        self.default_ignorable = default_ignorable
         self._contextual = _contextual
 
     def __str__(self):
@@ -311,8 +323,7 @@ class Schema(object):
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            ('neu' if (self.joining_type == TYPE.NON_JOINING
-                    or self.joining_type == TYPE.ZWNJ)
+            ('neu' if self.joining_type == TYPE.NON_JOINING
                 else 'con' if self._contextual
                 else 'nom'),
             '.' + self.anchor if self.anchor else '',
@@ -373,8 +384,7 @@ class GlyphManager(object):
         for schema in self.schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
-            if (schema.joining_type == TYPE.NON_JOINING
-                    or schema.joining_type == TYPE.ZWNJ):
+            if schema.joining_type == TYPE.NON_JOINING:
                 continue
             self.contexts_in.add(schema.path.context_in())
             self.contexts_out.add(schema.path.context_out())
@@ -431,7 +441,7 @@ class GlyphManager(object):
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseglyph'
         pen = glyph.glyphPen()
-        schema.path(glyph, pen, schema.size, schema.anchor)
+        schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
         return glyph
 
     def add_altuni(self, cp, glyph_name):
@@ -457,8 +467,7 @@ class GlyphManager(object):
         bbox = glyph.boundingBox()
         center = (bbox[3] - bbox[1]) / 2 + bbox[1]
         glyph.transform(psMat.translate(0, BASELINE - center))
-        if (schema.joining_type != TYPE.NON_JOINING
-                and schema.joining_type != TYPE.ZWNJ):
+        if schema.joining_type != TYPE.NON_JOINING:
             class_in = 'i{}'.format(schema.path.context_in())
             class_out = 'o{}'.format(schema.path.context_out())
             if glyph.glyphname not in self.classes[class_in]:
@@ -474,6 +483,9 @@ class GlyphManager(object):
         decomposition_lookup_string = ''
         for schema in self.schemas:
             glyph = self.draw_glyph(schema)
+            if glyph.altuni:
+                # This glyph has already been processed.
+                continue
             if schema.marks:
                 decomposition_lookup_string += '    substitute {} by {};\n'.format(
                     glyph.glyphname, ' '.join(reversed([r[0] for r in glyph.references])))
@@ -483,7 +495,7 @@ class GlyphManager(object):
                     for context_out in self.contexts_in:
                         glyph = self.draw_glyph(schema.contextualize(context_in, context_out))
                         self.classes['contextual_{}_{}'.format(context_in, context_out)].append(glyph.glyphname)
-            elif schema.joining_type == TYPE.ZWNJ:
+            elif schema.default_ignorable:
                 ignorable_lookup_string_1 += '    substitute {} by {} {};\n'.format(
                     glyph.glyphname, glyph.glyphname, glyph.glyphname)
                 ignorable_lookup_string_2 += '    substitute {} {} by {};\n'.format(
@@ -545,9 +557,25 @@ DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 
 SCHEMAS = [
-    Schema(0x0020, SPACE, 1, TYPE.NON_JOINING, 260),
-    Schema(0x00A0, SPACE, 1, TYPE.NON_JOINING, 260),
-    Schema(0x200C, SPACE, 1, TYPE.ZWNJ, 0),
+    Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
+    Schema(0x00A0, SPACE, 260, TYPE.NON_JOINING, 260),
+    Schema(0x2000, SPACE, 500, side_bearing=500),
+    Schema(0x2001, SPACE, 1000, side_bearing=1000),
+    Schema(0x2002, SPACE, 500, side_bearing=500),
+    Schema(0x2003, SPACE, 1000, side_bearing=1000),
+    Schema(0x2004, SPACE, 333, side_bearing=333),
+    Schema(0x2005, SPACE, 250, side_bearing=250),
+    Schema(0x2006, SPACE, 167, side_bearing=167),
+    Schema(0x2007, SPACE, 572, side_bearing=572),
+    Schema(0x2008, SPACE, 268, side_bearing=268),
+    Schema(0x2009, SPACE, 200, side_bearing=200),
+    Schema(0x200A, SPACE, 100, side_bearing=100),
+    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
+    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, default_ignorable=True),
+    Schema(0x202F, SPACE, 200, side_bearing=200),
+    Schema(0x205F, SPACE, 222, side_bearing=222),
+    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
+    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
     Schema(0x1BC02, B, 1),
     Schema(0x1BC03, D, 1),
     Schema(0x1BC04, V, 1),
