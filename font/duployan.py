@@ -434,10 +434,20 @@ class GlyphManager(object):
         schema.path(glyph, pen, schema.size, schema.anchor)
         return glyph
 
+    def add_altuni(self, cp, glyph_name):
+        glyph = self.font.temporary[glyph_name]
+        if cp != -1:
+            new_altuni = ((cp, -1, 0),)
+            if glyph.altuni is None:
+                glyph.altuni = new_altuni
+            else:
+                glyph.altuni += new_altuni
+        return glyph
+
     def draw_glyph(self, schema):
         glyph_name = str(schema)
         if glyph_name in self.font.temporary:
-            return self.font.temporary[glyph_name]
+            return self.add_altuni(schema.cp, glyph_name)
         if schema.marks:
             glyph = self.draw_glyph_with_marks(schema, glyph_name)
         else:
@@ -535,6 +545,7 @@ DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 
 SCHEMAS = [
+    Schema(0x0020, SPACE, 1, TYPE.NON_JOINING, 260),
     Schema(0x00A0, SPACE, 1, TYPE.NON_JOINING, 260),
     Schema(0x200C, SPACE, 1, TYPE.ZWNJ, 0),
     Schema(0x1BC02, B, 1),
