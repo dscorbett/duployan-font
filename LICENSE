@@ -1,9 +1,9 @@
-Files: font/build.py
-License: CC0-1.0
-
-Files: font/duployan.py
+Files: *
 Copyright: Copyright 2018 David Corbett
 License: Apache-2.0
+
+Files: font/build.py
+License: CC0-1.0
 
 Files: font/Duployan.sfd
 Copyright: Copyright (c) 2018, David Corbett (corbett.dav@husky.neu.edu).
