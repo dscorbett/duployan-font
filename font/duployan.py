@@ -89,13 +89,17 @@ def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
 class Space(object):
+    def __init__(self, angle):
+        self.angle = angle
+
     def __str__(self):
-        return 'espace'
+        return 'espace.{}'.format(self.angle)
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         if joining_type != TYPE.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -size, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
+            glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
     def context_in(self):
         return Context()
@@ -533,7 +537,7 @@ class GlyphManager(object):
             + wrap('rclt', nonfinal_lookup_string))
         return self.font
 
-SPACE = Space()
+SPACE = Space(0)
 H = Dot()
 B = Line(270)
 D = Line(0)
@@ -552,6 +556,8 @@ S_N = Curve(0, 90, False)
 G_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
 O = Circle(0, 0, False)
+DOWN_STEP = Space(270)
+UP_STEP = Space(90)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
@@ -639,6 +645,8 @@ SCHEMAS = [
     Schema(0x1BC5A, O, 2, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
     Schema(0x1BC66, W, 1, TYPE.ORIENTING),
+    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, default_ignorable=True),
+    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, default_ignorable=True),
 ]
 
 def augment(font):
