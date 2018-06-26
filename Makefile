@@ -21,6 +21,7 @@ all: $(FONT)
 
 clean:
 	find font -name '*.otf' -type f -delete
+	$(RM) -r tests/failed
 
 check: $(FONT)
 	tests/run-tests.py $< tests/*.test
