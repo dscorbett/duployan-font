@@ -21,7 +21,7 @@ import os
 import subprocess
 import sys
 
-def run_test(line):
+def run_test(line, png_file):
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         ['hb-shape', font, '-u', code_points] + options.split(),
@@ -34,6 +34,17 @@ def run_test(line):
         print()
         print('Actual:   ' + actual_output)
         print('Expected: ' + expected_output)
+        if os.getenv('CONTINUOUS_INTEGRATION') != 'true':
+            png_dir = os.path.dirname(png_file)
+            if not os.path.exists(png_dir):
+                os.makedirs(png_dir)
+            png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
+            p = subprocess.Popen(
+                ['hb-view', font, '-u', code_points, '-o', png_file, '-O', 'png'],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            p.wait()
+            print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
     return (actual_output == expected_output,
         ':'.join([code_points, options, actual_output]))
 
@@ -50,10 +61,14 @@ if __name__ == '__main__':
         result_lines = []
         passed_file = True
         with open(fn) as f:
-            for line in f:
+            for line_number, line in enumerate(f):
                 line = line.decode('utf-8').rstrip()
                 if line and line[0] != '#':
-                    passed_line, result_line = run_test(line)
+                    passed_line, result_line = run_test(
+                        line,
+                        os.path.join(
+                            os.path.join(failed_dir, 'png', os.path.basename(fn)),
+                            str(line_number)))
                     passed_file = passed_file and passed_line
                     result_lines.append(result_line + '\n')
                 else:
