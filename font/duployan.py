@@ -72,18 +72,20 @@ TYPE = Enum([
 class Context(object):
     def __init__(self, angle=None, clockwise=None):
         self.angle = angle
-        self.curve = '' if clockwise is None else 'neg' if clockwise else 'pos'
+        self.clockwise = clockwise
 
     def __str__(self):
         if self.angle is None:
             return ''
-        return '{}{}'.format(self.angle, self.curve)
+        return '{}{}'.format(
+            self.angle,
+            '' if self.clockwise is None else 'neg' if self.clockwise else 'pos')
 
     def __eq__(self, other):
-        return self.angle == other.angle and self.curve == other.curve
+        return self.angle == other.angle and self.clockwise == other.clockwise
 
     def __hash__(self):
-        return hash(self.angle) ^ hash(self.curve)
+        return hash(self.angle) ^ hash(self.clockwise)
 
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
@@ -155,10 +157,10 @@ class Line(object):
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
-    def context_out(self):
+    def context_in(self):
         return Context(self.angle)
 
-    def context_in(self):
+    def context_out(self):
         return Context(self.angle)
 
 class Curve(object):
@@ -223,12 +225,12 @@ class Curve(object):
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
         angle_out = context_out.angle
+        da = self.angle_out - self.angle_in
         if angle_in is None:
             if angle_out is not None:
-                angle_in = (angle_out + self.angle_in - self.angle_out) % 360
+                angle_in = (angle_out - da) % 360
             else:
                 angle_in = self.angle_in
-        da = self.angle_out - self.angle_in
         return Curve(
             angle_in,
             (angle_in + da) % 360,
@@ -237,7 +239,7 @@ class Curve(object):
                 else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in)))
 
     def context_in(self):
-        return Context(self.angle_in)
+        return Context(self.angle_in, self.clockwise)
 
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
@@ -286,13 +288,25 @@ class Circle(object):
                 angle_in = angle_out
         if angle_out is None:
             angle_out = angle_in
+        clockwise_from_adjacent_curve = (
+            context_in.clockwise
+                if context_in.clockwise is not None
+                else context_out.clockwise)
         if angle_in == angle_out:
-            return Circle(angle_in, angle_out, self.clockwise)
-        return Curve(angle_in, angle_out,
-            (abs(angle_out - angle_in) >= 180) != (angle_out > angle_in))
+            return Circle(
+                angle_in,
+                angle_out,
+                clockwise_from_adjacent_curve
+                    if clockwise_from_adjacent_curve is not None
+                    else self.clockwise)
+        return Curve(
+            angle_in, angle_out,
+            clockwise_from_adjacent_curve
+                if clockwise_from_adjacent_curve is not None
+                else (abs(angle_out - angle_in) >= 180) != (angle_out > angle_in))
 
     def context_in(self):
-        return Context(self.angle_in)
+        return Context(self.angle_in, self.clockwise)
 
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
@@ -308,7 +322,7 @@ class Schema(object):
             anchor=None,
             marks=None,
             default_ignorable=False,
-            _contextual=False):
+            _origin='_'):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         if anchor:
             assert cp == -1, 'A relative diacritic schema has a Unicode character: {}'.format(cp)
@@ -320,29 +334,25 @@ class Schema(object):
         self.anchor = anchor
         self.marks = marks or []
         self.default_ignorable = default_ignorable
-        self._contextual = _contextual
+        self._origin = _origin
 
     def __str__(self):
         return '{}.{}.{}{}{}{}'.format(
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            ('neu' if self.joining_type == TYPE.NON_JOINING
-                else 'con' if self._contextual
-                else 'nom'),
+            'neu' if self.joining_type == TYPE.NON_JOINING else self._origin,
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
-    def contextualize(self, context_in, context_out):
+    def contextualize(self, context_in, context_out, origin):
         assert self.joining_type == TYPE.ORIENTING
-        angle_in = context_in.angle
-        angle_out = context_out.angle
         return Schema(-1,
             self.path.contextualize(context_in, context_out),
             self.size,
             self.joining_type,
             self.side_bearing,
-            _contextual=True)
+            _origin=origin)
 
     def without_marks(self):
         return Schema(
@@ -352,10 +362,6 @@ class Schema(object):
             self.joining_type,
             self.side_bearing,
             self.anchor)
-
-def add_context(contexts, context):
-    if context is not None:
-        contexts.add(context)
 
 def class_key(class_item):
     glyph_class, glyphs = class_item
@@ -381,7 +387,6 @@ class GlyphManager(object):
         self.font = font
         self.schemas = schemas
         self.classes = collections.defaultdict(list)
-        self._canonical_classes = collections.defaultdict(set)
         self.contexts_in = {Context()}
         self.contexts_out = {Context()}
         code_points = collections.defaultdict(int)
@@ -497,8 +502,9 @@ class GlyphManager(object):
                 self.classes['nominal'].append(glyph.glyphname)
                 for context_in in self.contexts_out:
                     for context_out in self.contexts_in:
-                        glyph = self.draw_glyph(schema.contextualize(context_in, context_out))
-                        self.classes['contextual_{}_{}'.format(context_in, context_out)].append(glyph.glyphname)
+                        contextual_class = 'contextual_{}_{}'.format(context_in, context_out)
+                        glyph = self.draw_glyph(schema.contextualize(context_in, context_out, contextual_class))
+                        self.classes[contextual_class].append(glyph.glyphname)
             elif schema.default_ignorable:
                 ignorable_lookup_string_1 += '    substitute {} by {} {};\n'.format(
                     glyph.glyphname, glyph.glyphname, glyph.glyphname)
