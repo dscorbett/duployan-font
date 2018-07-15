@@ -61,14 +61,14 @@ if __name__ == '__main__':
         result_lines = []
         passed_file = True
         with open(fn) as f:
-            for line_number, line in enumerate(f):
+            for line_number, line in enumerate(f, start=1):
                 line = line.decode('utf-8').rstrip()
                 if line and line[0] != '#':
                     passed_line, result_line = run_test(
                         line,
                         os.path.join(
                             os.path.join(failed_dir, 'png', os.path.basename(fn)),
-                            str(line_number)))
+                            '{:03}'.format(line_number)))
                     passed_file = passed_file and passed_line
                     result_lines.append(result_line + '\n')
                 else:
