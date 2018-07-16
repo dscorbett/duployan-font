@@ -299,11 +299,14 @@ class Circle(object):
                 clockwise_from_adjacent_curve
                     if clockwise_from_adjacent_curve is not None
                     else self.clockwise)
-        return Curve(
-            angle_in, angle_out,
+        da = abs(angle_out - angle_in)
+        clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
+        clockwise = (
             clockwise_from_adjacent_curve
                 if clockwise_from_adjacent_curve is not None
-                else (abs(angle_out - angle_in) >= 180) != (angle_out > angle_in))
+                else clockwise_ignoring_curvature)
+        shape = Curve if clockwise == clockwise_ignoring_curvature else Circle
+        return shape(angle_in, angle_out, clockwise)
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
