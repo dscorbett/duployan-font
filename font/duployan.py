@@ -365,7 +365,7 @@ class Schema(object):
             anchor=None,
             marks=None,
             default_ignorable=False,
-            _origin='_'):
+            _origin='nom'):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
         self.path = path
@@ -382,7 +382,7 @@ class Schema(object):
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            'neu' if self.joining_type == TYPE.NON_JOINING else self._origin,
+            '_' if self.joining_type != TYPE.ORIENTING else self._origin,
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
@@ -690,6 +690,10 @@ SCHEMAS = [
     Schema(0x1BC44, O, 2, TYPE.ORIENTING),
     Schema(0x1BC46, M, 1, TYPE.ORIENTING),
     Schema(0x1BC47, S, 1, TYPE.ORIENTING),
+    Schema(0x1BC48, M, 1),
+    Schema(0x1BC49, N, 1),
+    Schema(0x1BC4A, J, 1),
+    Schema(0x1BC4B, S, 1),
     Schema(0x1BC4C, S, 1, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, S, 1, TYPE.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC51, S_T, 1, TYPE.ORIENTING),
