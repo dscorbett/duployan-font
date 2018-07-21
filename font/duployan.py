@@ -164,15 +164,15 @@ class Line(object):
     def __str__(self):
         name = ''
         if self.angle == 0:
-            name = 'D'
+            name = 'T'
         if self.angle == 30:
-            name = 'R'
+            name = 'L'
         if self.angle == 240:
-            name = 'G'
+            name = 'K'
         if self.angle == 270:
-            name = 'B'
+            name = 'P'
         if self.angle == 315:
-            name = 'V'
+            name = 'F'
         return 'ligne{}.{}'.format(name, self.angle)
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
@@ -586,11 +586,11 @@ class GlyphManager(object):
 
 SPACE = Space(0)
 H = Dot()
-B = Line(270)
-D = Line(0)
-V = Line(315)
-G = Line(240)
-R = Line(30)
+P = Line(270)
+T = Line(0)
+F = Line(315)
+K = Line(240)
+L = Line(30)
 M = Curve(180, 0, False)
 N = Curve(0, 180, True)
 J = Curve(90, 270, True)
@@ -600,7 +600,7 @@ S_P = Curve(270, 180, True)
 T_S = Curve(0, 270, True)
 W = Curve(180, 270, False)
 S_N = Curve(0, 90, False)
-G_R_S = Curve(90, 180, False)
+K_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
 O = Circle(0, 0, False)
 DOWN_STEP = Space(270)
@@ -612,7 +612,7 @@ DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
     Schema(0x00A0, SPACE, 260, TYPE.NON_JOINING, 260),
-    Schema(0x0304, D, 0, anchor=ABOVE_ANCHOR),
+    Schema(0x0304, T, 0, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
     Schema(0x2000, SPACE, 500, side_bearing=500),
@@ -633,29 +633,29 @@ SCHEMAS = [
     Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
     Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
     Schema(0x1BC00, H, 1),
-    Schema(0x1BC02, B, 1),
-    Schema(0x1BC03, D, 1),
-    Schema(0x1BC04, V, 1),
-    Schema(0x1BC05, G, 1),
-    Schema(0x1BC06, R, 1),
-    Schema(0x1BC07, B, 2),
-    Schema(0x1BC08, D, 2),
-    Schema(0x1BC09, V, 2),
-    Schema(0x1BC0A, G, 2),
-    Schema(0x1BC0B, R, 2),
-    Schema(0x1BC0C, B, 3),
-    Schema(0x1BC0D, D, 3),
-    Schema(0x1BC0E, V, 3),
-    Schema(0x1BC0F, G, 3),
-    Schema(0x1BC10, R, 3),
-    Schema(0x1BC11, D, 1, marks=[DOT_1]),
-    Schema(0x1BC12, D, 1, marks=[DOT_2]),
-    Schema(0x1BC13, D, 2, marks=[DOT_1]),
-    Schema(0x1BC14, G, 1, marks=[DOT_2]),
-    Schema(0x1BC15, G, 2, marks=[DOT_1]),
-    Schema(0x1BC16, R, 1, marks=[DOT_1]),
-    Schema(0x1BC17, R, 1, marks=[DOT_2]),
-    Schema(0x1BC18, R, 2, marks=[DOT_1, DOT_2]),
+    Schema(0x1BC02, P, 1),
+    Schema(0x1BC03, T, 1),
+    Schema(0x1BC04, F, 1),
+    Schema(0x1BC05, K, 1),
+    Schema(0x1BC06, L, 1),
+    Schema(0x1BC07, P, 2),
+    Schema(0x1BC08, T, 2),
+    Schema(0x1BC09, F, 2),
+    Schema(0x1BC0A, K, 2),
+    Schema(0x1BC0B, L, 2),
+    Schema(0x1BC0C, P, 3),
+    Schema(0x1BC0D, T, 3),
+    Schema(0x1BC0E, F, 3),
+    Schema(0x1BC0F, K, 3),
+    Schema(0x1BC10, L, 3),
+    Schema(0x1BC11, T, 1, marks=[DOT_1]),
+    Schema(0x1BC12, T, 1, marks=[DOT_2]),
+    Schema(0x1BC13, T, 2, marks=[DOT_1]),
+    Schema(0x1BC14, K, 1, marks=[DOT_2]),
+    Schema(0x1BC15, K, 2, marks=[DOT_1]),
+    Schema(0x1BC16, L, 1, marks=[DOT_1]),
+    Schema(0x1BC17, L, 1, marks=[DOT_2]),
+    Schema(0x1BC18, L, 2, marks=[DOT_1, DOT_2]),
     Schema(0x1BC19, M, 3),
     Schema(0x1BC1A, N, 3),
     Schema(0x1BC1B, J, 3),
@@ -682,8 +682,8 @@ SCHEMAS = [
     Schema(0x1BC3A, W, 3),
     Schema(0x1BC3B, S_N, 2),
     Schema(0x1BC3C, S_N, 3),
-    Schema(0x1BC3D, G_R_S, 2),
-    Schema(0x1BC3E, G_R_S, 3),
+    Schema(0x1BC3D, K_R_S, 2),
+    Schema(0x1BC3E, K_R_S, 3),
     Schema(0x1BC3F, S_K, 2),
     Schema(0x1BC40, S_K, 3),
     Schema(0x1BC41, O, 1, TYPE.ORIENTING),
