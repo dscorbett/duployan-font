@@ -148,7 +148,8 @@ class Dot(object):
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
-        glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
+        if anchor:
+            glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
 
     def context_in(self):
         return Context()
@@ -626,6 +627,7 @@ SCHEMAS = [
     Schema(0x205F, SPACE, 222, side_bearing=222),
     Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
     Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
+    Schema(0x1BC00, H, 1),
     Schema(0x1BC02, B, 1),
     Schema(0x1BC03, D, 1),
     Schema(0x1BC04, V, 1),
