@@ -37,26 +37,57 @@ RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_LOOKUP = "'mark' relative mark outside or below"
 RELATIVE_2_SUBTABLE = RELATIVE_2_LOOKUP + '-1'
 RELATIVE_2_ANCHOR = 'rel2'
+ABOVE_LOOKUP = "'mark' above"
+ABOVE_SUBTABLE = ABOVE_LOOKUP + '-1'
+ABOVE_ANCHOR = 'abv'
+BELOW_LOOKUP = "'mark' below"
+BELOW_SUBTABLE = BELOW_LOOKUP + '-1'
+BELOW_ANCHOR = 'blw'
+
+def add_lookup(font, lookup, lookup_type, flags, feature, subtable, anchor_class):
+    font.addLookup(lookup,
+        lookup_type,
+        flags,
+        ((feature, (('dupl', ('dflt',)),)),))
+    font.addLookupSubtable(lookup, subtable)
+    font.addAnchorClass(subtable, anchor_class)
 
 def add_lookups(font):
-    font.addLookup(CURSIVE_LOOKUP,
+    add_lookup(font,
+        CURSIVE_LOOKUP,
         'gpos_cursive',
         ('ignore_marks',),
-        (('curs', (('dupl', ('dflt',)),)),))
-    font.addLookupSubtable(CURSIVE_LOOKUP, CURSIVE_SUBTABLE)
-    font.addAnchorClass(CURSIVE_SUBTABLE, CURSIVE_ANCHOR)
-    font.addLookup(RELATIVE_1_LOOKUP,
+        'curs',
+        CURSIVE_SUBTABLE,
+        CURSIVE_ANCHOR)
+    add_lookup(font,
+        RELATIVE_1_LOOKUP,
         'gpos_mark2base',
         (),
-        (('mark', (('dupl', ('dflt',)),)),))
-    font.addLookupSubtable(RELATIVE_1_LOOKUP, RELATIVE_1_SUBTABLE)
-    font.addAnchorClass(RELATIVE_1_SUBTABLE, RELATIVE_1_ANCHOR)
-    font.addLookup(RELATIVE_2_LOOKUP,
+        'mark',
+        RELATIVE_1_SUBTABLE,
+        RELATIVE_1_ANCHOR)
+    add_lookup(font,
+        RELATIVE_2_LOOKUP,
         'gpos_mark2base',
         (),
-        (('mark', (('dupl', ('dflt',)),)),))
-    font.addLookupSubtable(RELATIVE_2_LOOKUP, RELATIVE_2_SUBTABLE)
-    font.addAnchorClass(RELATIVE_2_SUBTABLE, RELATIVE_2_ANCHOR)
+        'mark',
+        RELATIVE_2_SUBTABLE,
+        RELATIVE_2_ANCHOR)
+    add_lookup(font,
+        ABOVE_LOOKUP,
+        'gpos_mark2base',
+        (),
+        'mark',
+        ABOVE_SUBTABLE,
+        ABOVE_ANCHOR)
+    add_lookup(font,
+        BELOW_LOOKUP,
+        'gpos_mark2base',
+        (),
+        'mark',
+        BELOW_SUBTABLE,
+        BELOW_ANCHOR)
 
 class Enum(object):
     def __init__(self, names):
@@ -117,7 +148,6 @@ class Dot(object):
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
-        glyph.glyphclass = 'mark'
         glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
 
     def context_in(self):
@@ -145,15 +175,17 @@ class Line(object):
         return 'ligne{}.{}'.format(name, self.angle)
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
-        assert anchor is None
         pen.moveTo((0, 0))
-        length = 500 * size / (abs(math.sin(math.radians(self.angle))) or 1)
+        length = 500 * (size or 0.2) / (abs(math.sin(math.radians(self.angle))) or 1)
         pen.lineTo((length, 0))
-        if joining_type != TYPE.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
+        if anchor:
+            glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
+        else:
+            if joining_type != TYPE.NON_JOINING:
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -215,12 +247,14 @@ class Curve(object):
             y = r * math.sin(math.radians(a1))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
             *(rect(0, 0) if da > 180 else rect(
                 min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
                 math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
+        if joining_type == TYPE.ORIENTING:
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -327,8 +361,6 @@ class Schema(object):
             default_ignorable=False,
             _origin='_'):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
-        if anchor:
-            assert cp == -1, 'A relative diacritic schema has a Unicode character: {}'.format(cp)
         self.cp = cp
         self.path = path
         self.size = size
@@ -451,7 +483,7 @@ class GlyphManager(object):
     def draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = 'baseglyph'
+        glyph.glyphclass = 'mark' if schema.anchor else 'baseglyph'
         pen = glyph.glyphPen()
         schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
         return glyph
@@ -574,6 +606,9 @@ DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
     Schema(0x00A0, SPACE, 260, TYPE.NON_JOINING, 260),
+    Schema(0x0304, D, 0, anchor=ABOVE_ANCHOR),
+    Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
+    Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
     Schema(0x2000, SPACE, 500, side_bearing=500),
     Schema(0x2001, SPACE, 1000, side_bearing=1000),
     Schema(0x2002, SPACE, 500, side_bearing=500),
