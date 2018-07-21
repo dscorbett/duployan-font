@@ -185,8 +185,13 @@ class Line(object):
             if joining_type != TYPE.NON_JOINING:
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
+            if size == 2 and self.angle == 30:
+                # Special case for U+1BC18 DUPLOYAN LETTER RH
+                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * STROKE_WIDTH, -STROKE_WIDTH)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * STROKE_WIDTH, -STROKE_WIDTH)
+            else:
+                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -650,6 +655,7 @@ SCHEMAS = [
     Schema(0x1BC15, G, 2, marks=[DOT_1]),
     Schema(0x1BC16, R, 1, marks=[DOT_1]),
     Schema(0x1BC17, R, 1, marks=[DOT_2]),
+    Schema(0x1BC18, R, 2, marks=[DOT_1, DOT_2]),
     Schema(0x1BC19, M, 3),
     Schema(0x1BC1A, N, 3),
     Schema(0x1BC1B, J, 3),
