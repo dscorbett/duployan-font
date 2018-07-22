@@ -16,7 +16,7 @@ FONT = font/Duployan.otf
 
 all: $(FONT)
 
-%.otf: %.sfd
+%.otf: %.sfd font/*.py
 	font/build.py --input $< --output $@
 
 clean:
