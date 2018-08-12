@@ -105,6 +105,9 @@ class Context(object):
         self.angle = angle
         self.clockwise = clockwise
 
+    def __repr__(self):
+        return 'Context({}, {})'.format(self.angle, self.clockwise)
+
     def __str__(self):
         if self.angle is None:
             return ''
@@ -114,6 +117,9 @@ class Context(object):
 
     def __eq__(self, other):
         return self.angle == other.angle and self.clockwise == other.clockwise
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def __hash__(self):
         return hash(self.angle) ^ hash(self.clockwise)
@@ -365,7 +371,7 @@ class Schema(object):
             anchor=None,
             marks=None,
             default_ignorable=False,
-            _origin='nom'):
+            origin='nom'):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
         self.path = path
@@ -375,25 +381,53 @@ class Schema(object):
         self.anchor = anchor
         self.marks = marks or []
         self.default_ignorable = default_ignorable
-        self._origin = _origin
+        self.origin = origin
+        self._hash = self._calculate_hash()
+
+    def _calculate_hash(self):
+        return (hash(self.cp) ^
+            hash(str(self.path)) ^
+            hash(self.size) ^
+            hash(self.joining_type) ^
+            hash(self.anchor) ^
+            hash(self.default_ignorable) ^
+            hash(self.origin))
+
+    def __eq__(self, other):
+        return (
+            self._hash == other._hash and
+            self.cp == other.cp and
+            self.size == other.size and
+            self.joining_type == other.joining_type and
+            self.default_ignorable == other.default_ignorable and
+            self.anchor == other.anchor and
+            self.origin == other.origin and
+            self.marks == other.marks and
+            str(self.path) == str(other.path))
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __hash__(self):
+        return self._hash
 
     def __str__(self):
         return '{}.{}.{}{}{}{}'.format(
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            '_' if self.joining_type != TYPE.ORIENTING else self._origin,
+            '_' if self.joining_type != TYPE.ORIENTING else self.origin,
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
-    def contextualize(self, context_in, context_out, origin):
+    def contextualize(self, context_in, context_out):
         assert self.joining_type == TYPE.ORIENTING
         return Schema(-1,
             self.path.contextualize(context_in, context_out),
             self.size,
             self.joining_type,
             self.side_bearing,
-            _origin=origin)
+            origin='contextual_{}_{}'.format(context_in, context_out))
 
     def without_marks(self):
         return Schema(
@@ -402,11 +436,8 @@ class Schema(object):
             self.size,
             self.joining_type,
             self.side_bearing,
-            self.anchor)
-
-def class_key(class_item):
-    glyph_class, glyphs = class_item
-    return -len(filter(None, glyph_class.split('_'))), glyph_class, glyphs
+            self.anchor,
+            origin=self.origin)
 
 def merge_feature(font, feature_string):
     fea_path = tempfile.mkstemp(suffix='.fea')[1]
@@ -423,47 +454,164 @@ def wrap(tag, lookup):
         '    lookupflag IgnoreMarks;\n'
         '{}}} {};\n').format(tag, lookup, tag)
 
+class OrderedSet(collections.OrderedDict):
+    def __init__(self, iterable=None):
+        super(OrderedSet, self).__init__()
+        if iterable:
+            for item in iterable:
+                self.add(item)
+
+    def add(self, item):
+        self[item] = None
+
+class Substitution(object):
+    def __init__(self, a1, a2, a3=None, a4=None):
+        if a4 is None:
+            assert a3 is None, 'Substitution takes 2 or 4 inputs, given 3'
+            self.contexts_in = []
+            self.inputs = a1
+            self.contexts_out = []
+            self.outputs = a2
+        else:
+            self.contexts_in = a1
+            self.inputs = a2
+            self.contexts_out = a3
+            self.outputs = a4
+
+    def __str__(self):
+        def _s(glyphs, apostrophe=False):
+            suffix = "'" if apostrophe else ''
+            return ('@' + glyphs
+                if isinstance(glyphs, str)
+                else '{} '.format(suffix).join(map(str, glyphs))) + suffix
+        return '    substitute {} {} {} by {};\n'.format(
+            _s(self.contexts_in),
+            _s(self.inputs, apostrophe=True),
+            _s(self.contexts_out),
+            _s(self.outputs))
+
+class Lookup(object):
+    def __init__(self, feature, script, language):
+        self.feature = feature
+        self.script = script
+        self.language = language
+        self.rules = []
+
+    def __str__(self):
+        return (
+            'feature {} {{\n'
+            '    languagesystem {} {};\n'
+            '    lookupflag IgnoreMarks;\n'
+            '{}'
+            '}} {};\n'
+            ).format(
+                self.feature,
+                self.script,
+                self.language,
+                ''.join(map(str, self.rules)), self.feature)
+
+    def append(self, rule):
+        self.rules.append(rule)
+
+    def extend(self, other):
+        assert self.feature == other.feature, "Incompatible features: '{}', '{}'".format(self.feature, other.feature)
+        assert self.script == other.script, "Incompatible scripts: '{}', '{}'".format(self.script, other.script)
+        assert self.language == other.language, "Incompatible languages: '{}', '{}'".format(self.language, other.language)
+        self.rules.extend(other.rules)
+
+def dont_ignore_default_ignorables(schemas, new_schemas):
+    lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
+    lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
+    for schema in schemas:
+        if schema.default_ignorable:
+            lookup_1.append(Substitution([schema], [schema, schema]))
+            lookup_2.append(Substitution([schema, schema], [schema]))
+    return schemas, [lookup_1, lookup_2], {}
+
+def decompose(schemas, new_schemas):
+    lookup = Lookup('ccmp', 'dupl', 'dflt')
+    output_schemas = OrderedSet()
+    for schema in schemas:
+        if schema.marks:
+            substitution_output = [schema.without_marks()] + schema.marks
+            lookup.append(Substitution([schema], substitution_output))
+            for output_schema in substitution_output:
+                output_schemas.add(output_schema)
+        else:
+            output_schemas.add(schema)
+    return output_schemas, [lookup], {}
+
+def join_with_previous(schemas, new_schemas):
+    # TODO
+    return schemas, [], {}
+
+def join_with_next(schemas, new_schemas):
+    # TODO
+    return schemas, [], {}
+
+def run_phases(all_input_schemas, phases):
+    all_schemas = OrderedSet(all_input_schemas)
+    all_lookups = []
+    all_classes = {}
+    for phase in phases:
+        all_output_schemas = OrderedSet()
+        new_input_schemas = OrderedSet(all_input_schemas)
+        lookups = None
+        in_phase = True
+        while in_phase:
+            in_phase = False
+            output_schemas, output_lookups, classes = phase(all_input_schemas, new_input_schemas)
+            new_input_schemas = OrderedSet()
+            for output_schema in output_schemas:
+                all_output_schemas.add(output_schema)
+                if output_schema not in all_input_schemas:
+                    all_input_schemas.add(output_schema)
+                    new_input_schemas.add(output_schema)
+                    in_phase = True
+            if lookups is None:
+                lookups = output_lookups
+            else:
+                assert len(lookups) == len(output_lookups), 'Incompatible lookup counts for phase {}'.format(phase)
+                for i, lookup in enumerate(lookups):
+                    lookup.extend(output_lookups[i])
+        all_input_schemas = all_output_schemas
+        all_schemas.update(all_input_schemas)
+        all_lookups.extend(lookups)
+        all_classes.update(classes)
+    return all_schemas, all_lookups, all_classes
+
+PHASES = [
+    dont_ignore_default_ignorables,
+    decompose,
+    join_with_previous,
+    join_with_next,
+]
+
+def classes_str(classes):
+    return '\n'.join('@{} = [{}];'.format(cls, ' '.join(map(str, schemas))) for cls, schemas in classes.items())
+
 class GlyphManager(object):
-    def __init__(self, font, schemas):
+    def __init__(self, font, schemas, phases):
         self.font = font
         self.schemas = schemas
-        self.classes = collections.defaultdict(list)
-        self.contexts_in = {Context()}
-        self.contexts_out = {Context()}
+        self.phases = phases
         code_points = collections.defaultdict(int)
-        for schema in self.schemas:
+        for schema in schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
-            if schema.joining_type == TYPE.NON_JOINING:
-                continue
-            self.contexts_in.add(schema.path.context_in())
-            self.contexts_out.add(schema.path.context_out())
-            if schema.joining_type == TYPE.ORIENTING:
-                angle_out = schema.path.context_out().angle
-                delta = int((angle_out - schema.path.context_in().angle) % 360)
-                deltas = {delta}
-                ndelta = delta
-                while True:
-                    ndelta = (ndelta + delta) % 360
-                    if ndelta in deltas:
-                        break
-                    deltas.add(ndelta)
-                for context_out in set(self.contexts_out):
-                    for delta in deltas:
-                        self.contexts_out.add(Context((angle_out + delta) % 360))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    ' +
             '\n    '.join(map(hex, sorted(code_points.keys()))))
 
-    def refresh(self):
-        # Work around https://github.com/fontforge/fontforge/issues/3278
-        sfd_path = 'refresh.sfd'
-        assert not os.path.exists(sfd_path), '{} already exists'.format(sfd_path)
-        self.font.save(sfd_path)
-        temporary = self.font.temporary
-        self.font = fontforge.open(sfd_path)
-        self.font.temporary = temporary
-        os.remove(sfd_path)
+    def add_altuni(self, cp, glyph_name):
+        glyph = self.font.temporary[glyph_name]
+        if cp != -1:
+            new_altuni = ((cp, -1, 0),)
+            if glyph.altuni is None:
+                glyph.altuni = new_altuni
+            else:
+                glyph.altuni += new_altuni
+        return glyph
 
     def draw_glyph_with_marks(self, schema, glyph_name):
         base_glyph = self.draw_glyph(schema.without_marks()).glyphname
@@ -494,16 +642,6 @@ class GlyphManager(object):
         schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
         return glyph
 
-    def add_altuni(self, cp, glyph_name):
-        glyph = self.font.temporary[glyph_name]
-        if cp != -1:
-            new_altuni = ((cp, -1, 0),)
-            if glyph.altuni is None:
-                glyph.altuni = new_altuni
-            else:
-                glyph.altuni += new_altuni
-        return glyph
-
     def draw_glyph(self, schema):
         glyph_name = str(schema)
         if glyph_name in self.font.temporary:
@@ -517,71 +655,28 @@ class GlyphManager(object):
         bbox = glyph.boundingBox()
         center = (bbox[3] - bbox[1]) / 2 + bbox[1]
         glyph.transform(psMat.translate(0, BASELINE - center))
-        if schema.joining_type != TYPE.NON_JOINING:
-            class_in = 'i{}'.format(schema.path.context_in())
-            class_out = 'o{}'.format(schema.path.context_out())
-            if glyph.glyphname not in self.classes[class_in]:
-                self.classes[class_in].append(glyph.glyphname)
-            if glyph.glyphname not in self.classes[class_out]:
-                self.classes[class_out].append(glyph.glyphname)
         return glyph
+
+    def refresh(self):
+        # Work around https://github.com/fontforge/fontforge/issues/3278
+        sfd_path = 'refresh.sfd'
+        assert not os.path.exists(sfd_path), '{} already exists'.format(sfd_path)
+        self.font.save(sfd_path)
+        temporary = self.font.temporary
+        self.font = fontforge.open(sfd_path)
+        self.font.temporary = temporary
+        os.remove(sfd_path)
 
     def run(self):
         self.font.temporary = {}
-        ignorable_lookup_string_1 = ''
-        ignorable_lookup_string_2 = ''
-        decomposition_lookup_string = ''
-        for schema in self.schemas:
+        schemas, lookups, classes = run_phases(self.schemas, self.phases)
+        for schema in schemas:
             glyph = self.draw_glyph(schema)
             if glyph.altuni:
                 # This glyph has already been processed.
                 continue
-            if schema.marks:
-                decomposition_lookup_string += '    substitute {} by {};\n'.format(
-                    glyph.glyphname, ' '.join(reversed([r[0] for r in glyph.references])))
-            elif schema.joining_type == TYPE.ORIENTING:
-                self.classes['nominal'].append(glyph.glyphname)
-                for context_in in self.contexts_out:
-                    for context_out in self.contexts_in:
-                        contextual_class = 'contextual_{}_{}'.format(context_in, context_out)
-                        glyph = self.draw_glyph(schema.contextualize(context_in, context_out, contextual_class))
-                        self.classes[contextual_class].append(glyph.glyphname)
-            elif schema.default_ignorable:
-                ignorable_lookup_string_1 += '    substitute {} by {} {};\n'.format(
-                    glyph.glyphname, glyph.glyphname, glyph.glyphname)
-                ignorable_lookup_string_2 += '    substitute {} {} by {};\n'.format(
-                    glyph.glyphname, glyph.glyphname, glyph.glyphname)
-        final_lookup_string = ''
-        nonfinal_lookup_string = ''
-        for glyph_class, glyphs in sorted(self.classes.items(), key=class_key):
-            class_fields = glyph_class.split('_')
-            if glyph_class.startswith('contextual_'):
-                next_class = class_fields[2] and '@i' + class_fields[2]
-                prev_class = '' if next_class else class_fields[1] and '@o' + class_fields[1]
-                if prev_class or next_class:
-                    target_class = ('@contextual_{}_'.format(class_fields[1])
-                        if class_fields[1] and class_fields[2]
-                        else '@nominal')
-                    if ((not prev_class or prev_class[1:] in self.classes) and
-                            (not target_class or target_class[1:] in self.classes) and
-                            (not prev_class or prev_class[1:] in self.classes)):
-                        topographical_lookup_string = "    substitute {} {}' {} by @{};\n".format(
-                            prev_class, target_class, next_class, glyph_class)
-                        if prev_class:
-                            final_lookup_string += topographical_lookup_string
-                        else:
-                            nonfinal_lookup_string += topographical_lookup_string
-        classes_string = ''
-        for glyph_class, glyphs in self.classes.items():
-            classes_string += '@{} = [{}];\n'.format(glyph_class, ' '.join(glyphs))
         self.refresh()
-        merge_feature(self.font,
-            classes_string
-            + wrap('ccmp', ignorable_lookup_string_1)
-            + wrap('ccmp', ignorable_lookup_string_2)
-            + wrap('ccmp', decomposition_lookup_string)
-            + wrap('rclt', final_lookup_string)
-            + wrap('rclt', nonfinal_lookup_string))
+        merge_feature(self.font, '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups))))
         return self.font
 
 SPACE = Space(0)
@@ -707,5 +802,5 @@ SCHEMAS = [
 
 def augment(font):
     add_lookups(font)
-    return GlyphManager(font, SCHEMAS).run()
+    return GlyphManager(font, SCHEMAS, PHASES).run()
 
