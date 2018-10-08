@@ -370,8 +370,7 @@ class Schema(object):
             side_bearing=DEFAULT_SIDE_BEARING,
             anchor=None,
             marks=None,
-            default_ignorable=False,
-            origin='nom'):
+            annotations=None):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
         self.path = path
@@ -379,10 +378,15 @@ class Schema(object):
         self.joining_type = joining_type
         self.side_bearing = side_bearing
         self.anchor = anchor
+        if type(anchor) == dict:
+            print('bad anchor: {}'.format(anchor))
         self.marks = marks or []
-        self.default_ignorable = default_ignorable
-        self.origin = origin
+        self.annotations = annotations or {}
+        self._annotations_str = self._calculate_annotations_str()
         self._hash = self._calculate_hash()
+
+    def _calculate_annotations_str(self):
+        return ''.join('{}_{}{}_{}'.format(len(str(k)), k, len(str(v)), v) for k, v in sorted(self.annotations.items()))
 
     def _calculate_hash(self):
         return (hash(self.cp) ^
@@ -390,8 +394,7 @@ class Schema(object):
             hash(self.size) ^
             hash(self.joining_type) ^
             hash(self.anchor) ^
-            hash(self.default_ignorable) ^
-            hash(self.origin))
+            hash(frozenset(self.annotations.items())))
 
     def __eq__(self, other):
         return (
@@ -399,10 +402,9 @@ class Schema(object):
             self.cp == other.cp and
             self.size == other.size and
             self.joining_type == other.joining_type and
-            self.default_ignorable == other.default_ignorable and
             self.anchor == other.anchor and
-            self.origin == other.origin and
             self.marks == other.marks and
+            self.annotations == other.annotations and
             str(self.path) == str(other.path))
 
     def __ne__(self, other):
@@ -416,18 +418,21 @@ class Schema(object):
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            '_' if self.joining_type != TYPE.ORIENTING else self.origin,
+            self._annotations_str,
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
     def contextualize(self, context_in, context_out):
         assert self.joining_type == TYPE.ORIENTING
+        annotations = dict(self.annotations)
+        annotations['ctxt_in'] = context_in
+        annotations['ctxt_out'] = context_out
         return Schema(-1,
             self.path.contextualize(context_in, context_out),
             self.size,
             self.joining_type,
             self.side_bearing,
-            origin='contextual_{}_{}'.format(context_in, context_out))
+            annotations=annotations)
 
     def without_marks(self):
         return Schema(
@@ -437,7 +442,7 @@ class Schema(object):
             self.joining_type,
             self.side_bearing,
             self.anchor,
-            origin=self.origin)
+            annotations=self.annotations)
 
 def merge_feature(font, feature_string):
     fea_path = tempfile.mkstemp(suffix='.fea')[1]
@@ -519,16 +524,17 @@ class Lookup(object):
         assert self.language == other.language, "Incompatible languages: '{}', '{}'".format(self.language, other.language)
         self.rules.extend(other.rules)
 
-def dont_ignore_default_ignorables(schemas, new_schemas):
+def dont_ignore_default_ignorables(schemas, new_schemas, classes):
     lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
     lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
     for schema in schemas:
-        if schema.default_ignorable:
+        if 'ignored' in schema.annotations:
+            # TODO: Does this properly produce a multiple substitution?
             lookup_1.append(Substitution([schema], [schema, schema]))
             lookup_2.append(Substitution([schema, schema], [schema]))
-    return schemas, [lookup_1, lookup_2], {}
+    return schemas, [lookup_1, lookup_2]
 
-def decompose(schemas, new_schemas):
+def decompose(schemas, new_schemas, classes):
     lookup = Lookup('ccmp', 'dupl', 'dflt')
     output_schemas = OrderedSet()
     for schema in schemas:
@@ -539,15 +545,68 @@ def decompose(schemas, new_schemas):
                 output_schemas.add(output_schema)
         else:
             output_schemas.add(schema)
-    return output_schemas, [lookup], {}
+    return output_schemas, [lookup]
 
-def join_with_previous(schemas, new_schemas):
-    # TODO
-    return schemas, [], {}
+def join_with_previous(schemas, new_schemas, classes):
+    lookup = Lookup('rclt', 'dupl', 'dflt')
+    output_schemas = OrderedSet()
+    target_schemas = []
+    contexts_in = OrderedSet()
+    old_contexts = set()
+    for schema in schemas:
+        output_schemas.add(schema)
+        if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
+            target_schemas.append(schema)
+            if schema in new_schemas and 'ctxt_in' not in schema.annotations:
+                classes['jp_i'].append(str(schema))
+        if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
+            context_in = schema.path.context_out()
+            if context_in != Context():
+                contexts_in.add(context_in)
+                if schema not in new_schemas:
+                    old_contexts.add(context_in)
+                if str(schema) not in classes['jp_c_' + str(context_in)]:
+                    classes['jp_c_' + str(context_in)].append(str(schema))
+    for context_in in contexts_in:
+        for target_schema in target_schemas:
+            if (context_in not in old_contexts or target_schema in new_schemas) and 'ctxt_in' not in target_schema.annotations:
+                output_schema = target_schema.contextualize(context_in, Context())
+                output_schemas.add(output_schema)
+                classes['jp_o_{}'.format(context_in)].append(str(output_schema))
+        if context_in not in old_contexts:
+            lookup.append(Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
+    return output_schemas, [lookup]
 
-def join_with_next(schemas, new_schemas):
-    # TODO
-    return schemas, [], {}
+def join_with_next(schemas, new_schemas, classes):
+    lookup = Lookup('rclt', 'dupl', 'dflt')
+    output_schemas = OrderedSet()
+    target_schemas = []
+    contexts_out = OrderedSet()
+    old_contexts = set()
+    for schema in schemas:
+        output_schemas.add(schema)
+        if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
+            target_schemas.append(schema)
+            if schema in new_schemas and ('ctxt_out' not in schema.annotations or schema.annotations['ctxt_out'] == Context()):
+                classes['jn_i'].append(str(schema))
+        if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
+            context_out = schema.path.context_in()
+            if context_out != Context():
+                contexts_out.add(context_out)
+                if schema not in new_schemas:
+                    old_contexts.add(context_out)
+                if str(schema) not in classes['jn_c_' + str(context_out)]:
+                    classes['jn_c_' + str(context_out)].append(str(schema))
+    for context_out in contexts_out:
+        for target_schema in target_schemas:
+            if ((context_out not in old_contexts or target_schema in new_schemas)
+                    and target_schema.annotations.get('ctxt_out', Context()) == Context()):
+                output_schema = target_schema.contextualize(target_schema.annotations.get('ctxt_in', Context()), context_out)
+                output_schemas.add(output_schema)
+                classes['jn_o_{}'.format(context_out)].append(str(output_schema))
+        if context_out not in old_contexts:
+            lookup.append(Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
+    return output_schemas, [lookup]
 
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
@@ -556,11 +615,12 @@ def run_phases(all_input_schemas, phases):
     for phase in phases:
         all_output_schemas = OrderedSet()
         new_input_schemas = OrderedSet(all_input_schemas)
+        classes = collections.defaultdict(list)
         lookups = None
         in_phase = True
         while in_phase:
             in_phase = False
-            output_schemas, output_lookups, classes = phase(all_input_schemas, new_input_schemas)
+            output_schemas, output_lookups = phase(all_input_schemas, new_input_schemas, classes)
             new_input_schemas = OrderedSet()
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
@@ -588,7 +648,7 @@ PHASES = [
 ]
 
 def classes_str(classes):
-    return '\n'.join('@{} = [{}];'.format(cls, ' '.join(map(str, schemas))) for cls, schemas in classes.items())
+    return '\n'.join('# len = {}\n@{} = [{}];'.format(len(schemas), cls, ' '.join(map(str, schemas))) for cls, schemas in sorted(classes.items()))
 
 class GlyphManager(object):
     def __init__(self, font, schemas, phases):
@@ -721,12 +781,12 @@ SCHEMAS = [
     Schema(0x2008, SPACE, 268, side_bearing=268),
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
-    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
-    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, default_ignorable=True),
+    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
+    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, annotations={'ignored': True}),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
-    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
-    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, default_ignorable=True),
+    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
+    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC02, P, 1),
     Schema(0x1BC03, T, 1),
@@ -794,10 +854,10 @@ SCHEMAS = [
     Schema(0x1BC51, S_T, 1, TYPE.ORIENTING),
     Schema(0x1BC53, S_T, 1, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC5A, O, 2, TYPE.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
-    Schema(0x1BC66, W, 1, TYPE.ORIENTING),
-    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, default_ignorable=True),
-    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, default_ignorable=True),
+#    Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
+#    Schema(0x1BC66, W, 1, TYPE.ORIENTING),
+    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, annotations={'ignored': True}),
+    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, annotations={'ignored': True}),
 ]
 
 def augment(font):
