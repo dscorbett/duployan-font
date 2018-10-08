@@ -360,6 +360,32 @@ class Circle(object):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
+class Annotation(object):
+    def __init__(self, ignored=False, context_in=None, context_out=None):
+        self.ignored = ignored
+        self.context_in = context_in or Context()
+        self.context_out = context_out or Context()
+
+    def __str__(self):
+        # ignored and context_out have no effect on subsequent phases.
+        # TODO: In context_in, only the chirality matters for join_with_previous.
+        return str(self.context_in)
+
+    def __hash__(self):
+        return (
+            hash(self.ignored) ^
+            hash(self.context_in) ^
+            hash(self.context_out))
+
+    def __eq__(self, other):
+        return (
+            self.ignored == other.ignored and
+            self.context_in == other.context_in and
+            self.context_out == other.context_out)
+
+    def clone(self):
+        return Annotation(self.ignored, self.context_in, self.context_out)
+
 class Schema(object):
     def __init__(
             self,
@@ -370,7 +396,7 @@ class Schema(object):
             side_bearing=DEFAULT_SIDE_BEARING,
             anchor=None,
             marks=None,
-            annotations=None):
+            annotation=None):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
         self.path = path
@@ -381,12 +407,8 @@ class Schema(object):
         if type(anchor) == dict:
             print('bad anchor: {}'.format(anchor))
         self.marks = marks or []
-        self.annotations = annotations or {}
-        self._annotations_str = self._calculate_annotations_str()
+        self.annotation = annotation or Annotation()
         self._hash = self._calculate_hash()
-
-    def _calculate_annotations_str(self):
-        return ''.join('{}_{}{}_{}'.format(len(str(k)), k, len(str(v)), v) for k, v in sorted(self.annotations.items()))
 
     def _calculate_hash(self):
         return (hash(self.cp) ^
@@ -394,7 +416,7 @@ class Schema(object):
             hash(self.size) ^
             hash(self.joining_type) ^
             hash(self.anchor) ^
-            hash(frozenset(self.annotations.items())))
+            hash(self.annotation))
 
     def __eq__(self, other):
         return (
@@ -404,7 +426,7 @@ class Schema(object):
             self.joining_type == other.joining_type and
             self.anchor == other.anchor and
             self.marks == other.marks and
-            self.annotations == other.annotations and
+            self.annotation == other.annotation and
             str(self.path) == str(other.path))
 
     def __ne__(self, other):
@@ -418,21 +440,21 @@ class Schema(object):
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
-            self._annotations_str,
+            self.annotation,
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
     def contextualize(self, context_in, context_out):
         assert self.joining_type == TYPE.ORIENTING
-        annotations = dict(self.annotations)
-        annotations['ctxt_in'] = context_in
-        annotations['ctxt_out'] = context_out
+        annotation = self.annotation.clone()
+        annotation.context_in = context_in
+        annotation.context_out = context_out
         return Schema(-1,
             self.path.contextualize(context_in, context_out),
             self.size,
             self.joining_type,
             self.side_bearing,
-            annotations=annotations)
+            annotation=annotation)
 
     def without_marks(self):
         return Schema(
@@ -442,7 +464,7 @@ class Schema(object):
             self.joining_type,
             self.side_bearing,
             self.anchor,
-            annotations=self.annotations)
+            annotation=self.annotation)
 
 def merge_feature(font, feature_string):
     fea_path = tempfile.mkstemp(suffix='.fea')[1]
@@ -528,7 +550,7 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes):
     lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
     lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
     for schema in schemas:
-        if 'ignored' in schema.annotations:
+        if schema.annotation.ignored:
             # TODO: Does this properly produce a multiple substitution?
             lookup_1.append(Substitution([schema], [schema, schema]))
             lookup_2.append(Substitution([schema, schema], [schema]))
@@ -557,7 +579,7 @@ def join_with_previous(schemas, new_schemas, classes):
         output_schemas.add(schema)
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
-            if schema in new_schemas and 'ctxt_in' not in schema.annotations:
+            if schema in new_schemas and schema.annotation.context_in == Context():
                 classes['jp_i'].append(str(schema))
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_in = schema.path.context_out()
@@ -569,7 +591,7 @@ def join_with_previous(schemas, new_schemas, classes):
                     classes['jp_c_' + str(context_in)].append(str(schema))
     for context_in in contexts_in:
         for target_schema in target_schemas:
-            if (context_in not in old_contexts or target_schema in new_schemas) and 'ctxt_in' not in target_schema.annotations:
+            if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.annotation.context_in == Context():
                 output_schema = target_schema.contextualize(context_in, Context())
                 output_schemas.add(output_schema)
                 classes['jp_o_{}'.format(context_in)].append(str(output_schema))
@@ -587,7 +609,7 @@ def join_with_next(schemas, new_schemas, classes):
         output_schemas.add(schema)
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
-            if schema in new_schemas and ('ctxt_out' not in schema.annotations or schema.annotations['ctxt_out'] == Context()):
+            if schema in new_schemas and schema.annotation.context_out == Context():
                 classes['jn_i'].append(str(schema))
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_out = schema.path.context_in()
@@ -600,8 +622,8 @@ def join_with_next(schemas, new_schemas, classes):
     for context_out in contexts_out:
         for target_schema in target_schemas:
             if ((context_out not in old_contexts or target_schema in new_schemas)
-                    and target_schema.annotations.get('ctxt_out', Context()) == Context()):
-                output_schema = target_schema.contextualize(target_schema.annotations.get('ctxt_in', Context()), context_out)
+                    and target_schema.annotation.context_out == Context()):
+                output_schema = target_schema.contextualize(target_schema.annotation.context_in, context_out)
                 output_schemas.add(output_schema)
                 classes['jn_o_{}'.format(context_out)].append(str(output_schema))
         if context_out not in old_contexts:
@@ -781,12 +803,12 @@ SCHEMAS = [
     Schema(0x2008, SPACE, 268, side_bearing=268),
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
-    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
-    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, annotations={'ignored': True}),
+    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotation=Annotation(ignored=True)),
+    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, annotation=Annotation(ignored=True)),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
-    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
-    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotations={'ignored': True}),
+    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotation=Annotation(ignored=True)),
+    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotation=Annotation(ignored=True)),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC02, P, 1),
     Schema(0x1BC03, T, 1),
@@ -854,10 +876,10 @@ SCHEMAS = [
     Schema(0x1BC51, S_T, 1, TYPE.ORIENTING),
     Schema(0x1BC53, S_T, 1, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC5A, O, 2, TYPE.ORIENTING, marks=[DOT_1]),
-#    Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
-#    Schema(0x1BC66, W, 1, TYPE.ORIENTING),
-    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, annotations={'ignored': True}),
-    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, annotations={'ignored': True}),
+    Schema(0x1BC65, S_P, 1, TYPE.ORIENTING),
+    Schema(0x1BC66, W, 1, TYPE.ORIENTING),
+    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, annotation=Annotation(ignored=True)),
+    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, annotation=Annotation(ignored=True)),
 ]
 
 def augment(font):
