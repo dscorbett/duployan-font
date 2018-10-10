@@ -511,10 +511,17 @@ class Substitution(object):
             return ('@' + glyphs
                 if isinstance(glyphs, str)
                 else '{} '.format(suffix).join(map(str, glyphs))) + suffix
+        contexts_in = _s(self.contexts_in)
+        contexts_out = _s(self.contexts_out)
+        contextual = contexts_in or contexts_out
+        assert (not contextual or isinstance(self.outputs, str) or len(self.outputs) == 1
+            ), ('Given an OpenType feature file with a contextual substitution referring to an '
+            'anonymous multiple substitution, FontForge silently ignores all but the first glyph '
+            'of the output sequence, making it a single or ligature substitution instead.')
         return '    substitute {} {} {} by {};\n'.format(
-            _s(self.contexts_in),
-            _s(self.inputs, apostrophe=True),
-            _s(self.contexts_out),
+            contexts_in,
+            _s(self.inputs, apostrophe=contextual),
+            contexts_out,
             _s(self.outputs))
 
 class Lookup(object):
@@ -551,7 +558,6 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes):
     lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
     for schema in schemas:
         if schema.annotation.ignored:
-            # TODO: Does this properly produce a multiple substitution?
             lookup_1.append(Substitution([schema], [schema, schema]))
             lookup_2.append(Substitution([schema, schema], [schema]))
     return schemas, [lookup_1, lookup_2]
