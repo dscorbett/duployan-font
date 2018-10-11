@@ -442,11 +442,12 @@ class Schema(object):
         return self._hash
 
     def __str__(self):
-        return '{}.{}.{}{}{}{}'.format(
+        return '{}.{}.{}{}{}{}{}'.format(
             self.path,
             self.size,
             str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
             self.annotation,
+            '.nj' if self.joining_type == TYPE.NON_JOINING else '',
             '.' + self.anchor if self.anchor else '',
             '.' + '.'.join(map(str, self.marks)) if self.marks else '')
 
@@ -818,6 +819,7 @@ SCHEMAS = [
     Schema(0x200A, SPACE, 100, side_bearing=100),
     Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotation=Annotation(ignored=True)),
     Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, annotation=Annotation(ignored=True)),
+    Schema(0x200D, SPACE, 0, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
     Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, annotation=Annotation(ignored=True)),

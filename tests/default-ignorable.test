@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 200C 1BC03::[ligneP.270.1.=0+240|espace.0.0.0.=0+0|ligneT.0.1.=2+740]
+1BC02 200C 1BC03::[ligneP.270.1.=0+240|espace.0.0.0..nj=0+0|ligneT.0.1.=2+740]
+1BC02 200D 1BC46::[ligneP.270.1.=0+120|espace.0.260.260..nj=0+0|courbeS.270.90.pos.1.270=2@-120,-300+320]
