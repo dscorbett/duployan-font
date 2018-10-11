@@ -291,14 +291,18 @@ class Curve(object):
         return Context(self.angle_out, self.clockwise)
 
 class Circle(object):
-    def __init__(self, angle_in, angle_out, clockwise):
+    def __init__(self, angle_in, angle_out, clockwise, reversed):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
+        self.reversed = reversed
 
     def __str__(self):
-        return 'cercle.{}.{}.{}'.format(
-            self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
+        return 'cercle.{}.{}.{}{}'.format(
+            self.angle_in,
+            self.angle_out,
+            'neg' if self.clockwise else 'pos',
+            '.r' if self.reversed else '')
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
@@ -342,17 +346,19 @@ class Circle(object):
             return Circle(
                 angle_in,
                 angle_out,
-                clockwise_from_adjacent_curve
+                clockwise_from_adjacent_curve != self.reversed
                     if clockwise_from_adjacent_curve is not None
-                    else self.clockwise)
+                    else self.clockwise,
+                self.reversed)
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
-        clockwise = (
+        clockwise = self.reversed != (
             clockwise_from_adjacent_curve
                 if clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
-        shape = Curve if clockwise == clockwise_ignoring_curvature else Circle
-        return shape(angle_in, angle_out, clockwise)
+        if clockwise == clockwise_ignoring_curvature and not self.reversed:
+            return Curve(angle_in, angle_out, clockwise)
+        return Circle(angle_in, angle_out, clockwise, self.reversed)
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
@@ -785,7 +791,8 @@ W = Curve(180, 270, False)
 S_N = Curve(0, 90, False)
 K_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
-O = Circle(0, 0, False)
+O = Circle(0, 0, False, False)
+O_REVERSE = Circle(0, 0, True, True)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
 
@@ -870,6 +877,7 @@ SCHEMAS = [
     Schema(0x1BC3F, S_K, 2),
     Schema(0x1BC40, S_K, 3),
     Schema(0x1BC41, O, 1, TYPE.ORIENTING),
+    Schema(0x1BC42, O_REVERSE, 1, TYPE.ORIENTING),
     Schema(0x1BC44, O, 2, TYPE.ORIENTING),
     Schema(0x1BC46, M, 1, TYPE.ORIENTING),
     Schema(0x1BC47, S, 1, TYPE.ORIENTING),
