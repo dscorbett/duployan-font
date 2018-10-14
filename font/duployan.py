@@ -410,8 +410,6 @@ class Schema(object):
         self.joining_type = joining_type
         self.side_bearing = side_bearing
         self.anchor = anchor
-        if type(anchor) == dict:
-            print('bad anchor: {}'.format(anchor))
         self.marks = marks or []
         self.annotation = annotation or Annotation()
         self._hash = self._calculate_hash()
@@ -440,6 +438,9 @@ class Schema(object):
 
     def __hash__(self):
         return self._hash
+
+    def __repr__(self):
+        return '<Schema {}>'.format(self)
 
     def __str__(self):
         return '{}.{}.{}{}{}{}{}'.format(
@@ -573,7 +574,7 @@ def decompose(schemas, new_schemas, classes):
     lookup = Lookup('ccmp', 'dupl', 'dflt')
     output_schemas = OrderedSet()
     for schema in schemas:
-        if schema.marks:
+        if schema.marks and schema in new_schemas:
             substitution_output = [schema.without_marks()] + schema.marks
             lookup.append(Substitution([schema], substitution_output))
             for output_schema in substitution_output:
