@@ -366,14 +366,23 @@ class Circle(object):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
+STYLE = Enum([
+    'PERNIN',
+])
+
 class Annotation(object):
-    def __init__(self, ignored=False, context_in=None, context_out=None):
+    def __init__(self,
+            ignored=False,
+            styles=None,
+            context_in=None,
+            context_out=None):
         self.ignored = ignored
+        self.styles = STYLE.__dict__.keys() if styles is None else styles
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
 
     def __str__(self):
-        # ignored and context_out have no effect on subsequent phases.
+        # Most annotations have no effect on subsequent phases.
         # TODO: In context_in, only the chirality matters for join_with_previous.
         return str(self.context_in)
 
@@ -483,12 +492,6 @@ def merge_feature(font, feature_string):
     finally:
         os.remove(fea_path)
 
-def wrap(tag, lookup):
-    return ('feature {} {{\n'
-        '    languagesystem dupl dflt;\n'
-        '    lookupflag IgnoreMarks;\n'
-        '{}}} {};\n').format(tag, lookup, tag)
-
 class OrderedSet(collections.OrderedDict):
     def __init__(self, iterable=None):
         super(OrderedSet, self).__init__()
@@ -514,21 +517,24 @@ class Substitution(object):
             self.outputs = a4
 
     def __str__(self):
+        def _s0(glyph):
+            return '@' + glyph if isinstance(glyph, str) else str(glyph)
         def _s(glyphs, apostrophe=False):
+            if isinstance(glyphs, str):
+                glyphs = [glyphs]
             suffix = "'" if apostrophe else ''
-            return ('@' + glyphs
-                if isinstance(glyphs, str)
-                else '{} '.format(suffix).join(map(str, glyphs))) + suffix
+            return ('{} '.format(suffix).join(map(_s0, glyphs))) + suffix
         contexts_in = _s(self.contexts_in)
         contexts_out = _s(self.contexts_out)
         contextual = contexts_in or contexts_out
-        assert (not contextual or isinstance(self.outputs, str) or len(self.outputs) == 1
+        single_output = isinstance(self.outputs, str) or len(self.outputs) == 1
+        assert (single_output or not contextual
             ), ('Given an OpenType feature file with a contextual substitution referring to an '
             'anonymous multiple substitution, FontForge silently ignores all but the first glyph '
             'of the output sequence, making it a single or ligature substitution instead.')
         return '    substitute {} {} {} by {};\n'.format(
             contexts_in,
-            _s(self.inputs, apostrophe=contextual),
+            _s(self.inputs, apostrophe=single_output or contextual),
             contexts_out,
             _s(self.outputs))
 
@@ -570,8 +576,42 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes):
             lookup_2.append(Substitution([schema, schema], [schema]))
     return schemas, [lookup_1, lookup_2]
 
+def ligate_pernin_r(schemas, new_schemas, classes):
+    liga = Lookup('liga', 'dupl', 'dflt')
+    dlig = Lookup('dlig', 'dupl', 'dflt')
+    output_schemas = OrderedSet()
+    vowels = []
+    zwj = None
+    r = None
+    for schema in schemas:
+        output_schemas.add(schema)
+        if schema.cp == 0x200D:
+            assert zwj is None, 'Multiple ZWJs found'
+            zwj = schema
+        elif schema.cp == 0x1BC06:
+            assert r is None, 'Multiple Pernin Rs found'
+            r = schema
+        elif (schema in new_schemas
+                and isinstance(schema.path, Circle)
+                and not schema.path.reversed
+                and STYLE.PERNIN in schema.annotation.styles):
+            classes['ll_vowel'].append(schema)
+            vowels.append(schema)
+    assert classes['ll_vowel'], 'No Pernin circle vowels found'
+    if vowels:
+        liga.append(Substitution([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
+        dlig.append(Substitution([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
+    for vowel in vowels:
+        reversed_vowel = vowel.contextualize(Context(), Context())
+        reversed_vowel.path.clockwise = not reversed_vowel.path.clockwise
+        reversed_vowel.path.reversed = True
+        liga.append(Substitution([vowel, zwj, r], [reversed_vowel]))
+        dlig.append(Substitution([vowel, r], [reversed_vowel]))
+        output_schemas.add(reversed_vowel)
+    return output_schemas, [liga, dlig]
+
 def decompose(schemas, new_schemas, classes):
-    lookup = Lookup('ccmp', 'dupl', 'dflt')
+    lookup = Lookup('abvs', 'dupl', 'dflt')
     output_schemas = OrderedSet()
     for schema in schemas:
         if schema.marks and schema in new_schemas:
@@ -678,6 +718,7 @@ def run_phases(all_input_schemas, phases):
 
 PHASES = [
     dont_ignore_default_ignorables,
+    ligate_pernin_r,
     decompose,
     join_with_previous,
     join_with_next,
@@ -879,7 +920,7 @@ SCHEMAS = [
     Schema(0x1BC3E, K_R_S, 6),
     Schema(0x1BC3F, S_K, 4),
     Schema(0x1BC40, S_K, 6),
-    Schema(0x1BC41, O, 2, TYPE.ORIENTING),
+    Schema(0x1BC41, O, 2, TYPE.ORIENTING, annotation=Annotation(styles=[STYLE.PERNIN])),
     Schema(0x1BC42, O_REVERSE, 2, TYPE.ORIENTING),
     Schema(0x1BC43, O, 3, TYPE.ORIENTING),
     Schema(0x1BC44, O, 4, TYPE.ORIENTING),
