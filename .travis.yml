@@ -14,6 +14,7 @@ addons:
         packages:
             - python-fontforge=20170730-0ubuntu1~trusty
 install:
+    - pip install 'fonttools == 3.*'
     # libharfbuzz-bin is too out of date to use.
     - HB_VERSION=2.0.1
     - curl -O https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$HB_VERSION.tar.bz2

@@ -18,6 +18,7 @@ import argparse
 import os
 
 import fontforge
+import fontTools.ttLib
 
 import duployan
 
@@ -30,11 +31,24 @@ def build_font(options, font):
     flags = ['dummy-dsig', 'no-hints', 'omit-instructions', 'opentype']
     font.generate(options.output, flags=flags)
 
+def tweak_font(options):
+    tt_font = fontTools.ttLib.TTFont(options.output)
+
+    # Remove the FontForge timestamp table.
+    if 'FFTM' in tt_font:
+        del tt_font['FFTM']
+
+    # This font has no vendor.
+    tt_font['OS/2'].achVendID = '    '
+
+    tt_font.save(options.output)
+
 def make_font(options):
     font = fontforge.open(options.input)
     font.encoding = 'UnicodeFull'
     font = duployan.augment(font)
     build_font(options, font)
+    tweak_font(options)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
