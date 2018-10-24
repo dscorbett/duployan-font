@@ -13,11 +13,11 @@
 # limitations under the License.
 
 # Pernin reversed circle vowels
-1BC02 1BC41 1BC06 1BC02::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-256+-150|ligneL.30.1.=2@-119,87+866|ligneP.270.1.=3@-120,87+120]
+1BC02 1BC41 1BC06 1BC02::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|ligneL.30.1.=2@-120,86+866|ligneP.270.1.=3@-120,86+120]
 1BC02 1BC41 1BC06 1BC02:--features dlig:[ligneP.270.1.=0+120|cercle.270.270.neg.r.2.270=1@-320,-250+0|ligneP.270.1.=3@-120,-500+120]
 1BC02 1BC41 200D 1BC06 1BC02::[ligneP.270.1.=0+120|cercle.270.270.neg.r.2.270=1@-320,-250+0|ligneP.270.1.=4@-120,-500+120]
 
 # blocked before another circle vowel
-1BC02 1BC41 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-256+-150|ligneL.30.1.=2@-119,87+866|cercle.30.30.pos.2.30=3@-270,424+170]
-1BC02 1BC41 1BC06 1BC41:--features dlig:[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-256+-150|ligneL.30.1.=2@-119,87+866|cercle.30.30.pos.2.30=3@-270,424+170]
-1BC02 1BC41 200D 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-256+-150|espace.0.260.260..nj=1@0,-256+0|ligneL.30.1.=3@-119,87+866|cercle.30.30.pos.2.30=4@-270,424+170]
+1BC02 1BC41 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|ligneL.30.1.=2@-120,86+866|cercle.30.30.pos.2.30=3@-270,423+170]
+1BC02 1BC41 1BC06 1BC41:--features dlig:[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|ligneL.30.1.=2@-120,86+866|cercle.30.30.pos.2.30=3@-270,423+170]
+1BC02 1BC41 200D 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|espace.0.260.260..nj=1@0,-257+0|ligneL.30.1.=3@-120,86+866|cercle.30.30.pos.2.30=4@-270,423+170]

@@ -22,6 +22,7 @@ import os
 import tempfile
 
 import fontforge
+import fontTools.feaLib.builder
 import psMat
 
 BASELINE = 402
@@ -483,15 +484,6 @@ class Schema(object):
             self.anchor,
             annotation=self.annotation)
 
-def merge_feature(font, feature_string):
-    fea_path = tempfile.mkstemp(suffix='.fea')[1]
-    try:
-        with open(fea_path, 'w') as fea:
-            fea.write(feature_string)
-        font.mergeFeature(fea_path)
-    finally:
-        os.remove(fea_path)
-
 class OrderedSet(collections.OrderedDict):
     def __init__(self, iterable=None):
         super(OrderedSet, self).__init__()
@@ -524,31 +516,30 @@ class Substitution(object):
                 glyphs = [glyphs]
             suffix = "'" if apostrophe else ''
             return ('{} '.format(suffix).join(map(_s0, glyphs))) + suffix
-        contexts_in = _s(self.contexts_in)
-        contexts_out = _s(self.contexts_out)
-        contextual = contexts_in or contexts_out
-        single_output = isinstance(self.outputs, str) or len(self.outputs) == 1
-        assert (single_output or not contextual
-            ), ('Given an OpenType feature file with a contextual substitution referring to an '
-            'anonymous multiple substitution, FontForge silently ignores all but the first glyph '
-            'of the output sequence, making it a single or ligature substitution instead.')
         return '    substitute {} {} {} by {};\n'.format(
-            contexts_in,
-            _s(self.inputs, apostrophe=single_output or contextual),
-            contexts_out,
+            _s(self.contexts_in),
+            _s(self.inputs, apostrophe=True),
+            _s(self.contexts_out),
             _s(self.outputs))
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
 
 class Lookup(object):
     def __init__(self, feature, script, language):
         self.feature = feature
         self.script = script
         self.language = language
-        self.rules = []
+        self.rules = OrderedSet()
 
     def __str__(self):
         return (
             'feature {} {{\n'
-            '    languagesystem {} {};\n'
+            '    script {};\n'
+            '    language {};\n'
             '    lookupflag IgnoreMarks;\n'
             '{}'
             '}} {};\n'
@@ -559,13 +550,14 @@ class Lookup(object):
                 ''.join(map(str, self.rules)), self.feature)
 
     def append(self, rule):
-        self.rules.append(rule)
+        self.rules.add(rule)
 
     def extend(self, other):
         assert self.feature == other.feature, "Incompatible features: '{}', '{}'".format(self.feature, other.feature)
         assert self.script == other.script, "Incompatible scripts: '{}', '{}'".format(self.script, other.script)
         assert self.language == other.language, "Incompatible languages: '{}', '{}'".format(self.language, other.language)
-        self.rules.extend(other.rules)
+        for rule in other.rules:
+            self.append(rule)
 
 def dont_ignore_default_ignorables(schemas, new_schemas, classes):
     lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
@@ -724,98 +716,6 @@ PHASES = [
     join_with_next,
 ]
 
-def classes_str(classes):
-    return '\n'.join('# len = {}\n@{} = [{}];'.format(len(schemas), cls, ' '.join(map(str, schemas))) for cls, schemas in sorted(classes.items()))
-
-class GlyphManager(object):
-    def __init__(self, font, schemas, phases):
-        self.font = font
-        self.schemas = schemas
-        self.phases = phases
-        code_points = collections.defaultdict(int)
-        for schema in schemas:
-            if schema.cp != -1:
-                code_points[schema.cp] += 1
-        code_points = {cp: count for cp, count in code_points.items() if count > 1}
-        assert not code_points, ('Duplicate code points:\n    ' +
-            '\n    '.join(map(hex, sorted(code_points.keys()))))
-
-    def add_altuni(self, cp, glyph_name):
-        glyph = self.font.temporary[glyph_name]
-        if cp != -1:
-            new_altuni = ((cp, -1, 0),)
-            if glyph.altuni is None:
-                glyph.altuni = new_altuni
-            else:
-                glyph.altuni += new_altuni
-        return glyph
-
-    def draw_glyph_with_marks(self, schema, glyph_name):
-        base_glyph = self.draw_glyph(schema.without_marks()).glyphname
-        mark_glyphs = []
-        for mark in schema.marks:
-            mark_glyphs.append(self.draw_glyph(mark).glyphname)
-        self.refresh()
-        glyph = self.font.createChar(schema.cp, glyph_name)
-        self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = 'baseglyph'
-        glyph.addReference(base_glyph)
-        base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
-        for mark_glyph in mark_glyphs:
-            mark_anchors = [p for p in self.font[mark_glyph].anchorPoints if p[1] == 'mark']
-            assert len(mark_anchors) == 1
-            mark_anchor = mark_anchors[0]
-            base_anchor = base_anchors[mark_anchor[0]]
-            glyph.addReference(mark_glyph, psMat.translate(
-                base_anchor[2] - mark_anchor[2],
-                base_anchor[3] - mark_anchor[3]))
-        return glyph
-
-    def draw_base_glyph(self, schema, glyph_name):
-        glyph = self.font.createChar(schema.cp, glyph_name)
-        self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = 'mark' if schema.anchor else 'baseglyph'
-        pen = glyph.glyphPen()
-        schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
-        return glyph
-
-    def draw_glyph(self, schema):
-        glyph_name = str(schema)
-        if glyph_name in self.font.temporary:
-            return self.add_altuni(schema.cp, glyph_name)
-        if schema.marks:
-            glyph = self.draw_glyph_with_marks(schema, glyph_name)
-        else:
-            glyph = self.draw_base_glyph(schema, glyph_name)
-        glyph.left_side_bearing = schema.side_bearing
-        glyph.right_side_bearing = schema.side_bearing
-        bbox = glyph.boundingBox()
-        center = (bbox[3] - bbox[1]) / 2 + bbox[1]
-        glyph.transform(psMat.translate(0, BASELINE - center))
-        return glyph
-
-    def refresh(self):
-        # Work around https://github.com/fontforge/fontforge/issues/3278
-        sfd_path = 'refresh.sfd'
-        assert not os.path.exists(sfd_path), '{} already exists'.format(sfd_path)
-        self.font.save(sfd_path)
-        temporary = self.font.temporary
-        self.font = fontforge.open(sfd_path)
-        self.font.temporary = temporary
-        os.remove(sfd_path)
-
-    def run(self):
-        self.font.temporary = {}
-        schemas, lookups, classes = run_phases(self.schemas, self.phases)
-        for schema in schemas:
-            glyph = self.draw_glyph(schema)
-            if glyph.altuni:
-                # This glyph has already been processed.
-                continue
-        self.refresh()
-        merge_feature(self.font, '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups))))
-        return self.font
-
 SPACE = Space(0)
 H = Dot()
 P = Line(270)
@@ -942,7 +842,98 @@ SCHEMAS = [
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, annotation=Annotation(ignored=True)),
 ]
 
-def augment(font):
-    add_lookups(font)
-    return GlyphManager(font, SCHEMAS, PHASES).run()
+def classes_str(classes):
+    return '\n'.join('# len = {}\n@{} = [{}];'.format(len(schemas), cls, ' '.join(map(str, schemas))) for cls, schemas in sorted(classes.items()))
+
+class Builder(object):
+    def __init__(self, font, schemas=SCHEMAS, phases=PHASES):
+        self.font = font
+        self.schemas = schemas
+        self.phases = phases
+        self.fea = None
+        code_points = collections.defaultdict(int)
+        for schema in schemas:
+            if schema.cp != -1:
+                code_points[schema.cp] += 1
+        code_points = {cp: count for cp, count in code_points.items() if count > 1}
+        assert not code_points, ('Duplicate code points:\n    ' +
+            '\n    '.join(map(hex, sorted(code_points.keys()))))
+
+    def add_altuni(self, cp, glyph_name):
+        glyph = self.font.temporary[glyph_name]
+        if cp != -1:
+            new_altuni = ((cp, -1, 0),)
+            if glyph.altuni is None:
+                glyph.altuni = new_altuni
+            else:
+                glyph.altuni += new_altuni
+        return glyph
+
+    def draw_glyph_with_marks(self, schema, glyph_name):
+        base_glyph = self.draw_glyph(schema.without_marks()).glyphname
+        mark_glyphs = []
+        for mark in schema.marks:
+            mark_glyphs.append(self.draw_glyph(mark).glyphname)
+        self.refresh()
+        glyph = self.font.createChar(schema.cp, glyph_name)
+        self.font.temporary[glyph_name] = glyph
+        glyph.glyphclass = 'baseglyph'
+        glyph.addReference(base_glyph)
+        base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
+        for mark_glyph in mark_glyphs:
+            mark_anchors = [p for p in self.font[mark_glyph].anchorPoints if p[1] == 'mark']
+            assert len(mark_anchors) == 1
+            mark_anchor = mark_anchors[0]
+            base_anchor = base_anchors[mark_anchor[0]]
+            glyph.addReference(mark_glyph, psMat.translate(
+                base_anchor[2] - mark_anchor[2],
+                base_anchor[3] - mark_anchor[3]))
+        return glyph
+
+    def draw_base_glyph(self, schema, glyph_name):
+        glyph = self.font.createChar(schema.cp, glyph_name)
+        self.font.temporary[glyph_name] = glyph
+        glyph.glyphclass = 'mark' if schema.anchor else 'baseglyph'
+        pen = glyph.glyphPen()
+        schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
+        return glyph
+
+    def draw_glyph(self, schema):
+        glyph_name = str(schema)
+        if glyph_name in self.font.temporary:
+            return self.add_altuni(schema.cp, glyph_name)
+        if schema.marks:
+            glyph = self.draw_glyph_with_marks(schema, glyph_name)
+        else:
+            glyph = self.draw_base_glyph(schema, glyph_name)
+        glyph.left_side_bearing = schema.side_bearing
+        glyph.right_side_bearing = schema.side_bearing
+        bbox = glyph.boundingBox()
+        center = (bbox[3] - bbox[1]) / 2 + bbox[1]
+        glyph.transform(psMat.translate(0, BASELINE - center))
+        return glyph
+
+    def refresh(self):
+        # Work around https://github.com/fontforge/fontforge/issues/3278
+        sfd_path = 'refresh.sfd'
+        assert not os.path.exists(sfd_path), '{} already exists'.format(sfd_path)
+        self.font.save(sfd_path)
+        temporary = self.font.temporary
+        self.font = fontforge.open(sfd_path)
+        self.font.temporary = temporary
+        os.remove(sfd_path)
+
+    def augment(self):
+        add_lookups(self.font)
+        self.font.temporary = {}
+        schemas, lookups, classes = run_phases(self.schemas, self.phases)
+        for schema in schemas:
+            glyph = self.draw_glyph(schema)
+            if glyph.altuni:
+                # This glyph has already been processed.
+                continue
+        self.fea = '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups)))
+
+    def merge_features(self, tt_font, old_fea):
+        fontTools.feaLib.builder.addOpenTypeFeaturesFromString(tt_font, self.fea + old_fea)
 

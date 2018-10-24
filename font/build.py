@@ -19,6 +19,7 @@ import os
 
 import fontforge
 import fontTools.ttLib
+import tempfile
 
 import duployan
 
@@ -31,7 +32,12 @@ def build_font(options, font):
     flags = ['dummy-dsig', 'no-hints', 'omit-instructions', 'opentype']
     font.generate(options.output, flags=flags)
 
-def tweak_font(options):
+def generate_feature_string(font, lookup):
+    with tempfile.NamedTemporaryFile() as fea_file:
+        font.generateFeatureFile(fea_file.name, lookup)
+        return fea_file.read().decode('utf-8')
+
+def tweak_font(options, builder):
     tt_font = fontTools.ttLib.TTFont(options.output)
 
     # Remove the FontForge timestamp table.
@@ -41,14 +47,23 @@ def tweak_font(options):
     # This font has no vendor.
     tt_font['OS/2'].achVendID = '    '
 
+    # Merge all the lookups.
+    font = builder.font
+    lookups = font.gpos_lookups + font.gsub_lookups
+    old_fea = ''.join(generate_feature_string(font, lookup) for lookup in lookups)
+    for lookup in lookups:
+        font.removeLookup(lookup)
+    builder.merge_features(tt_font, old_fea)
+
     tt_font.save(options.output)
 
 def make_font(options):
     font = fontforge.open(options.input)
     font.encoding = 'UnicodeFull'
-    font = duployan.augment(font)
-    build_font(options, font)
-    tweak_font(options)
+    builder = duployan.Builder(font)
+    builder.augment()
+    build_font(options, builder.font)
+    tweak_font(options, builder)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
