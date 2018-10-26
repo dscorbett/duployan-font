@@ -508,7 +508,7 @@ class Substitution(object):
             self.contexts_out = a3
             self.outputs = a4
 
-    def __str__(self):
+    def __str__(self, in_contextual_lookup=False):
         def _s0(glyph):
             return '@' + glyph if isinstance(glyph, str) else str(glyph)
         def _s(glyphs, apostrophe=False):
@@ -518,7 +518,7 @@ class Substitution(object):
             return ('{} '.format(suffix).join(map(_s0, glyphs))) + suffix
         return '    substitute {} {} {} by {};\n'.format(
             _s(self.contexts_in),
-            _s(self.inputs, apostrophe=True),
+            _s(self.inputs, apostrophe=in_contextual_lookup or self.contexts_in or self.contexts_out),
             _s(self.contexts_out),
             _s(self.outputs))
 
@@ -528,6 +528,9 @@ class Substitution(object):
     def __hash__(self):
         return hash(str(self))
 
+    def is_contextual(self):
+        return bool(self.contexts_in or self.contexts_out)
+
 class Lookup(object):
     def __init__(self, feature, script, language):
         self.feature = feature
@@ -536,6 +539,7 @@ class Lookup(object):
         self.rules = OrderedSet()
 
     def __str__(self):
+        contextual = any(r.is_contextual() for r in self.rules)
         return (
             'feature {} {{\n'
             '    script {};\n'
@@ -547,7 +551,8 @@ class Lookup(object):
                 self.feature,
                 self.script,
                 self.language,
-                ''.join(map(str, self.rules)), self.feature)
+                ''.join(map(lambda r: r.__str__(contextual), self.rules)),
+                self.feature)
 
     def append(self, rule):
         self.rules.add(rule)
