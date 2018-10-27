@@ -378,7 +378,7 @@ class Annotation(object):
             context_in=None,
             context_out=None):
         self.ignored = ignored
-        self.styles = STYLE.__dict__.keys() if styles is None else styles
+        self.styles = frozenset(STYLE.__dict__.keys() if styles is None else styles)
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
 
@@ -390,17 +390,19 @@ class Annotation(object):
     def __hash__(self):
         return (
             hash(self.ignored) ^
+            hash(self.styles) ^
             hash(self.context_in) ^
             hash(self.context_out))
 
     def __eq__(self, other):
         return (
             self.ignored == other.ignored and
+            self.styles == other.styles and
             self.context_in == other.context_in and
             self.context_out == other.context_out)
 
     def clone(self):
-        return Annotation(self.ignored, self.context_in, self.context_out)
+        return Annotation(self.ignored, self.styles, self.context_in, self.context_out)
 
 class Schema(object):
     def __init__(
