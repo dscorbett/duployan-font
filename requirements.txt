@@ -1,1 +1,3 @@
 fonttools==3.33.0
+more-itertools==4.3.0
+six==1.11.0

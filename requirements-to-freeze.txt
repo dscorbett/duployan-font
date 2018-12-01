@@ -1,1 +1,2 @@
 fonttools ~= 3.2
+more-itertools >= 2.1, < 5

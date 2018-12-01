@@ -23,6 +23,7 @@ import tempfile
 
 import fontforge
 import fontTools.feaLib.builder
+import more_itertools
 import psMat
 
 BASELINE = 402
@@ -595,7 +596,7 @@ class Lookup(object):
         self.feature = feature
         self.script = script
         self.language = language
-        self.rules = OrderedSet()
+        self.rules = []
 
     def __str__(self):
         contextual = any(r.is_contextual() for r in self.rules)
@@ -610,11 +611,11 @@ class Lookup(object):
                 self.feature,
                 self.script,
                 self.language,
-                ''.join(map(lambda r: r.__str__(contextual), self.rules)),
+                ''.join(more_itertools.unique_everseen(map(lambda r: r.__str__(contextual), self.rules))),
                 self.feature)
 
     def append(self, rule):
-        self.rules.add(rule)
+        self.rules.append(rule)
 
     def extend(self, other):
         assert self.feature == other.feature, "Incompatible features: '{}', '{}'".format(self.feature, other.feature)
