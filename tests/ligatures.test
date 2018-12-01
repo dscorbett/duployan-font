@@ -13,11 +13,11 @@
 # limitations under the License.
 
 # Pernin reversed circle vowels
-1BC02 1BC41 1BC06 1BC02::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|ligneL.30.1.=2@-120,86+866|ligneP.270.1.=3@-120,86+120]
-1BC02 1BC43 1BC06 1BC02:--features dlig:[ligneP.270.1.=0+120|cercle.270.270.neg.r.3.270=1@-420,-250+0|ligneP.270.1.=3@-120,-500+120]
-1BC02 1BC44 200D 1BC06 1BC02::[ligneP.270.1.=0+120|cercle.270.270.neg.r.4.270=1@-520,-250+0|ligneP.270.1.=4@-120,-500+120]
+1BC02 1BC41 1BC06 1BC02::[duployan.0019=0+120|duployan.1471=1@-320,-257+-150|duployan.0023=2@-120,86+866|duployan.0019=3@-120,86+120]
+1BC02 1BC43 1BC06 1BC02:--features dlig:[duployan.0019=0+120|duployan.0102=1@-420,-250+0|duployan.0019=3@-120,-500+120]
+1BC02 1BC44 200D 1BC06 1BC02::[duployan.0019=0+120|duployan.0103=1@-520,-250+0|duployan.0019=4@-120,-500+120]
 
 # blocked before another circle vowel
-1BC02 1BC41 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.2.270=1@-320,-257+-150|ligneL.30.1.=2@-120,86+866|cercle.30.30.pos.2.30=3@-270,423+170]
-1BC02 1BC43 1BC06 1BC41:--features dlig:[ligneP.270.1.=0+120|courbe.270.30.neg.3.270=1@-420,-260+-225|ligneL.30.1.=2@-120,130+866|cercle.30.30.pos.2.30=3@-270,467+170]
-1BC02 1BC44 200D 1BC06 1BC41::[ligneP.270.1.=0+120|courbe.270.30.neg.4.270=1@-520,-263+-300|espace.0.260.260..nj=1@0,-263+0|ligneL.30.1.=3@-120,174+866|cercle.30.30.pos.2.30=4@-270,511+170]
+1BC02 1BC41 1BC06 1BC41::[duployan.0019=0+120|duployan.1471=1@-320,-257+-150|duployan.0023=2@-120,86+866|duployan.0134=3@-270,423+170]
+1BC02 1BC43 1BC06 1BC41:--features dlig:[duployan.0019=0+120|duployan.1473=1@-420,-260+-225|duployan.0023=2@-120,130+866|duployan.0134=3@-270,467+170]
+1BC02 1BC44 200D 1BC06 1BC41::[duployan.0019=0+120|duployan.1474=1@-520,-263+-300|duployan=1@0,-263+0|duployan.0023=3@-120,174+866|duployan.0134=4@-270,511+170]

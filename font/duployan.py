@@ -443,6 +443,9 @@ class Annotation(object):
             self.context_out == other.context_out)
 
 class Schema(object):
+    CANONICAL_SCHEMAS = {}
+    _CANONICAL_NAMES = {}
+
     def __init__(
             self,
             cp,
@@ -462,7 +465,10 @@ class Schema(object):
         self.anchor = anchor
         self.marks = marks or []
         self.annotation = annotation or Annotation()
-        self._hash = self._calculate_hash()
+        self._identity = self._calculate_identity()
+        self._glyph_name = None
+        if self not in self.CANONICAL_SCHEMAS:
+            self.CANONICAL_SCHEMAS[self] = self
 
     def clone(
             self,
@@ -484,43 +490,43 @@ class Schema(object):
             self.marks if marks is CLONE_DEFAULT else marks,
             self.annotation if annotation is CLONE_DEFAULT else annotation)
 
-    def _calculate_hash(self):
-        return (hash(self.cp) ^
-            hash(str(self.path)) ^
-            hash(self.size) ^
-            hash(self.joining_type) ^
-            hash(self.anchor) ^
-            hash(self.annotation))
-
     def __eq__(self, other):
-        return (
-            self._hash == other._hash and
-            self.cp == other.cp and
-            self.size == other.size and
-            self.joining_type == other.joining_type and
-            self.anchor == other.anchor and
-            self.marks == other.marks and
-            self.annotation == other.annotation and
-            str(self.path) == str(other.path))
+        return self._identity == other._identity
 
     def __ne__(self, other):
         return not (self == other)
 
     def __hash__(self):
-        return self._hash
+        return hash(self._identity)
 
     def __repr__(self):
-        return '<Schema {}>'.format(self)
+        return '<Schema {}>'.format(self._identity)
 
-    def __str__(self):
-        return '{}.{}.{}{}{}{}{}'.format(
+    def _calculate_identity(self):
+        return '-'.join(map(str, [
             self.path,
             self.size,
-            str(self.side_bearing) + '.' if self.side_bearing != DEFAULT_SIDE_BEARING else '',
+            self.side_bearing,
             self.annotation,
-            '.nj' if self.joining_type == TYPE.NON_JOINING else '',
-            '.' + self.anchor if self.anchor else '',
-            '.' + '.'.join(map(str, self.marks)) if self.marks else '')
+            self.joining_type == TYPE.NON_JOINING,
+            self.anchor,
+            ';'.join(map(lambda m: m._identity, self.marks or []))]))
+
+    def __str__(self):
+        if self._glyph_name is None:
+            canonical = self.CANONICAL_SCHEMAS[self]
+            if self is not canonical:
+                self._glyph_name = str(canonical)
+            else:
+                name = 'duployan'
+                if name in self._CANONICAL_NAMES:
+                    if self not in self._CANONICAL_NAMES[name]:
+                        self._CANONICAL_NAMES[name].append(self)
+                        name += '.{:04}'.format(len(self._CANONICAL_NAMES[name]))
+                else:
+                    self._CANONICAL_NAMES[name] = [self]
+                self._glyph_name = name
+        return self._glyph_name
 
     def contextualize(self, context_in, context_out):
         assert self.joining_type == TYPE.ORIENTING
@@ -689,21 +695,21 @@ def join_with_previous(schemas, new_schemas, classes):
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
             if schema in new_schemas and schema.annotation.context_in == Context():
-                classes['jp_i'].append(str(schema))
+                classes['jp_i'].append(schema)
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_in = schema.path.context_out()
             if context_in != Context():
                 contexts_in.add(context_in)
                 if schema not in new_schemas:
                     old_contexts.add(context_in)
-                if str(schema) not in classes['jp_c_' + str(context_in)]:
-                    classes['jp_c_' + str(context_in)].append(str(schema))
+                if schema not in classes['jp_c_' + str(context_in)]:
+                    classes['jp_c_' + str(context_in)].append(schema)
     for context_in in contexts_in:
         for target_schema in target_schemas:
             if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.annotation.context_in == Context():
                 output_schema = target_schema.contextualize(context_in, Context())
                 output_schemas.add(output_schema)
-                classes['jp_o_{}'.format(context_in)].append(str(output_schema))
+                classes['jp_o_{}'.format(context_in)].append(output_schema)
         if context_in not in old_contexts:
             lookup.append(Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
     return output_schemas, [lookup]
@@ -719,22 +725,22 @@ def join_with_next(schemas, new_schemas, classes):
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
             if schema in new_schemas and schema.annotation.context_out == Context():
-                classes['jn_i'].append(str(schema))
+                classes['jn_i'].append(schema)
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_out = schema.path.context_in()
             if context_out != Context():
                 contexts_out.add(context_out)
                 if schema not in new_schemas:
                     old_contexts.add(context_out)
-                if str(schema) not in classes['jn_c_' + str(context_out)]:
-                    classes['jn_c_' + str(context_out)].append(str(schema))
+                if schema not in classes['jn_c_' + str(context_out)]:
+                    classes['jn_c_' + str(context_out)].append(schema)
     for context_out in contexts_out:
         for target_schema in target_schemas:
             if ((context_out not in old_contexts or target_schema in new_schemas)
                     and target_schema.annotation.context_out == Context()):
                 output_schema = target_schema.contextualize(target_schema.annotation.context_in, context_out)
                 output_schemas.add(output_schema)
-                classes['jn_o_{}'.format(context_out)].append(str(output_schema))
+                classes['jn_o_{}'.format(context_out)].append(output_schema)
         if context_out not in old_contexts:
             lookup.append(Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
     return output_schemas, [lookup]

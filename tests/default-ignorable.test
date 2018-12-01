@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 200C 1BC03::[ligneP.270.1.=0+240|espace.0.0.0..nj=1+0|ligneT.0.1.=2+740]
-1BC02 200D 1BC46::[ligneP.270.1.=0+120|espace.0.260.260..nj=0+0|courbeS.270.90.pos.2.270=2@-120,-300+320]
+1BC02 200C 1BC03::[duployan.0019=0+240|duployan.0015=1+0|duployan.0020=2+740]
+1BC02 200D 1BC46::[duployan.0019=0+120|duployan=0+0|duployan.0099=2@-120,-300+320]
