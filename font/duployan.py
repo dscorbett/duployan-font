@@ -44,6 +44,7 @@ ABOVE_ANCHOR = 'abv'
 BELOW_LOOKUP = "'mark' below"
 BELOW_SUBTABLE = BELOW_LOOKUP + '-1'
 BELOW_ANCHOR = 'blw'
+CLONE_DEFAULT = object()
 
 def add_lookup(font, lookup, lookup_type, flags, feature, subtable, anchor_class):
     font.addLookup(lookup,
@@ -132,6 +133,9 @@ class Space(object):
     def __init__(self, angle):
         self.angle = angle
 
+    def clone(self, angle=CLONE_DEFAULT):
+        return Space(self.angle if angle is CLONE_DEFAULT else angle)
+
     def __str__(self):
         return 'espace.{}'.format(self.angle)
 
@@ -151,6 +155,9 @@ class Dot(object):
     def __str__(self):
         return 'point'
 
+    def clone(self):
+        return Dot()
+
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -167,6 +174,9 @@ class Dot(object):
 class Line(object):
     def __init__(self, angle):
         self.angle = angle
+
+    def clone(self, angle=CLONE_DEFAULT):
+        return Line(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
         name = ''
@@ -213,6 +223,12 @@ class Curve(object):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
+
+    def clone(self, angle_in=CLONE_DEFAULT, angle_out=CLONE_DEFAULT, clockwise=CLONE_DEFAULT):
+        return Curve(
+            self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
+            self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
+            self.clockwise if clockwise is CLONE_DEFAULT else clockwise)
 
     def __str__(self):
         name = ''
@@ -298,6 +314,18 @@ class Circle(object):
         self.clockwise = clockwise
         self.reversed = reversed
 
+    def clone(
+            self,
+            angle_in=CLONE_DEFAULT,
+            angle_out=CLONE_DEFAULT,
+            clockwise=CLONE_DEFAULT,
+            reversed=CLONE_DEFAULT):
+        return Circle(
+            self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
+            self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
+            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            self.reversed if reversed is CLONE_DEFAULT else reversed)
+
     def __str__(self):
         return 'cercle.{}.{}.{}{}'.format(
             self.angle_in,
@@ -382,6 +410,18 @@ class Annotation(object):
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
 
+    def clone(
+            self,
+            ignored=CLONE_DEFAULT,
+            styles=CLONE_DEFAULT,
+            context_in=CLONE_DEFAULT,
+            context_out=CLONE_DEFAULT):
+        return Annotation(
+            self.ignored if ignored is CLONE_DEFAULT else ignored,
+            self.styles if styles is CLONE_DEFAULT else styles,
+            self.context_in if context_in is CLONE_DEFAULT else context_in,
+            self.context_out if context_out is CLONE_DEFAULT else context_out)
+
     def __str__(self):
         # Most annotations have no effect on subsequent phases.
         # TODO: In context_in, only the chirality matters for join_with_previous.
@@ -400,9 +440,6 @@ class Annotation(object):
             self.styles == other.styles and
             self.context_in == other.context_in and
             self.context_out == other.context_out)
-
-    def clone(self):
-        return Annotation(self.ignored, self.styles, self.context_in, self.context_out)
 
 class Schema(object):
     def __init__(
@@ -425,6 +462,26 @@ class Schema(object):
         self.marks = marks or []
         self.annotation = annotation or Annotation()
         self._hash = self._calculate_hash()
+
+    def clone(
+            self,
+            cp=CLONE_DEFAULT,
+            path=CLONE_DEFAULT,
+            size=CLONE_DEFAULT,
+            joining_type=CLONE_DEFAULT,
+            side_bearing=CLONE_DEFAULT,
+            anchor=CLONE_DEFAULT,
+            marks=CLONE_DEFAULT,
+            annotation=CLONE_DEFAULT):
+        return Schema(
+            self.cp if cp is CLONE_DEFAULT else cp,
+            self.path if path is CLONE_DEFAULT else path,
+            self.size if size is CLONE_DEFAULT else size,
+            self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
+            self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
+            self.anchor if anchor is CLONE_DEFAULT else anchor,
+            self.marks if marks is CLONE_DEFAULT else marks,
+            self.annotation if annotation is CLONE_DEFAULT else annotation)
 
     def _calculate_hash(self):
         return (hash(self.cp) ^
@@ -601,9 +658,7 @@ def ligate_pernin_r(schemas, new_schemas, classes):
         liga.append(Substitution([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
         dlig.append(Substitution([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
     for vowel in vowels:
-        reversed_vowel = vowel.contextualize(Context(), Context())
-        reversed_vowel.path.clockwise = not reversed_vowel.path.clockwise
-        reversed_vowel.path.reversed = True
+        reversed_vowel = vowel.clone(cp=-1, path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True))
         liga.append(Substitution([vowel, zwj, r], [reversed_vowel]))
         dlig.append(Substitution([vowel, r], [reversed_vowel]))
         output_schemas.add(reversed_vowel)
