@@ -25,3 +25,14 @@ clean:
 
 check: $(FONT)
 	tests/run-tests.py $< tests/*.test
+
+freeze:
+	$(eval TMP := $(shell mktemp -d))
+	virtualenv -p python $(TMP)
+	. $(TMP)/bin/activate; \
+	pip install -U pip; \
+	pip install -r requirements-to-freeze.txt; \
+	pip freeze >requirements.txt; \
+	deactivate
+	$(RM) -r $(TMP)
+	git diff requirements.txt
