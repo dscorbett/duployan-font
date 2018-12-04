@@ -19,12 +19,15 @@ __all__ = ['augment']
 import collections
 import math
 import os
+import re
 import tempfile
 
 import fontforge
+import fontTools.agl
 import fontTools.feaLib.builder
 import more_itertools
 import psMat
+import unicodedata2
 
 BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
@@ -46,6 +49,12 @@ BELOW_LOOKUP = "'mark' below"
 BELOW_SUBTABLE = BELOW_LOOKUP + '-1'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
+
+def unichar(i):
+    try:
+        return unichr(i)
+    except ValueError:
+        return '\\U{:08X}'.format(i).decode('unicode-escape')
 
 def add_lookup(font, lookup, lookup_type, flags, feature, subtable, anchor_class):
     font.addLookup(lookup,
@@ -154,7 +163,7 @@ class Space(object):
 
 class Dot(object):
     def __str__(self):
-        return 'point'
+        return 'H'
 
     def clone(self):
         return Dot()
@@ -180,18 +189,7 @@ class Line(object):
         return Line(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
-        name = ''
-        if self.angle == 0:
-            name = 'T'
-        if self.angle == 30:
-            name = 'L'
-        if self.angle == 240:
-            name = 'K'
-        if self.angle == 270:
-            name = 'P'
-        if self.angle == 315:
-            name = 'F'
-        return 'ligne{}.{}'.format(name, self.angle)
+        return 'L.{}'.format(self.angle)
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
@@ -232,17 +230,10 @@ class Curve(object):
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise)
 
     def __str__(self):
-        name = ''
-        if self.angle_in == 0 and self.angle_out == 180 and self.clockwise:
-            name = 'N'
-        if self.angle_in == 90 and self.angle_out == 270 and self.clockwise:
-            name = 'J'
-        if self.angle_in == 180 and self.angle_out == 0 and not self.clockwise:
-            name = 'M'
-        if self.angle_in == 270 and self.angle_out == 90 and not self.clockwise:
-            name = 'S'
-        return 'courbe{}.{}.{}.{}'.format(
-            name, self.angle_in, self.angle_out, 'neg' if self.clockwise else 'pos')
+        return 'C.{}.{}.{}'.format(
+            self.angle_in,
+            self.angle_out,
+            'neg' if self.clockwise else 'pos')
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
@@ -328,11 +319,11 @@ class Circle(object):
             self.reversed if reversed is CLONE_DEFAULT else reversed)
 
     def __str__(self):
-        return 'cercle.{}.{}.{}{}'.format(
+        return 'O.{}.{}.{}{}'.format(
             self.angle_in,
             self.angle_out,
             'neg' if self.clockwise else 'pos',
-            '.r' if self.reversed else '')
+            '.rev' if self.reversed else '')
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
@@ -443,8 +434,23 @@ class Annotation(object):
             self.context_out == other.context_out)
 
 class Schema(object):
-    CANONICAL_SCHEMAS = {}
-    _CANONICAL_NAMES = {}
+    _CHARACTER_NAME_SUBSTITUTIONS = map(lambda (pattern, repl): (re.compile(pattern), repl), [
+        (r'^ZERO WIDTH SPACE$', 'ZWSP'),
+        (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
+        (r'^ZERO WIDTH JOINER$', 'ZWJ'),
+        (r'^MEDIUM MATHEMATICAL SPACE$', 'MMSP'),
+        (r'^WORD JOINER$', 'WJ'),
+        (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
+        (r'^COMBINING ', ''),
+        (r'^DUPLOYAN ((LETTER|AFFIX|SIGN|PUNCTUATION) )?', ''),
+        (r'^SHORTHAND FORMAT ', ''),
+        (r'\bSPACE\b', 'SP'),
+        (r' (WITH|AND) ', ' '),
+        (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
+        (r'[ -]+', ''),
+    ])
+    canonical_schemas = {}
+    _canonical_names = {}
 
     def __init__(
             self,
@@ -467,8 +473,8 @@ class Schema(object):
         self.annotation = annotation or Annotation()
         self._identity = self._calculate_identity()
         self._glyph_name = None
-        if self not in self.CANONICAL_SCHEMAS:
-            self.CANONICAL_SCHEMAS[self] = self
+        if self not in self.canonical_schemas:
+            self.canonical_schemas[self] = self
 
     def clone(
             self,
@@ -512,19 +518,35 @@ class Schema(object):
             self.anchor,
             ';'.join(map(lambda m: m._identity, self.marks or []))]))
 
+    def _calculate_name(self):
+        cp = self.cp
+        if cp == -1:
+            return 'dupl{}.{}{}'.format(
+                self.path,
+                self.size,
+                ('.' + self.anchor) if self.anchor else '')
+        try:
+            name = fontTools.agl.UV2AGL[cp]
+        except KeyError:
+            readable_name = unicodedata2.name(unichar(cp))
+            for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
+                readable_name = regex.sub(repl, readable_name)
+            name = '{}{:04X}.{}'.format('uni' if cp <= 0xFFFF else 'u', cp, readable_name)
+        return name
+
     def __str__(self):
         if self._glyph_name is None:
-            canonical = self.CANONICAL_SCHEMAS[self]
+            canonical = self.canonical_schemas[self]
             if self is not canonical:
                 self._glyph_name = str(canonical)
             else:
-                name = 'duployan'
-                if name in self._CANONICAL_NAMES:
-                    if self not in self._CANONICAL_NAMES[name]:
-                        self._CANONICAL_NAMES[name].append(self)
-                        name += '.{:04}'.format(len(self._CANONICAL_NAMES[name]))
+                name = self._calculate_name()
+                if name in self._canonical_names:
+                    if self not in self._canonical_names[name]:
+                        self._canonical_names[name].append(self)
+                        name += '._{:X}'.format(len(self._canonical_names[name]) - 1)
                 else:
-                    self._CANONICAL_NAMES[name] = [self]
+                    self._canonical_names[name] = [self]
                 self._glyph_name = name
         return self._glyph_name
 

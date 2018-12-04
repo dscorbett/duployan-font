@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 200C 1BC03::[duployan.0019=0+240|duployan.0015=1+0|duployan.0020=2+740]
-1BC02 200D 1BC46::[duployan.0019=0+120|duployan=0+0|duployan.0099=2@-120,-300+320]
+1BC02 200C 1BC03::[u1BC02.p=0+240|uni200C.zwnj=1+0|u1BC03.t=2+740]
+1BC02 200D 1BC46::[u1BC02.p=0+120|space=0+0|duplC.270.90.pos.2=2@-120,-300+320]
