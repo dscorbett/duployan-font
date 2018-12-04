@@ -14,7 +14,7 @@
 
 from __future__ import division
 
-__all__ = ['augment']
+__all__ = ['Builder']
 
 import collections
 import math
