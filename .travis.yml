@@ -1,5 +1,4 @@
 dist: trusty
-sudo: false
 language: python
 python:
     # FontForge uses Python 2, so there is no point to testing Python 3.
