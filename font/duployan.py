@@ -510,6 +510,7 @@ class Schema(object):
 
     def _calculate_identity(self):
         return '-'.join(map(str, [
+            self.cp,
             self.path,
             self.size,
             self.side_bearing,

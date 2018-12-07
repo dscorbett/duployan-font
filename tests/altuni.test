@@ -12,5 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 200C 1BC03::[u1BC02.p=0+240|uni200C.zwnj=1+0|u1BC03.t=2+740]
-1BC02 200D 1BC46::[u1BC02.p=0+120|space=0+0|duplC.270.90.pos.2._1=2@-120,-300+320]
+00A0 1BC48 2060::[uni00A0.noBreakSp=0+260|u1BC48.ie=1+220|uni2060.wj=2@170,-100+170]
