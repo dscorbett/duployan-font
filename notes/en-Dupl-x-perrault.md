@@ -186,7 +186,7 @@ U+1BC3F DUPLOYAN LETTER S K
 U+1BC40 DUPLOYAN LETTER S K R
 
 * Value: s k r
-* Value: circum- (before ZWJ)
+* Value: circum- (before ZWNJ)
 
 U+1BC41 DUPLOYAN LETTER A
 
@@ -348,6 +348,10 @@ U+1BC84 DUPLOYAN AFFIX HIGH DOT
 * Value: -itude
 * Value: -titude
 
+U+1BC86 DUPLOYAN AFFIX HIGH LINE
+
+* Value: -ment
+
 U+1BC94 DUPLOYAN AFFIX LOW DOT
 
 * Value: -able
@@ -370,6 +374,12 @@ an, en, in, un, am, em, im, um
 small M
 
 * mis-, -alism, -ism, -sim, -tism, -gram
+
+small N
+
+* -deousness, -geousness, -tiousness, -scionness
+* -ingness
+* -[less]ness
 
 small S
 
