@@ -147,7 +147,7 @@ class Space(object):
         return Space(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
-        return 'espace.{}'.format(self.angle)
+        return 'Z.{}'.format(self.angle)
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         if joining_type != TYPE.NON_JOINING:
@@ -583,26 +583,29 @@ class OrderedSet(collections.OrderedDict):
     def add(self, item):
         self[item] = None
 
+    def remove(self, item):
+        self.pop(item, None)
+
 class Substitution(object):
     def __init__(self, a1, a2, a3=None, a4=None):
+        def _l(glyphs):
+            return [glyphs] if isinstance(glyphs, str) else glyphs
         if a4 is None:
             assert a3 is None, 'Substitution takes 2 or 4 inputs, given 3'
             self.contexts_in = []
-            self.inputs = a1
+            self.inputs = _l(a1)
             self.contexts_out = []
-            self.outputs = a2
+            self.outputs = _l(a2)
         else:
-            self.contexts_in = a1
-            self.inputs = a2
-            self.contexts_out = a3
-            self.outputs = a4
+            self.contexts_in = _l(a1)
+            self.inputs = _l(a2)
+            self.contexts_out = _l(a3)
+            self.outputs = _l(a4)
 
     def __str__(self, in_contextual_lookup=False):
         def _s0(glyph):
             return '@' + glyph if isinstance(glyph, str) else str(glyph)
         def _s(glyphs, apostrophe=False):
-            if isinstance(glyphs, str):
-                glyphs = [glyphs]
             suffix = "'" if apostrophe else ''
             return ('{} '.format(suffix).join(map(_s0, glyphs))) + suffix
         return '    substitute {} {} {} by {};\n'.format(
@@ -653,24 +656,22 @@ class Lookup(object):
         for rule in other.rules:
             self.append(rule)
 
-def dont_ignore_default_ignorables(schemas, new_schemas, classes):
+def dont_ignore_default_ignorables(schemas, new_schemas, classes, add_rule):
     lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
     lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
     for schema in schemas:
         if schema.annotation.ignored:
-            lookup_1.append(Substitution([schema], [schema, schema]))
-            lookup_2.append(Substitution([schema, schema], [schema]))
-    return schemas, [lookup_1, lookup_2]
+            add_rule(lookup_1, Substitution([schema], [schema, schema]))
+            add_rule(lookup_2, Substitution([schema, schema], [schema]))
+    return [lookup_1, lookup_2]
 
-def ligate_pernin_r(schemas, new_schemas, classes):
+def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
     liga = Lookup('liga', 'dupl', 'dflt')
     dlig = Lookup('dlig', 'dupl', 'dflt')
-    output_schemas = OrderedSet()
     vowels = []
     zwj = None
     r = None
     for schema in schemas:
-        output_schemas.add(schema)
         if schema.cp == 0x200D:
             assert zwj is None, 'Multiple ZWJs found'
             zwj = schema
@@ -685,36 +686,27 @@ def ligate_pernin_r(schemas, new_schemas, classes):
             vowels.append(schema)
     assert classes['ll_vowel'], 'No Pernin circle vowels found'
     if vowels:
-        liga.append(Substitution([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
-        dlig.append(Substitution([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
+        add_rule(liga, Substitution([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
+        add_rule(dlig, Substitution([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
     for vowel in vowels:
         reversed_vowel = vowel.clone(cp=-1, path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True))
-        liga.append(Substitution([vowel, zwj, r], [reversed_vowel]))
-        dlig.append(Substitution([vowel, r], [reversed_vowel]))
-        output_schemas.add(reversed_vowel)
-    return output_schemas, [liga, dlig]
+        add_rule(liga, Substitution([vowel, zwj, r], [reversed_vowel]))
+        add_rule(dlig, Substitution([vowel, r], [reversed_vowel]))
+    return [liga, dlig]
 
-def decompose(schemas, new_schemas, classes):
+def decompose(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
-    output_schemas = OrderedSet()
     for schema in schemas:
         if schema.marks and schema in new_schemas:
-            substitution_output = [schema.without_marks()] + schema.marks
-            lookup.append(Substitution([schema], substitution_output))
-            for output_schema in substitution_output:
-                output_schemas.add(output_schema)
-        else:
-            output_schemas.add(schema)
-    return output_schemas, [lookup]
+            add_rule(lookup, Substitution([schema], [schema.without_marks()] + schema.marks))
+    return [lookup]
 
-def join_with_previous(schemas, new_schemas, classes):
+def join_with_previous(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
-    output_schemas = OrderedSet()
     target_schemas = []
     contexts_in = OrderedSet()
     old_contexts = set()
     for schema in schemas:
-        output_schemas.add(schema)
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
             if schema in new_schemas and schema.annotation.context_in == Context():
@@ -731,20 +723,17 @@ def join_with_previous(schemas, new_schemas, classes):
         for target_schema in target_schemas:
             if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.annotation.context_in == Context():
                 output_schema = target_schema.contextualize(context_in, Context())
-                output_schemas.add(output_schema)
                 classes['jp_o_{}'.format(context_in)].append(output_schema)
         if context_in not in old_contexts:
-            lookup.append(Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
-    return output_schemas, [lookup]
+            add_rule(lookup, Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
+    return [lookup]
 
-def join_with_next(schemas, new_schemas, classes):
+def join_with_next(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
-    output_schemas = OrderedSet()
     target_schemas = []
     contexts_out = OrderedSet()
     old_contexts = set()
     for schema in schemas:
-        output_schemas.add(schema)
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
             if schema in new_schemas and schema.annotation.context_out == Context():
@@ -762,11 +751,26 @@ def join_with_next(schemas, new_schemas, classes):
             if ((context_out not in old_contexts or target_schema in new_schemas)
                     and target_schema.annotation.context_out == Context()):
                 output_schema = target_schema.contextualize(target_schema.annotation.context_in, context_out)
-                output_schemas.add(output_schema)
                 classes['jn_o_{}'.format(context_out)].append(output_schema)
         if context_out not in old_contexts:
-            lookup.append(Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
-    return output_schemas, [lookup]
+            add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
+    return [lookup]
+
+def add_rule(output_schemas, classes, lookup, rule):
+    lookup.append(rule)
+    if not rule.contexts_in and not rule.contexts_out and len(rule.inputs) == 1:
+        input = rule.inputs[0]
+        if isinstance(input, str):
+            for i in classes[input]:
+                output_schemas.remove(i)
+        else:
+            output_schemas.remove(input)
+    for output in rule.outputs:
+        if isinstance(output, str):
+            for o in classes[output]:
+                output_schemas.add(o)
+        else:
+            output_schemas.add(output)
 
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
@@ -775,12 +779,13 @@ def run_phases(all_input_schemas, phases):
     for phase in phases:
         all_output_schemas = OrderedSet()
         new_input_schemas = OrderedSet(all_input_schemas)
+        output_schemas = OrderedSet(all_input_schemas)
         classes = collections.defaultdict(list)
         lookups = None
         in_phase = True
         while in_phase:
             in_phase = False
-            output_schemas, output_lookups = phase(all_input_schemas, new_input_schemas, classes)
+            output_lookups = phase(all_input_schemas, new_input_schemas, classes, lambda lookup, rule: add_rule(output_schemas, classes, lookup, rule))
             new_input_schemas = OrderedSet()
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
