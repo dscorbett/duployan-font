@@ -396,42 +396,51 @@ class Annotation(object):
             ignored=False,
             styles=None,
             context_in=None,
-            context_out=None):
+            context_out=None,
+            ss=None):
         self.ignored = ignored
         self.styles = frozenset(STYLE.__dict__.keys() if styles is None else styles)
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
+        self.ss = ss
 
     def clone(
             self,
             ignored=CLONE_DEFAULT,
             styles=CLONE_DEFAULT,
             context_in=CLONE_DEFAULT,
-            context_out=CLONE_DEFAULT):
+            context_out=CLONE_DEFAULT,
+            ss=CLONE_DEFAULT):
         return Annotation(
             self.ignored if ignored is CLONE_DEFAULT else ignored,
             self.styles if styles is CLONE_DEFAULT else styles,
             self.context_in if context_in is CLONE_DEFAULT else context_in,
-            self.context_out if context_out is CLONE_DEFAULT else context_out)
+            self.context_out if context_out is CLONE_DEFAULT else context_out,
+            self.ss if ss is CLONE_DEFAULT else ss)
 
     def __str__(self):
         # Most annotations have no effect on subsequent phases.
         # TODO: In context_in, only the chirality matters for join_with_previous.
-        return str(self.context_in)
+        return '/'.join(map(str, [
+            self.context_in,
+            self.ss,
+        ]))
 
     def __hash__(self):
         return (
             hash(self.ignored) ^
             hash(self.styles) ^
             hash(self.context_in) ^
-            hash(self.context_out))
+            hash(self.context_out) ^
+            hash(self.ss))
 
     def __eq__(self, other):
         return (
             self.ignored == other.ignored and
             self.styles == other.styles and
             self.context_in == other.context_in and
-            self.context_out == other.context_out)
+            self.context_out == other.context_out and
+            self.ss == other.ss)
 
 class Schema(object):
     _CHARACTER_NAME_SUBSTITUTIONS = map(lambda (pattern, repl): (re.compile(pattern), repl), [
@@ -522,10 +531,12 @@ class Schema(object):
     def _calculate_name(self):
         cp = self.cp
         if cp == -1:
-            return 'dupl{}.{}{}'.format(
+            return 'dupl{}.{}{}{}'.format(
                 self.path,
                 self.size,
-                ('.' + self.anchor) if self.anchor else '')
+                ('.' + self.anchor) if self.anchor else '',
+                '.ss{:02}'.format(self.annotation.ss) if self.annotation.ss else '',
+            )
         try:
             name = fontTools.agl.UV2AGL[cp]
         except KeyError:
@@ -629,6 +640,39 @@ class Lookup(object):
         self.script = script
         self.language = language
         self.rules = []
+        if script == 'dupl':
+            self.required = feature in [
+                'frac',
+                'numr',
+                'dnom',
+                'locl',
+                'ccmp',
+                'nukt',
+                'akhn',
+                'rphf',
+                'pref',
+                'rkrf',
+                'blwf',
+                'half',
+                'pstf',
+                'vatu',
+                'cjct',
+                'isol',
+                'init',
+                'medi',
+                'fina',
+                'abvs',
+                'blws',
+                'calt',
+                'clig',
+                'haln',
+                'pres',
+                'psts',
+                'rclt',
+                'rlig',
+            ]
+        else:
+            raise ValueError("Unrecognized script tag: '{}'".format(self.script))
 
     def __str__(self):
         contextual = any(r.is_contextual() for r in self.rules)
@@ -701,6 +745,13 @@ def decompose(schemas, new_schemas, classes, add_rule):
             add_rule(lookup, Substitution([schema], [schema.without_marks()] + schema.marks))
     return [lookup]
 
+def ss01(schemas, new_schemas, classes, add_rule):
+    lookup = Lookup('ss01', 'dupl', 'dflt')
+    for schema in schemas:
+        if schema in new_schemas and isinstance(schema.path, Circle):
+            add_rule(lookup, Substitution([schema], [schema.clone(cp=-1, annotation=schema.annotation.clone(ss=1))]))
+    return [lookup]
+
 def join_with_previous(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
     target_schemas = []
@@ -756,9 +807,15 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
             add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
     return [lookup]
 
-def add_rule(output_schemas, classes, lookup, rule):
+def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
+    for input in rule.inputs:
+        if isinstance(input, str):
+            if all(s in autochthonous_schemas for s in classes[input]):
+                return
+        elif input in autochthonous_schemas:
+            return
     lookup.append(rule)
-    if not rule.contexts_in and not rule.contexts_out and len(rule.inputs) == 1:
+    if lookup.required and not rule.contexts_in and not rule.contexts_out and len(rule.inputs) == 1:
         input = rule.inputs[0]
         if isinstance(input, str):
             for i in classes[input]:
@@ -778,6 +835,7 @@ def run_phases(all_input_schemas, phases):
     all_classes = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
+        autochthonous_schemas = OrderedSet()
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
         classes = collections.defaultdict(list)
@@ -785,12 +843,17 @@ def run_phases(all_input_schemas, phases):
         in_phase = True
         while in_phase:
             in_phase = False
-            output_lookups = phase(all_input_schemas, new_input_schemas, classes, lambda lookup, rule: add_rule(output_schemas, classes, lookup, rule))
+            output_lookups = phase(
+                all_input_schemas,
+                new_input_schemas,
+                classes,
+                lambda lookup, rule: add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule))
             new_input_schemas = OrderedSet()
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
                 if output_schema not in all_input_schemas:
                     all_input_schemas.add(output_schema)
+                    autochthonous_schemas.add(output_schema)
                     new_input_schemas.add(output_schema)
                     in_phase = True
             if lookups is None:
@@ -809,6 +872,7 @@ PHASES = [
     dont_ignore_default_ignorables,
     ligate_pernin_r,
     decompose,
+    ss01,
     join_with_previous,
     join_with_next,
 ]
