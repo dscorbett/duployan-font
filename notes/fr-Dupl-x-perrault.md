@@ -193,15 +193,10 @@ U+1BC52 DUPLOYAN LETTER EU
   * Isolated: top left quarter circle
   * Other: like U except with a dot, and curve down in the presence of T/D
 
-U+1BC5A DUPLOYAN LETTER OW
-
-* Value: ou
-* medial form only
-
 U+1BC5B DUPLOYAN LETTER OU
 
 * Value: ou
-* not medial form
+* has a dot in the medial form
 
 U+1BC61 DUPLOYAN LETTER NASAL U
 

@@ -460,8 +460,15 @@ U+1BC56 DUPLOYAN LETTER ROMANIAN U
 U+1BC5A DUPLOYAN LETTER OW
 
 * Value: eu
+* Value: iu
 * Or should it be a ROMANIAN U followed by ZWJ?
-* Only used word-finally. (SDSD p. 40)
+* Pentru diftongul final _eu_ (_iu_), în cele mai multe cazuri va fi suficient
+  să se noteze doar vocala finala _u_. Cînd însă aceasta ar îngreuna citirea
+  corectă, s-ar putea reprezenta diftongul prin semnul disponibil al unui _u_
+  stenografic _medial_. Într-adevăr, la capitolul vocalelor s-a văzut ca _u_
+  final se redă printr-o spirală (cîrlig). Dacă la sfîrșitul unui cuvînt se va
+  trasa totuși, în loc de spirală, un cerc cu punct, acesta nu va mai reprezenta
+  vocala _u_, ci diftongul final _eu_ sau _iu_. (SDSD p. 40)
 
 U+1BC61 DUPLOYAN LETTER NASAL U
 

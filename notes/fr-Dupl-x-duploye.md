@@ -1,4 +1,4 @@
-[Cours théorique et pratique de sténo-métagraphie (Duployé-Institut)](https://books.google.com/books?id=62ANAAAAYAAJ)<br>
+[Cours théorique et pratique de sténo-métagraphie (Duployé-Institut)](https://books.google.com/books?id=62ANAAAAYAAJ&pg=PA1)<br>
 L. van den Bosch, A. Camby
 
 ## General remarks
@@ -204,6 +204,9 @@ U+1BC41 DUPLOYAN LETTER A
 U+1BC44 DUPLOYAN LETTER O
 
 * Value: o
+* Value: ou
+* Le son **ou** par un cercle bouclé 𛱛; sauf dans le corps des mots où l’on
+  emplois le simple grand cercle. (p. 12)
 
 U+1BC46 DUPLOYAN LETTER I
 
@@ -270,22 +273,11 @@ U+1BC52 DUPLOYAN LETTER EU
   * Final: above/right except after p, b, t, d, f, v
 * has an inner dot in phonography
 
-U+1BC5A DUPLOYAN LETTER OW
-
-* Value: ou
-* et l’on distingue le *ou* médial de *o* par un point placé dans le cercle de
-  *ou*
-
 U+1BC5B DUPLOYAN LETTER OU
 
 * Value: ou
-* sauf dans le corps des mots où l’on emplois le simple grand cercle
-
-U+1BC5C DUPLOYAN LETTER WA
-
-* Value: oi
-* en phonographie, 1<sup>er</sup> degré, on écrit *a* dans *o* pour le son *oi*
-  𛱜
+* et l’on distingue le **ou** médial de **o** par un point placé dans le
+  cercle de **ou** (p. 12)
 
 U+1BC61 DUPLOYAN LETTER NASAL U
 

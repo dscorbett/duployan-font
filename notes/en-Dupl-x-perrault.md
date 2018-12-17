@@ -274,7 +274,7 @@ U+1BC57 DUPLOYAN LETTER UH
 * Value: -sion
 * Value: -tion
 
-U+1BC5A DUPLOYAN LETTER OW
+U+1BC5B DUPLOYAN LETTER OU
 
 * Value: ow
 * Positional forms:
