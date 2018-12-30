@@ -193,7 +193,7 @@ class Line(object):
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
-        length = 500 * (size or 0.2) / (abs(math.sin(math.radians(self.angle))) or 1)
+        length = int(500 * (size or 0.2) / (abs(math.sin(math.radians(self.angle))) or 1))
         pen.lineTo((length, 0))
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
@@ -244,7 +244,7 @@ class Curve(object):
             angle_out += 360
         a1 = (90 if self.clockwise else -90) + self.angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
-        r = RADIUS * size
+        r = int(RADIUS * size)
         da = a2 - a1
         beziers_needed = int(math.ceil(abs(da) / 90))
         bezier_arc = da / beziers_needed
@@ -334,7 +334,7 @@ class Circle(object):
             angle_out += 360
         a1 = (90 if self.clockwise else -90) + self.angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
-        r = RADIUS * size
+        r = int(RADIUS * size)
         cp = r * (4 / 3) * math.tan(math.pi / 8)
         pen.moveTo((0, r))
         pen.curveTo((cp, r), (r, cp), (r, 0))
@@ -421,6 +421,7 @@ class Schema(object):
             marks=None,
             ignored=False,
             styles=None,
+            ss_pernin=None,
             context_in=None,
             context_out=None,
             ss=None):
@@ -434,6 +435,7 @@ class Schema(object):
         self.marks = marks or []
         self.ignored = ignored
         self.styles = frozenset(STYLE.__dict__.keys() if styles is None else styles)
+        self.ss_pernin = ss_pernin
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
         self.ss = ss
@@ -453,6 +455,7 @@ class Schema(object):
             marks=CLONE_DEFAULT,
             ignored=CLONE_DEFAULT,
             styles=CLONE_DEFAULT,
+            ss_pernin=CLONE_DEFAULT,
             context_in=CLONE_DEFAULT,
             context_out=CLONE_DEFAULT,
             ss=CLONE_DEFAULT,
@@ -467,6 +470,7 @@ class Schema(object):
             self.marks if marks is CLONE_DEFAULT else marks,
             self.ignored if ignored is CLONE_DEFAULT else ignored,
             self.styles if styles is CLONE_DEFAULT else styles,
+            self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             self.context_in if context_in is CLONE_DEFAULT else context_in,
             self.context_out if context_out is CLONE_DEFAULT else context_out,
             self.ss if ss is CLONE_DEFAULT else ss)
@@ -500,7 +504,7 @@ class Schema(object):
         if cp == -1:
             return 'dupl{}.{}{}{}'.format(
                 self.path,
-                self.size,
+                int(self.size),
                 ('.' + self.anchor) if self.anchor else '',
                 '.ss{:02}'.format(self.ss) if self.ss else '',
             )
@@ -703,11 +707,11 @@ def decompose(schemas, new_schemas, classes, add_rule):
             add_rule(lookup, Substitution([schema], [schema.without_marks()] + schema.marks))
     return [lookup]
 
-def ss01(schemas, new_schemas, classes, add_rule):
+def ss_pernin(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('ss01', 'dupl', 'dflt')
     for schema in schemas:
-        if schema in new_schemas and isinstance(schema.path, Circle):
-            add_rule(lookup, Substitution([schema], [schema.clone(cp=-1, ss=1)]))
+        if schema in new_schemas and schema.ss_pernin:
+            add_rule(lookup, Substitution([schema], [schema.clone(cp=-1, ss_pernin=None, ss=1, **schema.ss_pernin)]))
     return [lookup]
 
 def join_with_previous(schemas, new_schemas, classes, add_rule):
@@ -826,11 +830,14 @@ def run_phases(all_input_schemas, phases):
         all_classes.update(classes)
     return all_schemas, all_lookups, all_classes
 
+def chord_to_radius(c, theta):
+    return c / math.sin(math.radians(theta) / 2)
+
 PHASES = [
     dont_ignore_default_ignorables,
     ligate_pernin_r,
     decompose,
-    ss01,
+    ss_pernin,
     join_with_previous,
     join_with_next,
 ]
@@ -842,10 +849,14 @@ T = Line(0)
 F = Line(315)
 K = Line(240)
 L = Line(30)
+L_SHALLOW = Line(25)
 M = Curve(180, 0, False)
 N = Curve(0, 180, True)
+N_SHALLOW = Curve(295, 245, True)
 J = Curve(90, 270, True)
+J_SHALLOW = Curve(25, 335, True)
 S = Curve(270, 90, False)
+S_SHALLOW = Curve(335, 25, False)
 S_T = Curve(270, 0, False)
 S_P = Curve(270, 180, True)
 T_S = Curve(0, 270, True)
@@ -890,17 +901,17 @@ SCHEMAS = [
     Schema(0x1BC03, T, 1),
     Schema(0x1BC04, F, 1),
     Schema(0x1BC05, K, 1),
-    Schema(0x1BC06, L, 1),
+    Schema(0x1BC06, L, 1, ss_pernin={'path': L_SHALLOW}),
     Schema(0x1BC07, P, 2),
     Schema(0x1BC08, T, 2),
     Schema(0x1BC09, F, 2),
     Schema(0x1BC0A, K, 2),
-    Schema(0x1BC0B, L, 2),
+    Schema(0x1BC0B, L, 2, ss_pernin={'path': L_SHALLOW}),
     Schema(0x1BC0C, P, 3),
     Schema(0x1BC0D, T, 3),
     Schema(0x1BC0E, F, 3),
     Schema(0x1BC0F, K, 3),
-    Schema(0x1BC10, L, 3),
+    Schema(0x1BC10, L, 3, ss_pernin={'path': L_SHALLOW}),
     Schema(0x1BC11, T, 1, marks=[DOT_1]),
     Schema(0x1BC12, T, 1, marks=[DOT_2]),
     Schema(0x1BC13, T, 2, marks=[DOT_1]),
@@ -910,20 +921,20 @@ SCHEMAS = [
     Schema(0x1BC17, L, 1, marks=[DOT_2]),
     Schema(0x1BC18, L, 2, marks=[DOT_1, DOT_2]),
     Schema(0x1BC19, M, 6),
-    Schema(0x1BC1A, N, 6),
-    Schema(0x1BC1B, J, 6),
-    Schema(0x1BC1C, S, 6),
+    Schema(0x1BC1A, N, 6, ss_pernin={'path': N_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC1B, J, 6, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC1C, S, 6, ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC21, M, 6, marks=[DOT_1]),
     Schema(0x1BC22, N, 6, marks=[DOT_1]),
-    Schema(0x1BC23, J, 6, marks=[DOT_1]),
+    Schema(0x1BC23, J, 6, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC24, J, 6, marks=[DOT_1, DOT_2]),
-    Schema(0x1BC25, S, 6, marks=[DOT_1]),
+    Schema(0x1BC25, S, 6, marks=[DOT_1], ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC26, S, 6, marks=[DOT_2]),
     Schema(0x1BC27, M, 8),
     Schema(0x1BC28, N, 8),
-    Schema(0x1BC29, J, 8),
+    Schema(0x1BC29, J, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC2A, S, 8),
-    Schema(0x1BC2F, J, 8, marks=[DOT_1]),
+    Schema(0x1BC2F, J, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC32, S_T, 4),
     Schema(0x1BC33, S_T, 6),
     Schema(0x1BC34, S_P, 4),
