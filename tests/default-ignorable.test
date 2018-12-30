@@ -13,4 +13,4 @@
 # limitations under the License.
 
 1BC02 200C 1BC03::[u1BC02.p=0+240|uni200C.zwnj=1+0|u1BC03.t=2+740]
-1BC02 200D 1BC46::[u1BC02.p=0+120|space=0+0|duplC.270.90.pos.2._1=2@-120,-300+320]
+1BC02 200D 1BC46::[u1BC02.p=0+120|space=0+0|u1BC46.i.C.270.90.pos.2=2@-120,-300+320]

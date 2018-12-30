@@ -424,6 +424,7 @@ class Schema(object):
             ss_pernin=None,
             context_in=None,
             context_out=None,
+            cps=None,
             ss=None):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
@@ -438,6 +439,7 @@ class Schema(object):
         self.ss_pernin = ss_pernin
         self.context_in = context_in or Context()
         self.context_out = context_out or Context()
+        self.cps = cps or [cp]
         self.ss = ss
         self._identity = self._calculate_identity()
         self._glyph_name = None
@@ -458,6 +460,7 @@ class Schema(object):
             ss_pernin=CLONE_DEFAULT,
             context_in=CLONE_DEFAULT,
             context_out=CLONE_DEFAULT,
+            cps=CLONE_DEFAULT,
             ss=CLONE_DEFAULT,
             ):
         return Schema(
@@ -473,6 +476,7 @@ class Schema(object):
             self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             self.context_in if context_in is CLONE_DEFAULT else context_in,
             self.context_out if context_out is CLONE_DEFAULT else context_out,
+            self.cps if cps is CLONE_DEFAULT else cps,
             self.ss if ss is CLONE_DEFAULT else ss)
 
     def __eq__(self, other):
@@ -500,22 +504,35 @@ class Schema(object):
             ';'.join(map(lambda m: m._identity, self.marks or []))]))
 
     def _calculate_name(self):
-        cp = self.cp
-        if cp == -1:
-            return 'dupl{}.{}{}{}'.format(
+        def get_names(cp):
+            try:
+                agl_name = readable_name = fontTools.agl.UV2AGL[cp]
+            except KeyError:
+                try:
+                    readable_name = unicodedata2.name(unichar(cp))
+                    for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
+                        readable_name = regex.sub(repl, readable_name)
+                    agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
+                except UnicodeDecodeError, ValueError:
+                    agl_name = readable_name = ''
+            return agl_name, readable_name
+        cps = self.cps
+        if -1 in cps:
+            name = ''
+        else:
+            agl_name, readable_name = map('_'.join, zip(*map(get_names, cps)))
+            name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
+        if self.cp == -1:
+            name = '{}.{}.{}{}'.format(
+                name or 'dupl',
                 self.path,
                 int(self.size),
                 ('.' + self.anchor) if self.anchor else '',
-                '.ss{:02}'.format(self.ss) if self.ss else '',
             )
-        try:
-            name = fontTools.agl.UV2AGL[cp]
-        except KeyError:
-            readable_name = unicodedata2.name(unichar(cp))
-            for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
-                readable_name = regex.sub(repl, readable_name)
-            name = '{}{:04X}.{}'.format('uni' if cp <= 0xFFFF else 'u', cp, readable_name)
-        return name
+        return '{}{}'.format(
+            name,
+            '.ss{:02}'.format(self.ss) if self.ss else '',
+        )
 
     def __str__(self):
         if self._glyph_name is None:
@@ -695,7 +712,11 @@ def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
         add_rule(liga, Substitution([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
         add_rule(dlig, Substitution([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
     for vowel in vowels:
-        reversed_vowel = vowel.clone(cp=-1, path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True))
+        reversed_vowel = vowel.clone(
+            cp=-1,
+            path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True),
+            cps=[vowel.cp, zwj.cp, r.cp],
+        )
         add_rule(liga, Substitution([vowel, zwj, r], [reversed_vowel]))
         add_rule(dlig, Substitution([vowel, r], [reversed_vowel]))
     return [liga, dlig]
