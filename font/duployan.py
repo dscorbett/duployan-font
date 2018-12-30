@@ -695,10 +695,10 @@ def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
     zwj = None
     r = None
     for schema in schemas:
-        if schema.cp == 0x200D:
+        if schema.cps == [0x200D]:
             assert zwj is None, 'Multiple ZWJs found'
             zwj = schema
-        elif schema.cp == 0x1BC06:
+        elif schema.cps == [0x1BC06]:
             assert r is None, 'Multiple Pernin Rs found'
             r = schema
         elif (schema in new_schemas
@@ -715,7 +715,7 @@ def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
         reversed_vowel = vowel.clone(
             cp=-1,
             path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True),
-            cps=[vowel.cp, zwj.cp, r.cp],
+            cps=vowel.cps + zwj.cps + r.cps,
         )
         add_rule(liga, Substitution([vowel, zwj, r], [reversed_vowel]))
         add_rule(dlig, Substitution([vowel, r], [reversed_vowel]))
