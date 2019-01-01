@@ -443,8 +443,16 @@ class Schema(object):
         self.ss = ss
         self._identity = self._calculate_identity()
         self._glyph_name = None
-        if self not in self.canonical_schemas:
+        self.without_marks = marks and self.clone(cp=-1, marks=None)
+        try:
+            doppelganger = self.canonical_schemas[self]
+            if self._cmp() < doppelganger._cmp():
+                self.canonical_schemas[self] = self
+        except KeyError:
             self.canonical_schemas[self] = self
+
+    def _cmp(self):
+        return (self.cp == -1, len(self.cps), self.ss, self.cps)
 
     def clone(
             self,
@@ -559,9 +567,6 @@ class Schema(object):
             marks=None,
             context_in=context_in,
             context_out=context_out)
-
-    def without_marks(self):
-        return self.clone(cp=-1, marks=None)
 
 class OrderedSet(collections.OrderedDict):
     def __init__(self, iterable=None):
@@ -725,7 +730,7 @@ def decompose(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
-            add_rule(lookup, Substitution([schema], [schema.without_marks()] + schema.marks))
+            add_rule(lookup, Substitution([schema], [schema.without_marks] + schema.marks))
     return [lookup]
 
 def ss_pernin(schemas, new_schemas, classes, add_rule):
@@ -1021,7 +1026,7 @@ class Builder(object):
         return glyph
 
     def draw_glyph_with_marks(self, schema, glyph_name):
-        base_glyph = self.draw_glyph(schema.without_marks()).glyphname
+        base_glyph = self.draw_glyph(schema.without_marks).glyphname
         mark_glyphs = []
         for mark in schema.marks:
             mark_glyphs.append(self.draw_glyph(mark).glyphname)
