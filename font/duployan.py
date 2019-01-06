@@ -425,7 +425,9 @@ class Schema(object):
             context_in=None,
             context_out=None,
             cps=None,
-            ss=None):
+            ss=None,
+            _original_shape=None,
+    ):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cp = cp
         self.path = path
@@ -441,6 +443,7 @@ class Schema(object):
         self.context_out = context_out or Context()
         self.cps = cps or [cp]
         self.ss = ss
+        self._original_shape = _original_shape or type(path)
         self._identity = self._calculate_identity()
         self._glyph_name = None
         self.without_marks = marks and self.clone(cp=-1, marks=None)
@@ -452,7 +455,13 @@ class Schema(object):
             self.canonical_schemas[self] = self
 
     def _cmp(self):
-        return (self.cp == -1, len(self.cps), self.ss, self.cps)
+        return (
+            self.cp == -1,
+            len(self.cps),
+            self.ss,
+            self._original_shape != type(self.path),
+            self.cps,
+        )
 
     def clone(
             self,
@@ -470,7 +479,8 @@ class Schema(object):
             context_out=CLONE_DEFAULT,
             cps=CLONE_DEFAULT,
             ss=CLONE_DEFAULT,
-            ):
+            _original_shape=CLONE_DEFAULT,
+    ):
         return Schema(
             self.cp if cp is CLONE_DEFAULT else cp,
             self.path if path is CLONE_DEFAULT else path,
@@ -485,7 +495,9 @@ class Schema(object):
             self.context_in if context_in is CLONE_DEFAULT else context_in,
             self.context_out if context_out is CLONE_DEFAULT else context_out,
             self.cps if cps is CLONE_DEFAULT else cps,
-            self.ss if ss is CLONE_DEFAULT else ss)
+            self.ss if ss is CLONE_DEFAULT else ss,
+            self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
+        )
 
     def __eq__(self, other):
         return self._identity == other._identity
