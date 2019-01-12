@@ -402,12 +402,11 @@ class Schema(object):
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
-        (r'\bSPACE\b', 'SP'),
+        (r'\b(QUAD|SPACE)\b', 'SP'),
         (r' (WITH|AND) ', ' '),
         (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
         (r'[ -]+', ''),
     ])
-    canonical_schemas = {}
     _canonical_names = {}
 
     def __init__(
@@ -444,17 +443,12 @@ class Schema(object):
         self.cps = cps or [cp]
         self.ss = ss
         self._original_shape = _original_shape or type(path)
-        self._identity = self._calculate_identity()
+        self.group = self._calculate_group()
         self._glyph_name = None
+        self.canonical_schema = self
         self.without_marks = marks and self.clone(cp=-1, marks=None)
-        try:
-            doppelganger = self.canonical_schemas[self]
-            if self._cmp() < doppelganger._cmp():
-                self.canonical_schemas[self] = self
-        except KeyError:
-            self.canonical_schemas[self] = self
 
-    def _cmp(self):
+    def sort_key(self):
         return (
             self.cp == -1,
             len(self.cps),
@@ -499,31 +493,29 @@ class Schema(object):
             self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
         )
 
-    def __eq__(self, other):
-        return self._identity == other._identity
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __hash__(self):
-        return hash(self._identity)
-
     def __repr__(self):
-        return '<Schema {}>'.format(self._identity)
-
-    def _calculate_identity(self):
-        return '-'.join(map(str, [
-            self.cp,
+        return '<Schema {}>'.format(', '.join(map(str, [
+            (str if self.cp == -1 else hex)(self.cp),
             self.path,
             self.size,
             self.side_bearing,
             self.context_in,
-            self.ss,
-            self.joining_type == TYPE.NON_JOINING,
-            self.anchor,
-            ';'.join(map(lambda m: m._identity, self.marks or []))]))
+            'ss{:02}'.format(self.ss) if self.ss else '',
+            'NJ' if self.joining_type == TYPE.NON_JOINING else '',
+            'mark' if self.anchor else 'base',
+            map(lambda m: repr(m), self.marks or []),
+        ])))
 
-    def _calculate_name(self):
+    def _calculate_group(self):
+        return (
+            str(self.path),
+            self.size,
+            self.side_bearing,
+            self.anchor,
+            tuple(map(lambda m: m.group, self.marks or [])),
+        )
+
+    def calculate_name(self):
         def get_names(cp):
             try:
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
@@ -556,11 +548,11 @@ class Schema(object):
 
     def __str__(self):
         if self._glyph_name is None:
-            canonical = self.canonical_schemas[self]
+            canonical = self.canonical_schema
             if self is not canonical:
                 self._glyph_name = str(canonical)
             else:
-                name = self._calculate_name()
+                name = self.calculate_name()
                 if name in self._canonical_names:
                     if self not in self._canonical_names[name]:
                         self._canonical_names[name].append(self)
@@ -868,6 +860,92 @@ def run_phases(all_input_schemas, phases):
         all_classes.update(classes)
     return all_schemas, all_lookups, all_classes
 
+class OrderedDefaultDict(collections.OrderedDict, collections.defaultdict):
+    def __init__(self, default_factory):
+        super(OrderedDefaultDict, self).__init__()
+        self.default_factory = default_factory
+
+def group_schemas(schemas):
+    group_dict = OrderedDefaultDict(list)
+    for schema in schemas:
+        group_dict[schema.group].append(schema)
+    return [group for group in group_dict.viewvalues() if len(group) > 1]
+
+def remove_all_from_list(minuend, subtrahend):
+    for value in subtrahend:
+        try:
+            minuend.remove(value)
+        except ValueError:
+            pass
+
+def sift_groups(groups, rule, target_part, classes):
+    for s in target_part:
+        if isinstance(s, str):
+            for group in list(groups):
+                cls = classes[s]
+                intersection = set(group).intersection(cls)
+                overlap = len(intersection)
+                if overlap:
+                    if overlap == len(group):
+                        intersection = group
+                    else:
+                        remove_all_from_list(group, intersection)
+                        if len(group) == 1:
+                            groups.remove(group)
+                        if overlap != 1:
+                            groups.append(intersection)
+                    if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
+                        if len(rule.outputs) == 1:
+                            # a single substitution, or a (chaining) contextual substitution that
+                            # calls a single substitution
+                            output = rule.outputs[0]
+                            if isinstance(output, str):
+                                output = classes[output]
+                                if len(output) != 1:
+                                    # non-singleton glyph class
+                                    groups.remove(intersection)
+                                    new_groups = OrderedDefaultDict(list)
+                                    for input_schema, output_schema in zip(intersection, output):
+                                        new_groups[output_schema].append(input_schema)
+                                    for new_group in new_groups.viewvalues():
+                                        if len(new_group) != 1:
+                                            groups.add(new_group)
+                        # Not implemented:
+                        # chaining subsitution, general form
+                        #   substitute $class' lookup $lookup ...;
+                        # reverse chaining subsitution, general form
+                        #   reversesub $class' lookup $lookup ...;
+                        # reverse chaining substitution, inline form, singleton glyph class
+                        #   reversesub $backtrack $class' $lookahead by $singleton;
+                        # reverse chaining substitution, inline form, non-singleton glyph class
+                        #   reversesub $backtrack $class' $lookahead by $class;
+        else:
+            for group in list(groups):
+                if s in group:
+                    if len(group) == 2:
+                        groups.remove(group)
+                    else:
+                        group.remove(s)
+                    break
+
+def rename_schemas(groups):
+    for i, group in enumerate(groups):
+        group.sort(key=Schema.sort_key)
+        group = iter(group)
+        canonical_schema = next(group)
+        canonical_name = canonical_schema.calculate_name()
+        for schema in group:
+            schema.canonical_schema = canonical_schema
+
+def merge_schemas(schemas, lookups, classes):
+    groups = group_schemas(schemas)
+    for lookup in reversed(lookups):
+        for rule in lookup.rules:
+            sift_groups(groups, rule, rule.contexts_in, classes)
+            sift_groups(groups, rule, rule.contexts_out, classes)
+            sift_groups(groups, rule, rule.inputs, classes)
+    rename_schemas(groups)
+
 def chord_to_radius(c, theta):
     return c / math.sin(math.radians(theta) / 2)
 
@@ -1025,7 +1103,7 @@ class Builder(object):
                 code_points[schema.cp] += 1
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    ' +
-            '\n    '.join(map(hex, sorted(code_points.keys()))))
+            '\n    '.join(map(hex, sorted(code_points.viewkeys()))))
 
     def add_altuni(self, cp, glyph_name):
         glyph = self.font.temporary[glyph_name]
@@ -1095,11 +1173,9 @@ class Builder(object):
         add_lookups(self.font)
         self.font.temporary = {}
         schemas, lookups, classes = run_phases(self.schemas, self.phases)
+        merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             glyph = self.draw_glyph(schema)
-            if glyph.altuni:
-                # This glyph has already been processed.
-                continue
         self.fea = '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups)))
 
     def merge_features(self, tt_font, old_fea):
