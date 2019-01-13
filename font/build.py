@@ -3,7 +3,7 @@
 # build.py - Duployan font build utility
 #
 # Written in 2010-2018 by Khaled Hosny <khaledhosny@eglug.org>
-# Written in 2018 by David Corbett <corbett.dav@husky.neu.edu>
+# Written in 2018-2019 by David Corbett <corbett.dav@husky.neu.edu>
 #
 # To the extent possible under law, the authors have dedicated all
 # copyright and related and neighboring rights to this software to the
