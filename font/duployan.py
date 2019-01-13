@@ -827,6 +827,7 @@ def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
 
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
+    all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups = []
     all_classes = {}
     for phase in phases:
