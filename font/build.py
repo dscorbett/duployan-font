@@ -16,6 +16,7 @@
 
 import argparse
 import os
+import subprocess
 
 import fontforge
 import fontTools.ttLib
@@ -25,7 +26,12 @@ import duployan
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
-        os.environ['SOURCE_DATE_EPOCH'] = '0'
+        os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(['git', 'log', '-1', '--format=%ct']).rstrip()
+    font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(
+        font.fullname,
+        font.version,
+        os.environ['SOURCE_DATE_EPOCH'],
+    ))
     font.selection.all()
     font.correctReferences()
     font.selection.none()

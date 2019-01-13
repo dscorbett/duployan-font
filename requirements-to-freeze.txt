@@ -1,3 +1,3 @@
-fonttools ~= 3.2
+fonttools ~= 3.16
 more-itertools >= 2.1, < 5
 unicodedata2
