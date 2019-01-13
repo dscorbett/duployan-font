@@ -139,7 +139,23 @@ class Context(object):
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
-class Space(object):
+class Shape(object):
+    def clone(self):
+        raise NotImplementedError
+
+    def group(self):
+        return str(self)
+
+    def __call__(self, glyph, pen, size, anchor, joining_type):
+        raise NotImplementedError
+
+    def context_in(self):
+        raise NotImplementedError
+
+    def context_out(self):
+        raise NotImplementedError
+
+class Space(Shape):
     def __init__(self, angle):
         self.angle = angle
 
@@ -161,7 +177,7 @@ class Space(object):
     def context_out(self):
         return Context()
 
-class Dot(object):
+class Dot(Shape):
     def __str__(self):
         return 'H'
 
@@ -181,7 +197,7 @@ class Dot(object):
     def context_out(self):
         return Context()
 
-class Line(object):
+class Line(Shape):
     def __init__(self, angle):
         self.angle = angle
 
@@ -217,7 +233,7 @@ class Line(object):
     def context_out(self):
         return Context(self.angle)
 
-class Curve(object):
+class Curve(Shape):
     def __init__(self, angle_in, angle_out, clockwise):
         self.angle_in = angle_in
         self.angle_out = angle_out
@@ -299,7 +315,7 @@ class Curve(object):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
-class Circle(object):
+class Circle(Shape):
     def __init__(self, angle_in, angle_out, clockwise, reversed):
         self.angle_in = angle_in
         self.angle_out = angle_out
@@ -324,6 +340,19 @@ class Circle(object):
             self.angle_out,
             'neg' if self.clockwise else 'pos',
             '.rev' if self.reversed else '')
+
+    def group(self):
+        angle_in = self.angle_in
+        angle_out = self.angle_out
+        clockwise = self.clockwise
+        if clockwise and angle_in == angle_out:
+            clockwise = False
+            angle_in = angle_out = angle_in % 180
+        return 'O.{}.{}.{}'.format(
+            angle_in,
+            angle_out,
+            'neg' if clockwise else 'pos',
+        )
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
@@ -508,7 +537,7 @@ class Schema(object):
 
     def _calculate_group(self):
         return (
-            str(self.path),
+            self.path.group(),
             self.size,
             self.side_bearing,
             self.anchor,
@@ -898,6 +927,7 @@ def sift_groups(groups, rule, target_part, classes):
                         if len(group) == 1:
                             groups.remove(group)
                         if overlap != 1:
+                            intersection = [x for x in cls if x in intersection]
                             groups.append(intersection)
                     if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
                         if len(rule.outputs) == 1:
