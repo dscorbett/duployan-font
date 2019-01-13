@@ -445,7 +445,7 @@ class Schema(object):
         self._original_shape = _original_shape or type(path)
         self.group = self._calculate_group()
         self._glyph_name = None
-        self.canonical_schema = self
+        self._canonical_schema = self
         self.without_marks = marks and self.clone(cp=-1, marks=None)
 
     def sort_key(self):
@@ -515,6 +515,10 @@ class Schema(object):
             tuple(map(lambda m: m.group, self.marks or [])),
         )
 
+    def canonical_schema(self, canonical_schema):
+        self._canonical_schema = canonical_schema
+        self._glyph_name = None
+
     def calculate_name(self):
         def get_names(cp):
             try:
@@ -548,7 +552,7 @@ class Schema(object):
 
     def __str__(self):
         if self._glyph_name is None:
-            canonical = self.canonical_schema
+            canonical = self._canonical_schema
             if self is not canonical:
                 self._glyph_name = str(canonical)
             else:
@@ -905,11 +909,16 @@ def sift_groups(groups, rule, target_part, classes):
                                     # non-singleton glyph class
                                     groups.remove(intersection)
                                     new_groups = OrderedDefaultDict(list)
-                                    for input_schema, output_schema in zip(intersection, output):
-                                        new_groups[output_schema].append(input_schema)
+                                    for input_schema, output_schema in zip(cls, output):
+                                        if input_schema in intersection:
+                                            try:
+                                                output_schema = id(next(g for g in groups if output_schema in g))
+                                            except StopIteration:
+                                                pass
+                                            new_groups[output_schema].append(input_schema)
                                     for new_group in new_groups.viewvalues():
                                         if len(new_group) != 1:
-                                            groups.add(new_group)
+                                            groups.append(new_group)
                         # Not implemented:
                         # chaining subsitution, general form
                         #   substitute $class' lookup $lookup ...;
@@ -935,7 +944,7 @@ def rename_schemas(groups):
         canonical_schema = next(group)
         canonical_name = canonical_schema.calculate_name()
         for schema in group:
-            schema.canonical_schema = canonical_schema
+            schema.canonical_schema(canonical_schema)
 
 def merge_schemas(schemas, lookups, classes):
     groups = group_schemas(schemas)
@@ -1176,6 +1185,7 @@ class Builder(object):
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             glyph = self.draw_glyph(schema)
+        self.refresh()
         self.fea = '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups)))
 
     def merge_features(self, tt_font, old_fea):
