@@ -899,23 +899,51 @@ class OrderedDefaultDict(collections.OrderedDict, collections.defaultdict):
         super(OrderedDefaultDict, self).__init__()
         self.default_factory = default_factory
 
+class Grouper(object):
+    def __init__(self, groups):
+        self._groups = []
+        self._inverted = {}
+        for group in groups:
+            if len(group) > 1:
+                self.add(group)
+
+    def groups(self):
+        return list(self._groups)
+
+    def group_of(self, item):
+        return self._inverted.get(item)
+
+    def add(self, group):
+        self._groups.append(group)
+        for item in group:
+            self._inverted[item] = group
+
+    def remove(self, group):
+        self._groups.remove(group)
+        for item in group:
+            del self._inverted[item]
+
+    def remove_item(self, group, item):
+        group.remove(item)
+        del self._inverted[item]
+
+    def remove_items(self, minuend, subtrahend):
+        for item in subtrahend:
+            try:
+                self.remove_item(minuend, item)
+            except ValueError:
+                pass
+
 def group_schemas(schemas):
     group_dict = OrderedDefaultDict(list)
     for schema in schemas:
         group_dict[schema.group].append(schema)
-    return [group for group in group_dict.viewvalues() if len(group) > 1]
+    return Grouper(group_dict.viewvalues())
 
-def remove_all_from_list(minuend, subtrahend):
-    for value in subtrahend:
-        try:
-            minuend.remove(value)
-        except ValueError:
-            pass
-
-def sift_groups(groups, rule, target_part, classes):
+def sift_groups(grouper, rule, target_part, classes):
     for s in target_part:
         if isinstance(s, str):
-            for group in list(groups):
+            for group in grouper.groups():
                 cls = classes[s]
                 intersection = set(group).intersection(cls)
                 overlap = len(intersection)
@@ -923,12 +951,12 @@ def sift_groups(groups, rule, target_part, classes):
                     if overlap == len(group):
                         intersection = group
                     else:
-                        remove_all_from_list(group, intersection)
+                        grouper.remove_items(group, intersection)
                         if len(group) == 1:
-                            groups.remove(group)
+                            grouper.remove(group)
                         if overlap != 1:
                             intersection = [x for x in cls if x in intersection]
-                            groups.append(intersection)
+                            grouper.add(intersection)
                     if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
                         if len(rule.outputs) == 1:
                             # a single substitution, or a (chaining) contextual substitution that
@@ -938,18 +966,15 @@ def sift_groups(groups, rule, target_part, classes):
                                 output = classes[output]
                                 if len(output) != 1:
                                     # non-singleton glyph class
-                                    groups.remove(intersection)
+                                    grouper.remove(intersection)
                                     new_groups = OrderedDefaultDict(list)
                                     for input_schema, output_schema in zip(cls, output):
                                         if input_schema in intersection:
-                                            try:
-                                                output_schema = id(next(g for g in groups if output_schema in g))
-                                            except StopIteration:
-                                                pass
-                                            new_groups[output_schema].append(input_schema)
+                                            key = id(grouper.group_of(output_schema) or output_schema)
+                                            new_groups[key].append(input_schema)
                                     for new_group in new_groups.viewvalues():
                                         if len(new_group) != 1:
-                                            groups.append(new_group)
+                                            grouper.add(new_group)
                         # Not implemented:
                         # chaining subsitution, general form
                         #   substitute $class' lookup $lookup ...;
@@ -960,12 +985,12 @@ def sift_groups(groups, rule, target_part, classes):
                         # reverse chaining substitution, inline form, non-singleton glyph class
                         #   reversesub $backtrack $class' $lookahead by $class;
         else:
-            for group in list(groups):
+            for group in grouper.groups():
                 if s in group:
                     if len(group) == 2:
-                        groups.remove(group)
+                        grouper.remove(group)
                     else:
-                        group.remove(s)
+                        grouper.remove_item(group, s)
                     break
 
 def rename_schemas(groups):
@@ -978,13 +1003,13 @@ def rename_schemas(groups):
             schema.canonical_schema(canonical_schema)
 
 def merge_schemas(schemas, lookups, classes):
-    groups = group_schemas(schemas)
+    grouper = group_schemas(schemas)
     for lookup in reversed(lookups):
         for rule in lookup.rules:
-            sift_groups(groups, rule, rule.contexts_in, classes)
-            sift_groups(groups, rule, rule.contexts_out, classes)
-            sift_groups(groups, rule, rule.inputs, classes)
-    rename_schemas(groups)
+            sift_groups(grouper, rule, rule.contexts_in, classes)
+            sift_groups(grouper, rule, rule.contexts_out, classes)
+            sift_groups(grouper, rule, rule.inputs, classes)
+    rename_schemas(grouper.groups())
 
 def chord_to_radius(c, theta):
     return c / math.sin(math.radians(theta) / 2)
