@@ -44,7 +44,7 @@ def generate_feature_string(font, lookup):
         return fea_file.read().decode('utf-8')
 
 def tweak_font(options, builder):
-    tt_font = fontTools.ttLib.TTFont(options.output)
+    tt_font = fontTools.ttLib.TTFont(options.output, recalcBBoxes=False)
 
     # Remove the FontForge timestamp table.
     if 'FFTM' in tt_font:

@@ -136,6 +136,8 @@ class Context(object):
     def __hash__(self):
         return hash(self.angle) ^ hash(self.clockwise)
 
+NO_CONTEXT = Context()
+
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
@@ -172,10 +174,10 @@ class Space(Shape):
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
     def context_in(self):
-        return Context()
+        return NO_CONTEXT
 
     def context_out(self):
-        return Context()
+        return NO_CONTEXT
 
 class Dot(Shape):
     def __str__(self):
@@ -192,10 +194,10 @@ class Dot(Shape):
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
 
     def context_in(self):
-        return Context()
+        return NO_CONTEXT
 
     def context_out(self):
-        return Context()
+        return NO_CONTEXT
 
 class Line(Shape):
     def __init__(self, angle):
@@ -467,8 +469,8 @@ class Schema(object):
         self.ignored = ignored
         self.styles = frozenset(STYLE.__dict__.keys() if styles is None else styles)
         self.ss_pernin = ss_pernin
-        self.context_in = context_in or Context()
-        self.context_out = context_out or Context()
+        self.context_in = context_in or NO_CONTEXT
+        self.context_out = context_out or NO_CONTEXT
         self.cps = cps or [cp]
         self.ss = ss
         self._original_shape = _original_shape or type(path)
@@ -785,11 +787,11 @@ def join_with_previous(schemas, new_schemas, classes, add_rule):
     for schema in schemas:
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
-            if schema in new_schemas and schema.context_in == Context():
+            if schema in new_schemas and schema.context_in == NO_CONTEXT:
                 classes['jp_i'].append(schema)
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_in = schema.path.context_out()
-            if context_in != Context():
+            if context_in != NO_CONTEXT:
                 contexts_in.add(context_in)
                 if schema not in new_schemas:
                     old_contexts.add(context_in)
@@ -797,8 +799,8 @@ def join_with_previous(schemas, new_schemas, classes, add_rule):
                     classes['jp_c_' + str(context_in)].append(schema)
     for context_in in contexts_in:
         for target_schema in target_schemas:
-            if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.context_in == Context():
-                output_schema = target_schema.contextualize(context_in, Context())
+            if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.context_in == NO_CONTEXT:
+                output_schema = target_schema.contextualize(context_in, NO_CONTEXT)
                 classes['jp_o_{}'.format(context_in)].append(output_schema)
         if context_in not in old_contexts:
             add_rule(lookup, Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
@@ -812,11 +814,11 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
     for schema in schemas:
         if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
             target_schemas.append(schema)
-            if schema in new_schemas and schema.context_out == Context():
+            if schema in new_schemas and schema.context_out == NO_CONTEXT:
                 classes['jn_i'].append(schema)
         if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
             context_out = schema.path.context_in()
-            if context_out != Context():
+            if context_out != NO_CONTEXT:
                 contexts_out.add(context_out)
                 if schema not in new_schemas:
                     old_contexts.add(context_out)
@@ -825,9 +827,9 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
     for context_out in contexts_out:
         for target_schema in target_schemas:
             if ((context_out not in old_contexts or target_schema in new_schemas)
-                    and target_schema.context_out == Context()):
+                    and target_schema.context_out == NO_CONTEXT):
                 output_schema = target_schema.contextualize(target_schema.context_in, context_out)
-                classes['jn_o_{}'.format(context_out)].append(output_schema)
+                classes['jn_o_' + str(context_out)].append(output_schema)
         if context_out not in old_contexts:
             add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
     return [lookup]
@@ -943,19 +945,20 @@ def group_schemas(schemas):
 def sift_groups(grouper, rule, target_part, classes):
     for s in target_part:
         if isinstance(s, str):
+            cls = classes[s]
+            cls_intersection = set(cls).intersection
             for group in grouper.groups():
-                cls = classes[s]
-                intersection = set(group).intersection(cls)
-                overlap = len(intersection)
+                intersection_set = cls_intersection(group)
+                overlap = len(intersection_set)
                 if overlap:
                     if overlap == len(group):
                         intersection = group
                     else:
-                        grouper.remove_items(group, intersection)
+                        grouper.remove_items(group, intersection_set)
                         if len(group) == 1:
                             grouper.remove(group)
                         if overlap != 1:
-                            intersection = [x for x in cls if x in intersection]
+                            intersection = [x for x in cls if x in intersection_set]
                             grouper.add(intersection)
                     if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
                         if len(rule.outputs) == 1:
@@ -969,7 +972,7 @@ def sift_groups(grouper, rule, target_part, classes):
                                     grouper.remove(intersection)
                                     new_groups = OrderedDefaultDict(list)
                                     for input_schema, output_schema in zip(cls, output):
-                                        if input_schema in intersection:
+                                        if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
                                     for new_group in new_groups.viewvalues():
