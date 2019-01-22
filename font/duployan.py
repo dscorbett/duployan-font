@@ -18,7 +18,6 @@ __all__ = ['Builder']
 
 import collections
 import math
-import os
 import re
 import tempfile
 
@@ -1188,8 +1187,8 @@ class Builder(object):
         mark_glyphs = []
         for mark in schema.marks:
             mark_glyphs.append(self.draw_glyph(mark).glyphname)
-        self.refresh()
         glyph = self.font.createChar(schema.cp, glyph_name)
+        self._refresh(glyph)
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseglyph'
         glyph.addReference(base_glyph)
@@ -1227,15 +1226,9 @@ class Builder(object):
         glyph.transform(psMat.translate(0, BASELINE - center))
         return glyph
 
-    def refresh(self):
+    def _refresh(self, glyph):
         # Work around https://github.com/fontforge/fontforge/issues/3278
-        sfd_path = 'refresh.sfd'
-        assert not os.path.exists(sfd_path), '{} already exists'.format(sfd_path)
-        self.font.save(sfd_path)
-        temporary = self.font.temporary
-        self.font = fontforge.open(sfd_path)
-        self.font.temporary = temporary
-        os.remove(sfd_path)
+        glyph.glyphname = glyph.glyphname
 
     def augment(self):
         add_lookups(self.font)
@@ -1244,7 +1237,6 @@ class Builder(object):
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             glyph = self.draw_glyph(schema)
-        self.refresh()
         self.fea = '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups)))
 
     def merge_features(self, tt_font, old_fea):
