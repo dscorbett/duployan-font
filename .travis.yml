@@ -21,9 +21,9 @@ install:
     - pushd harfbuzz-$HB_VERSION
     - ./configure
     - cd src
-    - make
+    - make libharfbuzz.la
     - cd ../util
-    - make
+    - make hb-shape
     - export PATH="$PWD:$PATH"
     - popd
 script: make check
