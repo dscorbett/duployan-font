@@ -14,18 +14,22 @@
 
 FONT = font/Duployan.otf
 
+.PHONY: all
 all: $(FONT)
 
 %.otf: %.sfd font/*.py
 	font/build.py --input $< --output $@
 
+.PHONY: clean
 clean:
 	find font -name '*.otf' -type f -delete
 	$(RM) -r tests/failed
 
+.PHONY: check
 check: $(FONT)
 	tests/run-tests.py $< tests/*.test
 
+.PHONY: freeze
 freeze:
 	$(eval TMP := $(shell mktemp -d))
 	virtualenv -p python $(TMP)
