@@ -20,10 +20,7 @@ install:
     - tar -xjf harfbuzz-$HB_VERSION.tar.bz2
     - pushd harfbuzz-$HB_VERSION
     - ./configure
-    - cd src
-    - make libharfbuzz.la
-    - cd ../util
-    - make hb-shape
-    - export PATH="$PWD:$PATH"
+    - make -C util lib hb-shape
+    - export PATH="$PWD/util:$PATH"
     - popd
 script: make check
