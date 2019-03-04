@@ -6,6 +6,9 @@ python:
 virtualenv:
     # fontforge is installed in the global site-packages directory.
     system_site_packages: true
+cache:
+    directories:
+        - .hb
 addons:
     apt:
         sources:
@@ -16,11 +19,6 @@ install:
     - pip install -r requirements.txt
     # libharfbuzz-bin is too out of date to use.
     - HB_VERSION=2.0.1
-    - curl -O https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$HB_VERSION.tar.bz2
-    - tar -xjf harfbuzz-$HB_VERSION.tar.bz2
-    - pushd harfbuzz-$HB_VERSION
-    - ./configure
-    - make -C util lib hb-shape
-    - export PATH="$PWD/util:$PATH"
-    - popd
+    - make HB_VERSION=$HB_VERSION hb-shape
+    - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
 script: make check

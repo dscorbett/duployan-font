@@ -29,6 +29,25 @@ clean:
 check: $(FONT)
 	tests/run-tests.py $< tests/*.test
 
+.PHONY: hb-shape
+hb-shape:
+ifndef HB_VERSION
+	$(error HB_VERSION must be set)
+endif
+	mkdir -p .hb
+	cd .hb && \
+	if [ ! -f harfbuzz-$$HB_VERSION/util/hb-shape ]; \
+	then \
+		if [ ! -d harfbuzz-$$HB_VERSION ]; \
+		then \
+			curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$$HB_VERSION/harfbuzz-$$HB_VERSION.tar.bz2 \
+			| tar -xj; \
+		fi && \
+		cd harfbuzz-$$HB_VERSION && \
+		./configure && \
+		$(MAKE) -C util lib hb-shape; \
+	fi
+
 .PHONY: freeze
 freeze:
 	$(eval TMP := $(shell mktemp -d))
