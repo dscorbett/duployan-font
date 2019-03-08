@@ -780,57 +780,64 @@ def ss_pernin(schemas, new_schemas, classes, add_rule):
 
 def join_with_previous(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
-    target_schemas = []
     contexts_in = OrderedSet()
-    old_contexts = set()
+    new_contexts_in = set()
+    old_input_count = len(classes['jp_i'])
     for schema in schemas:
-        if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
-            target_schemas.append(schema)
-            if schema in new_schemas and schema.context_in == NO_CONTEXT:
+        if not schema.anchor:
+            if (schema.joining_type == TYPE.ORIENTING
+                    and schema.context_in == NO_CONTEXT
+                    and schema in new_schemas):
                 classes['jp_i'].append(schema)
-        if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
-            context_in = schema.path.context_out()
-            if context_in != NO_CONTEXT:
-                contexts_in.add(context_in)
-                if schema not in new_schemas:
-                    old_contexts.add(context_in)
-                if schema not in classes['jp_c_' + str(context_in)]:
-                    classes['jp_c_' + str(context_in)].append(schema)
+            if schema.joining_type != TYPE.NON_JOINING:
+                context_in = schema.path.context_out()
+                if context_in != NO_CONTEXT:
+                    contexts_in.add(context_in)
+                    context_in_class = classes['jp_c_' + str(context_in)]
+                    if schema not in context_in_class:
+                        if not context_in_class:
+                            new_contexts_in.add(context_in)
+                        context_in_class.append(schema)
     for context_in in contexts_in:
-        for target_schema in target_schemas:
-            if (context_in not in old_contexts or target_schema in new_schemas) and target_schema.context_in == NO_CONTEXT:
+        output_class_name = 'jp_o_' + str(context_in)
+        new_context = context_in in new_contexts_in
+        for i, target_schema in enumerate(classes['jp_i']):
+            if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(context_in, NO_CONTEXT)
-                classes['jp_o_{}'.format(context_in)].append(output_schema)
-        if context_in not in old_contexts:
-            add_rule(lookup, Substitution('jp_c_' + str(context_in), 'jp_i', [], 'jp_o_' + str(context_in)))
+                classes[output_class_name].append(output_schema)
+        if new_context:
+            add_rule(lookup, Substitution('jp_c_' + str(context_in), 'jp_i', [], output_class_name))
     return [lookup]
 
 def join_with_next(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
-    target_schemas = []
     contexts_out = OrderedSet()
-    old_contexts = set()
+    new_contexts_out = set()
+    old_input_count = len(classes['jn_i'])
     for schema in schemas:
-        if schema.joining_type == TYPE.ORIENTING and not schema.anchor:
-            target_schemas.append(schema)
-            if schema in new_schemas and schema.context_out == NO_CONTEXT:
+        if not schema.anchor:
+            if (schema.joining_type == TYPE.ORIENTING
+                    and schema.context_out == NO_CONTEXT
+                    and schema in new_schemas):
                 classes['jn_i'].append(schema)
-        if schema.joining_type != TYPE.NON_JOINING and not schema.anchor:
-            context_out = schema.path.context_in()
-            if context_out != NO_CONTEXT:
-                contexts_out.add(context_out)
-                if schema not in new_schemas:
-                    old_contexts.add(context_out)
-                if schema not in classes['jn_c_' + str(context_out)]:
-                    classes['jn_c_' + str(context_out)].append(schema)
+            if schema.joining_type != TYPE.NON_JOINING:
+                context_out = schema.path.context_in()
+                if context_out != NO_CONTEXT:
+                    contexts_out.add(context_out)
+                    context_out_class = classes['jn_c_' + str(context_out)]
+                    if schema not in context_out_class:
+                        if not context_out_class:
+                            new_contexts_out.add(context_out)
+                        context_out_class.append(schema)
     for context_out in contexts_out:
-        for target_schema in target_schemas:
-            if ((context_out not in old_contexts or target_schema in new_schemas)
-                    and target_schema.context_out == NO_CONTEXT):
+        output_class_name = 'jn_o_' + str(context_out)
+        new_context = context_out in new_contexts_out
+        for i, target_schema in enumerate(classes['jn_i']):
+            if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(target_schema.context_in, context_out)
-                classes['jn_o_' + str(context_out)].append(output_schema)
-        if context_out not in old_contexts:
-            add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), 'jn_o_' + str(context_out)))
+                classes[output_class_name].append(output_schema)
+        if new_context:
+            add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), output_class_name))
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
@@ -867,8 +874,7 @@ def run_phases(all_input_schemas, phases):
         output_schemas = OrderedSet(all_input_schemas)
         classes = collections.defaultdict(list)
         lookups = None
-        in_phase = True
-        while in_phase:
+        while new_input_schemas:
             in_phase = False
             output_lookups = phase(
                 all_input_schemas,
@@ -882,7 +888,6 @@ def run_phases(all_input_schemas, phases):
                     all_input_schemas.add(output_schema)
                     autochthonous_schemas.add(output_schema)
                     new_input_schemas.add(output_schema)
-                    in_phase = True
             if lookups is None:
                 lookups = output_lookups
             else:
