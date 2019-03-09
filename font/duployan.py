@@ -23,8 +23,11 @@ import tempfile
 
 import fontforge
 import fontTools.agl
+import fontTools.feaLib.ast
 import fontTools.feaLib.builder
-import more_itertools
+import fontTools.feaLib.parser
+import fontTools.misc.py23
+import fontTools.otlLib.builder
 import psMat
 import unicodedata2
 
@@ -48,12 +51,6 @@ BELOW_LOOKUP = "'mark' below"
 BELOW_SUBTABLE = BELOW_LOOKUP + '-1'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
-
-def unichar(i):
-    try:
-        return unichr(i)
-    except ValueError:
-        return '\\U{:08X}'.format(i).decode('unicode-escape')
 
 def add_lookup(font, lookup, lookup_type, flags, feature, subtable, anchor_class):
     font.addLookup(lookup,
@@ -555,7 +552,7 @@ class Schema(object):
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
             except KeyError:
                 try:
-                    readable_name = unicodedata2.name(unichar(cp))
+                    readable_name = unicodedata2.name(fontTools.misc.py23.unichr(cp))
                     for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
                         readable_name = regex.sub(repl, readable_name)
                     agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
@@ -635,26 +632,45 @@ class Substitution(object):
             self.contexts_out = _l(a3)
             self.outputs = _l(a4)
 
-    def __str__(self, in_contextual_lookup=False):
-        def _s0(glyph):
-            return '@' + glyph if isinstance(glyph, str) else str(glyph)
-        def _s(glyphs, apostrophe=False):
-            suffix = "'" if apostrophe else ''
-            return ('{} '.format(suffix).join(map(_s0, glyphs))) + suffix
-        return '    substitute {} {} {} by {};\n'.format(
-            _s(self.contexts_in),
-            _s(self.inputs, apostrophe=in_contextual_lookup or self.contexts_in or self.contexts_out),
-            _s(self.contexts_out),
-            _s(self.outputs))
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __hash__(self):
-        return hash(str(self))
+    def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup):
+        def glyph_to_ast(glyph):
+            if isinstance(glyph, str):
+                return fontTools.feaLib.ast.GlyphClassName(class_asts[fontTools.misc.py23.tounicode(glyph)])
+            return fontTools.feaLib.ast.GlyphName(fontTools.misc.py23.tounicode(str(glyph)))
+        def glyphs_to_ast(glyphs):
+            return map(glyph_to_ast, glyphs)
+        def glyph_to_name(glyph):
+            assert not isinstance(glyph, str), 'Glyph classes are not allowed in multiple substitutions'
+            return fontTools.misc.py23.tounicode(str(glyph))
+        def glyphs_to_names(glyphs):
+            return map(glyph_to_name, glyphs)
+        if len(self.inputs) == 1:
+            if len(self.outputs) == 1 and not in_multiple_lookup:
+                return fontTools.feaLib.ast.SingleSubstStatement(
+                    glyphs_to_ast(self.inputs),
+                    glyphs_to_ast(self.outputs),
+                    glyphs_to_ast(self.contexts_in),
+                    glyphs_to_ast(self.contexts_out),
+                    in_contextual_lookup)
+            else:
+                return fontTools.feaLib.ast.MultipleSubstStatement(
+                    glyphs_to_ast(self.contexts_in),
+                    glyph_to_name(self.inputs[0]),
+                    glyphs_to_ast(self.contexts_out),
+                    glyphs_to_names(self.outputs))
+        else:
+            return fontTools.feaLib.ast.LigatureSubstStatement(
+                glyphs_to_ast(self.contexts_in),
+                glyphs_to_ast(self.inputs),
+                glyphs_to_ast(self.contexts_out),
+                glyph_to_name(self.outputs[0]),
+                in_contextual_lookup)
 
     def is_contextual(self):
         return bool(self.contexts_in or self.contexts_out)
+
+    def is_multiple(self):
+        return len(self.inputs) == 1 and len(self.outputs) != 1
 
 class Lookup(object):
     def __init__(self, feature, script, language):
@@ -696,21 +712,15 @@ class Lookup(object):
         else:
             raise ValueError("Unrecognized script tag: '{}'".format(self.script))
 
-    def __str__(self):
+    def to_ast(self, class_asts):
         contextual = any(r.is_contextual() for r in self.rules)
-        return (
-            'feature {} {{\n'
-            '    script {};\n'
-            '    language {};\n'
-            '    lookupflag IgnoreMarks;\n'
-            '{}'
-            '}} {};\n'
-            ).format(
-                self.feature,
-                self.script,
-                self.language,
-                ''.join(more_itertools.unique_everseen(map(lambda r: r.__str__(contextual), self.rules))),
-                self.feature)
+        multiple = any(r.is_multiple() for r in self.rules)
+        ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
+        ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
+        ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
+        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
+        ast.statements.extend(map(lambda r: r.to_ast(class_asts, contextual, multiple), self.rules))
+        return ast
 
     def append(self, rule):
         self.rules.append(rule)
@@ -1160,15 +1170,12 @@ SCHEMAS = [
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
 
-def classes_str(classes):
-    return '\n'.join('# len = {}\n@{} = [{}];'.format(len(schemas), cls, ' '.join(map(str, schemas))) for cls, schemas in sorted(classes.items()))
-
 class Builder(object):
     def __init__(self, font, schemas=SCHEMAS, phases=PHASES):
         self.font = font
         self.schemas = schemas
         self.phases = phases
-        self.fea = None
+        self.fea = fontTools.feaLib.ast.FeatureFile()
         code_points = collections.defaultdict(int)
         for schema in schemas:
             if schema.cp != -1:
@@ -1242,8 +1249,20 @@ class Builder(object):
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             glyph = self.draw_glyph(schema)
-        self.fea = '{}\n{}'.format(classes_str(classes), '\n'.join(map(str, lookups)))
+        class_asts = {}
+        for name, schemas in sorted(classes.items()):
+            class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
+                fontTools.misc.py23.tounicode(name),
+                fontTools.feaLib.ast.GlyphClass([fontTools.misc.py23.tounicode(str(s)) for s in schemas]))
+            self.fea.statements.append(class_ast)
+            class_asts[name] = class_ast
+        self.fea.statements.extend(map(lambda l: l.to_ast(class_asts), lookups))
 
     def merge_features(self, tt_font, old_fea):
-        fontTools.feaLib.builder.addOpenTypeFeaturesFromString(tt_font, self.fea + old_fea)
+        self.fea.statements.extend(
+            fontTools.feaLib.parser.Parser(
+                fontTools.misc.py23.UnicodeIO(fontTools.misc.py23.tounicode(old_fea)),
+                tt_font.getReverseGlyphMap())
+            .parse().statements)
+        fontTools.feaLib.builder.addOpenTypeFeatures(tt_font, self.fea)
 
