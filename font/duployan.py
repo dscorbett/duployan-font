@@ -635,8 +635,12 @@ class Substitution(object):
     def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup):
         def glyph_to_ast(glyph):
             if isinstance(glyph, str):
-                return fontTools.feaLib.ast.GlyphClassName(class_asts[fontTools.misc.py23.tounicode(glyph)])
-            return fontTools.feaLib.ast.GlyphName(fontTools.misc.py23.tounicode(str(glyph)))
+                return fontTools.feaLib.ast.GlyphClassName(
+                    glyphclass=class_asts[fontTools.misc.py23.tounicode(glyph)],
+                    location=None)
+            return fontTools.feaLib.ast.GlyphName(
+                glyph=fontTools.misc.py23.tounicode(str(glyph)),
+                location=None)
         def glyphs_to_ast(glyphs):
             return map(glyph_to_ast, glyphs)
         def glyph_to_name(glyph):
@@ -647,24 +651,27 @@ class Substitution(object):
         if len(self.inputs) == 1:
             if len(self.outputs) == 1 and not in_multiple_lookup:
                 return fontTools.feaLib.ast.SingleSubstStatement(
-                    glyphs_to_ast(self.inputs),
-                    glyphs_to_ast(self.outputs),
-                    glyphs_to_ast(self.contexts_in),
-                    glyphs_to_ast(self.contexts_out),
-                    in_contextual_lookup)
+                    glyphs=glyphs_to_ast(self.inputs),
+                    replace=glyphs_to_ast(self.outputs),
+                    prefix=glyphs_to_ast(self.contexts_in),
+                    suffix=glyphs_to_ast(self.contexts_out),
+                    forceChain=in_contextual_lookup,
+                    location=None)
             else:
                 return fontTools.feaLib.ast.MultipleSubstStatement(
-                    glyphs_to_ast(self.contexts_in),
-                    glyph_to_name(self.inputs[0]),
-                    glyphs_to_ast(self.contexts_out),
-                    glyphs_to_names(self.outputs))
+                    prefix=glyphs_to_ast(self.contexts_in),
+                    glyph=glyph_to_name(self.inputs[0]),
+                    suffix=glyphs_to_ast(self.contexts_out),
+                    replacement=glyphs_to_names(self.outputs),
+                    location=None)
         else:
             return fontTools.feaLib.ast.LigatureSubstStatement(
-                glyphs_to_ast(self.contexts_in),
-                glyphs_to_ast(self.inputs),
-                glyphs_to_ast(self.contexts_out),
-                glyph_to_name(self.outputs[0]),
-                in_contextual_lookup)
+                prefix=glyphs_to_ast(self.contexts_in),
+                glyphs=glyphs_to_ast(self.inputs),
+                suffix=glyphs_to_ast(self.contexts_out),
+                replacement=glyph_to_name(self.outputs[0]),
+                forceChain=in_contextual_lookup,
+                location=None)
 
     def is_contextual(self):
         return bool(self.contexts_in or self.contexts_out)
@@ -715,10 +722,23 @@ class Lookup(object):
     def to_ast(self, class_asts):
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
-        ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
-        ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
-        ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
+        ast = fontTools.feaLib.ast.FeatureBlock(
+            name=self.feature,
+            use_extension=False,
+            location=None)
+        ast.statements.append(fontTools.feaLib.ast.ScriptStatement(
+            script=self.script,
+            location=None))
+        ast.statements.append(fontTools.feaLib.ast.LanguageStatement(
+            language=self.language,
+            include_default=True,
+            required=False,
+            location=None))
+        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
+            value=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            markAttachment=None,
+            markFilteringSet=None,
+            location=None))
         ast.statements.extend(map(lambda r: r.to_ast(class_asts, contextual, multiple), self.rules))
         return ast
 
@@ -1252,8 +1272,11 @@ class Builder(object):
         class_asts = {}
         for name, schemas in sorted(classes.items()):
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
-                fontTools.misc.py23.tounicode(name),
-                fontTools.feaLib.ast.GlyphClass([fontTools.misc.py23.tounicode(str(s)) for s in schemas]))
+                name=fontTools.misc.py23.tounicode(name),
+                glyphs=fontTools.feaLib.ast.GlyphClass(
+                    glyphs=[fontTools.misc.py23.tounicode(str(s)) for s in schemas],
+                    location=None),
+                location=None)
             self.fea.statements.append(class_ast)
             class_asts[name] = class_ast
         self.fea.statements.extend(map(lambda l: l.to_ast(class_asts), lookups))

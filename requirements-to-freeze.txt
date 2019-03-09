@@ -1,2 +1,2 @@
-fonttools ~= 3.16
+fonttools ~= 3.22, <= 3.38.0
 unicodedata2
