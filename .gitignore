@@ -1,6 +1,7 @@
 /.hb/
 /tests/failed/
 .DS_Store
+old-requirements.txt
 *.otf
 *.png
 *.pyc

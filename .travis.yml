@@ -15,10 +15,21 @@ addons:
             - sourceline: ppa:fontforge/fontforge
         packages:
             - python-fontforge=20170730-0ubuntu1~trusty
-install:
-    - pip install -r requirements.txt
-    # libharfbuzz-bin is too out of date to use.
-    - HB_VERSION=2.0.1
-    - make HB_VERSION=$HB_VERSION hb-shape
-    - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
+matrix:
+    include:
+        -
+            install:
+                - pip install -r requirements.txt
+                # libharfbuzz-bin is too out of date to use.
+                - HB_VERSION=2.0.1
+                - make HB_VERSION=$HB_VERSION hb-shape
+                - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
+        -
+            install:
+                - pip install packaging
+                - ./get-old-requirements.py --input requirements-to-freeze.txt --output old-requirements.txt
+                - pip install -r old-requirements.txt
+                - HB_VERSION=2.0.1
+                - make HB_VERSION=$HB_VERSION hb-shape
+                - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
 script: make check
