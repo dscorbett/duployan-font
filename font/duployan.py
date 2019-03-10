@@ -697,6 +697,7 @@ class Lookup(object):
                 'rphf',
                 'pref',
                 'rkrf',
+                'abvf',
                 'blwf',
                 'half',
                 'pstf',
@@ -715,6 +716,12 @@ class Lookup(object):
                 'psts',
                 'rclt',
                 'rlig',
+                'curs',
+                'dist',
+                'mark',
+                'abvm',
+                'blwm',
+                'mkmk',
             ]
         else:
             raise ValueError("Unrecognized script tag: '{}'".format(self.script))
