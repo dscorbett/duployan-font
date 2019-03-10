@@ -43,6 +43,15 @@ def generate_feature_string(font, lookup):
         font.generateFeatureFile(fea_file.name, lookup)
         return fea_file.read().decode('utf-8')
 
+def patch_fonttools():
+    getGlyphID_inner = fontTools.ttLib.TTFont.getGlyphID
+    def getGlyphID(self, glyphName, requireReal=False):
+        try:
+            return self._reverseGlyphOrderDict[glyphName]
+        except (AttributeError, KeyError):
+            getGlyphID_inner(glyphName, requireReal)
+    fontTools.ttLib.TTFont.getGlyphID = getGlyphID
+
 def tweak_font(options, builder):
     tt_font = fontTools.ttLib.TTFont(options.output, recalcBBoxes=False)
 
@@ -69,6 +78,7 @@ def make_font(options):
     builder = duployan.Builder(font)
     builder.augment()
     build_font(options, builder.font)
+    patch_fonttools()
     tweak_font(options, builder)
 
 if __name__ == '__main__':
