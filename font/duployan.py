@@ -283,7 +283,7 @@ class Curve(Shape):
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
-            *(rect(0, 0) if da > 180 else rect(
+            *(rect(0, 0) if abs(da) > 180 else rect(
                 min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
                 math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
