@@ -53,24 +53,23 @@ def patch_fonttools():
     fontTools.ttLib.TTFont.getGlyphID = getGlyphID
 
 def tweak_font(options, builder):
-    tt_font = fontTools.ttLib.TTFont(options.output, recalcBBoxes=False)
+    with fontTools.ttLib.TTFont(options.output, recalcBBoxes=False) as tt_font:
+        # Remove the FontForge timestamp table.
+        if 'FFTM' in tt_font:
+            del tt_font['FFTM']
 
-    # Remove the FontForge timestamp table.
-    if 'FFTM' in tt_font:
-        del tt_font['FFTM']
+        # This font has no vendor.
+        tt_font['OS/2'].achVendID = '    '
 
-    # This font has no vendor.
-    tt_font['OS/2'].achVendID = '    '
+        # Merge all the lookups.
+        font = builder.font
+        lookups = font.gpos_lookups + font.gsub_lookups
+        old_fea = ''.join(generate_feature_string(font, lookup) for lookup in lookups)
+        for lookup in lookups:
+            font.removeLookup(lookup)
+        builder.merge_features(tt_font, old_fea)
 
-    # Merge all the lookups.
-    font = builder.font
-    lookups = font.gpos_lookups + font.gsub_lookups
-    old_fea = ''.join(generate_feature_string(font, lookup) for lookup in lookups)
-    for lookup in lookups:
-        font.removeLookup(lookup)
-    builder.merge_features(tt_font, old_fea)
-
-    tt_font.save(options.output)
+        tt_font.save(options.output)
 
 def make_font(options):
     font = fontforge.open(options.input)
