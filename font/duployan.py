@@ -33,87 +33,14 @@ DEFAULT_SIDE_BEARING = 85
 EPSILON = 1e-5
 RADIUS = 50
 STROKE_WIDTH = 70
-CURSIVE_LOOKUP = "'curs'"
-CURSIVE_SUBTABLE = CURSIVE_LOOKUP + '-1'
 CURSIVE_ANCHOR = 'cursive'
-RELATIVE_1_LOOKUP = "'mark' relative mark inside or above"
-RELATIVE_1_SUBTABLE = RELATIVE_1_LOOKUP + '-1'
 RELATIVE_1_ANCHOR = 'rel1'
-RELATIVE_2_LOOKUP = "'mark' relative mark outside or below"
-RELATIVE_2_SUBTABLE = RELATIVE_2_LOOKUP + '-1'
 RELATIVE_2_ANCHOR = 'rel2'
-MIDDLE_LOOKUP = "'mark' middle"
-MIDDLE_SUBTABLE = MIDDLE_LOOKUP + '-1'
 MIDDLE_ANCHOR = 'mid'
-TANGENT_LOOKUP = "'mark' tangent"
-TANGENT_SUBTABLE = TANGENT_LOOKUP + '-1'
 TANGENT_ANCHOR = 'tan'
-ABOVE_LOOKUP = "'mark' above"
-ABOVE_SUBTABLE = ABOVE_LOOKUP + '-1'
 ABOVE_ANCHOR = 'abv'
-BELOW_LOOKUP = "'mark' below"
-BELOW_SUBTABLE = BELOW_LOOKUP + '-1'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
-
-def add_lookup(font, lookup, lookup_type, flags, feature, subtable, anchor_class):
-    font.addLookup(lookup,
-        lookup_type,
-        flags,
-        ((feature, (('dupl', ('dflt',)),)),))
-    font.addLookupSubtable(lookup, subtable)
-    font.addAnchorClass(subtable, anchor_class)
-
-def add_lookups(font):
-    add_lookup(font,
-        CURSIVE_LOOKUP,
-        'gpos_cursive',
-        ('ignore_marks',),
-        'curs',
-        CURSIVE_SUBTABLE,
-        CURSIVE_ANCHOR)
-    add_lookup(font,
-        RELATIVE_1_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        RELATIVE_1_SUBTABLE,
-        RELATIVE_1_ANCHOR)
-    add_lookup(font,
-        RELATIVE_2_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        RELATIVE_2_SUBTABLE,
-        RELATIVE_2_ANCHOR)
-    add_lookup(font,
-        MIDDLE_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        MIDDLE_SUBTABLE,
-        MIDDLE_ANCHOR)
-    add_lookup(font,
-        TANGENT_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        TANGENT_SUBTABLE,
-        TANGENT_ANCHOR)
-    add_lookup(font,
-        ABOVE_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        ABOVE_SUBTABLE,
-        ABOVE_ANCHOR)
-    add_lookup(font,
-        BELOW_LOOKUP,
-        'gpos_mark2base',
-        (),
-        'mark',
-        BELOW_SUBTABLE,
-        BELOW_ANCHOR)
 
 class Type(enum.Enum):
     JOINING = enum.auto()
@@ -1405,9 +1332,10 @@ SCHEMAS = [
 class Builder:
     def __init__(self, font, schemas=SCHEMAS, phases=PHASES):
         self.font = font
-        self.schemas = schemas
-        self.phases = phases
-        self.fea = fontTools.feaLib.ast.FeatureFile()
+        self._schemas = schemas
+        self._phases = phases
+        self._fea = fontTools.feaLib.ast.FeatureFile()
+        self._anchors = {}
         code_points = collections.defaultdict(int)
         for schema in schemas:
             if schema.cp != -1:
@@ -1416,7 +1344,28 @@ class Builder:
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
 
-    def add_altuni(self, cp, glyph_name):
+    def _add_lookup(self, feature_tag, anchor_class_name, lookup_flags=0):
+        lookup = fontTools.feaLib.ast.LookupBlock(anchor_class_name)
+        if lookup_flags:
+            lookup.statements.append(fontTools.feaLib.ast.LookupFlagStatement(lookup_flags))
+        self._fea.statements.append(lookup)
+        self._anchors[anchor_class_name] = lookup
+        feature = fontTools.feaLib.ast.FeatureBlock(feature_tag)
+        feature.statements.append(fontTools.feaLib.ast.ScriptStatement('dupl'))
+        feature.statements.append(fontTools.feaLib.ast.LanguageStatement('dflt'))
+        feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
+        self._fea.statements.append(feature)
+
+    def _add_lookups(self):
+        self._add_lookup('curs', CURSIVE_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
+        self._add_lookup('mark', RELATIVE_1_ANCHOR)
+        self._add_lookup('mark', RELATIVE_2_ANCHOR)
+        self._add_lookup('mark', MIDDLE_ANCHOR)
+        self._add_lookup('mark', TANGENT_ANCHOR)
+        self._add_lookup('mark', ABOVE_ANCHOR)
+        self._add_lookup('mark', BELOW_ANCHOR)
+
+    def _add_altuni(self, cp, glyph_name):
         glyph = self.font.temporary[glyph_name]
         if cp != -1:
             new_altuni = ((cp, -1, 0),)
@@ -1426,11 +1375,11 @@ class Builder:
                 glyph.altuni += new_altuni
         return glyph
 
-    def draw_glyph_with_marks(self, schema, glyph_name):
-        base_glyph = self.draw_glyph(schema.without_marks).glyphname
+    def _draw_glyph_with_marks(self, schema, glyph_name):
+        base_glyph = self._draw_glyph(schema.without_marks).glyphname
         mark_glyphs = []
         for mark in schema.marks:
-            mark_glyphs.append(self.draw_glyph(mark).glyphname)
+            mark_glyphs.append(self._draw_glyph(mark).glyphname)
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseglyph'
@@ -1446,7 +1395,7 @@ class Builder:
                 base_anchor[3] - mark_anchor[3]))
         return glyph
 
-    def draw_base_glyph(self, schema, glyph_name):
+    def _draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'mark' if schema.anchor else 'baseglyph'
@@ -1454,14 +1403,14 @@ class Builder:
         schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
         return glyph
 
-    def draw_glyph(self, schema):
+    def _draw_glyph(self, schema):
         glyph_name = str(schema)
         if glyph_name in self.font.temporary:
-            return self.add_altuni(schema.cp, glyph_name)
+            return self._add_altuni(schema.cp, glyph_name)
         if schema.marks:
-            glyph = self.draw_glyph_with_marks(schema, glyph_name)
+            glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
-            glyph = self.draw_base_glyph(schema, glyph_name)
+            glyph = self._draw_base_glyph(schema, glyph_name)
         glyph.left_side_bearing = schema.side_bearing
         glyph.right_side_bearing = schema.side_bearing
         bbox = glyph.boundingBox()
@@ -1469,27 +1418,65 @@ class Builder:
         glyph.transform(psMat.translate(0, BASELINE - center))
         return glyph
 
+    def _complete_gpos(self):
+        mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        base_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        cursive_positions = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
+        for glyph in self.font.glyphs():
+            for anchor_class_name, type, x, y in glyph.anchorPoints:
+                x = round(x)
+                y = round(y)
+                glyph_name = glyph.glyphname
+                if type == 'mark':
+                    mark_positions[anchor_class_name][(x, y)].append(glyph_name)
+                elif type == 'base':
+                    base_positions[anchor_class_name][(x, y)].append(glyph_name)
+                elif type == 'entry':
+                    cursive_positions[anchor_class_name][glyph_name][0] = fontTools.feaLib.ast.Anchor(x, y)
+                elif type == 'exit':
+                    cursive_positions[anchor_class_name][glyph_name][1] = fontTools.feaLib.ast.Anchor(x, y)
+                else:
+                    raise RuntimeError('Unknown anchor type: {}'.format(type))
+        for anchor_class_name, lookup in self._anchors.items():
+            mark_class = fontTools.feaLib.ast.MarkClass(anchor_class_name)
+            for x_y, glyph_class in mark_positions[anchor_class_name].items():
+                mark_class_definition = fontTools.feaLib.ast.MarkClassDefinition(
+                    mark_class,
+                    fontTools.feaLib.ast.Anchor(*x_y),
+                    glyph_class)
+                mark_class.addDefinition(mark_class_definition)
+                lookup.statements.append(mark_class_definition)
+            for x_y, glyph_class in base_positions[anchor_class_name].items():
+                lookup.statements.append(fontTools.feaLib.ast.MarkBasePosStatement(
+                    glyph_class,
+                    [(fontTools.feaLib.ast.Anchor(*x_y), mark_class)]))
+            for glyph_name, entry_exit in cursive_positions[anchor_class_name].items():
+                lookup.statements.append(fontTools.feaLib.ast.CursivePosStatement(
+                    fontTools.feaLib.ast.GlyphName(glyph_name),
+                    *entry_exit))
+
     def augment(self):
-        add_lookups(self.font)
+        self._add_lookups()
         self.font.temporary = {}
-        schemas, lookups, classes = run_phases(self.schemas, self.phases)
+        schemas, lookups, classes = run_phases(self._schemas, self._phases)
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
-            self.draw_glyph(schema)
+            self._draw_glyph(schema)
         class_asts = {}
         for name, schemas in sorted(classes.items()):
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
                 fontTools.feaLib.ast.GlyphClass([str(s) for s in schemas]))
-            self.fea.statements.append(class_ast)
+            self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
-        self.fea.statements.extend(l.to_ast(class_asts) for l in lookups)
+        self._fea.statements.extend(l.to_ast(class_asts) for l in lookups)
 
     def merge_features(self, tt_font, old_fea):
-        self.fea.statements.extend(
+        self._fea.statements.extend(
             fontTools.feaLib.parser.Parser(
                 io.StringIO(old_fea),
                 tt_font.getReverseGlyphMap())
             .parse().statements)
-        fontTools.feaLib.builder.addOpenTypeFeatures(tt_font, self.fea)
+        self._complete_gpos()
+        fontTools.feaLib.builder.addOpenTypeFeatures(tt_font, self._fea)
 
