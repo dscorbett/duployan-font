@@ -12,24 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import division
-
 __all__ = ['Builder']
 
 import collections
+import io
 import math
 import re
-import tempfile
+import unicodedata
 
-import fontforge
 import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
 import fontTools.feaLib.parser
-import fontTools.misc.py23
 import fontTools.otlLib.builder
 import psMat
-import unicodedata2
 
 BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
@@ -97,7 +93,7 @@ def add_lookups(font):
         BELOW_SUBTABLE,
         BELOW_ANCHOR)
 
-class Enum(object):
+class Enum:
     def __init__(self, names):
         for i, name in enumerate(names):
             setattr(self, name, i)
@@ -108,7 +104,7 @@ TYPE = Enum([
     'NON_JOINING',
 ])
 
-class Context(object):
+class Context:
     def __init__(self, angle=None, clockwise=None):
         self.angle = angle
         self.clockwise = clockwise
@@ -127,7 +123,7 @@ class Context(object):
         return self.angle == other.angle and self.clockwise == other.clockwise
 
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
 
     def __hash__(self):
         return hash(self.angle) ^ hash(self.clockwise)
@@ -137,7 +133,7 @@ NO_CONTEXT = Context()
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
 
-class Shape(object):
+class Shape:
     def clone(self):
         raise NotImplementedError
 
@@ -268,7 +264,6 @@ class Curve(Shape):
         pen.moveTo(rect(r, math.radians(a1)))
         for i in range(1, beziers_needed + 1):
             theta0 = math.radians(a1 + (i - 1) * bezier_arc)
-            p0 = rect(r, theta0)
             p1 = rect(cp_distance, theta0 + cp_angle)
             theta3 = math.radians(a2 if i == beziers_needed else a1 + i * bezier_arc)
             p3 = rect(r, theta3)
@@ -418,8 +413,8 @@ STYLE = Enum([
     'PERNIN',
 ])
 
-class Schema(object):
-    _CHARACTER_NAME_SUBSTITUTIONS = map(lambda (pattern, repl): (re.compile(pattern), repl), [
+class Schema:
+    _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
         (r'^ZERO WIDTH JOINER$', 'ZWJ'),
@@ -433,7 +428,7 @@ class Schema(object):
         (r' (WITH|AND) ', ' '),
         (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
         (r'[ -]+', ''),
-    ])
+    ]]
     _canonical_names = {}
 
     def __init__(
@@ -530,7 +525,7 @@ class Schema(object):
             'ss{:02}'.format(self.ss) if self.ss else '',
             'NJ' if self.joining_type == TYPE.NON_JOINING else '',
             'mark' if self.anchor else 'base',
-            map(lambda m: repr(m), self.marks or []),
+            [repr(m) for m in self.marks or []],
         ])))
 
     def _calculate_group(self):
@@ -539,7 +534,7 @@ class Schema(object):
             self.size,
             self.side_bearing,
             self.anchor,
-            tuple(map(lambda m: m.group, self.marks or [])),
+            tuple(m.group for m in self.marks or []),
         )
 
     def canonical_schema(self, canonical_schema):
@@ -552,18 +547,18 @@ class Schema(object):
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
             except KeyError:
                 try:
-                    readable_name = unicodedata2.name(fontTools.misc.py23.unichr(cp))
+                    readable_name = unicodedata.name(chr(cp))
                     for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
                         readable_name = regex.sub(repl, readable_name)
                     agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
-                except UnicodeDecodeError, ValueError:
+                except ValueError:
                     agl_name = readable_name = ''
             return agl_name, readable_name
         cps = self.cps
         if -1 in cps:
             name = ''
         else:
-            agl_name, readable_name = map('_'.join, zip(*map(get_names, cps)))
+            agl_name, readable_name = ('_'.join(component) for component in zip(*list(map(get_names, cps))))
             name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
         if self.cp == -1:
             name = '{}.{}.{}{}'.format(
@@ -605,7 +600,7 @@ class Schema(object):
 
 class OrderedSet(collections.OrderedDict):
     def __init__(self, iterable=None):
-        super(OrderedSet, self).__init__()
+        super().__init__()
         if iterable:
             for item in iterable:
                 self.add(item)
@@ -616,7 +611,7 @@ class OrderedSet(collections.OrderedDict):
     def remove(self, item):
         self.pop(item, None)
 
-class Substitution(object):
+class Substitution:
     def __init__(self, a1, a2, a3=None, a4=None):
         def _l(glyphs):
             return [glyphs] if isinstance(glyphs, str) else glyphs
@@ -635,15 +630,15 @@ class Substitution(object):
     def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup):
         def glyph_to_ast(glyph):
             if isinstance(glyph, str):
-                return fontTools.feaLib.ast.GlyphClassName(class_asts[fontTools.misc.py23.tounicode(glyph)])
-            return fontTools.feaLib.ast.GlyphName(fontTools.misc.py23.tounicode(str(glyph)))
+                return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
+            return fontTools.feaLib.ast.GlyphName(str(glyph))
         def glyphs_to_ast(glyphs):
-            return map(glyph_to_ast, glyphs)
+            return [glyph_to_ast(glyph) for glyph in glyphs]
         def glyph_to_name(glyph):
             assert not isinstance(glyph, str), 'Glyph classes are not allowed in multiple substitutions'
-            return fontTools.misc.py23.tounicode(str(glyph))
+            return str(glyph)
         def glyphs_to_names(glyphs):
-            return map(glyph_to_name, glyphs)
+            return [glyph_to_name(glyph) for glyph in glyphs]
         if len(self.inputs) == 1:
             if len(self.outputs) == 1 and not in_multiple_lookup:
                 return fontTools.feaLib.ast.SingleSubstStatement(
@@ -672,7 +667,7 @@ class Substitution(object):
     def is_multiple(self):
         return len(self.inputs) == 1 and len(self.outputs) != 1
 
-class Lookup(object):
+class Lookup:
     def __init__(self, feature, script, language):
         self.feature = feature
         self.script = script
@@ -892,7 +887,6 @@ def run_phases(all_input_schemas, phases):
         classes = collections.defaultdict(list)
         lookups = None
         while new_input_schemas:
-            in_phase = False
             output_lookups = phase(
                 all_input_schemas,
                 new_input_schemas,
@@ -917,12 +911,17 @@ def run_phases(all_input_schemas, phases):
         all_classes.update(classes)
     return all_schemas, all_lookups, all_classes
 
-class OrderedDefaultDict(collections.OrderedDict, collections.defaultdict):
+class OrderedDefaultDict(collections.OrderedDict):
     def __init__(self, default_factory):
-        super(OrderedDefaultDict, self).__init__()
+        super().__init__()
         self.default_factory = default_factory
 
-class Grouper(object):
+    def __missing__(self, key):
+        value = self.default_factory()
+        self[key] = value
+        return value
+
+class Grouper:
     def __init__(self, groups):
         self._groups = []
         self._inverted = {}
@@ -961,7 +960,7 @@ def group_schemas(schemas):
     group_dict = OrderedDefaultDict(list)
     for schema in schemas:
         group_dict[schema.group].append(schema)
-    return Grouper(group_dict.viewvalues())
+    return Grouper(group_dict.values())
 
 def sift_groups(grouper, rule, target_part, classes):
     for s in target_part:
@@ -996,7 +995,7 @@ def sift_groups(grouper, rule, target_part, classes):
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
-                                    for new_group in new_groups.viewvalues():
+                                    for new_group in new_groups.values():
                                         if len(new_group) != 1:
                                             grouper.add(new_group)
                         # Not implemented:
@@ -1018,11 +1017,10 @@ def sift_groups(grouper, rule, target_part, classes):
                     break
 
 def rename_schemas(groups):
-    for i, group in enumerate(groups):
+    for group in groups:
         group.sort(key=Schema.sort_key)
         group = iter(group)
         canonical_schema = next(group)
-        canonical_name = canonical_schema.calculate_name()
         for schema in group:
             schema.canonical_schema(canonical_schema)
 
@@ -1177,7 +1175,7 @@ SCHEMAS = [
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
 
-class Builder(object):
+class Builder:
     def __init__(self, font, schemas=SCHEMAS, phases=PHASES):
         self.font = font
         self.schemas = schemas
@@ -1188,8 +1186,8 @@ class Builder(object):
             if schema.cp != -1:
                 code_points[schema.cp] += 1
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
-        assert not code_points, ('Duplicate code points:\n    ' +
-            '\n    '.join(map(hex, sorted(code_points.viewkeys()))))
+        assert not code_points, ('Duplicate code points:\n    '
+            + '\n    '.join(map(hex, sorted(code_points.keys()))))
 
     def add_altuni(self, cp, glyph_name):
         glyph = self.font.temporary[glyph_name]
@@ -1245,7 +1243,8 @@ class Builder(object):
         glyph.transform(psMat.translate(0, BASELINE - center))
         return glyph
 
-    def _refresh_glyph(self, glyph):
+    @staticmethod
+    def _refresh_glyph(glyph):
         # Work around https://github.com/fontforge/fontforge/issues/3278
         glyph.glyphname = glyph.glyphname
 
@@ -1259,13 +1258,13 @@ class Builder(object):
         schemas, lookups, classes = run_phases(self.schemas, self.phases)
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
-            glyph = self.draw_glyph(schema)
+            self.draw_glyph(schema)
         self._refresh_encoding()
         class_asts = {}
         for name, schemas in sorted(classes.items()):
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
-                fontTools.misc.py23.tounicode(name),
-                fontTools.feaLib.ast.GlyphClass([fontTools.misc.py23.tounicode(str(s)) for s in schemas]))
+                name,
+                fontTools.feaLib.ast.GlyphClass([str(s) for s in schemas]))
             self.fea.statements.append(class_ast)
             class_asts[name] = class_ast
         self.fea.statements.extend(l.to_ast(class_asts) for l in lookups)
@@ -1273,7 +1272,7 @@ class Builder(object):
     def merge_features(self, tt_font, old_fea):
         self.fea.statements.extend(
             fontTools.feaLib.parser.Parser(
-                fontTools.misc.py23.UnicodeIO(fontTools.misc.py23.tounicode(old_fea)),
+                io.StringIO(old_fea),
                 tt_font.getReverseGlyphMap())
             .parse().statements)
         fontTools.feaLib.builder.addOpenTypeFeatures(tt_font, self.fea)

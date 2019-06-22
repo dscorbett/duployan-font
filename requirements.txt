@@ -1,2 +1,1 @@
 fonttools==3.33.0
-unicodedata2==11.0.0

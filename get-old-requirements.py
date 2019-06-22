@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2019 David Corbett
 #
@@ -16,9 +16,10 @@
 
 import argparse
 import json
+import urllib.request
+
 import packaging.requirements
 import packaging.version
-import urllib2
 
 parser = argparse.ArgumentParser(description='Pin the requirements in a requirements file to their oldest versions.')
 parser.add_argument('--input', metavar='FILE', required=True, help='input requirements file')
@@ -35,7 +36,7 @@ with open(args.input) as input:
                 continue
             for release in sorted(map(
                     packaging.version.Version,
-                    json.loads(urllib2.urlopen('https://pypi.org/pypi/{}/json'.format(requirement.name)).read())['releases'])):
+                    json.loads(urllib.request.urlopen('https://pypi.org/pypi/{}/json'.format(requirement.name)).read())['releases'])):
                 if release in requirement.specifier:
                     output.write('{} == {}\n'.format(requirement.name, release))
                     break

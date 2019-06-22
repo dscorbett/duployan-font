@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2018-2019 David Corbett
 #
@@ -14,17 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import os
 import subprocess
 import sys
 
 def run_test(line, png_file):
+    global FONT
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
-        ['hb-shape', font, '-u', code_points] + options.split(),
+        ['hb-shape', FONT, '-u', code_points] + options.split(),
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE)
     p.wait()
@@ -40,7 +38,7 @@ def run_test(line, png_file):
                 os.makedirs(png_dir)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
             p = subprocess.Popen(
-                ['hb-view', font, '-u', code_points, '-o', png_file, '-O', 'png'] + options.split(),
+                ['hb-view', FONT, '-u', code_points, '-o', png_file, '-O', 'png'] + options.split(),
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             p.wait()
@@ -56,13 +54,13 @@ if __name__ == '__main__':
     failed_dir = os.path.join(os.path.dirname(sys.argv[0]), 'failed')
     if not os.path.exists(failed_dir):
         os.mkdir(failed_dir)
-    font = sys.argv[1]
+    FONT = sys.argv[1]
     for fn in sys.argv[2:]:
         result_lines = []
         passed_file = True
         with open(fn) as f:
             for line_number, line in enumerate(f, start=1):
-                line = line.decode('utf-8').rstrip()
+                line = line.rstrip()
                 if line and line[0] != '#':
                     passed_line, result_line = run_test(
                         line,

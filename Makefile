@@ -51,7 +51,7 @@ endif
 .PHONY: freeze
 freeze:
 	$(eval TMP := $(shell mktemp -d))
-	virtualenv -p python $(TMP)
+	virtualenv -p python3 $(TMP)
 	. $(TMP)/bin/activate; \
 	pip install -U pip; \
 	pip install -r requirements-to-freeze.txt; \

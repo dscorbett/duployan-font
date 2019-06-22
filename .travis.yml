@@ -1,27 +1,66 @@
-dist: trusty
+dist: bionic
 language: python
 python:
-    # FontForge uses Python 2, so there is no point to testing Python 3.
-    - "2.7"
+    - "3.6"
 virtualenv:
     # fontforge is installed in the global site-packages directory.
     system_site_packages: true
 env:
     global:
+        - FF_VERSION=20190413
         - HB_VERSION=2.3.1
     matrix:
         - OLD_REQUIREMENTS=false
         - OLD_REQUIREMENTS=true
 cache:
     directories:
+        - .ff
         - .hb
-addons:
-    apt:
-        sources:
-            - sourceline: ppa:fontforge/fontforge
-        packages:
-            - python-fontforge=20170730-0ubuntu1~trusty
 before_install:
+    # No APT package exists for a recent FontForge with Python 3.6 support.
+    - |
+        mkdir -p .ff
+        pushd .ff
+        if [ ! -d fontforge-$FF_VERSION ]
+        then
+            curl -L https://github.com/fontforge/fontforge/releases/download/$FF_VERSION/fontforge-$FF_VERSION.tar.gz | tar -xz
+        fi
+        cd fontforge-$FF_VERSION
+        if [ ! -d pyhook/.libs ]
+        then
+            travis_apt_get_update
+            sudo -E apt-get -yq --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages install packaging-dev pkg-config python-dev build-essential automake
+            ./bootstrap
+            PYTHON_CFLAGS="$(python-config --cflags)" \
+            PYTHON_LIBS="$(python-config --ldflags)" \
+            ./configure \
+                --enable-python-extension \
+                --enable-python-scripting=3 \
+                --disable-dependency-tracking \
+                --disable-maintainer-mode \
+                --disable-native-scripting \
+                --disable-programs \
+                --without-cairo \
+                --without-giflib \
+                --without-iconv \
+                --without-libjpeg \
+                --without-libpng \
+                --without-libreadline \
+                --without-libspiro \
+                --without-libtiff \
+                --without-libuninameslist \
+                --without-libzmq \
+                --without-x \
+            ;
+            make
+        fi
+        sudo make install
+        sudo ldconfig
+        popd
+    # libharfbuzz-bin is too out of date to use.
+    - make HB_VERSION=$HB_VERSION hb-shape
+    - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
+
     -
         if [ "$OLD_REQUIREMENTS" = true ];
         then
@@ -30,7 +69,4 @@ before_install:
         fi
 install:
     - pip install -r requirements.txt
-    # libharfbuzz-bin is too out of date to use.
-    - make HB_VERSION=$HB_VERSION hb-shape
-    - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
 script: make check

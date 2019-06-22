@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # build.py - Duployan font build utility
 #
@@ -17,16 +17,17 @@
 import argparse
 import os
 import subprocess
+import tempfile
 
 import fontforge
 import fontTools.ttLib
-import tempfile
 
 import duployan
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
-        os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(['git', 'log', '-1', '--format=%ct']).rstrip()
+        os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
+            ['git', 'log', '-1', '--format=%ct'], encoding='utf-8').rstrip()
     font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(
         font.fullname,
         font.version,
