@@ -40,8 +40,8 @@ endif
 	then \
 		if [ ! -d harfbuzz-$$HB_VERSION ]; \
 		then \
-			curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$$HB_VERSION/harfbuzz-$$HB_VERSION.tar.bz2 \
-			| tar -xj; \
+			curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$$HB_VERSION/harfbuzz-$$HB_VERSION.tar.xz \
+			| tar -xJ; \
 		fi && \
 		cd harfbuzz-$$HB_VERSION && \
 		./configure && \
