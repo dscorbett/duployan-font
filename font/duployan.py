@@ -1206,7 +1206,6 @@ class Builder:
         for mark in schema.marks:
             mark_glyphs.append(self.draw_glyph(mark).glyphname)
         glyph = self.font.createChar(schema.cp, glyph_name)
-        self._refresh_glyph(glyph)
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseglyph'
         glyph.addReference(base_glyph)
@@ -1244,15 +1243,6 @@ class Builder:
         glyph.transform(psMat.translate(0, BASELINE - center))
         return glyph
 
-    @staticmethod
-    def _refresh_glyph(glyph):
-        # Work around https://github.com/fontforge/fontforge/issues/3278
-        glyph.glyphname = glyph.glyphname
-
-    def _refresh_encoding(self):
-        # Work around https://github.com/fontforge/fontforge/issues/3551
-        self.font.encoding = self.font.encoding
-
     def augment(self):
         add_lookups(self.font)
         self.font.temporary = {}
@@ -1260,7 +1250,6 @@ class Builder:
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             self.draw_glyph(schema)
-        self._refresh_encoding()
         class_asts = {}
         for name, schemas in sorted(classes.items()):
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
