@@ -16,6 +16,7 @@ cache:
     directories:
         - .ff
         - .hb
+    pip: true
 before_install:
     # No APT package exists for a recent FontForge with Python 3.6 support.
     - |

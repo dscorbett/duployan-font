@@ -652,7 +652,8 @@ class Substitution:
                     glyphs_to_ast(self.contexts_in),
                     glyph_to_name(self.inputs[0]),
                     glyphs_to_ast(self.contexts_out),
-                    glyphs_to_names(self.outputs))
+                    glyphs_to_names(self.outputs),
+                    in_contextual_lookup)
         else:
             return fontTools.feaLib.ast.LigatureSubstStatement(
                 glyphs_to_ast(self.contexts_in),
