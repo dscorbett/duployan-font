@@ -21,8 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import fontTools.feaLib.builder
-import fontTools.feaLib.error
 import fontTools.ttLib.tables.otTables
 
 def fixLookupOverFlows(ttf, overflowRecord):
@@ -50,4 +48,13 @@ def fixLookupOverFlows(ttf, overflowRecord):
                 lookup.SubTable[si] = ext_subtable
             ok = 1
     return ok
+
+def getDataLength(self):
+    return sum(map(len, self.items))
+
+def CountReference_len(self):
+    return self.size
+
+def OTTableWriter_len(self):
+    return 4 if self.longOffset else 2
 
