@@ -399,13 +399,30 @@ class Circle(Shape):
                 self.reversed)
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
-        clockwise = self.reversed != (
+        clockwise_ignoring_reversal = (
             clockwise_from_adjacent_curve
                 if clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
-        if clockwise == clockwise_ignoring_curvature and not self.reversed:
-            return Curve(angle_in, angle_out, clockwise)
-        return Circle(angle_in, angle_out, clockwise, self.reversed)
+        clockwise = clockwise_ignoring_reversal != self.reversed
+        if clockwise_ignoring_reversal == clockwise_ignoring_curvature:
+            if self.reversed:
+                if da != 180:
+                    return Curve(angle_in, (angle_out + 180) % 360, clockwise)
+                else:
+                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed)
+            else:
+                return Curve(angle_in, angle_out, clockwise)
+        else:
+            if self.reversed:
+                if da != 180:
+                    return Curve(angle_in, angle_out, clockwise)
+                else:
+                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed)
+            else:
+                if da != 180 and context_in.clockwise != context_out.clockwise:
+                    return Circle(angle_in, angle_out, clockwise, self.reversed)
+                else:
+                    return Curve(angle_in, angle_out, clockwise)
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
