@@ -29,6 +29,7 @@ import psMat
 
 BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
+EPSILON = 1e-5
 RADIUS = 50
 STROKE_WIDTH = 70
 CURSIVE_LOOKUP = "'curs'"
@@ -203,7 +204,10 @@ class Line(Shape):
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
-        length = int(500 * (size or 0.2) / (abs(math.sin(math.radians(self.angle))) or 1))
+        length_denominator = abs(math.sin(math.radians(self.angle)))
+        if length_denominator < EPSILON:
+            length_denominator = 1
+        length = int(500 * (size or 0.2) / length_denominator)
         pen.lineTo((length, 0))
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
@@ -415,6 +419,15 @@ STYLE = Enum([
 
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
+        (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
+        (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
+        (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),
+        (r'^uniEC05$', 'DUPLOYAN LETTER REVERSED K'),
+        (r'^uniEC06$', 'DUPLOYAN LETTER REVERSED L'),
+        (r'^uniEC19$', 'DUPLOYAN LETTER REVERSED M'),
+        (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
+        (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
+        (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
         (r'^ZERO WIDTH JOINER$', 'ZWJ'),
@@ -546,13 +559,13 @@ class Schema:
             try:
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
             except KeyError:
+                agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
                 try:
                     readable_name = unicodedata.name(chr(cp))
-                    for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
-                        readable_name = regex.sub(repl, readable_name)
-                    agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
                 except ValueError:
-                    agl_name = readable_name = ''
+                    readable_name = agl_name
+                for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
+                    readable_name = regex.sub(repl, readable_name)
             return agl_name, readable_name
         cps = self.cps
         if -1 in cps:
@@ -1049,17 +1062,26 @@ PHASES = [
 SPACE = Space(0)
 H = Dot()
 P = Line(270)
+P_REVERSE = Line(90)
 T = Line(0)
+T_REVERSE = Line(180)
 F = Line(315)
+F_REVERSE = Line(135)
 K = Line(240)
+K_REVERSE = Line(60)
 L = Line(30)
+L_REVERSE = Line(210)
 L_SHALLOW = Line(25)
 M = Curve(180, 0, False)
+M_REVERSE = Curve(180, 0, True)
 N = Curve(0, 180, True)
+N_REVERSE = Curve(0, 180, False)
 N_SHALLOW = Curve(295, 245, True)
 J = Curve(90, 270, True)
+J_REVERSE = Curve(90, 270, False)
 J_SHALLOW = Curve(25, 335, True)
 S = Curve(270, 90, False)
+S_REVERSE = Curve(270, 90, True)
 S_SHALLOW = Curve(335, 25, False)
 S_T = Curve(270, 0, False)
 S_P = Curve(270, 180, True)
@@ -1099,6 +1121,15 @@ SCHEMAS = [
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
     Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
+    Schema(0xEC02, P_REVERSE, 1),
+    Schema(0xEC03, T_REVERSE, 1),
+    Schema(0xEC04, F_REVERSE, 1),
+    Schema(0xEC05, K_REVERSE, 1),
+    Schema(0xEC06, L_REVERSE, 1),
+    Schema(0xEC19, M_REVERSE, 6),
+    Schema(0xEC1A, N_REVERSE, 6),
+    Schema(0xEC1B, J_REVERSE, 6),
+    Schema(0xEC1C, S_REVERSE, 6),
     Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC02, P, 1),
