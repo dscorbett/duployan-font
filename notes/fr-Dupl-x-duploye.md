@@ -229,15 +229,15 @@ U+1BC47 DUPLOYAN LETTER E
   * U+0323 COMBINING DOT BELOW: è
 * Joint à des consonnes, le signe de _E_ prend une position qui évite les angles
   inutiles.
-  <p>
+
   Au commencement des mots, le petit demi-cercle se place sans angle à
   l’intérieur de la consonne qui suit, les lignes droites étant considérées
   théoriquement infléchies: les plongeantes comme la courbe représentant la
   consonne _me_, les avançantes comme _se_ et les remontantes comme _ne_.
-  <p>
+
   A la fin des mots, le petit-demi cercle de _E_ se trace au-dessous ou à gauche
   de la consonne.
-  <p>
+
   Compris entre deux consonnes qui par leur rencontre forment un angle aigu, ou
   entre deux obliques formant un angle droit ☓, on arrondit simplement cet angle
   en forme d’arc de cercle. Dans les autres cas, on joint le petit-demi cercle

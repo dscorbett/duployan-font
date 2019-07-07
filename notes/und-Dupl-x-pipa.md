@@ -353,7 +353,7 @@ U+1BC16 DUPLOYAN LETTER HL
 U+1BC17 DUPLOYAN LETTER LH
 
 * Value: lh
-* a sound similar to Spanish <u>ll</u> (vol. IX no. 1 p. 3)
+* a sound similar to Spanish <ins>ll</ins> (vol. IX no. 1 p. 3)
 
 U+1BC18 DUPLOYAN LETTER RH
 
