@@ -693,7 +693,7 @@ kh (vol. IX no. 1 p. 7, CR p. 5) / kr (vol. IX no. 1 p. 64)
 
 r̃ (vol. IX no. 1 p. 33)
 
-* probably a just glyph variant of RH with the dots on the other side
+* probably just a glyph variant of RH with the dots on the other side
 
 initial hash-sign-like punctuation (“The Passion of J.-Ch. in Shushwap”, p. 27)
 
