@@ -3,6 +3,7 @@
 .DS_Store
 old-requirements.txt
 *.otf
+*.pdf
 *.png
 *.pyc
 *.pyo
