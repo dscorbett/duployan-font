@@ -442,7 +442,6 @@ class Schema:
         (r'^uniEC05$', 'DUPLOYAN LETTER REVERSED K'),
         (r'^uniEC06$', 'DUPLOYAN LETTER REVERSED L'),
         (r'^uniEC19$', 'DUPLOYAN LETTER REVERSED M'),
-        (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
         (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
         (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
@@ -1145,7 +1144,6 @@ SCHEMAS = [
     Schema(0xEC05, K_REVERSE, 1),
     Schema(0xEC06, L_REVERSE, 1),
     Schema(0xEC19, M_REVERSE, 6),
-    Schema(0xEC1A, N_REVERSE, 6),
     Schema(0xEC1B, J_REVERSE, 6),
     Schema(0xEC1C, S_REVERSE, 6),
     Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
@@ -1223,6 +1221,7 @@ SCHEMAS = [
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
+    Schema(0x1BC79, N_REVERSE, 6),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
