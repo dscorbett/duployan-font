@@ -1100,6 +1100,7 @@ J_SHALLOW = Curve(25, 335, True)
 S = Curve(270, 90, False)
 S_REVERSE = Curve(270, 90, True)
 S_SHALLOW = Curve(335, 25, False)
+J_N = Curve(90, 180, True)
 S_T = Curve(270, 0, False)
 S_P = Curve(270, 180, True)
 T_S = Curve(0, 270, True)
@@ -1187,6 +1188,7 @@ SCHEMAS = [
     Schema(0x1BC29, J, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC2A, S, 8),
     Schema(0x1BC2F, J, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
+    Schema(0x1BC30, J_N, 6),
     Schema(0x1BC32, S_T, 4),
     Schema(0x1BC33, S_T, 6),
     Schema(0x1BC34, S_P, 4),
@@ -1217,6 +1219,7 @@ SCHEMAS = [
     Schema(0x1BC4D, S, 2, TYPE.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC51, S_T, 2, TYPE.ORIENTING),
     Schema(0x1BC53, S_T, 2, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC54, J_N, 4),
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
