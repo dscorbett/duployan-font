@@ -117,8 +117,9 @@ class Context:
         if self.angle is None:
             return ''
         return '{}{}'.format(
-            self.angle,
-            '' if self.clockwise is None else 'neg' if self.clockwise else 'pos')
+                self.angle,
+                '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
+            ).replace('.', '__')
 
     def __eq__(self, other):
         return self.angle == other.angle and self.clockwise == other.clockwise
@@ -158,7 +159,7 @@ class Space(Shape):
         return Space(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
-        return 'Z.{}'.format(self.angle)
+        return 'Z.{}'.format(int(self.angle))
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         if joining_type != TYPE.NON_JOINING:
@@ -200,7 +201,7 @@ class Line(Shape):
         return Line(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
-        return 'L.{}'.format(self.angle)
+        return 'L.{}'.format(int(self.angle))
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
@@ -245,8 +246,8 @@ class Curve(Shape):
 
     def __str__(self):
         return 'C.{}.{}.{}'.format(
-            self.angle_in,
-            self.angle_out,
+            int(self.angle_in),
+            int(self.angle_out),
             'neg' if self.clockwise else 'pos')
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
@@ -333,8 +334,8 @@ class Circle(Shape):
 
     def __str__(self):
         return 'O.{}.{}.{}{}'.format(
-            self.angle_in,
-            self.angle_out,
+            int(self.angle_in),
+            int(self.angle_out),
             'neg' if self.clockwise else 'pos',
             '.rev' if self.reversed else '')
 
