@@ -50,7 +50,7 @@ def patch_fonttools():
         try:
             return self._reverseGlyphOrderDict[glyphName]
         except (AttributeError, KeyError):
-            getGlyphID_inner(glyphName, requireReal)
+            getGlyphID_inner(self, glyphName, requireReal)
     fontTools.ttLib.TTFont.getGlyphID = getGlyphID
 
 def tweak_font(options, builder):

@@ -151,6 +151,9 @@ class Shape:
     def context_out(self):
         raise NotImplementedError
 
+    def calculate_diacritic_angles(self):
+        return {}
+
 class Space(Shape):
     def __init__(self, angle):
         self.angle = angle
@@ -194,20 +197,31 @@ class Dot(Shape):
         return NO_CONTEXT
 
 class Line(Shape):
-    def __init__(self, angle):
+    def __init__(self, angle, fixed_length=False):
         self.angle = angle
+        self.fixed_length = fixed_length
 
-    def clone(self, angle=CLONE_DEFAULT):
-        return Line(self.angle if angle is CLONE_DEFAULT else angle)
+    def clone(
+            self,
+            angle=CLONE_DEFAULT,
+            fixed_length=CLONE_DEFAULT,
+    ):
+        return Line(
+            self.angle if angle is CLONE_DEFAULT else angle,
+            self.fixed_length if fixed_length is CLONE_DEFAULT else fixed_length,
+        )
 
     def __str__(self):
         return 'L.{}'.format(int(self.angle))
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         pen.moveTo((0, 0))
-        length_denominator = abs(math.sin(math.radians(self.angle)))
-        if length_denominator < EPSILON:
+        if self.fixed_length:
             length_denominator = 1
+        else:
+            length_denominator = abs(math.sin(math.radians(self.angle)))
+            if length_denominator < EPSILON:
+                length_denominator = 1
         length = int(500 * (size or 0.2) / length_denominator)
         pen.lineTo((length, 0))
         if anchor:
@@ -231,6 +245,17 @@ class Line(Shape):
 
     def context_out(self):
         return Context(self.angle)
+
+    def rotate_diacritic(self, angle):
+        return self.clone(angle=angle)
+
+    def calculate_diacritic_angles(self):
+        angle = float(self.angle % 180)
+        return {
+            CURSIVE_ANCHOR: angle,
+            RELATIVE_1_ANCHOR: angle,
+            RELATIVE_2_ANCHOR: angle,
+        }
 
 class Curve(Shape):
     def __init__(self, angle_in, angle_out, clockwise):
@@ -312,6 +337,14 @@ class Curve(Shape):
 
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
+
+    def calculate_diacritic_angles(self):
+        halfway_angle = (self.angle_in + self.angle_out) / 2 % 180
+        return {
+            CURSIVE_ANCHOR: float(self.angle_out),
+            RELATIVE_1_ANCHOR: halfway_angle,
+            RELATIVE_2_ANCHOR: halfway_angle,
+        }
 
 class Circle(Shape):
     def __init__(self, angle_in, angle_out, clockwise, reversed):
@@ -475,6 +508,7 @@ class Schema:
             ss_pernin=None,
             context_in=None,
             context_out=None,
+            base_angle=None,
             cps=None,
             ss=None,
             _original_shape=None,
@@ -492,9 +526,11 @@ class Schema:
         self.ss_pernin = ss_pernin
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
+        self.base_angle = base_angle
         self.cps = cps or [cp]
         self.ss = ss
         self._original_shape = _original_shape or type(path)
+        self.diacritic_angles = self._calculate_diacritic_angles()
         self.group = self._calculate_group()
         self._glyph_name = None
         self._canonical_schema = self
@@ -523,6 +559,7 @@ class Schema:
             ss_pernin=CLONE_DEFAULT,
             context_in=CLONE_DEFAULT,
             context_out=CLONE_DEFAULT,
+            base_angle=CLONE_DEFAULT,
             cps=CLONE_DEFAULT,
             ss=CLONE_DEFAULT,
             _original_shape=CLONE_DEFAULT,
@@ -540,6 +577,7 @@ class Schema:
             self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             self.context_in if context_in is CLONE_DEFAULT else context_in,
             self.context_out if context_out is CLONE_DEFAULT else context_out,
+            self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
             self.cps if cps is CLONE_DEFAULT else cps,
             self.ss if ss is CLONE_DEFAULT else ss,
             self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
@@ -557,6 +595,9 @@ class Schema:
             'mark' if self.anchor else 'base',
             [repr(m) for m in self.marks or []],
         ])))
+
+    def _calculate_diacritic_angles(self):
+        return self.path.calculate_diacritic_angles()
 
     def _calculate_group(self):
         return (
@@ -627,6 +668,12 @@ class Schema:
             marks=None,
             context_in=context_in,
             context_out=context_out)
+
+    def rotate_diacritic(self, angle):
+        return self.clone(
+            cp=-1,
+            path=self.path.rotate_diacritic(angle),
+            base_angle=angle)
 
 class OrderedSet(collections.OrderedDict):
     def __init__(self, iterable=None):
@@ -699,10 +746,11 @@ class Substitution:
         return len(self.inputs) == 1 and len(self.outputs) != 1
 
 class Lookup:
-    def __init__(self, feature, script, language):
+    def __init__(self, feature, script, language, ignore_marks=True):
         self.feature = feature
         self.script = script
         self.language = language
+        self.ignore_marks = ignore_marks
         self.rules = []
         if script == 'dupl':
             self.required = feature in [
@@ -751,7 +799,8 @@ class Lookup:
         ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
         ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
         ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
+        if self.ignore_marks:
+            ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
         ast.statements.extend(r.to_ast(class_asts, contextual, multiple) for r in self.rules)
         return ast
 
@@ -881,6 +930,34 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), output_class_name))
+    return [lookup]
+
+def rotate_diacritics(schemas, new_schemas, classes, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt', False)
+    base_contexts = OrderedSet()
+    new_base_contexts = set()
+    old_input_count = len(classes['rd_i'])
+    for schema in schemas:
+        if schema.anchor:
+            if (schema.joining_type == TYPE.ORIENTING
+                    and schema.base_angle is None
+                    and schema in new_schemas):
+                classes['rd_i'].append(schema)
+        else:
+            for base_context in schema.diacritic_angles.items():
+                base_contexts.add(base_context)
+                base_context_class = classes['rd_c_{}_{}'.format(*base_context).replace('.', '__')]
+                if schema not in base_context_class:
+                    if not base_context_class:
+                        new_base_contexts.add(base_context)
+                    base_context_class.append(schema)
+    for base_context in base_contexts:
+        if base_context in new_base_contexts:
+            anchor, angle = base_context
+            for i, target_schema in enumerate(classes['rd_i']):
+                if anchor == target_schema.anchor:
+                    output_schema = target_schema.rotate_diacritic(angle)
+                    add_rule(lookup, Substitution('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i', [], [output_schema]))
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
@@ -1074,6 +1151,7 @@ PHASES = [
     ss_pernin,
     join_with_previous,
     join_with_next,
+    rotate_diacritics,
 ]
 
 SPACE = Space(0)
@@ -1112,9 +1190,11 @@ O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
+LINE = Line(270, True)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
+LINE_2 = Schema(-1, LINE, 0.35, TYPE.ORIENTING, anchor=RELATIVE_2_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
@@ -1216,6 +1296,7 @@ SCHEMAS = [
     Schema(0x1BC4B, S, 2),
     Schema(0x1BC4C, S, 2, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, S, 2, TYPE.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC4E, S, 2, TYPE.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC51, S_T, 2, TYPE.ORIENTING),
     Schema(0x1BC53, S_T, 2, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, J_N, 4),
