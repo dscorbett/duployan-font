@@ -44,6 +44,9 @@ RELATIVE_2_ANCHOR = 'rel2'
 MIDDLE_LOOKUP = "'mark' middle"
 MIDDLE_SUBTABLE = MIDDLE_LOOKUP + '-1'
 MIDDLE_ANCHOR = 'mid'
+TANGENT_LOOKUP = "'mark' tangent"
+TANGENT_SUBTABLE = TANGENT_LOOKUP + '-1'
+TANGENT_ANCHOR = 'tan'
 ABOVE_LOOKUP = "'mark' above"
 ABOVE_SUBTABLE = ABOVE_LOOKUP + '-1'
 ABOVE_ANCHOR = 'abv'
@@ -89,6 +92,13 @@ def add_lookups(font):
         'mark',
         MIDDLE_SUBTABLE,
         MIDDLE_ANCHOR)
+    add_lookup(font,
+        TANGENT_LOOKUP,
+        'gpos_mark2base',
+        (),
+        'mark',
+        TANGENT_SUBTABLE,
+        TANGENT_ANCHOR)
     add_lookup(font,
         ABOVE_LOOKUP,
         'gpos_mark2base',
@@ -248,6 +258,7 @@ class Line(Shape):
                 glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
                 glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
+            glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -263,10 +274,10 @@ class Line(Shape):
     def calculate_diacritic_angles(self):
         angle = float(self.angle % 180)
         return {
-            CURSIVE_ANCHOR: angle,
             RELATIVE_1_ANCHOR: angle,
             RELATIVE_2_ANCHOR: angle,
             MIDDLE_ANCHOR: (angle + 90) % 180,
+            TANGENT_ANCHOR: (angle + 90) % 180,
         }
 
 class Curve(Shape):
@@ -325,6 +336,7 @@ class Curve(Shape):
                 math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
         if joining_type == TYPE.ORIENTING:
             glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
@@ -354,10 +366,10 @@ class Curve(Shape):
     def calculate_diacritic_angles(self):
         halfway_angle = (self.angle_in + self.angle_out) / 2 % 180
         return {
-            CURSIVE_ANCHOR: float(self.angle_out),
             RELATIVE_1_ANCHOR: halfway_angle,
             RELATIVE_2_ANCHOR: halfway_angle,
             MIDDLE_ANCHOR: (halfway_angle + 90) % 180,
+            TANGENT_ANCHOR: (self.angle_out + 90) % 180,
         }
 
 class Circle(Shape):
@@ -499,7 +511,7 @@ class Schema:
         (r'^WORD JOINER$', 'WJ'),
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
         (r'^COMBINING ', ''),
-        (r'^DUPLOYAN ((LETTER|AFFIX|SIGN|PUNCTUATION) )?', ''),
+        (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
         (r'\b(QUAD|SPACE)\b', 'SP'),
         (r' (WITH|AND) ', ' '),
@@ -1325,6 +1337,7 @@ SCHEMAS = [
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
+    Schema(0x1BC78, LINE, 0.5, TYPE.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, N_REVERSE, 6),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
