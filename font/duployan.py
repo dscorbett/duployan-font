@@ -365,7 +365,7 @@ class Curve(Shape):
             scale_y = 1.0 + self.stretch
             if self.long:
                 scale_x, scale_y = scale_y, scale_x
-            theta = math.radians(relative_mark_angle % 180)
+            theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -401,23 +401,28 @@ class Curve(Shape):
         }
 
 class Circle(Shape):
-    def __init__(self, angle_in, angle_out, clockwise, reversed):
+    def __init__(self, angle_in, angle_out, clockwise, reversed, stretch=0):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
         self.reversed = reversed
+        self.stretch = stretch
 
     def clone(
             self,
             angle_in=CLONE_DEFAULT,
             angle_out=CLONE_DEFAULT,
             clockwise=CLONE_DEFAULT,
-            reversed=CLONE_DEFAULT):
+            reversed=CLONE_DEFAULT,
+            stretch=CLONE_DEFAULT,
+    ):
         return Circle(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            self.reversed if reversed is CLONE_DEFAULT else reversed)
+            self.reversed if reversed is CLONE_DEFAULT else reversed,
+            self.stretch if stretch is CLONE_DEFAULT else stretch,
+        )
 
     def __str__(self):
         return 'O.{}.{}.{}{}'.format(
@@ -433,10 +438,11 @@ class Circle(Shape):
         if clockwise and angle_in == angle_out:
             clockwise = False
             angle_in = angle_out = angle_in % 180
-        return 'O.{}.{}.{}'.format(
+        return (
             angle_in,
             angle_out,
-            'neg' if clockwise else 'pos',
+            clockwise,
+            self.stretch,
         )
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
@@ -456,12 +462,17 @@ class Circle(Shape):
         pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
         if joining_type != TYPE.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
+        scale_x = 1.0 + self.stretch
+        if self.stretch:
+            scale_y = 1.0
+            theta = math.radians(self.angle_in % 180)
+            glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
+        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in + 180)))
+        glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -484,7 +495,9 @@ class Circle(Shape):
                 clockwise_from_adjacent_curve != self.reversed
                     if clockwise_from_adjacent_curve is not None
                     else self.clockwise,
-                self.reversed)
+                self.reversed,
+                self.stretch,
+            )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
         clockwise_ignoring_reversal = (
@@ -495,22 +508,22 @@ class Circle(Shape):
         if clockwise_ignoring_reversal == clockwise_ignoring_curvature:
             if self.reversed:
                 if da != 180:
-                    return Curve(angle_in, (angle_out + 180) % 360, clockwise)
+                    return Curve(angle_in, (angle_out + 180) % 360, clockwise, self.stretch, True)
                 else:
-                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed)
+                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed, self.stretch)
             else:
-                return Curve(angle_in, angle_out, clockwise)
+                return Curve(angle_in, angle_out, clockwise, self.stretch, True)
         else:
             if self.reversed:
                 if da != 180:
-                    return Curve(angle_in, angle_out, clockwise)
+                    return Curve(angle_in, angle_out, clockwise, self.stretch, True)
                 else:
-                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed)
+                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed, self.stretch)
             else:
                 if da != 180 and context_in.clockwise != context_out.clockwise:
-                    return Circle(angle_in, angle_out, clockwise, self.reversed)
+                    return Circle(angle_in, angle_out, clockwise, self.reversed, self.stretch)
                 else:
-                    return Curve(angle_in, angle_out, clockwise)
+                    return Curve(angle_in, angle_out, clockwise, self.stretch, True)
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
@@ -1246,6 +1259,7 @@ S_K = Curve(90, 0, True)
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
+UH = Circle(225, 225, False, False, 2)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
 LINE = Line(90, True)
@@ -1368,6 +1382,7 @@ SCHEMAS = [
     Schema(0x1BC53, S_T, 2, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, J_N, 4),
     Schema(0x1BC55, LONG_U, 2),
+    Schema(0x1BC57, UH, 2, TYPE.ORIENTING),
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
