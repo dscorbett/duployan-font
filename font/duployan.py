@@ -41,6 +41,9 @@ RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_LOOKUP = "'mark' relative mark outside or below"
 RELATIVE_2_SUBTABLE = RELATIVE_2_LOOKUP + '-1'
 RELATIVE_2_ANCHOR = 'rel2'
+MIDDLE_LOOKUP = "'mark' middle"
+MIDDLE_SUBTABLE = MIDDLE_LOOKUP + '-1'
+MIDDLE_ANCHOR = 'mid'
 ABOVE_LOOKUP = "'mark' above"
 ABOVE_SUBTABLE = ABOVE_LOOKUP + '-1'
 ABOVE_ANCHOR = 'abv'
@@ -79,6 +82,13 @@ def add_lookups(font):
         'mark',
         RELATIVE_2_SUBTABLE,
         RELATIVE_2_ANCHOR)
+    add_lookup(font,
+        MIDDLE_LOOKUP,
+        'gpos_mark2base',
+        (),
+        'mark',
+        MIDDLE_SUBTABLE,
+        MIDDLE_ANCHOR)
     add_lookup(font,
         ABOVE_LOOKUP,
         'gpos_mark2base',
@@ -237,6 +247,7 @@ class Line(Shape):
             else:
                 glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
                 glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
+            glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
@@ -255,6 +266,7 @@ class Line(Shape):
             CURSIVE_ANCHOR: angle,
             RELATIVE_1_ANCHOR: angle,
             RELATIVE_2_ANCHOR: angle,
+            MIDDLE_ANCHOR: (angle + 90) % 180,
         }
 
 class Curve(Shape):
@@ -312,6 +324,7 @@ class Curve(Shape):
                 min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
                 math.radians(relative_mark_angle))))
         glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         if joining_type == TYPE.ORIENTING:
             glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
@@ -344,6 +357,7 @@ class Curve(Shape):
             CURSIVE_ANCHOR: float(self.angle_out),
             RELATIVE_1_ANCHOR: halfway_angle,
             RELATIVE_2_ANCHOR: halfway_angle,
+            MIDDLE_ANCHOR: (halfway_angle + 90) % 180,
         }
 
 class Circle(Shape):
@@ -936,13 +950,12 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', False)
     base_contexts = OrderedSet()
     new_base_contexts = set()
-    old_input_count = len(classes['rd_i'])
     for schema in schemas:
         if schema.anchor:
             if (schema.joining_type == TYPE.ORIENTING
                     and schema.base_angle is None
                     and schema in new_schemas):
-                classes['rd_i'].append(schema)
+                classes['rd_i_' + str(schema.anchor)].append(schema)
         else:
             for base_context in schema.diacritic_angles.items():
                 base_contexts.add(base_context)
@@ -954,10 +967,10 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
     for base_context in base_contexts:
         if base_context in new_base_contexts:
             anchor, angle = base_context
-            for i, target_schema in enumerate(classes['rd_i']):
+            for target_schema in classes['rd_i_' + str(anchor)]:
                 if anchor == target_schema.anchor:
                     output_schema = target_schema.rotate_diacritic(angle)
-                    add_rule(lookup, Substitution('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i', [], [output_schema]))
+                    add_rule(lookup, Substitution('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], [output_schema]))
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
@@ -1190,11 +1203,12 @@ O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
-LINE = Line(270, True)
+LINE = Line(90, True)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
 LINE_2 = Schema(-1, LINE, 0.35, TYPE.ORIENTING, anchor=RELATIVE_2_ANCHOR)
+LINE_MIDDLE = Schema(-1, LINE, 0.45, TYPE.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
@@ -1256,6 +1270,10 @@ SCHEMAS = [
     Schema(0x1BC1A, N, 6, ss_pernin={'path': N_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC1B, J, 6, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC1C, S, 6, ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC1D, M, 6, marks=[LINE_MIDDLE]),
+    Schema(0x1BC1E, N, 6, marks=[LINE_MIDDLE]),
+    Schema(0x1BC1F, J, 6, marks=[LINE_MIDDLE]),
+    Schema(0x1BC20, S, 6, marks=[LINE_MIDDLE]),
     Schema(0x1BC21, M, 6, marks=[DOT_1]),
     Schema(0x1BC22, N, 6, marks=[DOT_1]),
     Schema(0x1BC23, J, 6, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
@@ -1266,6 +1284,10 @@ SCHEMAS = [
     Schema(0x1BC28, N, 8),
     Schema(0x1BC29, J, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC2A, S, 8),
+    Schema(0x1BC2B, M, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2C, N, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2D, J, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2E, S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2F, J, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC30, J_N, 6),
     Schema(0x1BC32, S_T, 4),
