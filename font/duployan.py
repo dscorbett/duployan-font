@@ -281,22 +281,43 @@ class Line(Shape):
         }
 
 class Curve(Shape):
-    def __init__(self, angle_in, angle_out, clockwise):
+    def __init__(self, angle_in, angle_out, clockwise, stretch=0, long=False):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
+        self.stretch = stretch
+        self.long = long
 
-    def clone(self, angle_in=CLONE_DEFAULT, angle_out=CLONE_DEFAULT, clockwise=CLONE_DEFAULT):
+    def clone(
+            self,
+            angle_in=CLONE_DEFAULT,
+            angle_out=CLONE_DEFAULT,
+            clockwise=CLONE_DEFAULT,
+            stretch=CLONE_DEFAULT,
+            long=CLONE_DEFAULT,
+    ):
         return Curve(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
-            self.clockwise if clockwise is CLONE_DEFAULT else clockwise)
+            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            self.stretch if stretch is CLONE_DEFAULT else stretch,
+            self.long if long is CLONE_DEFAULT else long,
+        )
 
     def __str__(self):
         return 'C.{}.{}.{}'.format(
             int(self.angle_in),
             int(self.angle_out),
             'neg' if self.clockwise else 'pos')
+
+    def group(self):
+        return (
+            self.angle_in,
+            self.angle_out,
+            self.clockwise,
+            self.stretch,
+            self.long,
+        )
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         assert anchor is None
@@ -323,7 +344,6 @@ class Curve(Shape):
             p2 = rect(cp_distance, theta3 - cp_angle)
             pen.curveTo(p1, p2, p3)
         pen.endPath()
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
         relative_mark_angle = (a1 + a2) / 2
         if joining_type != TYPE.NON_JOINING:
             x = r * math.cos(math.radians(a1))
@@ -340,6 +360,14 @@ class Curve(Shape):
         if joining_type == TYPE.ORIENTING:
             glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
+        if self.stretch:
+            scale_x = 1.0
+            scale_y = 1.0 + self.stretch
+            if self.long:
+                scale_x, scale_y = scale_y, scale_x
+            theta = math.radians(relative_mark_angle % 180)
+            glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
+        glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -1192,17 +1220,21 @@ K_REVERSE = Line(60)
 L = Line(30)
 L_REVERSE = Line(210)
 L_SHALLOW = Line(25)
-M = Curve(180, 0, False)
-M_REVERSE = Curve(180, 0, True)
-N = Curve(0, 180, True)
-N_REVERSE = Curve(0, 180, False)
+M = Curve(180, 0, False, 0.2)
+M_REVERSE = Curve(180, 0, True, 0.2)
+N = Curve(0, 180, True, 0.2)
+N_REVERSE = Curve(0, 180, False, 0.2)
 N_SHALLOW = Curve(295, 245, True)
-J = Curve(90, 270, True)
-J_REVERSE = Curve(90, 270, False)
+J = Curve(90, 270, True, 0.2)
+J_REVERSE = Curve(90, 270, False, 0.2)
 J_SHALLOW = Curve(25, 335, True)
-S = Curve(270, 90, False)
-S_REVERSE = Curve(270, 90, True)
+S = Curve(270, 90, False, 0.2)
+S_REVERSE = Curve(270, 90, True, 0.2)
 S_SHALLOW = Curve(335, 25, False)
+M_S = Curve(180, 0, False, 0.8)
+N_S = Curve(0, 180, True, 0.8)
+J_S = Curve(90, 270, True, 0.8)
+S_S = Curve(270, 90, False, 0.8)
 J_N = Curve(90, 180, True)
 S_T = Curve(270, 0, False)
 S_P = Curve(270, 180, True)
@@ -1213,6 +1245,7 @@ K_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
+LONG_U = Curve(225, 45, False, 4, True)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
 LINE = Line(90, True)
@@ -1292,15 +1325,15 @@ SCHEMAS = [
     Schema(0x1BC24, J, 6, marks=[DOT_1, DOT_2]),
     Schema(0x1BC25, S, 6, marks=[DOT_1], ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC26, S, 6, marks=[DOT_2]),
-    Schema(0x1BC27, M, 8),
-    Schema(0x1BC28, N, 8),
-    Schema(0x1BC29, J, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
-    Schema(0x1BC2A, S, 8),
-    Schema(0x1BC2B, M, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2C, N, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2D, J, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2E, S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2F, J, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
+    Schema(0x1BC27, M_S, 8),
+    Schema(0x1BC28, N_S, 8),
+    Schema(0x1BC29, J_S, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
+    Schema(0x1BC2A, S_S, 8),
+    Schema(0x1BC2B, M_S, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2C, N_S, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2D, J_S, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2E, S_S, 8, marks=[LINE_MIDDLE]),
+    Schema(0x1BC2F, J_S, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC30, J_N, 6),
     Schema(0x1BC32, S_T, 4),
     Schema(0x1BC33, S_T, 6),
@@ -1334,6 +1367,7 @@ SCHEMAS = [
     Schema(0x1BC51, S_T, 2, TYPE.ORIENTING),
     Schema(0x1BC53, S_T, 2, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, J_N, 4),
+    Schema(0x1BC55, LONG_U, 2),
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
