@@ -350,11 +350,6 @@ class Curve(Shape):
             y = r * math.sin(math.radians(a1))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
-            *(rect(0, 0) if abs(da) > 180 else rect(
-                min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
-                math.radians(relative_mark_angle))))
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
         if joining_type == TYPE.ORIENTING:
@@ -366,7 +361,15 @@ class Curve(Shape):
             if self.long:
                 scale_x, scale_y = scale_y, scale_x
             theta = math.radians(self.angle_in % 180)
+            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in)))
+        else:
+            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
+                *(rect(0, 0) if abs(da) > 180 else rect(
+                    min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
+                    math.radians(relative_mark_angle))))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, context_in, context_out):
@@ -471,7 +474,7 @@ class Circle(Shape):
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in + 180)))
+        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in)))
         glyph.stroke('circular', STROKE_WIDTH, 'round')
 
     def contextualize(self, context_in, context_out):
@@ -1259,7 +1262,7 @@ S_K = Curve(90, 0, True)
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
-UH = Circle(225, 225, False, False, 2)
+UH = Circle(45, 45, False, False, 2)
 DOWN_STEP = Space(270)
 UP_STEP = Space(90)
 LINE = Line(90, True)
@@ -1383,6 +1386,8 @@ SCHEMAS = [
     Schema(0x1BC54, J_N, 4),
     Schema(0x1BC55, LONG_U, 2),
     Schema(0x1BC57, UH, 2, TYPE.ORIENTING),
+    Schema(0x1BC58, UH, 2, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC59, UH, 2, TYPE.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
     Schema(0x1BC66, W, 2, TYPE.ORIENTING),
