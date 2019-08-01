@@ -321,7 +321,16 @@ U+1BC64 DUPLOYAN LETTER NASAL A
   * U+0300 COMBINING GRAVE ACCENT: in
   * U+0301 COMBINING ACUTE ACCENT: an
   * U+0304 COMBINING MACRON: en
-  * U+0317 COMBINING ACUTE ACCENT BELOW: on, un
+
+U+1BC6A DUPLOYAN LETTER VOCALIC M
+
+* Value: am
+* Value: em
+* Value: im
+* Diacritics:
+  * U+0300 COMBINING GRAVE ACCENT: im
+  * U+0301 COMBINING ACUTE ACCENT: am
+  * U+0304 COMBINING MACRON: em
 
 U+1BC76 DUPLOYAN AFFIX ATTACHED SECANT
 
@@ -364,12 +373,14 @@ U+1BC98 DUPLOYAN AFFIX LOW VERTICAL
 
 ## Unclear characters
 
-an, en, in, un, am, em, im, um
+on/un (pp. 24–26)
 
-* These are all arcs with different isolated forms and diacritics but the same
-  rotatable skeleton. The -m series is the same as the -n series, except that
-  angles are encouraged. Unicode does not have anything like this; it says to
-  use U+1BC62 or U+1BC64, but both of them have “invariant direction upwards”.
+* The isolated form looks like NASAL O, but it prefers to curve down, though the
+  code chart note for NASAL O says “invariant direction upwards”.
+
+om/um (pp. 27–28)
+
+* like VOCALIC M but written downwards
 
 small M
 
