@@ -15,6 +15,7 @@
 __all__ = ['Builder']
 
 import collections
+import enum
 import io
 import math
 import re
@@ -114,16 +115,10 @@ def add_lookups(font):
         BELOW_SUBTABLE,
         BELOW_ANCHOR)
 
-class Enum:
-    def __init__(self, names):
-        for i, name in enumerate(names):
-            setattr(self, name, i)
-
-TYPE = Enum([
-    'JOINING',
-    'ORIENTING',
-    'NON_JOINING',
-])
+class Type(enum.Enum):
+    JOINING = enum.auto()
+    ORIENTING = enum.auto()
+    NON_JOINING = enum.auto()
 
 class Context:
     def __init__(self, angle=None, clockwise=None):
@@ -185,7 +180,7 @@ class Space(Shape):
         return 'Z.{}'.format(int(self.angle))
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
-        if joining_type != TYPE.NON_JOINING:
+        if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -size, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
@@ -247,7 +242,7 @@ class Line(Shape):
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
         else:
-            if joining_type != TYPE.NON_JOINING:
+            if joining_type != Type.NON_JOINING:
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
             if size == 2 and self.angle == 30:
@@ -345,14 +340,14 @@ class Curve(Shape):
             pen.curveTo(p1, p2, p3)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
-        if joining_type != TYPE.NON_JOINING:
+        if joining_type != Type.NON_JOINING:
             x = r * math.cos(math.radians(a1))
             y = r * math.sin(math.radians(a1))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
-        if joining_type == TYPE.ORIENTING:
+        if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
         if self.stretch:
@@ -465,7 +460,7 @@ class Circle(Shape):
         pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
-        if joining_type != TYPE.NON_JOINING:
+        if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
@@ -534,9 +529,8 @@ class Circle(Shape):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
-STYLE = Enum([
-    'PERNIN',
-])
+class Style(enum.Enum):
+    PERNIN = enum.auto()
 
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
@@ -569,7 +563,7 @@ class Schema:
             cp,
             path,
             size,
-            joining_type=TYPE.JOINING,
+            joining_type=Type.JOINING,
             side_bearing=DEFAULT_SIDE_BEARING,
             anchor=None,
             marks=None,
@@ -592,7 +586,7 @@ class Schema:
         self.anchor = anchor
         self.marks = marks or []
         self.ignored = ignored
-        self.styles = frozenset(STYLE.__dict__.keys() if styles is None else styles)
+        self.styles = frozenset(Style.__dict__.keys() if styles is None else styles)
         self.ss_pernin = ss_pernin
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
@@ -661,7 +655,7 @@ class Schema:
             self.side_bearing,
             self.context_in,
             'ss{:02}'.format(self.ss) if self.ss else '',
-            'NJ' if self.joining_type == TYPE.NON_JOINING else '',
+            'NJ' if self.joining_type == Type.NON_JOINING else '',
             'mark' if self.anchor else 'base',
             [repr(m) for m in self.marks or []],
         ])))
@@ -730,7 +724,7 @@ class Schema:
         return self._glyph_name
 
     def contextualize(self, context_in, context_out):
-        assert self.joining_type == TYPE.ORIENTING
+        assert self.joining_type == Type.ORIENTING
         return self.clone(
             cp=-1,
             path=self.path.contextualize(context_in, context_out),
@@ -909,7 +903,7 @@ def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
         elif (schema in new_schemas
                 and isinstance(schema.path, Circle)
                 and not schema.path.reversed
-                and STYLE.PERNIN in schema.styles):
+                and Style.PERNIN in schema.styles):
             classes['ll_vowel'].append(schema)
             vowels.append(schema)
     assert classes['ll_vowel'], 'No Pernin circle vowels found'
@@ -947,11 +941,11 @@ def join_with_previous(schemas, new_schemas, classes, add_rule):
     old_input_count = len(classes['jp_i'])
     for schema in schemas:
         if not schema.anchor:
-            if (schema.joining_type == TYPE.ORIENTING
+            if (schema.joining_type == Type.ORIENTING
                     and schema.context_in == NO_CONTEXT
                     and schema in new_schemas):
                 classes['jp_i'].append(schema)
-            if schema.joining_type != TYPE.NON_JOINING:
+            if schema.joining_type != Type.NON_JOINING:
                 context_in = schema.path.context_out()
                 if context_in != NO_CONTEXT:
                     contexts_in.add(context_in)
@@ -978,11 +972,11 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
     old_input_count = len(classes['jn_i'])
     for schema in schemas:
         if not schema.anchor:
-            if (schema.joining_type == TYPE.ORIENTING
+            if (schema.joining_type == Type.ORIENTING
                     and schema.context_out == NO_CONTEXT
                     and schema in new_schemas):
                 classes['jn_i'].append(schema)
-            if schema.joining_type != TYPE.NON_JOINING:
+            if schema.joining_type != Type.NON_JOINING:
                 context_out = schema.path.context_in()
                 if context_out != NO_CONTEXT:
                     contexts_out.add(context_out)
@@ -1008,7 +1002,7 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
     new_base_contexts = set()
     for schema in schemas:
         if schema.anchor:
-            if (schema.joining_type == TYPE.ORIENTING
+            if (schema.joining_type == Type.ORIENTING
                     and schema.base_angle is None
                     and schema in new_schemas):
                 classes['rd_i_' + str(schema.anchor)].append(schema)
@@ -1269,12 +1263,12 @@ LINE = Line(90, True)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
-LINE_2 = Schema(-1, LINE, 0.35, TYPE.ORIENTING, anchor=RELATIVE_2_ANCHOR)
-LINE_MIDDLE = Schema(-1, LINE, 0.45, TYPE.ORIENTING, anchor=MIDDLE_ANCHOR)
+LINE_2 = Schema(-1, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
+LINE_MIDDLE = Schema(-1, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
-    Schema(0x0020, SPACE, 260, TYPE.NON_JOINING, 260),
-    Schema(0x00A0, SPACE, 260, TYPE.NON_JOINING, 260),
+    Schema(0x0020, SPACE, 260, Type.NON_JOINING, 260),
+    Schema(0x00A0, SPACE, 260, Type.NON_JOINING, 260),
     Schema(0x0304, T, 0, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
@@ -1290,7 +1284,7 @@ SCHEMAS = [
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
     Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
-    Schema(0x200C, SPACE, 0, TYPE.NON_JOINING, 0, ignored=True),
+    Schema(0x200C, SPACE, 0, Type.NON_JOINING, 0, ignored=True),
     Schema(0x200D, SPACE, 0, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
@@ -1367,31 +1361,31 @@ SCHEMAS = [
     Schema(0x1BC3E, K_R_S, 6),
     Schema(0x1BC3F, S_K, 4),
     Schema(0x1BC40, S_K, 6),
-    Schema(0x1BC41, O, 2, TYPE.ORIENTING, styles=[STYLE.PERNIN]),
-    Schema(0x1BC42, O_REVERSE, 2, TYPE.ORIENTING),
-    Schema(0x1BC43, O, 3, TYPE.ORIENTING, styles=[STYLE.PERNIN]),
-    Schema(0x1BC44, O, 4, TYPE.ORIENTING, styles=[STYLE.PERNIN]),
-    Schema(0x1BC45, O, 5, TYPE.ORIENTING),
-    Schema(0x1BC46, M, 2, TYPE.ORIENTING),
-    Schema(0x1BC47, S, 2, TYPE.ORIENTING),
+    Schema(0x1BC41, O, 2, Type.ORIENTING, styles=[Style.PERNIN]),
+    Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING),
+    Schema(0x1BC43, O, 3, Type.ORIENTING, styles=[Style.PERNIN]),
+    Schema(0x1BC44, O, 4, Type.ORIENTING, styles=[Style.PERNIN]),
+    Schema(0x1BC45, O, 5, Type.ORIENTING),
+    Schema(0x1BC46, M, 2, Type.ORIENTING),
+    Schema(0x1BC47, S, 2, Type.ORIENTING),
     Schema(0x1BC48, M, 2),
     Schema(0x1BC49, N, 2),
     Schema(0x1BC4A, J, 2),
     Schema(0x1BC4B, S, 2),
-    Schema(0x1BC4C, S, 2, TYPE.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC4D, S, 2, TYPE.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC4E, S, 2, TYPE.ORIENTING, marks=[LINE_2]),
-    Schema(0x1BC51, S_T, 2, TYPE.ORIENTING),
-    Schema(0x1BC53, S_T, 2, TYPE.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4C, S, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4D, S, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC51, S_T, 2, Type.ORIENTING),
+    Schema(0x1BC53, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, J_N, 4),
     Schema(0x1BC55, LONG_U, 2),
-    Schema(0x1BC57, UH, 2, TYPE.ORIENTING),
-    Schema(0x1BC58, UH, 2, TYPE.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC59, UH, 2, TYPE.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC5A, O, 4, TYPE.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC65, S_P, 2, TYPE.ORIENTING),
-    Schema(0x1BC66, W, 2, TYPE.ORIENTING),
-    Schema(0x1BC78, LINE, 0.5, TYPE.ORIENTING, anchor=TANGENT_ANCHOR),
+    Schema(0x1BC57, UH, 2, Type.ORIENTING),
+    Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC65, S_P, 2, Type.ORIENTING),
+    Schema(0x1BC66, W, 2, Type.ORIENTING),
+    Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, N_REVERSE, 6),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
