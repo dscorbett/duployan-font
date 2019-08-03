@@ -1,13 +1,12 @@
 dist: bionic
+services:
+    - xvfb
 language: python
 python:
-    - "3.6"
-virtualenv:
-    # fontforge is installed in the global site-packages directory.
-    system_site_packages: true
+    - "3.7"
 env:
     global:
-        - FF_VERSION=20190413
+        - FF_VERSION=20190801
         - HB_VERSION=2.5.2
     matrix:
         - OLD_REQUIREMENTS=false
@@ -18,46 +17,25 @@ cache:
         - .hb
     pip: true
 before_install:
-    # No APT package exists for a recent FontForge with Python 3.6 support.
+    # No APT package exists for a recent FontForge with Python 3.7 support.
+    - mkdir -p .ff/fontforge-$FF_VERSION
+    - pushd .ff/fontforge-$FF_VERSION
     - |
-        mkdir -p .ff
-        pushd .ff
-        if [ ! -d fontforge-$FF_VERSION ]
+        if [ ! -f fontforge ]
         then
-            curl -L https://github.com/fontforge/fontforge/releases/download/$FF_VERSION/fontforge-$FF_VERSION.tar.gz | tar -xz
+            curl -Lo fontforge "$(
+                curl "$(
+                    curl https://api.github.com/repos/fontforge/fontforge/releases \
+                    | jq -r ".[] | select(.tag_name == \"$FF_VERSION\").assets_url"
+                )" \
+                | jq -r '.[] | select(.name | endswith(".AppImage")).browser_download_url'
+            )"
+            chmod +x fontforge
         fi
-        cd fontforge-$FF_VERSION
-        if [ ! -d pyhook/.libs ]
-        then
-            travis_apt_get_update
-            sudo -E apt-get -yq --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages install packaging-dev pkg-config python-dev build-essential automake
-            ./bootstrap
-            PYTHON_CFLAGS="$(python-config --cflags)" \
-            PYTHON_LIBS="$(python-config --ldflags)" \
-            ./configure \
-                --enable-python-extension \
-                --enable-python-scripting=3 \
-                --disable-dependency-tracking \
-                --disable-maintainer-mode \
-                --disable-native-scripting \
-                --disable-programs \
-                --without-cairo \
-                --without-giflib \
-                --without-iconv \
-                --without-libjpeg \
-                --without-libpng \
-                --without-libreadline \
-                --without-libspiro \
-                --without-libtiff \
-                --without-libuninameslist \
-                --without-libzmq \
-                --without-x \
-            ;
-            make
-        fi
-        sudo make install
-        sudo ldconfig
-        popd
+    - export PATH="$PWD:$PATH"
+    - export PYTHONHOME="$(python3 -c 'import sys; print(sys.prefix)')"
+    - popd
+
     # libharfbuzz-bin is too out of date to use.
     - make HB_VERSION=$HB_VERSION hb-shape
     - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
@@ -70,4 +48,4 @@ before_install:
         fi
 install:
     - pip install -r requirements.txt
-script: make check
+script: xvfb-run -a make check

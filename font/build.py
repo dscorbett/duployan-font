@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # build.py - Duployan font build utility
 #
 # Written in 2010-2018 by Khaled Hosny <khaledhosny@eglug.org>
@@ -26,6 +24,7 @@ import duployan
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
+        os.chdir(os.environ.get('OWD', '.'))
         os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
             ['git', 'log', '-1', '--format=%ct'], encoding='utf-8').rstrip()
     font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(

@@ -18,7 +18,8 @@ FONT = font/Duployan.otf
 all: $(FONT)
 
 %.otf: %.sfd font/*.py
-	font/build.py --input $< --output $@
+	PYTHONPATH="$$(python3 -c 'import os, sys; print(":".join(map(os.path.abspath, sys.path)))')" \
+	fontforge -lang py -script $(CURDIR)/font/build.py --input $(abspath $<) --output $(abspath $@)
 
 .PHONY: clean
 clean:
