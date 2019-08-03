@@ -739,7 +739,7 @@ class Schema:
             path=self.path.rotate_diacritic(angle),
             base_angle=angle)
 
-class OrderedSet(collections.OrderedDict):
+class OrderedSet(dict):
     def __init__(self, iterable=None):
         super().__init__()
         if iterable:
@@ -1082,16 +1082,6 @@ def run_phases(all_input_schemas, phases):
         all_classes.update(classes)
     return all_schemas, all_lookups, all_classes
 
-class OrderedDefaultDict(collections.OrderedDict):
-    def __init__(self, default_factory):
-        super().__init__()
-        self.default_factory = default_factory
-
-    def __missing__(self, key):
-        value = self.default_factory()
-        self[key] = value
-        return value
-
 class Grouper:
     def __init__(self, groups):
         self._groups = []
@@ -1128,7 +1118,7 @@ class Grouper:
                 pass
 
 def group_schemas(schemas):
-    group_dict = OrderedDefaultDict(list)
+    group_dict = collections.defaultdict(list)
     for schema in schemas:
         group_dict[schema.group].append(schema)
     return Grouper(group_dict.values())
@@ -1161,7 +1151,7 @@ def sift_groups(grouper, rule, target_part, classes):
                                 if len(output) != 1:
                                     # non-singleton glyph class
                                     grouper.remove(intersection)
-                                    new_groups = OrderedDefaultDict(list)
+                                    new_groups = collections.defaultdict(list)
                                     for input_schema, output_schema in zip(cls, output):
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
