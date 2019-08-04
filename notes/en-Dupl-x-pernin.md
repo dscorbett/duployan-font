@@ -19,7 +19,7 @@ _R, l,_ are written at a slant of 25 degrees; the slant of _f, v, k, g,_ should
 be about 40 degrees. An exception is made when _k, g,_ precede or follow _r, l,_
 when they are written at a slant of 75 degrees. (p. 4)
 
-the circles are traced to the _left_ of the down srokes, at the _beginning,
+the circles are traced to the _left_ of the down strokes, at the _beginning,
 middle_ and _end_ of words, except when preceded by a vertical and followed by a
 right oblique, as in the word _pack,_ 𛰂𛱁𛰅. Circles are always traced _outside_
 of angles. (p. 9)

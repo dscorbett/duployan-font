@@ -41,7 +41,7 @@ IV no. 1 p. 6)
 The semicircle may be turned “up” or “forward,” to represent “i” short or “e”
 long; and it may be turned “down,” or “backwards,” to figure “e” short or “a”
 long. This rule applies only when the hook is final, and in a few cases, as
-illustrated in the excercises. (vol. V no. 1 p. 8)
+illustrated in the exercises. (vol. V no. 1 p. 8)
 
 The angle is avoided by turning the circle either side of the perpendicular.
 (vol. V no. 1 p. 4)

@@ -109,10 +109,10 @@ UTN #37 says they float by default;
 are those floaters just the Perrault-en acute and grave above and below?
 In which case, they would have much simpler joining behavior.
 
-Similary, some Romanian abbreivations incorporate an equals sign for “aceeași” and “egal”.
+Similarly, some Romanian abbreviations incorporate an equals sign for “aceeași” and “egal”.
 “Egalitate” is an equals sign with the bottom line extended right.
 
-Similary, a dot for English “point of view” or Romanian “punct [de vedere]”.
+Similarly, a dot for English “point of view” or Romanian “punct [de vedere]”.
 
 Similarly, multiplication cross for Romanian “multiple”.
 

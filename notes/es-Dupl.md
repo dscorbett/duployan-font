@@ -4,18 +4,18 @@ anon.
 [Unknown newspaper #2](https://www.todocoleccion.net/coleccionismo-revistas-periodicos/1906-iglesia-estado-francia-centro-instructivo-republicano-madrid-taquigrafia-duploye-verger-liceo~x52773275)<br>
 anon.
 
-[La taguigrafía sin maestro en diez lecciones, 1908 edition](https://www.todocoleccion.net/libros-antiguos/michel-champourcin-taquigrafia-sin-maestro-diez-lecciones-1908-primera-edicion~x29720313)<br>
+[La taquigrafía sin maestro en diez lecciones, 1908 edition](https://www.todocoleccion.net/libros-antiguos/michel-champourcin-taquigrafia-sin-maestro-diez-lecciones-1908-primera-edicion~x29720313)<br>
 Michel de Champourcin
 
-[La taguigrafía sin maestro en diez lecciones, 1913 edition](https://www.todocoleccion.net/libros-antiguos/la-taquigrafia-sin-maestro-f-michel-chapourcin-1913~x124529715)<br>
+[La taquigrafía sin maestro en diez lecciones, 1913 edition](https://www.todocoleccion.net/libros-antiguos/la-taquigrafia-sin-maestro-f-michel-chapourcin-1913~x124529715)<br>
 Michel de Champourcin
 
 ## General remarks
 
-Cuando _L_ y _R_ se siguen immediatamente (sin vocal intermedia) se debe dar
+Cuando _L_ y _R_ se siguen inmediatamente (sin vocal intermedia) se debe dar
 mayor inclinación al signo que viene en segundo lugar (UN2 p. 14)
 
-Para distinguir el conido de la doble _R_ del de la _R_ sencilla, se suele
+Para distinguir el sonido de la doble _R_ del de la _R_ sencilla, se suele
 indicar la primera cortándola con una pequeña secante. (UN2 p. 14)
 
 ## Characters

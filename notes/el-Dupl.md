@@ -188,7 +188,7 @@ U+1BC5B DUPLOYAN LETTER OU
 
 * Value: ου
 * written upwards and rightwards
-* can omit the dot in medial form when ambigous with “ο”
+* can omit the dot in medial form when ambiguous with “ο”
 
 U+1BC61 DUPLOYAN LETTER NASAL U
 

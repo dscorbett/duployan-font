@@ -79,7 +79,7 @@ U+1BC02 DUPLOYAN LETTER P
 
 U+1BC03 DUPLOYAN LETTER T
 
-* Valye: د
+* Value: د
 * Value: ط
 * Value: ص
 * Value: d

@@ -3,9 +3,9 @@ L. van den Bosch, A. Camby
 
 ## General remarks
 
-La longeur des lignes qui représentent _Be, Ve & Gue_ doit être double de celles
-données pour _Pe, Fe & Ke_. [The same is true for other line consonant pairs.]
-(p. 12)
+La longueur des lignes qui représentent _Be, Ve & Gue_ doit être double de
+celles données pour _Pe, Fe & Ke_. [The same is true for other line consonant
+pairs.] (p. 12)
 
 Les voyelles représentées par des cercles se placent _à droite_ des consonnes
 plongeantes sauf lorsqu’elles se trouvent entre deux consonnes formant angle;

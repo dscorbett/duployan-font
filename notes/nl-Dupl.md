@@ -165,7 +165,7 @@ U+1BC64 DUPLOYAN LETTER NASAL A
 
 ## Unclear characters
 
-toonloze e
+toonlooze e
 
 * In uitzonderlijke gevallen, waar de _toonlooze e_ in het midden der woorden
   valt, wordt deze klank voorgesteld door een zeer klein cirkeltje of puntje (p.

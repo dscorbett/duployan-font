@@ -21,7 +21,7 @@ voyelle cercle se trace comme à la fin des mots (p. 4)
 Lorsque les consonnes enveloppantes forment un angle entre elles, la voyelle
 cercle se trace **à l’extérieur** de l’angle. (p. 4)
 
-Au début des mots, traceés sans faire d’angle avec la consonne qui suit, les
+Au début des mots, tracées sans faire d’angle avec la consonne qui suit, les
 voyelles demi-cercles se placent, comme les voyelles cercles :<br>
 — à droite des consonnes descendantes,<br>
 — au dessus » » avançantes,<br>
@@ -29,12 +29,12 @@ voyelles demi-cercles se placent, comme les voyelles cercles :<br>
 — à l’intérieur » » courbes.<br>
 On ne distingue pas **i** de **é.** (p. 7)
 
-A la fin des motes, on distingue **i** de **é**.<br>
+A la fin des mots, on distingue **i** de **é**.<br>
 Tracés sans faire d’angle avec la consonne qui précède,<br>
 — le **i** se trace en avançant ou en remontant,<br>
 — le **é** se trace en reculant ou en descendant. (p. 8)
 
-Lorsque les consonnes eveloppantes ne forment pas un angle entre elles, ou
+Lorsque les consonnes enveloppantes ne forment pas un angle entre elles, ou
 lorsqu’elles forment un angle obtus, les voyelles demi-cercles se tracent dans
 leur position respective, comme à la fin des mots. (p. 9)
 
@@ -496,7 +496,7 @@ high reversed wave
 * Value: -ueuse
 * p. 43
 
-When “-anse” is pronounced before after vowel but written on the consonant
+When “-anse” is pronounced before or after a vowel but written on the consonant
 before it, should it be encoded before or after the vowel character?
 
 reversed O

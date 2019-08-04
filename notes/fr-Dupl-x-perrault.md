@@ -11,7 +11,7 @@ gauche du signe, alors la plume tourne dans la direction du mot suivant. (p.
 VII)
 
 _O_ à la fin des mots, précédé de _t_ ou _d,_ ou entre _d-d, t-t, d-t_ ou _t-d,_
-s’écris en descendant et _ou_ en remontant. (p. VII)
+s’écrit en descendant et _ou_ en remontant. (p. VII)
 
 Au commencement des consonnes droites 𛰃 𛰈 𛰄 𛰉 𛰅 𛰊 𛰆 𛰋 ces voyelles s’écrivent
 toujours au-dessous, et à droite de 𛰂 𛰇 (p. 59)
@@ -23,13 +23,13 @@ suivant. (p. 59)
 Elles se tracent toujours à l’intérieur de la consonne courbe qui les précède ou
 qui les suit. (p. 59)
 
-Elles se travent à l’intérieur de la courbe lorsque les consonnes ne font pas
+Elles se tracent à l’intérieur de la courbe lorsque les consonnes ne font pas
 angle (p. 59)
 
 La diphtongue oa 𛱄𛱁 s’écrit généralement dans la direction de la consonne qui
 suit. (p. 60)
 
-_O_, à la fin des mots et précédé de D ou de T ou entry TT, DD, DT, TD se trace en
+_O_, à la fin des mots et précédé de D ou de T ou entre TT, DD, DT, TD se trace en
 descendant ↓ et _ou_ en remontant ↗. Ces positions nous permettent de distinguer
 l’_o_ de l’_ou_ sans avoir recours au point ou à la boucle. (p. 60)
 
@@ -40,7 +40,7 @@ qui suit. (p. 61)
 Quand une de [_é, è, i_] se trouve entre deux signes, droits ou courbes, elle se
 trace généralement u côté du signe suivant. (p. 61)
 
-Quand le petit demi-cercle se trouve entry deux signes, il ne dois jamais faire
+Quand le petit demi-cercle se trouve entre deux signes, il ne dois jamais faire
 angle avec le premier, mais avec le signe suivant lorsque l’angle ne peut être
 évité (p. 62)
 

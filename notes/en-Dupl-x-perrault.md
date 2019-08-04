@@ -206,7 +206,7 @@ U+1BC42 DUPLOYAN LETTER SLOAN OW
 U+1BC43 DUPLOYAN LETTER OA
 
 * Value: a̤w
-* Positinal forms: see A
+* Positional forms: see A
 
 U+1BC44 DUPLOYAN LETTER O
 
