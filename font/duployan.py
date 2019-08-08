@@ -1063,19 +1063,29 @@ def run_phases(all_input_schemas, phases):
                 new_input_schemas,
                 classes,
                 lambda lookup, rule: add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule))
-            new_input_schemas = OrderedSet()
-            for output_schema in output_schemas:
-                all_output_schemas.add(output_schema)
-                if output_schema not in all_input_schemas:
-                    all_input_schemas.add(output_schema)
-                    autochthonous_schemas.add(output_schema)
-                    new_input_schemas.add(output_schema)
             if lookups is None:
                 lookups = output_lookups
             else:
                 assert len(lookups) == len(output_lookups), 'Incompatible lookup counts for phase {}'.format(phase)
                 for i, lookup in enumerate(lookups):
                     lookup.extend(output_lookups[i])
+            if len(output_lookups) == 1:
+                might_have_feedback = False
+                for rule in output_lookups[0].rules:
+                    if rule.contexts_in:
+                        might_have_feedback = True
+                        break
+            else:
+                might_have_feedback = True
+            for output_schema in output_schemas:
+                all_output_schemas.add(output_schema)
+            new_input_schemas = OrderedSet()
+            if might_have_feedback:
+                for output_schema in output_schemas:
+                    if output_schema not in all_input_schemas:
+                        all_input_schemas.add(output_schema)
+                        autochthonous_schemas.add(output_schema)
+                        new_input_schemas.add(output_schema)
         all_input_schemas = all_output_schemas
         all_schemas.update(all_input_schemas)
         all_lookups.extend(lookups)
