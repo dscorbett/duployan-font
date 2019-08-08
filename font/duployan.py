@@ -768,7 +768,7 @@ class Substitution:
             self.contexts_out = _l(a3)
             self.outputs = _l(a4)
 
-    def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup):
+    def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
         def glyph_to_ast(glyph):
             if isinstance(glyph, str):
                 return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
@@ -782,13 +782,21 @@ class Substitution:
             return [glyph_to_name(glyph) for glyph in glyphs]
         if len(self.inputs) == 1:
             if len(self.outputs) == 1 and not in_multiple_lookup:
-                return fontTools.feaLib.ast.SingleSubstStatement(
-                    glyphs_to_ast(self.inputs),
-                    glyphs_to_ast(self.outputs),
-                    glyphs_to_ast(self.contexts_in),
-                    glyphs_to_ast(self.contexts_out),
-                    in_contextual_lookup)
+                if in_reverse_lookup:
+                    return fontTools.feaLib.ast.ReverseChainSingleSubstStatement(
+                        glyphs_to_ast(self.contexts_in),
+                        glyphs_to_ast(self.contexts_out),
+                        glyphs_to_ast(self.inputs),
+                        glyphs_to_ast(self.outputs))
+                else:
+                    return fontTools.feaLib.ast.SingleSubstStatement(
+                        glyphs_to_ast(self.inputs),
+                        glyphs_to_ast(self.outputs),
+                        glyphs_to_ast(self.contexts_in),
+                        glyphs_to_ast(self.contexts_out),
+                        in_contextual_lookup)
             else:
+                assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
                 return fontTools.feaLib.ast.MultipleSubstStatement(
                     glyphs_to_ast(self.contexts_in),
                     glyph_to_name(self.inputs[0]),
@@ -796,6 +804,7 @@ class Substitution:
                     glyphs_to_names(self.outputs),
                     in_contextual_lookup)
         else:
+            assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
             return fontTools.feaLib.ast.LigatureSubstStatement(
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.inputs),
@@ -810,11 +819,12 @@ class Substitution:
         return len(self.inputs) == 1 and len(self.outputs) != 1
 
 class Lookup:
-    def __init__(self, feature, script, language, ignore_marks=True):
+    def __init__(self, feature, script, language, ignore_marks=True, reversed=False):
         self.feature = feature
         self.script = script
         self.language = language
         self.ignore_marks = ignore_marks
+        self.reversed = reversed
         self.rules = []
         if script == 'dupl':
             self.required = feature in [
@@ -865,7 +875,7 @@ class Lookup:
         ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
         if self.ignore_marks:
             ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
-        ast.statements.extend(r.to_ast(class_asts, contextual, multiple) for r in self.rules)
+        ast.statements.extend(r.to_ast(class_asts, contextual, multiple, self.reversed) for r in self.rules)
         return ast
 
     def append(self, rule):
@@ -935,7 +945,7 @@ def ss_pernin(schemas, new_schemas, classes, add_rule):
     return [lookup]
 
 def join_with_previous(schemas, new_schemas, classes, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
+    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     contexts_in = OrderedSet()
     new_contexts_in = set()
     old_input_count = len(classes['jp_i'])
@@ -997,7 +1007,7 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
     return [lookup]
 
 def rotate_diacritics(schemas, new_schemas, classes, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', False)
+    lookup = Lookup('rclt', 'dupl', 'dflt', False, True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
     for schema in schemas:
@@ -1071,8 +1081,9 @@ def run_phases(all_input_schemas, phases):
                     lookup.extend(output_lookups[i])
             if len(output_lookups) == 1:
                 might_have_feedback = False
-                for rule in output_lookups[0].rules:
-                    if rule.contexts_in:
+                lookup = output_lookups[0]
+                for rule in lookup.rules:
+                    if rule.contexts_out if lookup.reversed else rule.contexts_in:
                         might_have_feedback = True
                         break
             else:
