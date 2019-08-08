@@ -435,7 +435,7 @@ class Circle(Shape):
         clockwise = self.clockwise
         if clockwise and angle_in == angle_out:
             clockwise = False
-            angle_in = angle_out = angle_in % 180
+            angle_in = angle_out = (angle_in + 180) % 360
         return (
             angle_in,
             angle_out,
