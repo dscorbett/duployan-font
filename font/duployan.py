@@ -1478,5 +1478,8 @@ class Builder:
                 tt_font.getReverseGlyphMap())
             .parse().statements)
         self._complete_gpos()
-        fontTools.feaLib.builder.addOpenTypeFeatures(tt_font, self._fea)
+        fontTools.feaLib.builder.addOpenTypeFeatures(
+                tt_font,
+                self._fea,
+                ['GPOS', 'GSUB'])
 
