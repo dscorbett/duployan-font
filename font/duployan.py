@@ -25,6 +25,7 @@ import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
 import fontTools.feaLib.parser
+import fontTools.misc.py23
 import fontTools.otlLib.builder
 import psMat
 
@@ -41,6 +42,10 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
+WIDTH_MARKER_RADIX = 10
+WIDTH_MARKER_PLACES = 5
+
+assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
 class Type(enum.Enum):
     JOINING = enum.auto()
@@ -95,6 +100,16 @@ class Shape:
 
     def calculate_diacritic_angles(self):
         return {}
+
+class CursiveWidthDigit(Shape):
+    def __init__(self, place, digit):
+        self.place = int(place)
+        self.digit = int(digit)
+        assert self.place == place, place
+        assert self.digit == digit, digit
+
+    def __str__(self):
+        return f'_.cdx.{self.digit}e{self.place}'
 
 class Space(Shape):
     def __init__(self, angle):
@@ -627,9 +642,12 @@ class Schema:
             agl_name, readable_name = ('_'.join(component) for component in zip(*list(map(get_names, cps))))
             name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
         if self.cp == -1:
+            path_name = str(self.path)
+            if path_name.startswith('_'):
+                return path_name
             name = '{}.{}.{}{}'.format(
                 name or 'dupl',
-                self.path,
+                path_name,
                 int(self.size),
                 ('.' + self.anchor) if self.anchor else '',
             )
@@ -670,6 +688,16 @@ class Schema:
             path=self.path.rotate_diacritic(angle),
             base_angle=angle)
 
+class Hashable:
+    def __init__(self, delegate):
+        self.delegate = delegate
+
+    def __hash__(self):
+        return id(self.delegate)
+
+    def __getattr__(self, attr):
+        return getattr(self.delegate, attr)
+
 class OrderedSet(dict):
     def __init__(self, iterable=None):
         super().__init__()
@@ -703,12 +731,16 @@ class Substitution:
         def glyph_to_ast(glyph):
             if isinstance(glyph, str):
                 return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
-            return fontTools.feaLib.ast.GlyphName(str(glyph))
+            if isinstance(glyph, Schema):
+                return fontTools.feaLib.ast.GlyphName(str(glyph))
+            return fontTools.feaLib.ast.GlyphName(glyph.glyphname)
         def glyphs_to_ast(glyphs):
             return [glyph_to_ast(glyph) for glyph in glyphs]
         def glyph_to_name(glyph):
             assert not isinstance(glyph, str), 'Glyph classes are not allowed in multiple substitutions'
-            return str(glyph)
+            if isinstance(glyph, Schema):
+                return str(glyph)
+            return glyph.glyphname
         def glyphs_to_names(glyphs):
             return [glyph_to_name(glyph) for glyph in glyphs]
         if len(self.inputs) == 1:
@@ -964,6 +996,33 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
                     add_rule(lookup, Substitution('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], [output_schema]))
     return [lookup]
 
+def add_width_markers(glyphs, new_glyphs, classes, add_rule):
+    lookup = Lookup('psts', 'dupl', 'dflt')
+    cursive_width_markers = {}
+    for glyph in new_glyphs:
+        if glyph.glyphclass == 'baseligature':
+            width = 0
+            for anchor_class_name, type, x, _ in glyph.anchorPoints:
+                if anchor_class_name == CURSIVE_ANCHOR:
+                    if type == 'entry':
+                        width -= x
+                    elif type == 'exit':
+                        width += x
+            assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                if width >= 0
+                else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                ), f'Glyph {glyph.glyphname} is too wide: {width} units'
+            digits = [None] * WIDTH_MARKER_PLACES
+            quotient = fontTools.misc.py23.round2(width)
+            for i in range(WIDTH_MARKER_PLACES):
+                quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+                args = (i, remainder)
+                if args not in cursive_width_markers:
+                    cursive_width_markers[args] = Schema(-1, CursiveWidthDigit(*args), 0)
+                digits[i] = cursive_width_markers[args]
+            add_rule(lookup, Substitution([glyph], [glyph, *digits]))
+    return [lookup]
+
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
     for input in rule.inputs:
         if isinstance(input, str):
@@ -1157,6 +1216,10 @@ PHASES = [
     join_with_previous,
     join_with_next,
     rotate_diacritics,
+]
+
+GLYPH_PHASES = [
+    add_width_markers,
 ]
 
 SPACE = Space(0)
@@ -1386,7 +1449,7 @@ class Builder:
             mark_glyphs.append(self._draw_glyph(mark).glyphname)
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = 'baseglyph'
+        glyph.glyphclass = 'baseligature'
         glyph.addReference(base_glyph)
         base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
         for mark_glyph in mark_glyphs:
@@ -1402,7 +1465,9 @@ class Builder:
     def _draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = 'mark' if schema.anchor else 'baseglyph'
+        glyph.glyphclass = ('mark' if schema.anchor
+            else 'baseglyph' if schema.joining_type == Type.NON_JOINING
+            else 'baseligature')
         pen = glyph.glyphPen()
         schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
         return glyph
@@ -1459,6 +1524,12 @@ class Builder:
                     fontTools.feaLib.ast.GlyphName(glyph_name),
                     *entry_exit))
 
+    def _create_marker(self, schema):
+        assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
+        glyph = self.font.createChar(schema.cp, str(schema))
+        glyph.glyphclass = 'mark'
+        glyph.width = 0
+
     def augment(self):
         self._add_lookups()
         self.font.temporary = {}
@@ -1474,6 +1545,12 @@ class Builder:
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
         self._fea.statements.extend(l.to_ast(class_asts) for l in lookups)
+        schemas, lookups, classes = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
+        assert not classes, 'Classes are not supported for post-merge phases'
+        for schema in schemas:
+            if isinstance(schema, Schema):
+                self._create_marker(schema)
+        self._fea.statements.extend(l.to_ast([]) for l in lookups)
 
     def merge_features(self, tt_font, old_fea):
         self._fea.statements.extend(

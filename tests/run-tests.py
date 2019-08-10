@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import re
 import subprocess
 import sys
 
@@ -27,7 +28,11 @@ def run_test(line, png_file):
         stdout=subprocess.PIPE)
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    actual_output = p.stdout.read().decode('utf-8').rstrip()
+    actual_output = (re.sub(
+            r'(?<=[\[|])_[^|\]]*\|?',
+            '',
+            p.stdout.read().decode('utf-8').rstrip())
+        .replace('|]', ']'))
     if actual_output != expected_output:
         print()
         print('Actual:   ' + actual_output)
