@@ -101,6 +101,10 @@ class Shape:
     def calculate_diacritic_angles(self):
         return {}
 
+class Dummy(Shape):
+    def __str__(self):
+        return '_'
+
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit):
         self.place = int(place)
@@ -110,6 +114,14 @@ class CursiveWidthDigit(Shape):
 
     def __str__(self):
         return f'_.cdx.{self.digit}e{self.place}'
+
+class CursiveWidthCarry(Shape):
+    def __init__(self, value):
+        self.value = int(value)
+        assert self.value == value, value
+
+    def __str__(self):
+        return f'_.cdx.c{self.value}'
 
 class Space(Shape):
     def __init__(self, angle):
@@ -737,7 +749,7 @@ class Substitution:
         def glyphs_to_ast(glyphs):
             return [glyph_to_ast(glyph) for glyph in glyphs]
         def glyph_to_name(glyph):
-            assert not isinstance(glyph, str), 'Glyph classes are not allowed in multiple substitutions'
+            assert not isinstance(glyph, str), 'Glyph classes are not allowed where only glyphs are expected'
             if isinstance(glyph, Schema):
                 return str(glyph)
             return glyph.glyphname
@@ -782,11 +794,23 @@ class Substitution:
         return len(self.inputs) == 1 and len(self.outputs) != 1
 
 class Lookup:
-    def __init__(self, feature, script, language, ignore_marks=True, reversed=False):
+    def __init__(
+            self,
+            feature,
+            script,
+            language,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            mark_filtering_set=None,
+            reversed=False,
+    ):
+        assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
+        if mark_filtering_set:
+             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         self.feature = feature
         self.script = script
         self.language = language
-        self.ignore_marks = ignore_marks
+        self.flags = flags
+        self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
         self.rules = []
         if script == 'dupl':
@@ -836,8 +860,11 @@ class Lookup:
         ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
         ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
         ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-        if self.ignore_marks:
-            ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS))
+        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
+            self.flags,
+            markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
+                if self.mark_filtering_set
+                else None))
         ast.statements.extend(r.to_ast(class_asts, contextual, multiple, self.reversed) for r in self.rules)
         return ast
 
@@ -970,7 +997,7 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
     return [lookup]
 
 def rotate_diacritics(schemas, new_schemas, classes, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', False, True)
+    lookup = Lookup('rclt', 'dupl', 'dflt', 0, reversed=True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
     for schema in schemas:
@@ -998,6 +1025,7 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
 
 def add_width_markers(glyphs, new_glyphs, classes, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
+    carry_0_schema = Schema(-1, CursiveWidthCarry(0), 0)
     cursive_width_markers = {}
     for glyph in new_glyphs:
         if glyph.glyphclass == 'baseligature':
@@ -1012,15 +1040,80 @@ def add_width_markers(glyphs, new_glyphs, classes, add_rule):
                 if width >= 0
                 else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                 ), f'Glyph {glyph.glyphname} is too wide: {width} units'
-            digits = [None] * WIDTH_MARKER_PLACES
+            digits = [carry_0_schema] * WIDTH_MARKER_PLACES * 2
             quotient = fontTools.misc.py23.round2(width)
             for i in range(WIDTH_MARKER_PLACES):
                 quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
                 args = (i, remainder)
                 if args not in cursive_width_markers:
                     cursive_width_markers[args] = Schema(-1, CursiveWidthDigit(*args), 0)
-                digits[i] = cursive_width_markers[args]
+                digits[i * 2 + 1] = cursive_width_markers[args]
             add_rule(lookup, Substitution([glyph], [glyph, *digits]))
+    return [lookup]
+
+def sum_width_markers(glyphs, new_glyphs, classes, add_rule):
+    lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'sw',
+    )
+    digit_schemas = {}
+    original_digit_schemas = []
+    carry_schemas = {}
+    original_carry_schemas = []
+    dummy = None
+    for schema in glyphs:
+        if not isinstance(schema, Schema):
+            continue
+        if isinstance(schema.path, CursiveWidthDigit):
+            digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_digit_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, CursiveWidthCarry):
+            carry_schemas[schema.path.value] = schema
+            original_carry_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, Dummy):
+            dummy = schema
+    for carry_in_schema in original_carry_schemas:
+        carry_in = carry_in_schema.path.value
+        carry_in_is_new = carry_in_schema in new_glyphs
+        if carry_in_is_new:
+            if dummy is None:
+                dummy = Schema(-1, Dummy(), 0)
+            add_rule(lookup, Substitution([carry_in_schema], [carry_schemas[0]], [], [dummy]))
+        for augend_schema in original_digit_schemas:
+            augend_is_new = augend_schema in new_glyphs
+            place = augend_schema.path.place
+            augend = augend_schema.path.digit
+            contexts_in = [augend_schema, *['sw'] * (WIDTH_MARKER_PLACES - 1) * 2, carry_in_schema]
+            for addend_schema in original_digit_schemas:
+                if place != addend_schema.path.place:
+                    continue
+                if not (carry_in_is_new or augend_is_new or addend_schema in new_glyphs):
+                    continue
+                addend = addend_schema.path.digit
+                carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
+                if carry_out != 0 or sum_digit != addend:
+                    if carry_out in carry_schemas:
+                        carry_out_schema = carry_schemas[carry_out]
+                    else:
+                        carry_out_schema = Schema(-1, CursiveWidthCarry(carry_out), 0)
+                        carry_schemas[carry_out] = carry_out_schema
+                    sum_index = place * WIDTH_MARKER_RADIX + sum_digit
+                    if sum_index in digit_schemas:
+                        sum_digit_schema = digit_schemas[sum_index]
+                    else:
+                        sum_digit_schema = Schema(-1, CursiveWidthDigit(place, sum_digit), 0)
+                        digit_schemas[sum_index] = sum_digit_schema
+                    outputs = ([sum_digit_schema]
+                        if place == WIDTH_MARKER_PLACES - 1
+                        else [sum_digit_schema, carry_out_schema])
+                    add_rule(lookup, Substitution(contexts_in, [addend_schema], [], outputs))
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
@@ -1079,7 +1172,8 @@ def run_phases(all_input_schemas, phases):
             else:
                 might_have_feedback = True
             for output_schema in output_schemas:
-                all_output_schemas.add(output_schema)
+                if isinstance(output_schema, Schema):
+                    all_output_schemas.add(output_schema)
             new_input_schemas = OrderedSet()
             if might_have_feedback:
                 for output_schema in output_schemas:
@@ -1220,6 +1314,7 @@ PHASES = [
 
 GLYPH_PHASES = [
     add_width_markers,
+    sum_width_markers,
 ]
 
 SPACE = Space(0)
@@ -1524,6 +1619,26 @@ class Builder:
                     fontTools.feaLib.ast.GlyphName(glyph_name),
                     *entry_exit))
 
+    def _recreate_gdef(self):
+        bases = []
+        marks = []
+        ligatures = []
+        for glyph in self.font.glyphs():
+            glyph_class = glyph.glyphclass
+            if glyph_class == 'baseglyph':
+                bases.append(glyph.glyphname)
+            elif glyph_class == 'mark':
+                marks.append(glyph.glyphname)
+            elif glyph_class == 'baseligature':
+                ligatures.append(glyph.glyphname)
+        gdef = fontTools.feaLib.ast.TableBlock('GDEF')
+        gdef.statements.append(fontTools.feaLib.ast.GlyphClassDefStatement(
+            fontTools.feaLib.ast.GlyphClass(bases),
+            fontTools.feaLib.ast.GlyphClass(marks),
+            fontTools.feaLib.ast.GlyphClass(ligatures),
+            ()))
+        self._fea.statements.append(gdef)
+
     def _create_marker(self, schema):
         assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
         glyph = self.font.createChar(schema.cp, str(schema))
@@ -1537,6 +1652,12 @@ class Builder:
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             self._draw_glyph(schema)
+        schemas, more_lookups, more_classes = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
+        lookups += more_lookups
+        classes.update(more_classes)
+        for schema in schemas:
+            if isinstance(schema, Schema):
+                self._create_marker(schema)
         class_asts = {}
         for name, schemas in sorted(classes.items()):
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
@@ -1545,12 +1666,6 @@ class Builder:
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
         self._fea.statements.extend(l.to_ast(class_asts) for l in lookups)
-        schemas, lookups, classes = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
-        assert not classes, 'Classes are not supported for post-merge phases'
-        for schema in schemas:
-            if isinstance(schema, Schema):
-                self._create_marker(schema)
-        self._fea.statements.extend(l.to_ast([]) for l in lookups)
 
     def merge_features(self, tt_font, old_fea):
         self._fea.statements.extend(
@@ -1559,8 +1674,9 @@ class Builder:
                 tt_font.getReverseGlyphMap())
             .parse().statements)
         self._complete_gpos()
+        self._recreate_gdef()
         fontTools.feaLib.builder.addOpenTypeFeatures(
                 tt_font,
                 self._fea,
-                ['GPOS', 'GSUB'])
+                ['GDEF', 'GPOS', 'GSUB'])
 
