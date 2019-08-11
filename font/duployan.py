@@ -105,6 +105,24 @@ class Dummy(Shape):
     def __str__(self):
         return '_'
 
+class RightBoundDigit(Shape):
+    def __init__(self, place, digit):
+        self.place = int(place)
+        self.digit = int(digit)
+        assert self.place == place, place
+        assert self.digit == digit, digit
+
+    def __str__(self):
+        return f'_.rdx.{self.digit}e{self.place}'
+
+class RightBoundCarry(Shape):
+    def __init__(self, value):
+        self.value = int(value)
+        assert self.value == value, value
+
+    def __str__(self):
+        return f'_.rdx.c{self.value}'
+
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit):
         self.place = int(place)
@@ -1025,30 +1043,41 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
 
 def add_width_markers(glyphs, new_glyphs, classes, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
-    carry_0_schema = Schema(-1, CursiveWidthCarry(0), 0)
+    right_carry_0_schema = Schema(-1, RightBoundCarry(0), 0)
+    cursive_carry_0_schema = Schema(-1, CursiveWidthCarry(0), 0)
+    right_bound_markers = {}
     cursive_width_markers = {}
     for glyph in new_glyphs:
         if glyph.glyphclass == 'baseligature':
-            width = 0
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
                 if anchor_class_name == CURSIVE_ANCHOR:
                     if type == 'entry':
-                        width -= x
+                        entry = x
                     elif type == 'exit':
-                        width += x
-            assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                if width >= 0
-                else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                ), f'Glyph {glyph.glyphname} is too wide: {width} units'
-            digits = [carry_0_schema] * WIDTH_MARKER_PLACES * 2
-            quotient = fontTools.misc.py23.round2(width)
-            for i in range(WIDTH_MARKER_PLACES):
-                quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-                args = (i, remainder)
-                if args not in cursive_width_markers:
-                    cursive_width_markers[args] = Schema(-1, CursiveWidthDigit(*args), 0)
-                digits[i * 2 + 1] = cursive_width_markers[args]
-            add_rule(lookup, Substitution([glyph], [glyph, *digits]))
+                        exit = x
+            bounding_box = glyph.boundingBox()
+            right_bound = bounding_box[2] - entry
+            cursive_width = exit - entry
+            digits = []
+            for width, carry_0_schema, digit_path, width_markers in [
+                (right_bound, right_carry_0_schema, RightBoundDigit, right_bound_markers),
+                (cursive_width, cursive_carry_0_schema, CursiveWidthDigit, cursive_width_markers),
+            ]:
+                assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                    if width >= 0
+                    else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                    ), f'Glyph {glyph.glyphname} is too wide: {width} units'
+                digits_base = len(digits)
+                digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
+                quotient = fontTools.misc.py23.round2(width)
+                for i in range(WIDTH_MARKER_PLACES):
+                    quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+                    args = (i, remainder)
+                    if args not in width_markers:
+                        width_markers[args] = Schema(-1, digit_path(*args), 0)
+                    digits[digits_base + i * 2 + 1] = width_markers[args]
+            if digits:
+                add_rule(lookup, Substitution([glyph], [glyph, *digits]))
     return [lookup]
 
 def sum_width_markers(glyphs, new_glyphs, classes, add_rule):
@@ -1059,61 +1088,92 @@ def sum_width_markers(glyphs, new_glyphs, classes, add_rule):
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         'sw',
     )
-    digit_schemas = {}
-    original_digit_schemas = []
-    carry_schemas = {}
-    original_carry_schemas = []
+    right_digit_schemas = {}
+    original_right_digit_schemas = []
+    right_carry_schemas = {}
+    original_right_carry_schemas = []
+    cursive_digit_schemas = {}
+    original_cursive_digit_schemas = []
+    cursive_carry_schemas = {}
+    original_cursive_carry_schemas = []
     dummy = None
     for schema in glyphs:
         if not isinstance(schema, Schema):
             continue
-        if isinstance(schema.path, CursiveWidthDigit):
-            digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_digit_schemas.append(schema)
+        if isinstance(schema.path, RightBoundDigit):
+            right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_right_digit_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, RightBoundCarry):
+            right_carry_schemas[schema.path.value] = schema
+            original_right_carry_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, CursiveWidthDigit):
+            cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_cursive_digit_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
         elif isinstance(schema.path, CursiveWidthCarry):
-            carry_schemas[schema.path.value] = schema
-            original_carry_schemas.append(schema)
+            cursive_carry_schemas[schema.path.value] = schema
+            original_cursive_carry_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
         elif isinstance(schema.path, Dummy):
             dummy = schema
-    for carry_in_schema in original_carry_schemas:
-        carry_in = carry_in_schema.path.value
-        carry_in_is_new = carry_in_schema in new_glyphs
-        if carry_in_is_new:
-            if dummy is None:
-                dummy = Schema(-1, Dummy(), 0)
-            add_rule(lookup, Substitution([carry_in_schema], [carry_schemas[0]], [], [dummy]))
-        for augend_schema in original_digit_schemas:
-            augend_is_new = augend_schema in new_glyphs
-            place = augend_schema.path.place
-            augend = augend_schema.path.digit
-            contexts_in = [augend_schema, *['sw'] * (WIDTH_MARKER_PLACES - 1) * 2, carry_in_schema]
-            for addend_schema in original_digit_schemas:
-                if place != addend_schema.path.place:
-                    continue
-                if not (carry_in_is_new or augend_is_new or addend_schema in new_glyphs):
-                    continue
-                addend = addend_schema.path.digit
-                carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
-                if carry_out != 0 or sum_digit != addend:
-                    if carry_out in carry_schemas:
-                        carry_out_schema = carry_schemas[carry_out]
-                    else:
-                        carry_out_schema = Schema(-1, CursiveWidthCarry(carry_out), 0)
-                        carry_schemas[carry_out] = carry_out_schema
-                    sum_index = place * WIDTH_MARKER_RADIX + sum_digit
-                    if sum_index in digit_schemas:
-                        sum_digit_schema = digit_schemas[sum_index]
-                    else:
-                        sum_digit_schema = Schema(-1, CursiveWidthDigit(place, sum_digit), 0)
-                        digit_schemas[sum_index] = sum_digit_schema
-                    outputs = ([sum_digit_schema]
-                        if place == WIDTH_MARKER_PLACES - 1
-                        else [sum_digit_schema, carry_out_schema])
-                    add_rule(lookup, Substitution(contexts_in, [addend_schema], [], outputs))
+    for augend_schema in original_cursive_digit_schemas:
+        augend_is_new = augend_schema in new_glyphs
+        place = augend_schema.path.place
+        augend = augend_schema.path.digit
+        for skip, original_carry_schemas, carry_schemas, original_digit_schemas, digit_schemas, carry_path, digit_path in [(
+            4 * WIDTH_MARKER_PLACES - 2,
+            original_cursive_carry_schemas,
+            cursive_carry_schemas,
+            original_cursive_digit_schemas,
+            cursive_digit_schemas,
+            CursiveWidthCarry,
+            CursiveWidthDigit,
+        ), (
+            2 * WIDTH_MARKER_PLACES - 2,
+            original_right_carry_schemas,
+            right_carry_schemas,
+            original_right_digit_schemas,
+            right_digit_schemas,
+            RightBoundCarry,
+            RightBoundDigit,
+        )]:
+            for carry_in_schema in original_carry_schemas:
+                carry_in = carry_in_schema.path.value
+                carry_in_is_new = carry_in_schema in new_glyphs
+                if carry_in_is_new:
+                    if dummy is None:
+                        dummy = Schema(-1, Dummy(), 0)
+                    add_rule(lookup, Substitution([carry_in_schema], [carry_schemas[0]], [], [dummy]))
+                contexts_in = [augend_schema, *['sw'] * skip, carry_in_schema]
+                for addend_schema in original_digit_schemas:
+                    if place != addend_schema.path.place:
+                        continue
+                    if not (carry_in_is_new or augend_is_new or addend_schema in new_glyphs):
+                        continue
+                    addend = addend_schema.path.digit
+                    carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
+                    if carry_out != 0 or sum_digit != addend:
+                        if carry_out in carry_schemas:
+                            carry_out_schema = carry_schemas[carry_out]
+                        else:
+                            carry_out_schema = Schema(-1, carry_path(carry_out), 0)
+                            carry_schemas[carry_out] = carry_out_schema
+                        sum_index = place * WIDTH_MARKER_RADIX + sum_digit
+                        if sum_index in digit_schemas:
+                            sum_digit_schema = digit_schemas[sum_index]
+                        else:
+                            sum_digit_schema = Schema(-1, digit_path(place, sum_digit), 0)
+                            digit_schemas[sum_index] = sum_digit_schema
+                        outputs = ([sum_digit_schema]
+                            if place == WIDTH_MARKER_PLACES - 1
+                            else [sum_digit_schema, carry_out_schema])
+                        add_rule(lookup, Substitution(contexts_in, [addend_schema], [], outputs))
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
