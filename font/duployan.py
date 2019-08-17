@@ -105,6 +105,24 @@ class Dummy(Shape):
     def __str__(self):
         return '_'
 
+class LeftBoundDigit(Shape):
+    def __init__(self, place, digit):
+        self.place = int(place)
+        self.digit = int(digit)
+        assert self.place == place, place
+        assert self.digit == digit, digit
+
+    def __str__(self):
+        return f'_.ldx.{self.digit}e{self.place}'
+
+class LeftBoundCarry(Shape):
+    def __init__(self, value):
+        self.value = int(value)
+        assert self.value == value, value
+
+    def __str__(self):
+        return f'_.ldx.c{self.value}'
+
 class RightBoundDigit(Shape):
     def __init__(self, place, digit):
         self.place = int(place)
@@ -1063,8 +1081,10 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
+    left_carry_0_schema = Schema(-1, LeftBoundCarry(0), 0)
     right_carry_0_schema = Schema(-1, RightBoundCarry(0), 0)
     cursive_carry_0_schema = Schema(-1, CursiveWidthCarry(0), 0)
+    left_bound_markers = {}
     right_bound_markers = {}
     cursive_width_markers = {}
     for glyph in new_glyphs:
@@ -1078,11 +1098,14 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             cursive_width = exit - entry
             bounding_box = glyph.boundingBox()
             if bounding_box == (0, 0, 0, 0):
+                left_bound = 0
                 right_bound = cursive_width
             else:
+                left_bound = bounding_box[0] - entry
                 right_bound = bounding_box[2] - entry
             digits = []
             for width, carry_0_schema, digit_path, width_markers in [
+                (left_bound, left_carry_0_schema, LeftBoundDigit, left_bound_markers),
                 (right_bound, right_carry_0_schema, RightBoundDigit, right_bound_markers),
                 (cursive_width, cursive_carry_0_schema, CursiveWidthDigit, cursive_width_markers),
             ]:
@@ -1111,6 +1134,10 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         'sw',
     )
+    left_digit_schemas = {}
+    original_left_digit_schemas = []
+    left_carry_schemas = {}
+    original_left_carry_schemas = []
     right_digit_schemas = {}
     original_right_digit_schemas = []
     right_carry_schemas = {}
@@ -1123,7 +1150,17 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     for schema in glyphs:
         if not isinstance(schema, Schema):
             continue
-        if isinstance(schema.path, RightBoundDigit):
+        if isinstance(schema.path, LeftBoundDigit):
+            left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_left_digit_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, LeftBoundCarry):
+            left_carry_schemas[schema.path.value] = schema
+            original_left_carry_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['sw'].append(schema)
+        elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_right_digit_schemas.append(schema)
             if schema in new_glyphs:
@@ -1150,7 +1187,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         place = augend_schema.path.place
         augend = augend_schema.path.digit
         for skip, original_carry_schemas, carry_schemas, original_digit_schemas, digit_schemas, carry_path, digit_path in [(
-            4 * WIDTH_MARKER_PLACES - 2,
+            6 * WIDTH_MARKER_PLACES - 2,
             original_cursive_carry_schemas,
             cursive_carry_schemas,
             original_cursive_digit_schemas,
@@ -1159,6 +1196,14 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             CursiveWidthDigit,
         ), (
             2 * WIDTH_MARKER_PLACES - 2,
+            original_left_carry_schemas,
+            left_carry_schemas,
+            original_left_digit_schemas,
+            left_digit_schemas,
+            LeftBoundCarry,
+            LeftBoundDigit,
+        ), (
+            4 * WIDTH_MARKER_PLACES - 2,
             original_right_carry_schemas,
             right_carry_schemas,
             original_right_digit_schemas,
@@ -1199,54 +1244,77 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         add_rule(lookup, Substitution(contexts_in, [addend_schema], [], outputs))
     return [lookup]
 
-def max_right_bound(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup(
+def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule):
+    left_lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'ml',
+    )
+    named_lookups['ml_copy'] = Lookup(
+        None,
+        None,
+        None,
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'ml',
+    )
+    left_digit_schemas = {}
+    right_lookup = Lookup(
         'psts',
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         'mr',
     )
-    copy_right_bound = Lookup(
+    named_lookups['mr_copy'] = Lookup(
         None,
         None,
         None,
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         'mr',
     )
-    named_lookups['mr_copy'] = copy_right_bound
     right_digit_schemas = {}
     for schema in glyphs:
         if not isinstance(schema, Schema):
             continue
-        if isinstance(schema.path, RightBoundDigit):
+        if isinstance(schema.path, LeftBoundDigit):
+            left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            if schema in new_glyphs:
+                classes['ml'].append(schema)
+        elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             if schema in new_glyphs:
                 classes['mr'].append(schema)
     for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
         for i in range(0, WIDTH_MARKER_RADIX):
-            schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
+            left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
+            right_schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
             i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
-            if schema_i is None:
+            if left_schema_i is None and right_schema_i is None:
                 continue
             for j in range(0, WIDTH_MARKER_RADIX):
                 if i == j:
                     continue
                 j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX
-                schema_j = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
-                if schema_j is None:
-                    continue
-                add_rule(lookup, Substitution(
-                    [schema_i, *['mr'] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
-                    [*['mr'] * schema_j.path.place, schema_j],
-                    [],
-                    lookups=[None if i_signed < j_signed else 'mr_copy'] * (schema_j.path.place + 1)))
-                add_rule(copy_right_bound, Substitution(
-                    [schema_i, *['mr'] * (WIDTH_MARKER_PLACES - 1)],
-                    [schema_j],
-                    [],
-                    [schema_i]))
-    return [lookup]
+                for schema_i, digit_schemas, lookup, marker_class, copy_lookup_name, compare in [
+                    (left_schema_i, left_digit_schemas, left_lookup, 'ml', 'ml_copy', int.__gt__),
+                    (right_schema_i, right_digit_schemas, right_lookup, 'mr', 'mr_copy', int.__lt__),
+                ]:
+                    schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
+                    if schema_j is None:
+                        continue
+                    add_rule(lookup, Substitution(
+                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
+                        [*[marker_class] * schema_j.path.place, schema_j],
+                        [],
+                        lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (schema_j.path.place + 1)))
+                    add_rule(named_lookups[copy_lookup_name], Substitution(
+                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - 1)],
+                        [schema_j],
+                        [],
+                        [schema_i]))
+    return [left_lookup, right_lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
     for input in rule.inputs:
@@ -1452,7 +1520,7 @@ PHASES = [
 GLYPH_PHASES = [
     add_width_markers,
     sum_width_markers,
-    max_right_bound,
+    calculate_bound_extrema,
 ]
 
 SPACE = Space(0)
