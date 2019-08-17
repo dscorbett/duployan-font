@@ -42,8 +42,8 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
-WIDTH_MARKER_RADIX = 10
-WIDTH_MARKER_PLACES = 5
+WIDTH_MARKER_RADIX = 4
+WIDTH_MARKER_PLACES = 7
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
@@ -742,22 +742,29 @@ class OrderedSet(dict):
         self.pop(item, None)
 
 class Substitution:
-    def __init__(self, a1, a2, a3=None, a4=None):
+    def __init__(self, a1, a2, a3=None, a4=None, lookups=None):
         def _l(glyphs):
             return [glyphs] if isinstance(glyphs, str) else glyphs
-        if a4 is None:
+        if a4 is None and lookups is None:
             assert a3 is None, 'Substitution takes 2 or 4 inputs, given 3'
-            self.contexts_in = []
-            self.inputs = _l(a1)
-            self.contexts_out = []
-            self.outputs = _l(a2)
+            a4 = a2
+            a2 = a1
+            a1 = []
+            a3 = []
+        assert a4 is None or lookups is None, 'Substitution takes output glyph/class list or lookup list, not both'
+        self.contexts_in = _l(a1)
+        self.inputs = _l(a2)
+        self.contexts_out = _l(a3)
+        if lookups:
+            assert len(lookups) == len(self.inputs), f'There must be one lookup (or None) per input glyph ({len(lookups)} != {len(self.inputs)})'
+            self.outputs = None
+            self.lookups = lookups
         else:
-            self.contexts_in = _l(a1)
-            self.inputs = _l(a2)
-            self.contexts_out = _l(a3)
             self.outputs = _l(a4)
+            self.lookups = None
 
-    def to_ast(self, class_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
+    def to_ast(self, class_asts, named_lookup_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
+        assert self.lookups is None or not in_reverse_lookup, 'Reverse chaining contextual substitutions do not support lookup references'
         def glyph_to_ast(glyph):
             if isinstance(glyph, str):
                 return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
@@ -773,7 +780,13 @@ class Substitution:
             return glyph.glyphname
         def glyphs_to_names(glyphs):
             return [glyph_to_name(glyph) for glyph in glyphs]
-        if len(self.inputs) == 1:
+        if self.lookups is not None:
+            return fontTools.feaLib.ast.ChainContextSubstStatement(
+                glyphs_to_ast(self.contexts_in),
+                glyphs_to_ast(self.inputs),
+                glyphs_to_ast(self.contexts_out),
+                [None if name is None else named_lookup_asts[name] for name in self.lookups])
+        elif len(self.inputs) == 1:
             if len(self.outputs) == 1 and not in_multiple_lookup:
                 if in_reverse_lookup:
                     return fontTools.feaLib.ast.ReverseChainSingleSubstStatement(
@@ -809,7 +822,7 @@ class Substitution:
         return bool(self.contexts_in or self.contexts_out)
 
     def is_multiple(self):
-        return len(self.inputs) == 1 and len(self.outputs) != 1
+        return len(self.inputs) == 1 and self.outputs is not None and len(self.outputs) != 1
 
 class Lookup:
     def __init__(
@@ -831,6 +844,7 @@ class Lookup:
         self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
         self.rules = []
+        assert (feature is None) == (script is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
         if script == 'dupl':
             self.required = feature in [
                 'frac',
@@ -869,21 +883,27 @@ class Lookup:
                 'blwm',
                 'mkmk',
             ]
+        elif script is None:
+            self.required = False
         else:
             raise ValueError("Unrecognized script tag: '{}'".format(self.script))
 
-    def to_ast(self, class_asts):
+    def to_ast(self, class_asts, named_lookup_asts, name=None):
+        assert named_lookup_asts is None or name is None, 'A named lookup cannot use named lookups'
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
-        ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
-        ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
-        ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
+        if name:
+            ast = fontTools.feaLib.ast.LookupBlock(name)
+        else:
+            ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
+            ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
+            ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
         ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
                 if self.mark_filtering_set
                 else None))
-        ast.statements.extend(r.to_ast(class_asts, contextual, multiple, self.reversed) for r in self.rules)
+        ast.statements.extend(r.to_ast(class_asts, named_lookup_asts, contextual, multiple, self.reversed) for r in self.rules)
         return ast
 
     def append(self, rule):
@@ -896,7 +916,7 @@ class Lookup:
         for rule in other.rules:
             self.append(rule)
 
-def dont_ignore_default_ignorables(schemas, new_schemas, classes, add_rule):
+def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
     lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
     for schema in schemas:
@@ -905,7 +925,7 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, add_rule):
             add_rule(lookup_2, Substitution([schema, schema], [schema]))
     return [lookup_1, lookup_2]
 
-def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
+def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
     liga = Lookup('liga', 'dupl', 'dflt')
     dlig = Lookup('dlig', 'dupl', 'dflt')
     vowels = []
@@ -938,21 +958,21 @@ def ligate_pernin_r(schemas, new_schemas, classes, add_rule):
         add_rule(dlig, Substitution([vowel, r], [reversed_vowel]))
     return [liga, dlig]
 
-def decompose(schemas, new_schemas, classes, add_rule):
+def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Substitution([schema], [schema.without_marks] + schema.marks))
     return [lookup]
 
-def ss_pernin(schemas, new_schemas, classes, add_rule):
+def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('ss01', 'dupl', 'dflt')
     for schema in schemas:
         if schema in new_schemas and schema.ss_pernin:
             add_rule(lookup, Substitution([schema], [schema.clone(cp=-1, ss_pernin=None, ss=1, **schema.ss_pernin)]))
     return [lookup]
 
-def join_with_previous(schemas, new_schemas, classes, add_rule):
+def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     contexts_in = OrderedSet()
     new_contexts_in = set()
@@ -983,7 +1003,7 @@ def join_with_previous(schemas, new_schemas, classes, add_rule):
             add_rule(lookup, Substitution('jp_c_' + str(context_in), 'jp_i', [], output_class_name))
     return [lookup]
 
-def join_with_next(schemas, new_schemas, classes, add_rule):
+def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
     contexts_out = OrderedSet()
     new_contexts_out = set()
@@ -1014,7 +1034,7 @@ def join_with_next(schemas, new_schemas, classes, add_rule):
             add_rule(lookup, Substitution([], 'jn_i', 'jn_c_' + str(context_out), output_class_name))
     return [lookup]
 
-def rotate_diacritics(schemas, new_schemas, classes, add_rule):
+def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', 0, reversed=True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
@@ -1041,7 +1061,7 @@ def rotate_diacritics(schemas, new_schemas, classes, add_rule):
                     add_rule(lookup, Substitution('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], [output_schema]))
     return [lookup]
 
-def add_width_markers(glyphs, new_glyphs, classes, add_rule):
+def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
     right_carry_0_schema = Schema(-1, RightBoundCarry(0), 0)
     cursive_carry_0_schema = Schema(-1, CursiveWidthCarry(0), 0)
@@ -1055,9 +1075,12 @@ def add_width_markers(glyphs, new_glyphs, classes, add_rule):
                         entry = x
                     elif type == 'exit':
                         exit = x
-            bounding_box = glyph.boundingBox()
-            right_bound = bounding_box[2] - entry
             cursive_width = exit - entry
+            bounding_box = glyph.boundingBox()
+            if bounding_box == (0, 0, 0, 0):
+                right_bound = cursive_width
+            else:
+                right_bound = bounding_box[2] - entry
             digits = []
             for width, carry_0_schema, digit_path, width_markers in [
                 (right_bound, right_carry_0_schema, RightBoundDigit, right_bound_markers),
@@ -1080,7 +1103,7 @@ def add_width_markers(glyphs, new_glyphs, classes, add_rule):
                 add_rule(lookup, Substitution([glyph], [glyph, *digits]))
     return [lookup]
 
-def sum_width_markers(glyphs, new_glyphs, classes, add_rule):
+def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -1176,6 +1199,55 @@ def sum_width_markers(glyphs, new_glyphs, classes, add_rule):
                         add_rule(lookup, Substitution(contexts_in, [addend_schema], [], outputs))
     return [lookup]
 
+def max_right_bound(glyphs, new_glyphs, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'mr',
+    )
+    copy_right_bound = Lookup(
+        None,
+        None,
+        None,
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'mr',
+    )
+    named_lookups['mr_copy'] = copy_right_bound
+    right_digit_schemas = {}
+    for schema in glyphs:
+        if not isinstance(schema, Schema):
+            continue
+        if isinstance(schema.path, RightBoundDigit):
+            right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            if schema in new_glyphs:
+                classes['mr'].append(schema)
+    for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
+        for i in range(0, WIDTH_MARKER_RADIX):
+            schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
+            i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
+            if schema_i is None:
+                continue
+            for j in range(0, WIDTH_MARKER_RADIX):
+                if i == j:
+                    continue
+                j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX
+                schema_j = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
+                if schema_j is None:
+                    continue
+                add_rule(lookup, Substitution(
+                    [schema_i, *['mr'] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
+                    [*['mr'] * schema_j.path.place, schema_j],
+                    [],
+                    lookups=[None if i_signed < j_signed else 'mr_copy'] * (schema_j.path.place + 1)))
+                add_rule(copy_right_bound, Substitution(
+                    [schema_i, *['mr'] * (WIDTH_MARKER_PLACES - 1)],
+                    [schema_j],
+                    [],
+                    [schema_i]))
+    return [lookup]
+
 def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
     for input in rule.inputs:
         if isinstance(input, str):
@@ -1191,30 +1263,34 @@ def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
                 output_schemas.remove(i)
         else:
             output_schemas.remove(input)
-    for output in rule.outputs:
-        if isinstance(output, str):
-            for o in classes[output]:
-                output_schemas.add(o)
-        else:
-            output_schemas.add(output)
+    if rule.outputs is not None:
+        for output in rule.outputs:
+            if isinstance(output, str):
+                for o in classes[output]:
+                    output_schemas.add(o)
+            else:
+                output_schemas.add(output)
 
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups = []
     all_classes = {}
+    all_named_lookups = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
         autochthonous_schemas = OrderedSet()
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
         classes = collections.defaultdict(list)
+        named_lookups = collections.defaultdict(list)
         lookups = None
         while new_input_schemas:
             output_lookups = phase(
                 all_input_schemas,
                 new_input_schemas,
                 classes,
+                named_lookups,
                 lambda lookup, rule: add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule))
             if lookups is None:
                 lookups = output_lookups
@@ -1245,7 +1321,8 @@ def run_phases(all_input_schemas, phases):
         all_schemas.update(all_input_schemas)
         all_lookups.extend(lookups)
         all_classes.update(classes)
-    return all_schemas, all_lookups, all_classes
+        all_named_lookups.update(named_lookups)
+    return all_schemas, all_lookups, all_classes, all_named_lookups
 
 class Grouper:
     def __init__(self, groups):
@@ -1375,6 +1452,7 @@ PHASES = [
 GLYPH_PHASES = [
     add_width_markers,
     sum_width_markers,
+    max_right_bound,
 ]
 
 SPACE = Space(0)
@@ -1708,24 +1786,31 @@ class Builder:
     def augment(self):
         self._add_lookups()
         self.font.temporary = {}
-        schemas, lookups, classes = run_phases(self._schemas, self._phases)
+        schemas, lookups, classes, named_lookups = run_phases(self._schemas, self._phases)
+        assert not named_lookups, 'Named lookups have not been implemented for pre-merge phases'
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             self._draw_glyph(schema)
-        schemas, more_lookups, more_classes = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
+        schemas, more_lookups, more_classes, more_named_lookups = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
         lookups += more_lookups
         classes.update(more_classes)
+        named_lookups.update(more_named_lookups)
         for schema in schemas:
             if isinstance(schema, Schema):
                 self._create_marker(schema)
         class_asts = {}
-        for name, schemas in sorted(classes.items()):
+        named_lookup_asts = {}
+        for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
                 fontTools.feaLib.ast.GlyphClass([str(s) for s in schemas]))
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
-        self._fea.statements.extend(l.to_ast(class_asts) for l in lookups)
+        for name, lookup in named_lookups.items():
+            named_lookup_ast = lookup.to_ast(class_asts, None, name=name)
+            self._fea.statements.append(named_lookup_ast)
+            named_lookup_asts[name] = named_lookup_ast
+        self._fea.statements.extend(l.to_ast(class_asts, named_lookup_asts) for l in lookups)
 
     def merge_features(self, tt_font, old_fea):
         self._fea.statements.extend(
