@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-202F 1BC48 2060::[uni2009.thinSp=0+200|u1BC48.ie=1@-220,-120+0|uni2060.wj=2@240,-240+240]
+202F 1BC48 2060::[_.LDX.0E0=0+85|uni2009.thinSp=0+440|u1BC48.ie=1@0,-120+0|uni2060.wj=2@0,-240+0|_.RDX.0E0=2+85|_.RDX.2E1=2+8|_.RDX.2E2=2+32|_.RDX.2E3=2+128|_.RDX.2E4=2+512|_.CDX.2E1=2+-8|_.CDX.3E2=2+-48|_.CDX.2E3=2+-128|_.CDX.1E4=2+-256]

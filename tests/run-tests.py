@@ -29,7 +29,7 @@ def run_test(line, png_file):
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
     actual_output = (re.sub(
-            r'(?<=[\[|])_[^|\]]*\|?',
+            r'(?<=[\[|])_[^+]*\+0\|?',
             '',
             p.stdout.read().decode('utf-8').rstrip())
         .replace('|]', ']'))
