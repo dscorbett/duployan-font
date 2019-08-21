@@ -108,7 +108,7 @@ class Space(Shape):
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         if joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -size, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -(size + 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH), 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
@@ -1225,12 +1225,12 @@ SCHEMAS = [
     Schema(0x2008, SPACE, 268, side_bearing=268),
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
-    Schema(0x200B, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
+    Schema(0x200B, SPACE, 0, side_bearing=0, ignored=True),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, 0, ignored=True),
     Schema(0x200D, SPACE, 0, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
-    Schema(0x2060, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
+    Schema(0x2060, SPACE, 0, side_bearing=0, ignored=True),
     Schema(0xEC02, P_REVERSE, 1),
     Schema(0xEC03, T_REVERSE, 1),
     Schema(0xEC04, F_REVERSE, 1),
@@ -1239,7 +1239,7 @@ SCHEMAS = [
     Schema(0xEC19, M_REVERSE, 6),
     Schema(0xEC1B, J_REVERSE, 6),
     Schema(0xEC1C, S_REVERSE, 6),
-    Schema(0xFEFF, SPACE, 2 * DEFAULT_SIDE_BEARING, side_bearing=0, ignored=True),
+    Schema(0xFEFF, SPACE, 0, side_bearing=0, ignored=True),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC02, P, 1),
     Schema(0x1BC03, T, 1),
