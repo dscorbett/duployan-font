@@ -132,8 +132,9 @@ class Dot(Shape):
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
         elif joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -2 * DEFAULT_SIDE_BEARING, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 2 * DEFAULT_SIDE_BEARING, 0)
+            x = 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -x, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, 0)
 
     def context_in(self):
         return NO_CONTEXT
