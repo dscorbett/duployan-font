@@ -43,7 +43,7 @@ def run_test(line, png_file):
                 os.makedirs(png_dir)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
             p = subprocess.Popen(
-                ['hb-view', FONT, '-u', code_points, '-o', png_file, '-O', 'png', '--margin', '200'] + options.split(),
+                ['hb-view', FONT, '-u', code_points, '-o', png_file, '-O', 'png', '--margin', '200 0'] + options.split(),
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             p.wait()
