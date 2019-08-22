@@ -1227,7 +1227,7 @@ SCHEMAS = [
     Schema(0x200A, SPACE, 100, side_bearing=100),
     Schema(0x200B, SPACE, 0, side_bearing=0, ignored=True),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, 0, ignored=True),
-    Schema(0x200D, SPACE, 0, side_bearing=0),
+    Schema(0x200D, SPACE, 0, Type.NON_JOINING, 0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
     Schema(0x2060, SPACE, 0, side_bearing=0, ignored=True),
