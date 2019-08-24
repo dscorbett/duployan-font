@@ -174,7 +174,11 @@ class Space(Shape):
     def __init__(self, angle):
         self.angle = angle
 
-    def clone(self, angle=CLONE_DEFAULT):
+    def clone(
+        self,
+        *,
+        angle=CLONE_DEFAULT
+    ):
         return Space(self.angle if angle is CLONE_DEFAULT else angle)
 
     def __str__(self):
@@ -222,9 +226,10 @@ class Line(Shape):
         self.fixed_length = fixed_length
 
     def clone(
-            self,
-            angle=CLONE_DEFAULT,
-            fixed_length=CLONE_DEFAULT,
+        self,
+        *,
+        angle=CLONE_DEFAULT,
+        fixed_length=CLONE_DEFAULT,
     ):
         return Line(
             self.angle if angle is CLONE_DEFAULT else angle,
@@ -289,12 +294,13 @@ class Curve(Shape):
         self.long = long
 
     def clone(
-            self,
-            angle_in=CLONE_DEFAULT,
-            angle_out=CLONE_DEFAULT,
-            clockwise=CLONE_DEFAULT,
-            stretch=CLONE_DEFAULT,
-            long=CLONE_DEFAULT,
+        self,
+        *,
+        angle_in=CLONE_DEFAULT,
+        angle_out=CLONE_DEFAULT,
+        clockwise=CLONE_DEFAULT,
+        stretch=CLONE_DEFAULT,
+        long=CLONE_DEFAULT,
     ):
         return Curve(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -412,12 +418,13 @@ class Circle(Shape):
         self.stretch = stretch
 
     def clone(
-            self,
-            angle_in=CLONE_DEFAULT,
-            angle_out=CLONE_DEFAULT,
-            clockwise=CLONE_DEFAULT,
-            reversed=CLONE_DEFAULT,
-            stretch=CLONE_DEFAULT,
+        self,
+        *,
+        angle_in=CLONE_DEFAULT,
+        angle_out=CLONE_DEFAULT,
+        clockwise=CLONE_DEFAULT,
+        reversed=CLONE_DEFAULT,
+        stretch=CLONE_DEFAULT,
     ):
         return Circle(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -615,23 +622,24 @@ class Schema:
         )
 
     def clone(
-            self,
-            cp=CLONE_DEFAULT,
-            path=CLONE_DEFAULT,
-            size=CLONE_DEFAULT,
-            joining_type=CLONE_DEFAULT,
-            side_bearing=CLONE_DEFAULT,
-            anchor=CLONE_DEFAULT,
-            marks=CLONE_DEFAULT,
-            ignored=CLONE_DEFAULT,
-            styles=CLONE_DEFAULT,
-            ss_pernin=CLONE_DEFAULT,
-            context_in=CLONE_DEFAULT,
-            context_out=CLONE_DEFAULT,
-            base_angle=CLONE_DEFAULT,
-            cps=CLONE_DEFAULT,
-            ss=CLONE_DEFAULT,
-            _original_shape=CLONE_DEFAULT,
+        self,
+        *,
+        cp=CLONE_DEFAULT,
+        path=CLONE_DEFAULT,
+        size=CLONE_DEFAULT,
+        joining_type=CLONE_DEFAULT,
+        side_bearing=CLONE_DEFAULT,
+        anchor=CLONE_DEFAULT,
+        marks=CLONE_DEFAULT,
+        ignored=CLONE_DEFAULT,
+        styles=CLONE_DEFAULT,
+        ss_pernin=CLONE_DEFAULT,
+        context_in=CLONE_DEFAULT,
+        context_out=CLONE_DEFAULT,
+        base_angle=CLONE_DEFAULT,
+        cps=CLONE_DEFAULT,
+        ss=CLONE_DEFAULT,
+        _original_shape=CLONE_DEFAULT,
     ):
         return Schema(
             self.cp if cp is CLONE_DEFAULT else cp,
