@@ -25,7 +25,6 @@ import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
 import fontTools.feaLib.parser
-import fontTools.misc.py23
 import fontTools.otlLib.builder
 import psMat
 
@@ -1140,7 +1139,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     ), f'Glyph {glyph.glyphname} is too wide: {width} units'
                 digits_base = len(digits)
                 digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
-                quotient = fontTools.misc.py23.round2(width)
+                quotient = round(width)
                 for i in range(WIDTH_MARKER_PLACES):
                     quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
                     args = (i, remainder)
