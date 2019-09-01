@@ -220,6 +220,37 @@ class Space(Shape):
     def context_out(self):
         return NO_CONTEXT
 
+class Step(Shape):
+    def __init__(self, sfd_name, angle):
+        self.sfd_name = sfd_name
+        self.angle = angle
+
+    def clone(
+        self,
+        *,
+        sfd_name=CLONE_DEFAULT,
+        angle=CLONE_DEFAULT,
+    ):
+        return Step(
+            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
+            self.angle if angle is CLONE_DEFAULT else angle,
+        )
+
+    def __str__(self):
+        return self.sfd_name
+
+    def name_is_enough(self):
+        return True
+
+    def contextualize(self, context_in, context_out):
+        return Space(self.angle)
+
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
+
 class Dot(Shape):
     def __str__(self):
         return 'H'
@@ -763,10 +794,13 @@ class Schema:
         return self._glyph_name
 
     def contextualize(self, context_in, context_out):
-        assert self.joining_type == Type.ORIENTING
+        assert self.joining_type == Type.ORIENTING or isinstance(self.path, Step)
+        path = self.path.contextualize(context_in, context_out)
+        if path is self.path:
+            return self
         return self.clone(
             cp=-1,
-            path=self.path.contextualize(context_in, context_out),
+            path=path,
             anchor=None,
             marks=None,
             context_in=context_in,
@@ -1036,6 +1070,26 @@ def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
+    return [lookup]
+
+def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
+    old_input_count = len(classes['js_i'])
+    for schema in new_schemas:
+        if isinstance(schema.path, Step):
+            classes['js_i'].append(schema)
+        if (schema.joining_type != Type.NON_JOINING
+            and not schema.anchor
+            and not isinstance(schema.path, Step)
+        ):
+            classes['js_c'].append(schema)
+    new_context = 'js_o' not in classes
+    for i, target_schema in enumerate(classes['js_i']):
+        if new_context or i >= old_input_count:
+            output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT)
+            classes['js_o'].append(output_schema)
+    if new_context:
+        add_rule(lookup, Rule([], 'js_i', 'js_c', 'js_o'))
     return [lookup]
 
 def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1730,6 +1784,7 @@ PHASES = [
     dont_ignore_default_ignorables,
     ligate_pernin_r,
     decompose,
+    join_with_next_step,
     ss_pernin,
     join_with_previous,
     join_with_next,
@@ -1789,8 +1844,8 @@ O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
 UH = Circle(45, 45, False, False, 2)
-DOWN_STEP = Space(270)
-UP_STEP = Space(90)
+DOWN_STEP = Step('u1BCA2', 270)
+UP_STEP = Step('u1BCA3', 90)
 LINE = Line(90, True)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
@@ -2003,6 +2058,9 @@ class Builder:
         glyph_name = str(schema)
         if glyph_name in self.font.temporary:
             return self._add_altuni(schema.cp, glyph_name)
+        if glyph_name in self.font:
+            return self.font[glyph_name]
+        assert not schema.path.name_is_enough(), f'The SFD has no glyph named {glyph_name}'
         if schema.marks:
             glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
