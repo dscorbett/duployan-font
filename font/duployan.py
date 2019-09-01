@@ -210,8 +210,8 @@ class Space(Shape):
 
     def __call__(self, glyph, pen, size, anchor, joining_type):
         if joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -(size + 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH), 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH), 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
     def context_in(self):
