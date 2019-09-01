@@ -85,6 +85,9 @@ class Shape:
     def clone(self):
         raise NotImplementedError
 
+    def name_is_enough(self):
+        return False
+
     def group(self):
         return str(self)
 
@@ -104,13 +107,22 @@ class Dummy(Shape):
     def __str__(self):
         return '_'
 
+    def name_is_enough(self):
+        return True
+
 class Start(Shape):
     def __str__(self):
         return '_.START'
 
+    def name_is_enough(self):
+        return True
+
 class End(Shape):
     def __str__(self):
         return '_.END'
+
+    def name_is_enough(self):
+        return True
 
 class Carry(Shape):
     def __init__(self, value):
@@ -119,6 +131,9 @@ class Carry(Shape):
 
     def __str__(self):
         return f'_.c.{self.value}'
+
+    def name_is_enough(self):
+        return True
 
 class DigitStatus(enum.Enum):
     NORMAL = enum.auto()
@@ -140,6 +155,9 @@ class LeftBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
+    def name_is_enough(self):
+        return True
+
 class RightBoundDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -155,6 +173,9 @@ class RightBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
+    def name_is_enough(self):
+        return True
+
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -169,6 +190,9 @@ class CursiveWidthDigit(Shape):
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    def name_is_enough(self):
+        return True
 
 class Space(Shape):
     def __init__(self, angle):
@@ -690,6 +714,8 @@ class Schema:
         self._glyph_name = None
 
     def calculate_name(self):
+        if self.path.name_is_enough():
+            return str(self.path)
         def get_names(cp):
             try:
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
@@ -709,12 +735,9 @@ class Schema:
             agl_name, readable_name = ('_'.join(component) for component in zip(*list(map(get_names, cps))))
             name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
         if self.cp == -1:
-            path_name = str(self.path)
-            if path_name.startswith('_'):
-                return path_name
             name = '{}.{}.{}{}'.format(
                 name or 'dupl',
-                path_name,
+                str(self.path),
                 int(self.size),
                 ('.' + self.anchor) if self.anchor else '',
             )
