@@ -41,6 +41,7 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
+MAX_TREE_WIDTH = 3
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
 
@@ -219,6 +220,40 @@ class Space(Shape):
 
     def context_out(self):
         return NO_CONTEXT
+
+class Overlap(Shape):
+    def __init__(self, sfd_name, continuing, valid):
+        self.sfd_name = sfd_name
+        self.continuing = continuing
+        self.valid = valid
+
+    def clone(
+        self,
+        *,
+        sfd_name=CLONE_DEFAULT,
+        continuing=CLONE_DEFAULT,
+        valid=CLONE_DEFAULT,
+    ):
+        return Overlap(
+            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
+            self.continuing if continuing is CLONE_DEFAULT else continuing,
+            self.valid if valid is CLONE_DEFAULT else valid,
+        )
+
+    def __str__(self):
+        return 'V' if self.valid else self.sfd_name
+
+    def name_is_enough(self):
+        return not self.valid
+
+    def group(self):
+        return (str(self), self.continuing)
+
+    def __call__(self, glyph, pen, size, anchor, joining_type):
+        pen.moveTo((0, 350))
+        pen.lineTo((200, 350))
+        glyph.transform(psMat.rotate(math.radians(45 if self.continuing else 315)), ('round',))
+        glyph.stroke('circular', STROKE_WIDTH, 'round')
 
 class Step(Shape):
     def __init__(self, sfd_name, angle):
@@ -1032,6 +1067,29 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
             add_rule(lookup_2, Rule([schema, schema], [schema]))
     return [lookup_1, lookup_2]
 
+def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt')
+    for schema in new_schemas:
+        if isinstance(schema.path, Overlap):
+            if schema.path.valid:
+                return [lookup]
+            if schema.path.continuing:
+                continuing_overlap = schema
+            else:
+                letter_overlap = schema
+    classes['vv_invalid'].append(letter_overlap)
+    classes['vv_invalid'].append(continuing_overlap)
+    add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
+    add_rule(lookup, Rule([], 'vv_invalid', ['vv_invalid'] * MAX_TREE_WIDTH, 'vv_invalid'))
+    for i in range(MAX_TREE_WIDTH - 2):
+        for j in range(MAX_TREE_WIDTH - 2 - i):
+            add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, *[letter_overlap] * j, continuing_overlap], [letter_overlap]))
+    for i in range(MAX_TREE_WIDTH - 1):
+        add_rule(lookup, Rule([], [continuing_overlap], [*[letter_overlap] * i, continuing_overlap], [continuing_overlap]))
+    add_rule(lookup, Rule([letter_overlap], [letter_overlap.clone(cp=-1, path=letter_overlap.path.clone(valid=True))]))
+    add_rule(lookup, Rule([continuing_overlap], [continuing_overlap.clone(cp=-1, path=continuing_overlap.path.clone(valid=True))]))
+    return [lookup]
+
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
     liga = Lookup('liga', 'dupl', 'dflt')
     dlig = Lookup('dlig', 'dupl', 'dflt')
@@ -1782,6 +1840,7 @@ def chord_to_radius(c, theta):
 
 PHASES = [
     dont_ignore_default_ignorables,
+    validate_overlap_controls,
     ligate_pernin_r,
     decompose,
     join_with_next_step,
@@ -1844,6 +1903,8 @@ O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
 UH = Circle(45, 45, False, False, 2)
+OVERLAP = Overlap('u1BCA0', False, False)
+CONTINUING_OVERLAP = Overlap('u1BCA1', True, False)
 DOWN_STEP = Step('u1BCA2', 270)
 UP_STEP = Step('u1BCA3', 90)
 LINE = Line(90, True)
@@ -1974,6 +2035,8 @@ SCHEMAS = [
     Schema(0x1BC66, W, 2, Type.ORIENTING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, N_REVERSE, 6),
+    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
+    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
