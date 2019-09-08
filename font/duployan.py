@@ -41,7 +41,6 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
-MAX_TREE_WIDTH = 3
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
 
@@ -1069,6 +1068,8 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
 
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
+    new_classes = {}
+    global_max_tree_width = 0
     for schema in new_schemas:
         if isinstance(schema.path, Overlap):
             if schema.path.valid:
@@ -1077,17 +1078,35 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
                 continuing_overlap = schema
             else:
                 letter_overlap = schema
+        elif not schema.anchor:
+            max_tree_width = 0
+            if isinstance(schema.path, Line):
+                max_tree_width = 3 if schema.size == 2 else 1
+            elif isinstance(schema.path, Curve) or isinstance(schema.path, Circle):
+                max_tree_width = 1
+            if max_tree_width:
+                if max_tree_width > global_max_tree_width:
+                    global_max_tree_width = max_tree_width
+                classes['vv_base'].append(schema)
+                new_class = f'vv_base_{max_tree_width}'
+                classes[new_class].append(schema)
+                new_classes[max_tree_width] = new_class
     classes['vv_invalid'].append(letter_overlap)
     classes['vv_invalid'].append(continuing_overlap)
     add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
-    add_rule(lookup, Rule([], 'vv_invalid', ['vv_invalid'] * MAX_TREE_WIDTH, 'vv_invalid'))
-    for i in range(MAX_TREE_WIDTH - 2):
-        for j in range(MAX_TREE_WIDTH - 2 - i):
+    for i in range(global_max_tree_width - 2):
+        for j in range(global_max_tree_width - 2 - i):
             add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, *[letter_overlap] * j, continuing_overlap], [letter_overlap]))
-    for i in range(MAX_TREE_WIDTH - 1):
+    for i in range(global_max_tree_width - 1):
         add_rule(lookup, Rule([], [continuing_overlap], [*[letter_overlap] * i, continuing_overlap], [continuing_overlap]))
-    add_rule(lookup, Rule([letter_overlap], [letter_overlap.clone(cp=-1, path=letter_overlap.path.clone(valid=True))]))
-    add_rule(lookup, Rule([continuing_overlap], [continuing_overlap.clone(cp=-1, path=continuing_overlap.path.clone(valid=True))]))
+    for max_tree_width, new_class in new_classes.items():
+        add_rule(lookup, Rule([new_class], 'vv_invalid', ['vv_invalid'] * max_tree_width, 'vv_invalid'))
+    valid_letter_overlap = letter_overlap.clone(cp=-1, path=letter_overlap.path.clone(valid=True))
+    add_rule(lookup, Rule(['vv_base'], [letter_overlap], [], [valid_letter_overlap]))
+    classes['vv_base'].append(valid_letter_overlap)
+    valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=continuing_overlap.path.clone(valid=True))
+    add_rule(lookup, Rule(['vv_base'], [continuing_overlap], [], [valid_continuing_overlap]))
+    classes['vv_base'].append(valid_continuing_overlap)
     return [lookup]
 
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1840,9 +1859,9 @@ def chord_to_radius(c, theta):
 
 PHASES = [
     dont_ignore_default_ignorables,
+    decompose,
     validate_overlap_controls,
     ligate_pernin_r,
-    decompose,
     join_with_next_step,
     ss_pernin,
     join_with_previous,
