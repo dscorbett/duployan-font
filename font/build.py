@@ -21,7 +21,6 @@ import fontforge
 import fontTools.ttLib
 
 import duployan
-import split_functions
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
@@ -52,8 +51,6 @@ def patch_fonttools():
         except (AttributeError, KeyError):
             getGlyphID_inner(self, glyphName, requireReal)
     fontTools.ttLib.TTFont.getGlyphID = getGlyphID
-
-    fontTools.ttLib.tables.otTables.splitTable['GSUB'][2] = split_functions.split_multiple_subst
 
 def tweak_font(options, builder):
     with fontTools.ttLib.TTFont(options.output, recalcBBoxes=False) as tt_font:
