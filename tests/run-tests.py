@@ -23,7 +23,14 @@ def run_test(line, png_file):
     global FONT
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
-        ['hb-shape', FONT, '-u', code_points] + options.split(),
+        [
+            'hb-shape',
+            FONT,
+            '-u',
+            code_points,
+            '--remove-default-ignorables',
+            *options.split(),
+        ],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE)
     p.wait()
@@ -43,7 +50,20 @@ def run_test(line, png_file):
                 os.makedirs(png_dir)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
             p = subprocess.Popen(
-                ['hb-view', FONT, '-u', code_points, '-o', png_file, '-O', 'png', '--margin', '200 0'] + options.split(),
+                [
+                    'hb-view',
+                    FONT,
+                    '-u',
+                    code_points,
+                    '--remove-default-ignorables',
+                    '-o',
+                    png_file,
+                    '-O',
+                    'png',
+                    '--margin',
+                    '200 0',
+                    *options.split(),
+                ],
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             p.wait()
