@@ -32,7 +32,8 @@ BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
 EPSILON = 1e-5
 RADIUS = 50
-STROKE_WIDTH = 70
+LIGHT_LINE = 70
+SHADED_LINE = 120
 CURSIVE_ANCHOR = 'cursive'
 RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_ANCHOR = 'rel2'
@@ -91,8 +92,11 @@ class Shape:
     def group(self):
         return str(self)
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         raise NotImplementedError
+
+    def is_shadable(self):
+        return False
 
     def context_in(self):
         raise NotImplementedError
@@ -208,11 +212,36 @@ class Space(Shape):
     def __str__(self):
         return 'Z.{}'.format(int(self.angle))
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH), 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + 2 * DEFAULT_SIDE_BEARING + stroke_width), 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
+
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
+
+class ShadedLetterSelector(Shape):
+    def __init__(self, sfd_name):
+        self.sfd_name = sfd_name
+
+    def clone(
+        self,
+        *,
+        sfd_name=CLONE_DEFAULT,
+    ):
+        return ShadedLetterSelector(
+            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
+        )
+
+    def __str__(self):
+        return self.sfd_name
+
+    def name_is_enough(self):
+        return True
 
     def context_in(self):
         return NO_CONTEXT
@@ -248,11 +277,11 @@ class Overlap(Shape):
     def group(self):
         return (str(self), self.continuing)
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         pen.moveTo((0, 350))
         pen.lineTo((200, 350))
         glyph.transform(psMat.rotate(math.radians(45 if self.continuing else 315)), ('round',))
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
+        glyph.stroke('circular', stroke_width, 'round')
 
 class Step(Shape):
     def __init__(self, sfd_name, angle):
@@ -292,16 +321,19 @@ class Dot(Shape):
     def clone(self):
         return Dot()
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
+        glyph.stroke('circular', stroke_width, 'round')
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
         elif joining_type != Type.NON_JOINING:
-            x = 2 * DEFAULT_SIDE_BEARING + STROKE_WIDTH
+            x = 2 * DEFAULT_SIDE_BEARING + stroke_width
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -x, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, 0)
+
+    def is_shadable(self):
+        return True
 
     def context_in(self):
         return NO_CONTEXT
@@ -328,7 +360,7 @@ class Line(Shape):
     def __str__(self):
         return 'L.{}'.format(int(self.angle))
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         pen.moveTo((0, 0))
         if self.fixed_length:
             length_denominator = 1
@@ -346,15 +378,18 @@ class Line(Shape):
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
             if size == 2 and self.angle == 30:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * STROKE_WIDTH, -STROKE_WIDTH)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * STROKE_WIDTH, -STROKE_WIDTH)
+                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * stroke_width, -stroke_width)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * stroke_width, -stroke_width)
             else:
-                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, STROKE_WIDTH)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -STROKE_WIDTH)
+                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, stroke_width)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -stroke_width)
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
             glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
+        glyph.stroke('circular', stroke_width, 'round')
+
+    def is_shadable(self):
+        return True
 
     def context_in(self):
         return Context(self.angle)
@@ -414,7 +449,7 @@ class Curve(Shape):
             self.long,
         )
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
@@ -448,8 +483,8 @@ class Curve(Shape):
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
         if joining_type == Type.ORIENTING:
-            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(90)))
-            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(270)))
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(90)))
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(270)))
         if self.stretch:
             scale_x = 1.0
             scale_y = 1.0 + self.stretch
@@ -458,14 +493,17 @@ class Curve(Shape):
             theta = math.radians(self.angle_in % 180)
             glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
         else:
             glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
                 *(rect(0, 0) if abs(da) > 180 else rect(
-                    min(STROKE_WIDTH, r - 2 * STROKE_WIDTH),
+                    min(stroke_width, r - 2 * stroke_width),
                     math.radians(relative_mark_angle))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * STROKE_WIDTH, math.radians(relative_mark_angle)))
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(relative_mark_angle)))
+        glyph.stroke('circular', stroke_width, 'round')
+
+    def is_shadable(self):
+        return False
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -544,7 +582,7 @@ class Circle(Shape):
             self.stretch,
         )
 
-    def __call__(self, glyph, pen, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
@@ -570,8 +608,11 @@ class Circle(Shape):
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * STROKE_WIDTH, math.radians(self.angle_in)))
-        glyph.stroke('circular', STROKE_WIDTH, 'round')
+        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
+        glyph.stroke('circular', stroke_width, 'round')
+
+    def is_shadable(self):
+        return True
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -649,6 +690,7 @@ class Schema:
         (r'^MEDIUM MATHEMATICAL SPACE$', 'MMSP'),
         (r'^WORD JOINER$', 'WJ'),
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
+        (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
@@ -768,6 +810,7 @@ class Schema:
     def _calculate_group(self):
         return (
             self.path.group(),
+            self.cps[-1] == 0x1BC9D,
             self.size,
             self.side_bearing,
             self.anchor,
@@ -1123,9 +1166,11 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
             assert r is None, 'Multiple Pernin Rs found'
             r = schema
         elif (schema in new_schemas
-                and isinstance(schema.path, Circle)
-                and not schema.path.reversed
-                and Style.PERNIN in schema.styles):
+            and isinstance(schema.path, Circle)
+            and not schema.path.reversed
+            and Style.PERNIN in schema.styles
+            and len(schema.cps) == 1
+        ):
             classes['ll_vowel'].append(schema)
             vowels.append(schema)
     assert classes['ll_vowel'], 'No Pernin circle vowels found'
@@ -1141,6 +1186,16 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
         add_rule(liga, Rule([vowel, zwj, r], [reversed_vowel]))
         add_rule(dlig, Rule([vowel, r], [reversed_vowel]))
     return [liga, dlig]
+
+def shade(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rlig', 'dupl', 'dflt', 0)
+    dtls = next(s for s in schemas if s.cps == [0x1BC9D])
+    for schema in new_schemas:
+        if not schema.anchor and len(schema.cps) == 1 and schema.path.is_shadable():
+            add_rule(lookup, Rule(
+                [schema, dtls],
+                [schema.clone(cp=-1, cps=[*schema.cps, 0x1BC9D])]))
+    return [lookup]
 
 def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
@@ -1859,6 +1914,7 @@ def chord_to_radius(c, theta):
 
 PHASES = [
     dont_ignore_default_ignorables,
+    shade,
     decompose,
     validate_overlap_controls,
     ligate_pernin_r,
@@ -1922,6 +1978,7 @@ O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
 UH = Circle(45, 45, False, False, 2)
+DTLS = ShadedLetterSelector('u1BC9D')
 OVERLAP = Overlap('u1BCA0', False, False)
 CONTINUING_OVERLAP = Overlap('u1BCA1', True, False)
 DOWN_STEP = Step('u1BCA2', 270)
@@ -2054,6 +2111,7 @@ SCHEMAS = [
     Schema(0x1BC66, W, 2, Type.ORIENTING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, N_REVERSE, 6),
+    Schema(0x1BC9D, DTLS, 0),
     Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
@@ -2133,7 +2191,14 @@ class Builder:
             else 'baseglyph' if schema.joining_type == Type.NON_JOINING
             else 'baseligature')
         pen = glyph.glyphPen()
-        schema.path(glyph, pen, schema.size, schema.anchor, schema.joining_type)
+        schema.path(
+            glyph,
+            pen,
+            SHADED_LINE if schema.cps[-1] == 0x1BC9D else LIGHT_LINE,
+            schema.size,
+            schema.anchor,
+            schema.joining_type,
+        )
         return glyph
 
     def _draw_glyph(self, schema):
