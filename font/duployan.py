@@ -1919,7 +1919,7 @@ PHASES = [
     validate_overlap_controls,
     ligate_pernin_r,
     join_with_next_step,
-    ss_pernin,
+    #ss_pernin,
     join_with_previous,
     join_with_next,
     rotate_diacritics,
