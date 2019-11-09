@@ -671,6 +671,111 @@ class Circle(Shape):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
+class Hook(Shape):
+    def __init__(self, angle, clockwise, outward=False):
+        self.angle = angle
+        self.clockwise = clockwise
+        self.outward = outward
+
+    def clone(
+        self,
+        *,
+        angle=CLONE_DEFAULT,
+        clockwise=CLONE_DEFAULT,
+        outward=CLONE_DEFAULT,
+    ):
+        return Hook(
+            self.angle if angle is CLONE_DEFAULT else angle,
+            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            self.outward if outward is CLONE_DEFAULT else outward,
+        )
+
+    def __str__(self):
+        return f'''G.{
+            int(self.angle)
+        }.{
+            'neg' if self.clockwise else 'pos'
+        }.{
+            'out' if self.outward else 'in'
+        }'''
+
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+        assert anchor is None
+        a1 = (90 if self.clockwise else -90) + self.angle
+        da = -180 if self.clockwise else 180
+        a2 = a1 + da
+        r1 = int(RADIUS * size)
+        beziers_needed = int(math.ceil(abs(da) / 90))
+        bezier_arc = da / beziers_needed
+        cp1 = r1 * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
+        cp1_distance = math.hypot(cp1, r1)
+        cp1_angle = math.asin(cp1 / cp1_distance)
+        pen.moveTo(rect(r1, math.radians(a1)))
+        for i in range(1, beziers_needed + 1):
+            theta0 = math.radians(a1 + (i - 1) * bezier_arc)
+            p1 = rect(cp1_distance, theta0 + cp1_angle)
+            theta3 = math.radians(a2 if i == beziers_needed else a1 + i * bezier_arc)
+            p3 = rect(r1, theta3)
+            p2 = rect(cp1_distance, theta3 - cp1_angle)
+            pen.curveTo(p1, p2, p3)
+        r2 = r1 / 2
+        cp2 = r2 * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
+        cp2_distance = math.hypot(cp2, r2)
+        cp2_angle = math.asin(cp2 / cp2_distance)
+        r_shift = r1 - r2
+        theta_shift = math.radians(a2)
+        shift = rect(r_shift, theta_shift)
+        for i in range(beziers_needed + 1, 2 * beziers_needed + 1):
+            theta0 = math.radians(a2 if i == beziers_needed + 1 else a1 + (i - 1) * bezier_arc)
+            p1 = rect(cp2_distance, theta0 + cp2_angle)
+            theta3 = math.radians(a1 if i == 2 * beziers_needed + 1 else a1 + i * bezier_arc)
+            p3 = rect(r2, theta3)
+            p2 = rect(cp2_distance, theta3 - cp2_angle)
+            p1 = (p1[0] + shift[0], p1[1] + shift[1])
+            p2 = (p2[0] + shift[0], p2[1] + shift[1])
+            p3 = (p3[0] + shift[0], p3[1] + shift[1])
+            pen.curveTo(p1, p2, p3)
+        pen.endPath()
+        relative_mark_angle = (a1 + a2) / 2
+        if joining_type != Type.NON_JOINING:
+            x = r1 * math.cos(math.radians(a1))
+            y = r1 * math.sin(math.radians(a1))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit' if self.outward else 'entry', x, y)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry' if self.outward else 'exit', p3[0], p3[1])
+        glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r1, math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
+        if joining_type == Type.ORIENTING:
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r1 + 2 * stroke_width, math.radians(90)))
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r1 + 2 * stroke_width, math.radians(270)))
+        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
+            *(rect(0, 0) if abs(da) > 180 else rect(
+                min(stroke_width, r1 - 2 * stroke_width),
+                math.radians(relative_mark_angle))))
+        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r1 + 2 * stroke_width, math.radians(relative_mark_angle)))
+        glyph.stroke('circular', stroke_width, 'round')
+
+    def is_shadable(self):
+        return True
+
+    def contextualize(self, context_in, context_out):
+        angle = context_in.angle
+        initial = context_out.angle is not None
+        if initial:
+            angle = (context_out.angle + 180) % 360
+        elif angle is None:
+            angle = self.angle
+        return self.clone(
+            angle=angle,
+            clockwise=self.clockwise != initial,
+            outward=initial,
+        )
+
+    def context_in(self):
+        return Context(self.angle, self.clockwise)
+
+    def context_out(self):
+        return Context(self.angle, self.clockwise)
+
 class Style(enum.Enum):
     PERNIN = enum.auto()
 
@@ -1977,6 +2082,7 @@ S_K = Curve(90, 0, True)
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 LONG_U = Curve(225, 45, False, 4, True)
+ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
 DTLS = ShadedLetterSelector('u1BC9D')
 OVERLAP = Overlap('u1BCA0', False, False)
@@ -2103,6 +2209,7 @@ SCHEMAS = [
     Schema(0x1BC53, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, J_N, 4),
     Schema(0x1BC55, LONG_U, 2),
+    Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING),
     Schema(0x1BC57, UH, 2, Type.ORIENTING),
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
