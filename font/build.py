@@ -35,7 +35,7 @@ def build_font(options, font):
     font.selection.all()
     font.correctReferences()
     font.selection.none()
-    flags = ['dummy-dsig', 'no-hints', 'omit-instructions', 'opentype']
+    flags = ['no-hints', 'omit-instructions', 'opentype']
     font.generate(options.output, flags=flags)
 
 def generate_feature_string(font, lookup):
