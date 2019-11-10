@@ -795,8 +795,11 @@ class Complex(Shape):
 
     def __str__(self):
         return f'''W.{
-            '.'.join(map(str, self.components))
+            '.'.join(f"{c[1]}.{int(c[0])}" for c in self.components)
         }'''
+
+    def group(self):
+        return tuple((c[0], c[1].group()) for c in self.components)
 
     class Proxy:
         def __init__(self):
@@ -832,9 +835,9 @@ class Complex(Shape):
         first_entry = None
         last_exit = None
         last_rel1 = None
-        for component in self.components:
+        for scalar, component in self.components:
             proxy = Complex.Proxy()
-            component(proxy, proxy, stroke_width, size, anchor, joining_type)
+            component(proxy, proxy, stroke_width, scalar * size, anchor, joining_type)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if first_entry is None:
@@ -861,13 +864,13 @@ class Complex(Shape):
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - 2 * stroke_width)
 
     def is_shadable(self):
-        return all(c.is_shadable() for c in self.components)
+        return all(c[1].is_shadable() for c in self.components)
 
     def context_in(self):
-        return self.components[0].context_in()
+        return self.components[0][1].context_in()
 
     def context_out(self):
-        return self.components[-1].context_out()
+        return self.components[-1][1].context_out()
 
 class Style(enum.Enum):
     PERNIN = enum.auto()
@@ -2171,7 +2174,8 @@ W = Curve(180, 270, False)
 S_N = Curve(0, 90, False)
 K_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
-J_N = Complex([S_K, N])
+J_N = Complex([(1, S_K), (1, N)])
+J_N_S = Complex([(3, S_K), (4, N_S)])
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
 U_N = Curve(90, 180, True)
@@ -2270,6 +2274,7 @@ SCHEMAS = [
     Schema(0x1BC2E, S_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2F, J_S, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
     Schema(0x1BC30, J_N, 6),
+    Schema(0x1BC31, J_N_S, 2),
     Schema(0x1BC32, S_T, 4),
     Schema(0x1BC33, S_T, 6),
     Schema(0x1BC34, S_P, 4),
