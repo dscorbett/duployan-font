@@ -896,6 +896,7 @@ class Schema:
         (r'^uniEC05$', 'DUPLOYAN LETTER REVERSED K'),
         (r'^uniEC06$', 'DUPLOYAN LETTER REVERSED L'),
         (r'^uniEC19$', 'DUPLOYAN LETTER REVERSED M'),
+        (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
         (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
         (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
@@ -2201,6 +2202,7 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
+TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
 CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
@@ -2244,6 +2246,7 @@ SCHEMAS = [
     Schema(0xEC05, K_REVERSE, 1),
     Schema(0xEC06, L_REVERSE, 1),
     Schema(0xEC19, M_REVERSE, 6),
+    Schema(0xEC1A, N_REVERSE, 6),
     Schema(0xEC1B, J_REVERSE, 6),
     Schema(0xEC1C, S_REVERSE, 6),
     Schema(0xFEFF, SPACE, 0, side_bearing=0, ignored=True),
@@ -2338,7 +2341,7 @@ SCHEMAS = [
     Schema(0x1BC65, S_P, 2, Type.ORIENTING),
     Schema(0x1BC66, W, 2, Type.ORIENTING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
-    Schema(0x1BC79, N_REVERSE, 6),
+    Schema(0x1BC79, TAIL, 1),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
     Schema(0x1BC9D, DTLS, 0),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
