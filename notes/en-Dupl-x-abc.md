@@ -17,7 +17,7 @@ character must not be written _through_ the line. But the _whole_ of a
 consonant, when joined to another, may sometimes fall below the line, (p. 8)
 
 It is seen that when a letter is lengthened, the part added, falls below the
-line [...] When _l_ and _r_ are lengthened they are commenced below the line.
+line \[...] When _l_ and _r_ are lengthened they are commenced below the line.
 (p. 14)
 
 ## Characters

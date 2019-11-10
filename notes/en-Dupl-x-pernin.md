@@ -42,10 +42,10 @@ in the middle, and at the end of words; (p. 15)
 
 As conducive to speed, the sign for _r_ may be omitted after circles, and the
 omission indicated by tracing the circles in a reverse position _to that in
-which they would normally be written if the r did not occur;_ [...] When _r_
+which they would normally be written if the r did not occur;_ \[...] When _r_
 occurs between two circles it may not be omitted. (p. 16)
 
-the SMALL HALF CIRCLES [...] should be traced so as to avoid angles as far as
+the SMALL HALF CIRCLES \[...] should be traced so as to avoid angles as far as
 possible, while retaining the general position of the sign. (p. 22)
 
 The circles are traced _inside_ the curve of _m,_ except when followed by the
@@ -439,7 +439,7 @@ we
 
 oi
 
-* The sign [...] is strictly a combination of its two phonetic elements, _o i._
+* The sign \[...] is strictly a combination of its two phonetic elements, _o i._
   While _oi_ may be reversed to avoid angles, and the curve traced in the
   direction of the following sign, it is usually traced in its natural position.
   (p. 36)
@@ -464,7 +464,7 @@ in, on
 x
 
 * The sound **x** (or k s), whether initial, medial or final is represented by
-  the short down stroke [...]; it has the slant of **f** and is about one-third
+  the short down stroke \[...]; it has the slant of **f** and is about one-third
   the length of that character. (p. 46)
 
 ŭ

@@ -11,7 +11,7 @@ curve, thus forming an imperfect hook, (p. 4)
 _i_ (long) and _oi_ being the only disjoined vowels, all that is necessary to
 know, is, what is meant by writing it _before_ or _after_ a consonant:—
 _Before_ is to the _left_ of descending, and _s_, _r_ and _x_ (up) characters,
-and _above_ horizontal ones, [...] _After_ means to the right of descending and
+and _above_ horizontal ones, \[...] _After_ means to the right of descending and
 _s_, _r_, _x_ (up) characters, and _below_ horizontal ones, (pp. 4–5)
 
 The affixes are disjoined from the preceding portion of the word, by writing
@@ -248,7 +248,7 @@ U+1BC4F DUPLOYAN LETTER LONG I
 
 * Value: i as in bide
 * no dot
-* The _o_ [in _oi_] may be written with the sign for _o_ and _i_ tick added, or
+* The _o_ \[in _oi_] may be written with the sign for _o_ and _i_ tick added, or
   disjoined tick shaded in _k_ direction. (p. 1)
 
 U+1BC57 DUPLOYAN LETTER UH

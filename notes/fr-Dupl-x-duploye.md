@@ -4,7 +4,7 @@ L. van den Bosch, A. Camby
 ## General remarks
 
 La longueur des lignes qui représentent _Be, Ve & Gue_ doit être double de
-celles données pour _Pe, Fe & Ke_. [The same is true for other line consonant
+celles données pour _Pe, Fe & Ke_. \[The same is true for other line consonant
 pairs.] (p. 12)
 
 Les voyelles représentées par des cercles se placent _à droite_ des consonnes
@@ -12,7 +12,7 @@ plongeantes sauf lorsqu’elles se trouvent entre deux consonnes formant angle;
 ces voyelles sont alors toujours placées à l’extérieur de l’angle. (p. 12)
 
 Lorsque deux voyelles se suivent immédiatement (diphtongues, hiatus) on trace
-les signes de ces voyelles dans le sens le plus naturel à la main [i.e. the
+les signes de ces voyelles dans le sens le plus naturel à la main \[i.e. the
 second vowel is in its usual position]. (p. 13)
 
 Les voyelles représentées par des cercles se placent _au-dessus_ des avançantes
@@ -23,10 +23,10 @@ Les cercle se placent _à gauche_ des remontantes, sauf lorsque par leur
 rencontre avec d’autres consonnes les remontantes forment un angle; les cercles
 se placent alors à l’extérieur de cet angle. (p. 18)
 
-Les voyelles formées de cercles se tracent à l’intérieur de ces [lignes courbes]
-au commencement et à la fin des mots. Dans le corps des mots, elles se placent
-par rapport au signe qui précède dans la position assignée aux finales, ou, le
-cas échéant, à l’extérieur de l’angle formé par la rencontre des signes
+Les voyelles formées de cercles se tracent à l’intérieur de ces \[lignes
+courbes] au commencement et à la fin des mots. Dans le corps des mots, elles se
+placent par rapport au signe qui précède dans la position assignée aux finales,
+ou, le cas échéant, à l’extérieur de l’angle formé par la rencontre des signes
 consonnes. (p. 21, 23)
 
 Le groupe _P-R_ ou _B-R_ se représente, avec ses voyelles intercalaires, par un

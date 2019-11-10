@@ -3,7 +3,7 @@ Doğan Aytop, ed.
 
 ## General remarks
 
-Kısa Düz Çizgiler (4&nbsp;mm) [...] Uzun Düz Çizgiler (8&nbsp;mm) (p. 3)
+Kısa Düz Çizgiler (4&nbsp;mm) \[...] Uzun Düz Çizgiler (8&nbsp;mm) (p. 3)
 
 Düz çizgilerin birleştirilmesinde kullanılan kırıklıklar hafif aşağı ve sağa
 doğrudur. (p. 4)

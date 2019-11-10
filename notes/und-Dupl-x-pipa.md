@@ -32,8 +32,8 @@ other Salishan languages.
 
 Whenever it is practicable, especially at the beginning and end of words, the
 above semi circle, or hook, turned _upwards or forward,_ will figure the third
-sound [_ē_]; it will be turned _downwards, or backward,_ to figure the first and
-second sound [_ā_ and _aī_]. (vol. IV no. 1 pp. 5–6)
+sound \[_ē_]; it will be turned _downwards, or backward,_ to figure the first
+and second sound \[_ā_ and _aī_]. (vol. IV no. 1 pp. 5–6)
 
 A dash may with advantage replace the dot, to distinguish a _long_ sound. (vol.
 IV no. 1 p. 6)
@@ -49,13 +49,13 @@ The angle is avoided by turning the circle either side of the perpendicular.
 The article _to_ is figured by turning the radiating circle _oo_ downwards,
 while to represent _two_ or _too,_ the radiated circle is turned upwards. The
 words _I_ and _eye_ have the same sound, yet the phonetic form can be written in
-two different positions, to distinguish the one from the other. [...] In _not_
-the circle vowel is round and full, while in _note_ it is narrow and long. [...]
-Sometimes the position of the vowel is sufficient to indicate the presence of an
-“h” in the word. For an example, “at” is written, with the “ah” circle above, as
-in the first column,and “hat” with the same circle turned downward, as in the
-second column : in that case there is no need of a dot to designate the letter
-“h.” (vol. V no. 10 p. 212)
+two different positions, to distinguish the one from the other. \[...] In _not_
+the circle vowel is round and full, while in _note_ it is narrow and long.
+\[...] Sometimes the position of the vowel is sufficient to indicate the
+presence of an “h” in the word. For an example, “at” is written, with the “ah”
+circle above, as in the first column,and “hat” with the same circle turned
+downward, as in the second column&nbsp;: in that case there is no need of a dot
+to designate the letter “h.” (vol. V no. 10 p. 212)
 
 No. 21 p. 80, vol. V no. 3 p. 57, vol. V no. 4 pp. 76–79, vol. V no. 5 pp.
 100–103, and vol. V no. 6 p. 125 have vowel orientation charts.
@@ -655,9 +655,9 @@ wou (no. 1 part 2 p. 3, no. 20 p. 72), owa, wia, wy, weoo (no. 20 p. 72)
   etc. are mistakes in Unicode.
 * Vol. IV no. 1 p. 6 explicitly calls these compound vowels out for used in
   English.
-* Vol. V no. 1 p. 10 does the same, and furthermore calls them “samples [...] to
-  serve as a key for the writing of these and similar sounds”. This is clearly a
-  productive rule.
+* Vol. V no. 1 p. 10 does the same, and furthermore calls them “samples \[...]
+  to serve as a key for the writing of these and similar sounds”. This is
+  clearly a productive rule.
 
 ai (no. 24 p. 4, vol. IV no. 1 p. 5)
 

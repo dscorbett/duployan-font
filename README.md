@@ -38,12 +38,12 @@ The topographical forms are forced: if a character does not normally join in one
     * This is not invalid according to UTN #37.
     * It is just to make cursive joining easier.
 * Set up mark versions of glyphs in overlap trees for later use in GPOS.
-* ligatures and contextual forms 
+* ligatures and contextual forms
   * consonant + {} homorganic consonant => slight jog
   * consonant + ZWJ + homorganic consonant => dotted consonant
   * circle vowel } + ZWJ + L (?! circle vowel) => reversed vowel
   * R + ZWJ + { circle vowel => reversed vowel
-  * [GK] + { W => hook W
+  * \[GK] + { W => hook W
   * O + A => WA (Romanian only?)
   * various forms of Romanian U
 * standard variants, probably also with ZWJ
@@ -77,7 +77,7 @@ Pernin lesson IV gives absolute dimensions for some letters.
 
 Pernin article 33: Digits may be joined to stenograms.
 
-PUP p. 76: “Should _t_ or _d_ follow [overlapping _t_ for ‘trans-’], it is passed over
+PUP p. 76: “Should _t_ or _d_ follow \[overlapping _t_ for ‘trans-’], it is passed over
 and the prefix written through the next convenient sign.”
 
 PUP p. 77: “dismiss” is two parallel horizontal lines: U+1BC86 U+1BC96?
@@ -112,7 +112,7 @@ In which case, they would have much simpler joining behavior.
 Similarly, some Romanian abbreviations incorporate an equals sign for “aceeași” and “egal”.
 “Egalitate” is an equals sign with the bottom line extended right.
 
-Similarly, a dot for English “point of view” or Romanian “punct [de vedere]”.
+Similarly, a dot for English “point of view” or Romanian “punct \[de vedere]”.
 
 Similarly, multiplication cross for Romanian “multiple”.
 

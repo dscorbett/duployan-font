@@ -291,7 +291,7 @@ U+1BC53 DUPLOYAN LETTER XW
 
 * Value: u
 * p. 25
-* When used for the sound _you,_ the phonograph must be written [...] _without
+* When used for the sound _you,_ the phonograph must be written \[...] _without
   the dot._ (p. 25)
 
 U+1BC5A DUPLOYAN LETTER OW

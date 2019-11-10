@@ -85,11 +85,11 @@ quarts-de-cercle se tracent, comme les voyelles cercles :<br>
 — à l’intérieur » » courbes. (p. 21)
 
 A la fin des mots, les voyelles grands quarts-de-cercle sont tracées de la même
-manière que les voyelles petits quarts-de-cercle [...] **u** se trace comme
+manière que les voyelles petits quarts-de-cercle \[...] **u** se trace comme
 **an-in ; eu** se trace comme **on-un.** (p. 22)
 
 Au milieu des mots les voyelles, grands quarts-de-cercle sont tracées de la même
-manière que les voyelles petits quarts-de-cercle [...] **u** se trace comme
+manière que les voyelles petits quarts-de-cercle \[...] **u** se trace comme
 **an-in ; eu** se trace comme **on-un.** (p. 23)
 
 Lorsque les consonnes enveloppantes ne forment pas un angle entre elles, les

@@ -390,7 +390,7 @@ small N
 
 * -deousness, -geousness, -tiousness, -scionness
 * -ingness
-* -[less]ness
+* -\[less]ness
 
 small S
 

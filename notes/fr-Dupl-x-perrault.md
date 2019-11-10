@@ -17,8 +17,8 @@ Au commencement des consonnes droites 𛰃 𛰈 𛰄 𛰉 𛰅 𛰊 𛰆 𛰋 ce
 toujours au-dessous, et à droite de 𛰂 𛰇 (p. 59)
 
 A la fin des mots et précédées d’une des consonnes droites 𛰂 𛰇 𛰅 𛰊 𛰄 𛰉 𛰆 𛰋 ces
-voyelles s’écrivent toujours à gauche ; ainsi la plume prend la direction du mot
-suivant. (p. 59)
+voyelles s’écrivent toujours à gauche&nbsp;; ainsi la plume prend la direction
+du mot suivant. (p. 59)
 
 Elles se tracent toujours à l’intérieur de la consonne courbe qui les précède ou
 qui les suit. (p. 59)
@@ -33,11 +33,11 @@ _O_, à la fin des mots et précédé de D ou de T ou entre TT, DD, DT, TD se tr
 descendant ↓ et _ou_ en remontant ↗. Ces positions nous permettent de distinguer
 l’_o_ de l’_ou_ sans avoir recours au point ou à la boucle. (p. 60)
 
-Après une droite ou une courbe, [_é, è, i_] sont toujours tracées sans angle ;
-quand elles sont initiales, elles se tracent également sans angle avec le signe
-qui suit. (p. 61)
+Après une droite ou une courbe, \[_é, è, i_] sont toujours tracées sans
+angle&nbsp;; quand elles sont initiales, elles se tracent également sans angle
+avec le signe qui suit. (p. 61)
 
-Quand une de [_é, è, i_] se trouve entre deux signes, droits ou courbes, elle se
+Quand une de \[_é, è, i_] se trouve entre deux signes, droits ou courbes, elle se
 trace généralement u côté du signe suivant. (p. 61)
 
 Quand le petit demi-cercle se trouve entre deux signes, il ne dois jamais faire
@@ -277,7 +277,7 @@ aussitôt
 reversed vowels
 
 * Je tracerai quelquefois ces voyelles en sens inverse pour indiquer que le mot
-est tronqué. (p. VII)
+  est tronqué. (p. VII)
 
 beaucoup mieux
 

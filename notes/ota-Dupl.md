@@ -3,7 +3,8 @@
 
 ## General remarks
 
-I don’t know Turkish and can barely make out ruq‘ah. I have surely made transcription errors.
+I don’t know Turkish and can barely make out ruq‘ah. I have surely made
+transcription errors.
 
 The O A combination has secondary orientation.
 

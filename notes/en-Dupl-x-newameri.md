@@ -267,7 +267,7 @@ oi, ow (p. 13)
 All the consonants, except L and R, M and N, may be partially shaded to
 imply an added R, (p. 14)
 
-_M_ and _L_ are [...] partially shaded to imply _T_. The same holds for
+_M_ and _L_ are \[...] partially shaded to imply _T_. The same holds for
 _N_ and _R_. (p. 16)
 
 M, S, D, V, and L may be made double-length simply to double the letter;

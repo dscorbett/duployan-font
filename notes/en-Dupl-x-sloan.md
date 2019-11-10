@@ -21,14 +21,14 @@ The oval vowel is written in line with the preceding stroke (p. 9)
 The down slope of k and g is the same from “b” as the up slope l and r is from
 “d.” (p. 13)
 
-Circles and hooks are turned inside of curves for their normal positions [...]
+Circles and hooks are turned inside of curves for their normal positions \[...]
 In a few cases where inconvenient to turn the hook inside it may be turned
-outside [...] When a circle comes between two curves it is turned inside the
-first curve [...] When a hook comes between two curves the hook and second curve
-are traced together with one motion [...] When a hook comes between a straight
-stroke and a curve, the hook and curve are traced together with one motion [...]
-In certain combinations the hook is indicated by projecting part of the curve
-into the straight stroke, as: leas 𛰆𛱎𛰜 green 𛰊𛲝𛱎𛰚 (p. 19)
+outside \[...] When a circle comes between two curves it is turned inside the
+first curve \[...] When a hook comes between two curves the hook and second
+curve are traced together with one motion \[...] When a hook comes between a
+straight stroke and a curve, the hook and curve are traced together with one
+motion \[...] In certain combinations the hook is indicated by projecting part
+of the curve into the straight stroke, as: leas 𛰆𛱎𛰜 green 𛰊𛲝𛱎𛰚 (p. 19)
 
 Circles and hooks are turned inside of quadrants for their normal positions (p.
 24)
@@ -37,11 +37,11 @@ It is expedient to write the “up” quadrants at a slightly greater angle from
 vertical than the corresponding “down” letters (p. 23)
 
 Initial small quadrant signs must make the sharpest possible angle with the sign
-which follows [...]. Medial or final small quadrants must make the sharpest
+which follows \[...]. Medial or final small quadrants must make the sharpest
 possible angle with the preceding sign (p. 27)
 
-When “r” follows [...] the only signs thickened to prefix “r” [...], the “r” is
-indicated by placing the vowel outside the curve. (p. 37)
+When “r” follows \[...] the only signs thickened to prefix “r” \[...], the “r”
+is indicated by placing the vowel outside the curve. (p. 37)
 
 In combinations such as 𛰜𛱇𛰂 the “r” is indicated by producing an angle (p. 37)
 
@@ -132,7 +132,7 @@ U+2E3C STENOGRAPHIC FULL STOP
 
 * Value: .
 * The cross ⸼, which is used to indicate a period, may be placed in position
-  [i.e. after an up or down step] to denote the vowel-sound at the end of a
+  \[i.e. after an up or down step] to denote the vowel-sound at the end of a
   sentence (RR&A p. 25)
 
 U+1BC00 DUPLOYAN LETTER H

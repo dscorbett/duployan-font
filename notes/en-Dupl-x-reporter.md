@@ -417,7 +417,7 @@ joining dot
   preserve the symmetry of the writing, and at the same time promote rapidity,
   the first consonant may be written in full and the second indicated by a
   sudden pressure of the pen or pencil upon the end of the first consonant;
-  [...] Similar consonants traced in a horizontal direction may be abbreviated
+  \[...] Similar consonants traced in a horizontal direction may be abbreviated
   in the same manner with advantage;” (p. 22)
 * UTN #37 recommends using ZWJ between the two normal consonant letters. This is
   not a good idea.
@@ -425,15 +425,15 @@ joining dot
 l/r following l/r
 
 * “Final _r_ may therefore be indicated by a slight upward tick inclining to the
-  left; [...] and final _l_ by a slight upward tick to the right; [...]. These
+  left; \[...] and final _l_ by a slight upward tick to the right; \[...]. These
   ticks must be made by the lightest possible drop of the pen, very short, so as
   not to be confounded with _i_, and written in a straight, inclined direction,
   so as not to be mistaken for any of the Nasal Combinations. When a word
   terminates in _l_ or _r_ which contains a similar sign either at the beginning
   or in the middle of the word, the final _l_ or _r_ may also be indicated by
-  the tick sign; [...] If care is taken in the formation of the tick signs, they
-  may also be introduced into words containing the upward strokes which do not
-  terminate the word;” (p. 23)
+  the tick sign; \[...] If care is taken in the formation of the tick signs,
+  they may also be introduced into words containing the upward strokes which do
+  not terminate the word;” (p. 23)
 * UTN #37 recommends variation sequences, which the UTC did not accept.
 
 “above”, “below” (p. 32)

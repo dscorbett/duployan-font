@@ -229,7 +229,7 @@ U+2044 FRACTION SLASH
 U+20DD COMBINING ENCLOSING CIRCLE
 
 * Value: clarification mark for punctuation
-* Celelalte semne [...] se vor folosi numai în cazuri cu **totul deosebite** și
+* Celelalte semne \[...] se vor folosi numai în cazuri cu **totul deosebite** și
   atunci le vom încercui pentru a nu le confunda. (SFP p. 50)
 
 U+2212 MINUS SIGN
@@ -580,7 +580,7 @@ e (SFP pp. 80–81, 83–85)
 
 ou (SFP p. 94)
 
-* “Ouăle” (SFP p. 107) is “ou ZWNJ l e”; cf. “multiple” (SFP p. 167): “× l e”.
+* “Ouăle” (SFP p. 107) is “ou ZWNJ l e”; cf. “multiple” (SFP p. 167): “× l e”.
 * According to UTN #37 “o” ligates with final “u” to form an ellipse. The
   distinction, however, seems not to be final vs. non-final but diphthong vs.
   sequence with hiatus.
@@ -594,7 +594,9 @@ ou (SFP p. 94)
 ge, ce s
 
 * They can’t both be U+1BC29 DUPLOYAN LETTER J S.
-* De asemenea, tăind la fel o elipsă, se obțin două jumătăți de oval din care cea cu deschizătura în jos va reprezenta consoana _ge_, iar cea cu deschizătura în sus consoana _ț_: (SDSD p. 25)
+* De asemenea, tăind la fel o elipsă, se obțin două jumătăți de oval din care
+  cea cu deschizătura în jos va reprezenta consoana _ge_, iar cea cu
+  deschizătura în sus consoana _ț_: (SDSD p. 25)
 * un _ce_ stenografic dublu se citește _ces_ (jes, ges), (SDSD p. 88)
 
 puncte (EPC p. 241)
