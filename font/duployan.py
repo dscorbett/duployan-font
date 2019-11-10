@@ -391,7 +391,7 @@ class Line(Shape):
             if joining_type != Type.NON_JOINING:
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
-            if size == 2 and self.angle == 30:
+            if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * stroke_width, -stroke_width)
                 glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * stroke_width, -stroke_width)
@@ -2165,12 +2165,12 @@ P = Line(270)
 P_REVERSE = Line(90)
 T = Line(0)
 T_REVERSE = Line(180)
-F = Line(315)
-F_REVERSE = Line(135)
+F = Line(300)
+F_REVERSE = Line(120)
 K = Line(240)
 K_REVERSE = Line(60)
-L = Line(30)
-L_REVERSE = Line(210)
+L = Line(45)
+L_REVERSE = Line(225)
 L_SHALLOW = Line(25)
 M = Curve(180, 0, False, 0.2)
 M_REVERSE = Curve(180, 0, True, 0.2)
