@@ -912,6 +912,8 @@ class Schema:
         (r'\b(QUAD|SPACE)\b', 'SP'),
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
+        (r'\bCHINOOK\b', 'CHN'),
+        (r'\bROMANIAN\b', 'RO'),
         (r' (WITH|AND) ', ' '),
         (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
         (r'[ -]+', ''),
