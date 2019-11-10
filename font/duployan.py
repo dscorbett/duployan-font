@@ -21,6 +21,7 @@ import math
 import re
 import unicodedata
 
+import fontforge
 import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
@@ -97,6 +98,9 @@ class Shape:
 
     def is_shadable(self):
         return False
+
+    def contextualize(self, context_in, context_out):
+        raise NotImplementedError
 
     def context_in(self):
         raise NotImplementedError
@@ -775,6 +779,95 @@ class Hook(Shape):
 
     def context_out(self):
         return Context(self.angle, self.clockwise)
+
+class Complex(Shape):
+    def __init__(self, components):
+        self.components = components
+
+    def clone(
+        self,
+        *,
+        components=CLONE_DEFAULT,
+    ):
+        return Complex(
+            self.components if components is CLONE_DEFAULT else components,
+        )
+
+    def __str__(self):
+        return f'''W.{
+            '.'.join(map(str, self.components))
+        }'''
+
+    class Proxy:
+        def __init__(self):
+            self.anchor_points = collections.defaultdict(list)
+            self.contour = fontforge.contour()
+
+        def addAnchorPoint(self, anchor_class_name, anchor_type, x, y):
+            self.anchor_points[(anchor_class_name, anchor_type)].append((x, y))
+
+        def stroke(self, *args):
+            pass
+
+        def transform(self, matrix, *args):
+            for anchor, points in self.anchor_points.items():
+                for i, x_y in enumerate(points):
+                    new_point = fontforge.point(*x_y).transform(matrix)
+                    self.anchor_points[anchor][i] = (new_point.x, new_point.y)
+            self.contour.transform(matrix)
+
+        def moveTo(self, x_y):
+            self.contour.moveTo(*x_y)
+
+        def lineTo(self, x_y):
+            self.contour.lineTo(*x_y)
+
+        def curveTo(self, cp1, cp2, x_y):
+            self.contour.cubicTo(cp1, cp2, x_y)
+
+        def endPath(self):
+            pass
+
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+        first_entry = None
+        last_exit = None
+        last_rel1 = None
+        for component in self.components:
+            proxy = Complex.Proxy()
+            component(proxy, proxy, stroke_width, size, anchor, joining_type)
+            entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
+            assert len(entry_list) == 1
+            if first_entry is None:
+                first_entry = entry_list[0]
+            else:
+                proxy.transform(psMat.translate(
+                    last_exit[0] - entry_list[0][0],
+                    last_exit[1] - entry_list[0][1],
+                ))
+            proxy.contour.draw(pen)
+            rel1_list = proxy.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
+            assert len(rel1_list) == 1
+            last_rel1 = rel1_list[0]
+            exit_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'exit')]
+            assert len(exit_list) == 1
+            last_exit = exit_list[0]
+        glyph.stroke('circular', stroke_width, 'round')
+        glyph.removeOverlap()
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
+        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *last_rel1)
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + 2 * stroke_width)
+        glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - 2 * stroke_width)
+
+    def is_shadable(self):
+        return all(c.is_shadable() for c in self.components)
+
+    def context_in(self):
+        return self.components[0].context_in()
+
+    def context_out(self):
+        return self.components[-1].context_out()
 
 class Style(enum.Enum):
     PERNIN = enum.auto()
@@ -2071,7 +2164,6 @@ M_S = Curve(180, 0, False, 0.8)
 N_S = Curve(0, 180, True, 0.8)
 J_S = Curve(90, 270, True, 0.8)
 S_S = Curve(270, 90, False, 0.8)
-J_N = Curve(90, 180, True)
 S_T = Curve(270, 0, False)
 S_P = Curve(270, 180, True)
 T_S = Curve(0, 270, True)
@@ -2079,8 +2171,10 @@ W = Curve(180, 270, False)
 S_N = Curve(0, 90, False)
 K_R_S = Curve(90, 180, False)
 S_K = Curve(90, 0, True)
+J_N = Complex([S_K, N])
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
+U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
@@ -2207,7 +2301,7 @@ SCHEMAS = [
     Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC51, S_T, 2, Type.ORIENTING),
     Schema(0x1BC53, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC54, J_N, 4),
+    Schema(0x1BC54, U_N, 4),
     Schema(0x1BC55, LONG_U, 2),
     Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING),
     Schema(0x1BC57, UH, 2, Type.ORIENTING),
