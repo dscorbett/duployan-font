@@ -203,23 +203,34 @@ class CursiveWidthDigit(Shape):
         return True
 
 class Space(Shape):
-    def __init__(self, angle):
+    def __init__(self, angle, with_margin=True):
         self.angle = angle
+        self.with_margin = with_margin
 
     def clone(
         self,
         *,
-        angle=CLONE_DEFAULT
+        angle=CLONE_DEFAULT,
+        with_margin=CLONE_DEFAULT,
     ):
-        return Space(self.angle if angle is CLONE_DEFAULT else angle)
+        return Space(
+            self.angle if angle is CLONE_DEFAULT else angle,
+            self.with_margin if with_margin is CLONE_DEFAULT else with_margin,
+        )
 
     def __str__(self):
         return 'Z.{}'.format(int(self.angle))
 
+    def group(self):
+        return (
+            self.angle,
+            self.with_margin,
+        )
+
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + 2 * DEFAULT_SIDE_BEARING + stroke_width), 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.with_margin * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
     def context_in(self):
@@ -837,7 +848,7 @@ class Complex(Shape):
         last_rel1 = None
         for scalar, component in self.components:
             proxy = Complex.Proxy()
-            component(proxy, proxy, stroke_width, scalar * size, anchor, joining_type)
+            component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if first_entry is None:
@@ -849,15 +860,17 @@ class Complex(Shape):
                 ))
             proxy.contour.draw(pen)
             rel1_list = proxy.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
-            assert len(rel1_list) == 1
-            last_rel1 = rel1_list[0]
+            assert len(rel1_list) <= 1
+            if rel1_list:
+                last_rel1 = rel1_list[0]
             exit_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'exit')]
             assert len(exit_list) == 1
             last_exit = exit_list[0]
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
-        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
+        if joining_type != Type.NON_JOINING:
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *last_rel1)
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + 2 * stroke_width)
@@ -891,6 +904,7 @@ class Schema:
         (r'^MEDIUM MATHEMATICAL SPACE$', 'MMSP'),
         (r'^WORD JOINER$', 'WJ'),
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
+        (r'^DUPLOYAN SIGN O WITH CROSS$', 'LIKALISTI'),
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
@@ -2182,6 +2196,7 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
+LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
 OVERLAP = Overlap('u1BCA0', False, False)
 CONTINUING_OVERLAP = Overlap('u1BCA1', True, False)
@@ -2317,6 +2332,7 @@ SCHEMAS = [
     Schema(0x1BC66, W, 2, Type.ORIENTING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, N_REVERSE, 6),
+    Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
     Schema(0x1BC9D, DTLS, 0),
     Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
