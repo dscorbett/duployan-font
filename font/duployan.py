@@ -910,6 +910,7 @@ class Schema:
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
         (r'\b(QUAD|SPACE)\b', 'SP'),
+        (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
         (r' (WITH|AND) ', ' '),
         (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
