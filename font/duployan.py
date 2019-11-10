@@ -2156,6 +2156,7 @@ GLYPH_PHASES = [
 
 SPACE = Space(0)
 H = Dot()
+X = Complex([(0.288, Line(73, True)), (0.168, Line(152, True)), (0.288, Line(73, True))])
 P = Line(270)
 P_REVERSE = Line(90)
 T = Line(0)
@@ -2244,6 +2245,7 @@ SCHEMAS = [
     Schema(0xEC1C, S_REVERSE, 6),
     Schema(0xFEFF, SPACE, 0, side_bearing=0, ignored=True),
     Schema(0x1BC00, H, 1),
+    Schema(0x1BC01, X, 1, Type.NON_JOINING),
     Schema(0x1BC02, P, 1),
     Schema(0x1BC03, T, 1),
     Schema(0x1BC04, F, 1),
