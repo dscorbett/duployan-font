@@ -507,7 +507,7 @@ class Curve(Shape):
         glyph.stroke('circular', stroke_width, 'round')
 
     def is_shadable(self):
-        return False
+        return True
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
