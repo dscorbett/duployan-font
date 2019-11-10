@@ -910,6 +910,7 @@ class Schema:
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
         (r'\b(QUAD|SPACE)\b', 'SP'),
+        (r'\bFULL STOP\b', 'PERIOD'),
         (r' (WITH|AND) ', ' '),
         (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
         (r'[ -]+', ''),
@@ -2198,6 +2199,7 @@ ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
+CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
 OVERLAP = Overlap('u1BCA0', False, False)
 CONTINUING_OVERLAP = Overlap('u1BCA1', True, False)
 DOWN_STEP = Step('u1BCA2', 270)
@@ -2334,6 +2336,7 @@ SCHEMAS = [
     Schema(0x1BC79, N_REVERSE, 6),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
     Schema(0x1BC9D, DTLS, 0),
+    Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
     Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
