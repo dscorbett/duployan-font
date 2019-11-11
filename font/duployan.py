@@ -792,16 +792,22 @@ class Hook(Shape):
         return Context(self.angle, self.clockwise)
 
 class Complex(Shape):
-    def __init__(self, components):
+    def __init__(self, components, _is_curve=None):
         self.components = components
+        if _is_curve is None:
+            self._is_curve = tuple(isinstance(c[1], Curve) for c in components)
+        else:
+            self._is_curve = _is_curve
 
     def clone(
         self,
         *,
         components=CLONE_DEFAULT,
+        _is_curve=CLONE_DEFAULT,
     ):
         return Complex(
             self.components if components is CLONE_DEFAULT else components,
+            self._is_curve if _is_curve is CLONE_DEFAULT else _is_curve,
         )
 
     def __str__(self):
@@ -810,7 +816,10 @@ class Complex(Shape):
         }'''
 
     def group(self):
-        return tuple((c[0], c[1].group()) for c in self.components)
+        return (
+            tuple((c[0], c[1].group()) for c in self.components),
+            self._is_curve,
+        )
 
     class Proxy:
         def __init__(self):
@@ -878,6 +887,19 @@ class Complex(Shape):
 
     def is_shadable(self):
         return all(c[1].is_shadable() for c in self.components)
+
+    def contextualize(self, context_in, context_out):
+        components = []
+        prev_was_curve = False
+        for is_curve, (scalar, component) in zip(self._is_curve, self.components):
+            component = component.contextualize(context_in, context_out)
+            clockwise = context_in.clockwise != prev_was_curve
+            if context_in.clockwise is not None and clockwise != component.context_out().clockwise:
+                component = component.clone(clockwise=clockwise)
+            components.append((scalar, component))
+            context_in = component.context_out()
+            prev_was_curve = is_curve
+        return self.clone(components=components)
 
     def context_in(self):
         return self.components[0][1].context_in()
@@ -2202,6 +2224,8 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
+WI = Complex([(4, Circle(180, 180, False, False)), (5 / 3, M)])
+WEI = Complex([(4, Circle(180, 180, False, False)), (1, M), (1, N)])
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
@@ -2338,6 +2362,8 @@ SCHEMAS = [
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC5E, WI, 1, Type.ORIENTING),
+    Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
     Schema(0x1BC65, S_P, 2, Type.ORIENTING),
     Schema(0x1BC66, W, 2, Type.ORIENTING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
