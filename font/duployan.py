@@ -43,6 +43,7 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
+MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
 
@@ -1063,7 +1064,7 @@ class Schema:
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
-    def calculate_name(self):
+    def _calculate_name(self):
         if self.path.name_is_enough():
             return str(self.path)
         def get_names(cp):
@@ -1102,7 +1103,9 @@ class Schema:
             if self is not canonical:
                 self._glyph_name = str(canonical)
             else:
-                name = self.calculate_name()
+                name = self._calculate_name()
+                while len(name) > MAX_GLYPH_NAME_LENGTH:
+                    name = name.rsplit('.', 1)[0]
                 if name in self._canonical_names:
                     if self not in self._canonical_names[name]:
                         self._canonical_names[name].append(self)
