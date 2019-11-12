@@ -2223,6 +2223,7 @@ J_N = Complex([(1, S_K), (1, N)])
 J_N_S = Complex([(3, S_K), (4, N_S)])
 O = Circle(0, 0, False, False)
 O_REVERSE = Circle(0, 0, True, True)
+YE = Complex([(0.47, T), (0.385, Line(242, True)), (0.47, T), (0.385, Line(242, True)), (0.47, T), (0.385, Line(242, True)), (0.47, T)])
 U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
@@ -2356,6 +2357,7 @@ SCHEMAS = [
     Schema(0x1BC4C, S, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, S, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC50, YE, 1),
     Schema(0x1BC51, S_T, 2, Type.ORIENTING),
     Schema(0x1BC53, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, U_N, 4),
