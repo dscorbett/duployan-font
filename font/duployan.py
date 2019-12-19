@@ -1,4 +1,5 @@
 # Copyright 2018-2019 David Corbett
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -2230,6 +2231,8 @@ ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
 WI = Complex([(4, Circle(180, 180, False, False)), (5 / 3, M)])
 WEI = Complex([(4, Circle(180, 180, False, False)), (1, M), (1, N)])
+RTL_SECANT = Line(240, True)
+LTR_SECANT = Line(330, True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
@@ -2359,6 +2362,7 @@ SCHEMAS = [
     Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC50, YE, 1),
     Schema(0x1BC51, S_T, 2, Type.ORIENTING),
+    Schema(0x1BC52, S_P, 2, Type.ORIENTING),
     Schema(0x1BC53, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, U_N, 4),
     Schema(0x1BC55, LONG_U, 2),
@@ -2369,8 +2373,23 @@ SCHEMAS = [
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC5E, WI, 1, Type.ORIENTING),
     Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
+    Schema(0x1BC61, S_T, 2, Type.ORIENTING),
+    Schema(0x1BC62, S_N, 2, Type.ORIENTING),
+    Schema(0x1BC63, T_S, 2, Type.ORIENTING),
+    Schema(0x1BC64, S_K, 2, Type.ORIENTING),
     Schema(0x1BC65, S_P, 2, Type.ORIENTING),
     Schema(0x1BC66, W, 2, Type.ORIENTING),
+    Schema(0x1BC67, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC70, T, 2, Type.NON_JOINING),
+    Schema(0x1BC71, T, 2, Type.NON_JOINING),
+    Schema(0x1BC72, T, 2, Type.NON_JOINING),
+    Schema(0x1BC73, P, 2, Type.NON_JOINING),
+    Schema(0x1BC74, P, 2, Type.NON_JOINING),
+    Schema(0x1BC75, P, 2, Type.NON_JOINING),
+    Schema(0x1BC76, RTL_SECANT, 1, Type.NON_JOINING),
+    Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, TAIL, 1),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
