@@ -60,6 +60,17 @@ class Context:
         self.angle = angle
         self.clockwise = clockwise
 
+    def clone(
+        self,
+        *,
+        angle=CLONE_DEFAULT,
+        clockwise=CLONE_DEFAULT,
+    ):
+        return Context(
+            self.angle if angle is CLONE_DEFAULT else angle,
+            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+        )
+
     def __repr__(self):
         return 'Context({}, {})'.format(self.angle, self.clockwise)
 
@@ -798,33 +809,26 @@ class Hook(Shape):
         return Context(self.angle, self.clockwise)
 
 class Complex(Shape):
-    def __init__(self, components, _is_curve=None):
-        self.components = components
-        if _is_curve is None:
-            self._is_curve = tuple(isinstance(c[1], Curve) for c in components)
-        else:
-            self._is_curve = _is_curve
+    def __init__(self, instructions):
+        self.instructions = instructions
 
     def clone(
         self,
         *,
-        components=CLONE_DEFAULT,
-        _is_curve=CLONE_DEFAULT,
+        instructions=CLONE_DEFAULT,
     ):
         return Complex(
-            self.components if components is CLONE_DEFAULT else components,
-            self._is_curve if _is_curve is CLONE_DEFAULT else _is_curve,
+            self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
     def __str__(self):
         return f'''W.{
-            '.'.join(f"{c[1]}.{int(c[0])}" for c in self.components)
+            '.'.join(f"{op[1]}.{int(op[0])}" for op in self.instructions if not callable(op))
         }'''
 
     def group(self):
         return (
-            tuple((c[0], c[1].group()) for c in self.components),
-            self._is_curve,
+            tuple(op if callable(op) else (op[0], op[1].group()) for op in self.instructions),
         )
 
     class Proxy:
@@ -861,7 +865,10 @@ class Complex(Shape):
         first_entry = None
         last_exit = None
         last_rel1 = None
-        for scalar, component in self.components:
+        for op in self.instructions:
+            if callable(op):
+                continue
+            scalar, component = op
             proxy = Complex.Proxy()
             component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
@@ -892,26 +899,32 @@ class Complex(Shape):
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - 2 * stroke_width)
 
     def is_shadable(self):
-        return all(c[1].is_shadable() for c in self.components)
+        return all(callable(op) or op[1].is_shadable() for op in self.instructions)
 
     def contextualize(self, context_in, context_out):
-        components = []
-        prev_was_curve = False
-        for is_curve, (scalar, component) in zip(self._is_curve, self.components):
-            component = component.contextualize(context_in, context_out)
-            clockwise = context_in.clockwise != prev_was_curve
-            if context_in.clockwise is not None and clockwise != component.context_out().clockwise:
-                component = component.clone(clockwise=clockwise)
-            components.append((scalar, component))
-            context_in = component.context_out()
-            prev_was_curve = is_curve
-        return self.clone(components=components)
+        instructions = []
+        forced_context_in = None
+        for op in self.instructions:
+            if callable(op):
+                forced_context_in = op(forced_context_in or context_in)
+                instructions.append(op)
+            else:
+                scalar, component = op
+                component = component.contextualize(context_in, context_out)
+                if forced_context_in is not None:
+                    component = component.clone(angle_in=forced_context_in.angle, clockwise=forced_context_in.clockwise)
+                instructions.append((scalar, component))
+                context_in = component.context_out()
+                if forced_context_in is not None:
+                    assert component.context_in() == forced_context_in, f'{component.context_in()} != {forced_context_in}'
+                    forced_context_in = None
+        return self.clone(instructions=instructions)
 
     def context_in(self):
-        return self.components[0][1].context_in()
+        return self.instructions[0][1].context_in()
 
     def context_out(self):
-        return self.components[-1][1].context_out()
+        return self.instructions[-1][1].context_out()
 
 class Style(enum.Enum):
     PERNIN = enum.auto()
@@ -2233,8 +2246,8 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
-WI = Complex([(4, Circle(180, 180, False, False)), (5 / 3, M)])
-WEI = Complex([(4, Circle(180, 180, False, False)), (1, M), (1, N)])
+WI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (5 / 3, M)])
+WEI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
 RTL_SECANT = Line(240, True)
 LTR_SECANT = Line(330, True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
