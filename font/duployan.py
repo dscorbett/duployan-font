@@ -2238,6 +2238,25 @@ WEI = Complex([(4, Circle(180, 180, False, False)), (1, M), (1, N)])
 RTL_SECANT = Line(240, True)
 LTR_SECANT = Line(330, True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
+HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, True))])
+HIGH_TIGHT_ACUTE = Complex([(82, Space(90)), (0.5, Line(45, True))])
+HIGH_GRAVE = Complex([(333, Space(90)), (0.5, Line(135, True))])
+HIGH_LONG_GRAVE = Complex([(333, Space(90)), (0.75, Line(180, True)), (0.4, Line(120, True))])
+HIGH_DOT = Complex([(333, Space(90)), (0.5, O)])
+HIGH_CIRCLE = Complex([(333, Space(90)), (2, O)])
+HIGH_LINE = Complex([(333, Space(90)), (0.5, Line(180, True))])
+HIGH_WAVE = Complex([(333, Space(90)), (2, Curve(270, 45, False)), (RADIUS * math.sqrt(2) / 500, Line(45, True)), (2, Curve(45, 270, True))])
+HIGH_VERTICAL = Complex([(333, Space(90)), (0.5, Line(90, True))])
+LOW_ACUTE = Complex([(333, Space(270)), (0.5, Line(45, True))])
+LOW_TIGHT_ACUTE = Complex([(82, Space(270)), (0.5, Line(45, True))])
+LOW_GRAVE = Complex([(333, Space(270)), (0.5, Line(135, True))])
+LOW_LONG_GRAVE = Complex([(333, Space(270)), (0.75, Line(180, True)), (0.4, Line(120, True))])
+LOW_DOT = Complex([(333, Space(270)), (0.5, O)])
+LOW_CIRCLE = Complex([(333, Space(270)), (2, O)])
+LOW_LINE = Complex([(333, Space(270)), (0.5, Line(180, True))])
+LOW_WAVE = Complex([(333, Space(270)), (2, Curve(270, 45, False)), (RADIUS * math.sqrt(2) / 500, Line(45, True)), (2, Curve(45, 270, True))])
+LOW_VERTICAL = Complex([(333, Space(270)), (0.5, Line(90, True))])
+LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, True)), (0.4, Line(240, True))])
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
 CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
@@ -2397,6 +2416,25 @@ SCHEMAS = [
     Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, TAIL, 1),
+    Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
+    Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
+    Schema(0x1BC82, HIGH_GRAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC83, HIGH_LONG_GRAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC84, HIGH_DOT, 1, Type.NON_JOINING),
+    Schema(0x1BC85, HIGH_CIRCLE, 1, Type.NON_JOINING),
+    Schema(0x1BC86, HIGH_LINE, 1, Type.NON_JOINING),
+    Schema(0x1BC87, HIGH_WAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC88, HIGH_VERTICAL, 1, Type.NON_JOINING),
+    Schema(0x1BC90, LOW_ACUTE, 1, Type.NON_JOINING),
+    Schema(0x1BC91, LOW_TIGHT_ACUTE, 1, Type.NON_JOINING),
+    Schema(0x1BC92, LOW_GRAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC93, LOW_LONG_GRAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC94, LOW_DOT, 1, Type.NON_JOINING),
+    Schema(0x1BC95, LOW_CIRCLE, 1, Type.NON_JOINING),
+    Schema(0x1BC96, LOW_LINE, 1, Type.NON_JOINING),
+    Schema(0x1BC97, LOW_WAVE, 1, Type.NON_JOINING),
+    Schema(0x1BC98, LOW_VERTICAL, 1, Type.NON_JOINING),
+    Schema(0x1BC99, LOW_ARROW, 1, Type.NON_JOINING),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
     Schema(0x1BC9D, DTLS, 0),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
