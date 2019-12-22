@@ -398,7 +398,11 @@ class Line(Shape):
                 glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * stroke_width, -stroke_width)
                 glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * stroke_width, -stroke_width)
             else:
-                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, stroke_width)
+                if size == 1 and self.angle == 240:
+                    # Special case for U+1BC4F DUPLOYAN LETTER LONG I
+                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', -2 * stroke_width, 0)
+                else:
+                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, stroke_width)
                 glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -stroke_width)
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
             glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
@@ -2360,6 +2364,7 @@ SCHEMAS = [
     Schema(0x1BC4C, S, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, S, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC4F, K, 1, marks=[DOT_1]),
     Schema(0x1BC50, YE, 1),
     Schema(0x1BC51, S_T, 2, Type.ORIENTING),
     Schema(0x1BC52, S_P, 2, Type.ORIENTING),
