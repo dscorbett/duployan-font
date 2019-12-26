@@ -640,7 +640,9 @@ class Circle(Shape):
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-        glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
+        else:
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
 
     def is_shadable(self):
@@ -809,16 +811,22 @@ class Hook(Shape):
         return Context(self.angle, self.clockwise)
 
 class Complex(Shape):
-    def __init__(self, instructions):
+    def __init__(self, instructions, _all_circles=None):
         self.instructions = instructions
+        if _all_circles is None:
+            self._all_circles = all(not callable(op) and isinstance(op[1], Circle) for op in self.instructions)
+        else:
+            self._all_circles = _all_circles
 
     def clone(
         self,
         *,
         instructions=CLONE_DEFAULT,
+        _all_circles=CLONE_DEFAULT,
     ):
         return Complex(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
+            self._all_circles if _all_circles is CLONE_DEFAULT else _all_circles,
         )
 
     def __str__(self):
@@ -828,7 +836,8 @@ class Complex(Shape):
 
     def group(self):
         return (
-            tuple(op if callable(op) else (op[0], op[1].group()) for op in self.instructions),
+            *((op[0], op[1].group()) for op in self.instructions if not callable(op)),
+            self._all_circles,
         )
 
     class Proxy:
@@ -861,10 +870,45 @@ class Complex(Shape):
         def endPath(self):
             pass
 
+        def _get_crossing_point(self, component):
+            entry_list = self.anchor_points[(CURSIVE_ANCHOR, 'entry')]
+            assert len(entry_list) == 1
+            if component.angle_in == component.angle_out:
+                return entry_list[0]
+            exit_list = self.anchor_points[(CURSIVE_ANCHOR, 'exit')]
+            assert len(exit_list) == 1
+            if isinstance(component, Circle):
+                rel1_list = self.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
+                assert len(rel1_list) == 1
+                rel2_list = self.anchor_points[(RELATIVE_2_ANCHOR, 'base')]
+                assert len(rel2_list) == 1
+                r = math.hypot(entry_list[0][1] - rel1_list[0][1], entry_list[0][0] - rel1_list[0][0])
+                theta = math.atan2(rel2_list[0][1] - rel1_list[0][1], rel2_list[0][0] - rel1_list[0][0])
+                return rect(r, theta)
+            asx = entry_list[0][0]
+            asy = entry_list[0][1]
+            bsx = exit_list[0][0]
+            bsy = exit_list[0][1]
+            adx = math.cos(math.radians(component.angle_in))
+            ady = math.sin(math.radians(component.angle_in))
+            bdx = math.cos(math.radians(component.angle_out))
+            bdy = math.sin(math.radians(component.angle_out))
+            dx = bsx - asx
+            dy = bsy - asy
+            det = bdx * ady - bdy * adx
+            if abs(det) < EPSILON:
+                return 0, 0
+            u = (dy * bdx - dx * bdy) / det
+            v = (dy * adx - dx * ady) / det
+            px = asx + adx * u
+            py = asy + ady * u
+            return px, py
+
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         first_entry = None
         last_exit = None
         last_rel1 = None
+        last_crossing_point = False
         for op in self.instructions:
             if callable(op):
                 continue
@@ -873,13 +917,24 @@ class Complex(Shape):
             component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
-            if first_entry is None:
-                first_entry = entry_list[0]
+            if self._all_circles and last_crossing_point is not None:
+                this_point = proxy._get_crossing_point(component)
+                if first_entry is None:
+                    first_entry = entry_list[0]
+                else:
+                    proxy.transform(psMat.translate(
+                        last_crossing_point[0] - this_point[0],
+                        last_crossing_point[1] - this_point[1],
+                    ))
             else:
-                proxy.transform(psMat.translate(
-                    last_exit[0] - entry_list[0][0],
-                    last_exit[1] - entry_list[0][1],
-                ))
+                this_point = entry_list[0]
+                if first_entry is None:
+                    first_entry = this_point
+                else:
+                    proxy.transform(psMat.translate(
+                        last_exit[0] - this_point[0],
+                        last_exit[1] - this_point[1],
+                    ))
             proxy.contour.draw(pen)
             rel1_list = proxy.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
             assert len(rel1_list) <= 1
@@ -887,7 +942,13 @@ class Complex(Shape):
                 last_rel1 = rel1_list[0]
             exit_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'exit')]
             assert len(exit_list) == 1
-            last_exit = exit_list[0]
+            if self._all_circles:
+                last_crossing_point = this_point
+                if last_exit is None:
+                    last_exit = exit_list[0]
+            else:
+                last_exit = exit_list[0]
+                last_crossing_point = None
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
         if joining_type != Type.NON_JOINING:
@@ -903,21 +964,26 @@ class Complex(Shape):
 
     def contextualize(self, context_in, context_out):
         instructions = []
-        forced_context_in = None
-        for op in self.instructions:
-            if callable(op):
-                forced_context_in = op(forced_context_in or context_in)
-                instructions.append(op)
-            else:
-                scalar, component = op
+        if self._all_circles:
+            for scalar, component in self.instructions:
                 component = component.contextualize(context_in, context_out)
-                if forced_context_in is not None:
-                    component = component.clone(angle_in=forced_context_in.angle, clockwise=forced_context_in.clockwise)
                 instructions.append((scalar, component))
-                context_in = component.context_out()
-                if forced_context_in is not None:
-                    assert component.context_in() == forced_context_in, f'{component.context_in()} != {forced_context_in}'
-                    forced_context_in = None
+        else:
+            forced_context_in = None
+            for op in self.instructions:
+                if callable(op):
+                    forced_context_in = op(forced_context_in or context_in)
+                    instructions.append(op)
+                else:
+                    scalar, component = op
+                    component = component.contextualize(context_in, context_out)
+                    if forced_context_in is not None:
+                        component = component.clone(angle_in=forced_context_in.angle, clockwise=forced_context_in.clockwise)
+                    instructions.append((scalar, component))
+                    context_in = component.context_out()
+                    if forced_context_in is not None:
+                        assert component.context_in() == forced_context_in, f'{component.context_in()} != {forced_context_in}'
+                        forced_context_in = None
         return self.clone(instructions=instructions)
 
     def context_in(self):
@@ -2246,6 +2312,8 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Hook(180, False)
 UH = Circle(45, 45, False, False, 2)
+WA = Complex([(4, Circle(180, 180, False, False)), (2, Circle(180, 180, False, False))])
+WO = Complex([(4, Circle(180, 180, False, False)), (2.5, Circle(180, 180, False, False))])
 WI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (5 / 3, M)])
 WEI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
 RTL_SECANT = Line(240, True)
@@ -2408,8 +2476,11 @@ SCHEMAS = [
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
+    #Schema(0x1BC5C, WA, 1, Type.ORIENTING),
+    Schema(0x1BC5D, WO, 1, Type.ORIENTING),
     Schema(0x1BC5E, WI, 1, Type.ORIENTING),
     Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
+    Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC61, S_T, 2, Type.ORIENTING),
     Schema(0x1BC62, S_N, 2, Type.ORIENTING),
     Schema(0x1BC63, T_S, 2, Type.ORIENTING),
