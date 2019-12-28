@@ -388,6 +388,12 @@ class Line(Shape):
     def __str__(self):
         return 'L.{}'.format(int(self.angle))
 
+    def group(self):
+        return (
+            self.angle,
+            self.fixed_length,
+        )
+
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         pen.moveTo((0, 0))
         if self.fixed_length:
@@ -732,6 +738,13 @@ class Hook(Shape):
         }.{
             'out' if self.outward else 'in'
         }'''
+
+    def group(self):
+        return (
+            self.angle,
+            self.clockwise,
+            self.outward,
+        )
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         assert anchor is None
