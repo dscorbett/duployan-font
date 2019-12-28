@@ -1086,6 +1086,7 @@ class Schema:
     def sort_key(self):
         return (
             self.cp == -1,
+            -1 in self.cps,
             len(self.cps),
             self.ss,
             self._original_shape != type(self.path),
@@ -1656,10 +1657,12 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
     for base_context in base_contexts:
         if base_context in new_base_contexts:
             anchor, angle = base_context
+            output_class_name = f'rd_o_{anchor}_{angle}'.replace('.', '__')
             for target_schema in classes['rd_i_' + str(anchor)]:
                 if anchor == target_schema.anchor:
                     output_schema = target_schema.rotate_diacritic(angle)
-                    add_rule(lookup, Rule('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], [output_schema]))
+                    classes[output_class_name].append(output_schema)
+            add_rule(lookup, Rule('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], output_class_name))
     return [lookup]
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
@@ -2534,6 +2537,7 @@ SCHEMAS = [
     Schema(0x1BC99, LOW_ARROW, 1, Type.NON_JOINING),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
     Schema(0x1BC9D, DTLS, 0),
+    Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
     Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
     Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
@@ -2580,11 +2584,14 @@ class Builder:
     def _add_altuni(self, cp, glyph_name):
         glyph = self.font.temporary[glyph_name]
         if cp != -1:
-            new_altuni = ((cp, -1, 0),)
-            if glyph.altuni is None:
-                glyph.altuni = new_altuni
+            if glyph.unicode == -1:
+                glyph.unicode = cp
             else:
-                glyph.altuni += new_altuni
+                new_altuni = ((cp, -1, 0),)
+                if glyph.altuni is None:
+                    glyph.altuni = new_altuni
+                else:
+                    glyph.altuni += new_altuni
         return glyph
 
     def _draw_glyph_with_marks(self, schema, glyph_name):
