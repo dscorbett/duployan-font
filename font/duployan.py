@@ -899,9 +899,25 @@ class Complex(Shape):
                     if i and initial_hook:
                         component = component.reversed()
                     if forced_context is not None:
-                        component = component.clone(clockwise=forced_context.clockwise, **{
-                            'angle_out' if initial_hook else 'angle_in': forced_context.angle,
-                        })
+                        if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
+                            component = component.reversed()
+                        if forced_context.angle is not None and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                            angle_out = component.angle_out
+                            if component.clockwise and angle_out > component.angle_in:
+                                angle_out -= 360
+                            elif not component.clockwise and angle_out < component.angle_in:
+                                angle_out += 360
+                            da = angle_out - component.angle_in
+                            if initial_hook:
+                                component = component.clone(
+                                    angle_in=(forced_context.angle - da) % 360,
+                                    angle_out=forced_context.angle,
+                                )
+                            else:
+                                component = component.clone(
+                                    angle_in=forced_context.angle,
+                                    angle_out=(forced_context.angle + da) % 360,
+                                )
                     instructions.append((scalar, component))
                     if initial_hook:
                         context_out = component.context_in()
@@ -2246,6 +2262,7 @@ U_N = Curve(90, 180, True)
 LONG_U = Curve(225, 45, False, 4, True)
 ROMANIAN_U = Complex([(4, Curve(180, 0, False)), lambda c: c, (2, Curve(0, 180, False))], hook=True)
 UH = Circle(45, 45, False, False, 2)
+OU = Complex([(4, Circle(180, 145, False, False)), lambda c: c, (5 / 3, Curve(145, 270, False, False))], hook=True)
 WA = Complex([(4, Circle(180, 180, False, False)), (2, Circle(180, 180, False, False))])
 WO = Complex([(4, Circle(180, 180, False, False)), (2.5, Circle(180, 180, False, False))])
 WI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (5 / 3, M)])
@@ -2410,9 +2427,10 @@ SCHEMAS = [
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC5B, OU, 1, Type.ORIENTING),
     #Schema(0x1BC5C, WA, 1, Type.ORIENTING),
     Schema(0x1BC5D, WO, 1, Type.ORIENTING),
-    Schema(0x1BC5E, WI, 1, Type.ORIENTING),
+    #Schema(0x1BC5E, WI, 1, Type.ORIENTING),
     Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
     Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC61, S_T, 2, Type.ORIENTING),
