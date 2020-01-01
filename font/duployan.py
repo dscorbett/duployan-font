@@ -2272,6 +2272,7 @@ WEI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (1, M), lambda 
 RTL_SECANT = Line(240, True)
 LTR_SECANT = Line(330, True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
+TANGENT_HOOK = Complex([(1, Curve(180, 270, False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, True))])
 HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, True))])
 HIGH_TIGHT_ACUTE = Complex([(82, Space(90)), (0.5, Line(45, True))])
 HIGH_GRAVE = Complex([(333, Space(90)), (0.5, Line(135, True))])
@@ -2444,6 +2445,7 @@ SCHEMAS = [
     Schema(0x1BC67, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC6A, S_K, 2),
     Schema(0x1BC70, T, 2, Type.NON_JOINING),
     Schema(0x1BC71, T, 2, Type.NON_JOINING),
     Schema(0x1BC72, T, 2, Type.NON_JOINING),
@@ -2454,6 +2456,9 @@ SCHEMAS = [
     Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
     Schema(0x1BC79, TAIL, 1),
+    Schema(0x1BC7A, J, 2),
+    Schema(0x1BC7B, M, 2),
+    Schema(0x1BC7C, TANGENT_HOOK, 2),
     Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC82, HIGH_GRAVE, 1, Type.NON_JOINING),
