@@ -412,15 +412,15 @@ class Line(Shape):
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * stroke_width, -stroke_width)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * stroke_width, -stroke_width)
+                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
             else:
                 if size == 1 and self.angle == 240:
                     # Special case for U+1BC4F DUPLOYAN LETTER LONG I
-                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', -2 * stroke_width, 0)
+                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', -(stroke_width + LIGHT_LINE), 0)
                 else:
-                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, stroke_width)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -stroke_width)
+                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, (stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -(stroke_width + LIGHT_LINE) / 2)
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
             glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
@@ -521,8 +521,8 @@ class Curve(Shape):
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
         if joining_type == Type.ORIENTING:
-            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(90)))
-            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(270)))
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
         if self.stretch:
             scale_x = 1.0
             scale_y = 1.0 + self.stretch
@@ -531,13 +531,13 @@ class Curve(Shape):
             theta = math.radians(self.angle_in % 180)
             glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
             glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
                 *(rect(0, 0) if abs(da) > 180 else rect(
-                    min(stroke_width, r - 2 * stroke_width),
+                    min(stroke_width, r - (stroke_width + LIGHT_LINE)),
                     math.radians(relative_mark_angle))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + 2 * stroke_width, math.radians(relative_mark_angle)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
 
     def is_shadable(self):
@@ -653,9 +653,9 @@ class Circle(Shape):
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + 2 * stroke_width, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
 
     def is_shadable(self):
@@ -874,8 +874,8 @@ class Complex(Shape):
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *last_rel1)
         x_min, y_min, x_max, y_max = glyph.boundingBox()
-        glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + 2 * stroke_width)
-        glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - 2 * stroke_width)
+        glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + stroke_width + LIGHT_LINE)
+        glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - stroke_width + LIGHT_LINE)
 
     def is_shadable(self):
         return (all(callable(op) or op[1].is_shadable() for op in self.instructions)
