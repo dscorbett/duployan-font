@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2019 Google LLC
+# Copyright 2019-2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -878,7 +878,9 @@ class Complex(Shape):
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - 2 * stroke_width)
 
     def is_shadable(self):
-        return all(callable(op) or op[1].is_shadable() for op in self.instructions)
+        return (all(callable(op) or op[1].is_shadable() for op in self.instructions)
+            and (self.hook or callable(self.instructions[0]) or not isinstance(self.instructions[0][1], Circle))
+        )
 
     def contextualize(self, context_in, context_out):
         instructions = []
@@ -2428,9 +2430,9 @@ SCHEMAS = [
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC5B, OU, 1, Type.ORIENTING),
-    #Schema(0x1BC5C, WA, 1, Type.ORIENTING),
+    Schema(0x1BC5C, WA, 1, Type.ORIENTING),
     Schema(0x1BC5D, WO, 1, Type.ORIENTING),
-    #Schema(0x1BC5E, WI, 1, Type.ORIENTING),
+    Schema(0x1BC5E, WI, 1, Type.ORIENTING),
     Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
     Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC61, S_T, 2, Type.ORIENTING),
