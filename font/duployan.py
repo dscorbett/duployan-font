@@ -44,6 +44,8 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
+MAX_TREE_WIDTH = 2
+MAX_TREE_DEPTH = 3
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
@@ -278,38 +280,62 @@ class ShadedLetterSelector(Shape):
         return NO_CONTEXT
 
 class Overlap(Shape):
-    def __init__(self, sfd_name, continuing, valid):
+    def __init__(self, sfd_name, continuing, lineage=None):
         self.sfd_name = sfd_name
         self.continuing = continuing
-        self.valid = valid
+        self.lineage = [(1, 0)] if lineage is None else lineage
 
     def clone(
         self,
         *,
         sfd_name=CLONE_DEFAULT,
         continuing=CLONE_DEFAULT,
-        valid=CLONE_DEFAULT,
+        lineage=CLONE_DEFAULT,
     ):
         return Overlap(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
             self.continuing if continuing is CLONE_DEFAULT else continuing,
-            self.valid if valid is CLONE_DEFAULT else valid,
+            self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
     def __str__(self):
-        return 'V' if self.valid else self.sfd_name
+        return self.sfd_name if self.lineage is None else f'''V.{
+                '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
+            }.{
+                '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1]) if self.lineage else '0'
+            }'''
 
     def name_is_enough(self):
-        return not self.valid
+        return self.lineage is None
 
     def group(self):
         return (str(self), self.continuing)
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
-        pen.moveTo((0, 350))
-        pen.lineTo((200, 350))
-        glyph.transform(psMat.rotate(math.radians(45 if self.continuing else 315)), ('round',))
-        glyph.stroke('circular', stroke_width, 'round')
+        pass
+
+class ParentEdge(Shape):
+    def __init__(self, lineage):
+        self.lineage = lineage
+
+    def clone(
+        self,
+        *,
+        lineage=CLONE_DEFAULT,
+    ):
+        return ParentEdge(
+            self.lineage if lineage is CLONE_DEFAULT else lineage,
+        )
+
+    def __str__(self):
+        return f'''_pe.{
+                '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
+            }.{
+                '_'.join(str(x[1]) for x in self.lineage) if self.lineage else '0'
+            }'''
+
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+        pass
 
 class Step(Shape):
     def __init__(self, sfd_name, angle):
@@ -541,7 +567,7 @@ class Curve(Shape):
         glyph.stroke('circular', stroke_width, 'round')
 
     def is_shadable(self):
-        return True
+        return False
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -1403,7 +1429,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
         elif not schema.anchor:
             max_tree_width = 0
             if isinstance(schema.path, Line):
-                max_tree_width = 3 if schema.size == 2 else 1
+                max_tree_width = 2 if schema.size == 2 else 1
             elif isinstance(schema.path, Curve) or isinstance(schema.path, Circle):
                 max_tree_width = 1
             if max_tree_width:
@@ -1416,6 +1442,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     classes['vv_invalid'].append(letter_overlap)
     classes['vv_invalid'].append(continuing_overlap)
     add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
+    assert global_max_tree_width == MAX_TREE_WIDTH
     for i in range(global_max_tree_width - 2):
         for j in range(global_max_tree_width - 2 - i):
             add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, *[letter_overlap] * j, continuing_overlap], [letter_overlap]))
@@ -1429,6 +1456,78 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=continuing_overlap.path.clone(valid=True))
     add_rule(lookup, Rule(['vv_base'], [continuing_overlap], [], [valid_continuing_overlap]))
     classes['vv_base'].append(valid_continuing_overlap)
+    return [lookup]
+
+def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('blws', 'dupl', 'dflt')
+    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING)
+    for schema in new_schemas:
+        if schema.joining_type != Type.NON_JOINING and not schema.anchor:
+            add_rule(lookup, Rule([schema], [root_parent_edge, schema]))
+    return [lookup]
+
+def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'blws',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'ce',
+    )
+    old_groups = [s.path.group() for s in classes['ce']]
+    for schema in new_schemas:
+        if isinstance(schema.path, Overlap):
+            classes['ce'].append(schema)
+        elif isinstance(schema.path, ParentEdge):
+            classes['ce'].append(schema)
+    default_child_edge = next(s for s in schemas if isinstance(s.path, Overlap)
+        and not s.path.continuing
+        and s.path.lineage is not None
+        and len(s.path.lineage) == 1
+        and s.path.lineage[0][0] == 1)
+    default_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
+    for edge in new_schemas:
+        if edge.path.group() not in old_groups:
+            if isinstance(edge.path, Overlap) and not edge.path.continuing and edge.path.lineage is not None:
+                lineage = list(edge.path.lineage)
+                lineage[-1] = (lineage[-1][0] + 1, 0)
+                if lineage[-1][0] <= MAX_TREE_WIDTH:
+                    add_rule(lookup, Rule(
+                        [edge],
+                        [default_child_edge],
+                        [],
+                        [default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))],
+                    ))
+                lineage = list(edge.path.lineage)
+                lineage[-1] = (1, lineage[-1][0])
+                add_rule(lookup, Rule(
+                    [edge],
+                    [default_parent_edge],
+                    [],
+                    [default_parent_edge.clone(cp=-1, path=ParentEdge(lineage))],
+                ))
+            elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
+                lineage = list(edge.path.lineage)
+                if len(lineage) < MAX_TREE_DEPTH:
+                    lineage.append((1, lineage[-1][0]))
+                    add_rule(lookup, Rule(
+                        [edge],
+                        [default_child_edge],
+                        [],
+                        [default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))],
+                    ))
+                lineage = list(edge.path.lineage)
+                while lineage and lineage[-1][0] == lineage[-1][1]:
+                    lineage.pop()
+                if lineage:
+                    lineage[-1] = (lineage[-1][0] + 1, lineage[-1][1])
+                    if lineage[-1][0] <= MAX_TREE_WIDTH:
+                        add_rule(lookup, Rule(
+                            [edge],
+                            [default_parent_edge],
+                            [],
+                            [default_parent_edge.clone(cp=-1, path=ParentEdge(lineage))],
+                        ))
     return [lookup]
 
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2197,7 +2296,9 @@ PHASES = [
     dont_ignore_default_ignorables,
     shade,
     decompose,
-    validate_overlap_controls,
+    #validate_overlap_controls,
+    add_parent_edges,
+    categorize_edges,
     ligate_pernin_r,
     join_with_next_step,
     #ss_pernin,
@@ -2295,8 +2396,8 @@ LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, True)), (0.4, Line(240, Tr
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
 DTLS = ShadedLetterSelector('u1BC9D')
 CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
-OVERLAP = Overlap('u1BCA0', False, False)
-CONTINUING_OVERLAP = Overlap('u1BCA1', True, False)
+OVERLAP = Overlap('u1BCA0', False)
+CONTINUING_OVERLAP = Overlap('u1BCA1', True)
 DOWN_STEP = Step('u1BCA2', 270)
 UP_STEP = Step('u1BCA3', 90)
 LINE = Line(90, True)
@@ -2560,7 +2661,9 @@ class Builder:
     def _draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
-        glyph.glyphclass = ('mark' if schema.anchor
+        glyph.glyphclass = ('mark' if (schema.anchor
+                or isinstance(schema.path, Overlap) and schema.path.lineage is not None
+                or isinstance(schema.path, ParentEdge))
             else 'baseglyph' if schema.joining_type == Type.NON_JOINING
             else 'baseligature')
         pen = glyph.glyphPen()

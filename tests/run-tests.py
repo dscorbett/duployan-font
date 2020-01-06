@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2018-2019 David Corbett
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +37,7 @@ def run_test(line, png_file):
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
     actual_output = (re.sub(
-            r'(?<=[\[|])_[^+]*\+0\|?',
+            r'(?<=[\[|])(dupl\.)?_[^+]*\+0\|?',
             '',
             p.stdout.read().decode('utf-8').rstrip())
         .replace('|]', ']'))
