@@ -111,6 +111,9 @@ class Shape:
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
         raise NotImplementedError
 
+    def max_tree_width(self, size):
+        return 0
+
     def is_shadable(self):
         return False
 
@@ -452,6 +455,9 @@ class Line(Shape):
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', stroke_width, 'round')
 
+    def max_tree_width(self, size):
+        return 2 if size == 2 else 1
+
     def is_shadable(self):
         return True
 
@@ -565,6 +571,9 @@ class Curve(Shape):
                     math.radians(relative_mark_angle))))
             glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
+
+    def max_tree_width(self, size):
+        return 1
 
     def is_shadable(self):
         return False
@@ -683,6 +692,9 @@ class Circle(Shape):
         else:
             glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
+
+    def max_tree_width(self, size):
+        return 1
 
     def is_shadable(self):
         return True
@@ -1427,11 +1439,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
             else:
                 letter_overlap = schema
         elif not schema.anchor:
-            max_tree_width = 0
-            if isinstance(schema.path, Line):
-                max_tree_width = 2 if schema.size == 2 else 1
-            elif isinstance(schema.path, Curve) or isinstance(schema.path, Circle):
-                max_tree_width = 1
+            max_tree_width = schema.path.max_tree_width(schema.size)
             if max_tree_width:
                 if max_tree_width > global_max_tree_width:
                     global_max_tree_width = max_tree_width
