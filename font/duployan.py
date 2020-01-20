@@ -2702,6 +2702,7 @@ class Builder:
     def _complete_gpos(self):
         mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
         base_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        basemark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
         cursive_positions = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
         for glyph in self.font.glyphs():
             for anchor_class_name, type, x, y in glyph.anchorPoints:
@@ -2712,6 +2713,8 @@ class Builder:
                     mark_positions[anchor_class_name][(x, y)].append(glyph_name)
                 elif type == 'base':
                     base_positions[anchor_class_name][(x, y)].append(glyph_name)
+                elif type == 'basemark':
+                    basemark_positions[anchor_class_name][(x, y)].append(glyph_name)
                 elif type == 'entry':
                     cursive_positions[anchor_class_name][glyph_name][0] = fontTools.feaLib.ast.Anchor(x, y)
                 elif type == 'exit':
@@ -2729,6 +2732,10 @@ class Builder:
                 lookup.statements.append(mark_class_definition)
             for x_y, glyph_class in base_positions[anchor_class_name].items():
                 lookup.statements.append(fontTools.feaLib.ast.MarkBasePosStatement(
+                    glyph_class,
+                    [(fontTools.feaLib.ast.Anchor(*x_y), mark_class)]))
+            for x_y, glyph_class in basemark_positions[anchor_class_name].items():
+                lookup.statements.append(fontTools.feaLib.ast.MarkMarkPosStatement(
                     glyph_class,
                     [(fontTools.feaLib.ast.Anchor(*x_y), mark_class)]))
             for glyph_name, entry_exit in cursive_positions[anchor_class_name].items():
