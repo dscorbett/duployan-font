@@ -1,5 +1,6 @@
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
 # Copyright 2018-2019 David Corbett
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +23,7 @@ import fontforge
 import fontTools.ttLib
 
 import duployan
+import fonttools_patches
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
@@ -52,6 +54,8 @@ def patch_fonttools():
         except (AttributeError, KeyError):
             getGlyphID_inner(self, glyphName, requireReal)
     fontTools.ttLib.TTFont.getGlyphID = getGlyphID
+
+    fontTools.ttLib.tables.otTables.fixLookupOverFlows = fonttools_patches.fixLookupOverFlows
 
 def tweak_font(options, builder):
     with fontTools.ttLib.TTFont(options.output, recalcBBoxes=False) as tt_font:

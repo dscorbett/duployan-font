@@ -576,7 +576,7 @@ class Curve(Shape):
         return 1
 
     def is_shadable(self):
-        return False
+        return True
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -916,9 +916,7 @@ class Complex(Shape):
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - stroke_width + LIGHT_LINE)
 
     def is_shadable(self):
-        return (all(callable(op) or op[1].is_shadable() for op in self.instructions)
-            and (self.hook or callable(self.instructions[0]) or not isinstance(self.instructions[0][1], Circle))
-        )
+        return all(callable(op) or op[1].is_shadable() for op in self.instructions)
 
     def contextualize(self, context_in, context_out):
         instructions = []
