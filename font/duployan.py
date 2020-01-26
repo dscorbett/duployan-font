@@ -1852,7 +1852,11 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         outputs = ([sum_digit_schema]
                             if place == WIDTH_MARKER_PLACES - 1
                             else [sum_digit_schema, carry_out_schema])
-                        add_rule(lookup, Rule(contexts_in, [addend_schema], [], outputs))
+                        sum_lookup_name = f'sw_{sum_digit}'
+                        if sum_lookup_name not in named_lookups:
+                            named_lookups[sum_lookup_name] = Lookup(None, None, None, 0)
+                        add_rule(lookup, Rule(contexts_in, [addend_schema], [], lookups=[sum_lookup_name]))
+                        add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
     return [lookup]
 
 def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule):
@@ -2107,7 +2111,7 @@ def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))
     return [lookup]
 
-def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
+def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule):
     for input in rule.inputs:
         if isinstance(input, str):
             if all(s in autochthonous_schemas for s in classes[input]):
@@ -2122,13 +2126,22 @@ def add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule):
                 output_schemas.remove(i)
         else:
             output_schemas.remove(input)
-    if rule.outputs is not None:
-        for output in rule.outputs:
-            if isinstance(output, str):
-                for o in classes[output]:
-                    output_schemas.add(o)
-            else:
-                output_schemas.add(output)
+
+    def register_output_schemas(rule):
+        if rule.outputs is not None:
+            for output in rule.outputs:
+                if isinstance(output, str):
+                    for o in classes[output]:
+                        output_schemas.add(o)
+                else:
+                    output_schemas.add(output)
+        elif rule.lookups is not None:
+            for lookup in rule.lookups:
+                if lookup is not None:
+                    for rule in named_lookups[lookup].rules:
+                        register_output_schemas(rule)
+
+    register_output_schemas(rule)
 
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
@@ -2142,7 +2155,7 @@ def run_phases(all_input_schemas, phases):
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
         classes = collections.defaultdict(list)
-        named_lookups = collections.defaultdict(list)
+        named_lookups = {}
         lookups = None
         while new_input_schemas:
             output_lookups = phase(
@@ -2150,7 +2163,15 @@ def run_phases(all_input_schemas, phases):
                 new_input_schemas,
                 classes,
                 named_lookups,
-                lambda lookup, rule: add_rule(autochthonous_schemas, output_schemas, classes, lookup, rule))
+                lambda lookup, rule: add_rule(
+                    autochthonous_schemas,
+                    output_schemas,
+                    classes,
+                    named_lookups,
+                    lookup,
+                    rule,
+                 ),
+             )
             if lookups is None:
                 lookups = output_lookups
             else:
