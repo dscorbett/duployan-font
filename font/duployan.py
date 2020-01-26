@@ -1837,7 +1837,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         continue
                     addend = addend_schema.path.digit
                     carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
-                    if carry_out != 0 or sum_digit != addend:
+                    if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
                         if carry_out in carry_schemas:
                             carry_out_schema = carry_schemas[carry_out]
                         else:
