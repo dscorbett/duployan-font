@@ -36,7 +36,15 @@ EPSILON = 1e-5
 RADIUS = 50
 LIGHT_LINE = 70
 SHADED_LINE = 120
+MAX_TREE_WIDTH = 2
+MAX_TREE_DEPTH = 3
+PARENT_EDGE_CLASS = '_pe'
+CHILD_EDGE_CLASSES = [f'_ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
+INTER_EDGE_CLASSES = [[f'_edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 CURSIVE_ANCHOR = 'cursive'
+PARENT_EDGE_ANCHOR = 'pe'
+CHILD_EDGE_ANCHORS = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
+INTER_EDGE_ANCHORS = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_ANCHOR = 'rel2'
 MIDDLE_ANCHOR = 'mid'
@@ -44,8 +52,6 @@ TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
-MAX_TREE_WIDTH = 2
-MAX_TREE_DEPTH = 3
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
@@ -108,8 +114,11 @@ class Shape:
     def group(self):
         return str(self)
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         raise NotImplementedError
+
+    def can_be_child(self):
+        return False
 
     def max_tree_width(self, size):
         return 0
@@ -245,7 +254,7 @@ class Space(Shape):
             self.with_margin,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.with_margin * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -286,7 +295,7 @@ class Overlap(Shape):
     def __init__(self, sfd_name, continuing, lineage=None):
         self.sfd_name = sfd_name
         self.continuing = continuing
-        self.lineage = [(1, 0)] if lineage is None else lineage
+        self.lineage = lineage
 
     def clone(
         self,
@@ -314,8 +323,11 @@ class Overlap(Shape):
     def group(self):
         return (str(self), self.continuing)
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
-        pass
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        layer_index = len(self.lineage) - 1
+        child_index = self.lineage[-1][0] - 1
+        glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
+        glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'basemark', 0, 0)
 
 class ParentEdge(Shape):
     def __init__(self, lineage):
@@ -337,8 +349,12 @@ class ParentEdge(Shape):
                 '_'.join(str(x[1]) for x in self.lineage) if self.lineage else '0'
             }'''
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
-        pass
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        if self.lineage:
+            layer_index = len(self.lineage) - 1
+            child_index = self.lineage[-1][0] - 1
+            glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'basemark', 0, 0)
+            glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'mark', 0, 0)
 
 class Step(Shape):
     def __init__(self, sfd_name, angle):
@@ -378,7 +394,8 @@ class Dot(Shape):
     def clone(self):
         return Dot()
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', stroke_width, 'round')
@@ -423,7 +440,7 @@ class Line(Shape):
             self.fixed_length,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pen.moveTo((0, 0))
         if self.fixed_length:
             length_denominator = 1
@@ -437,8 +454,20 @@ class Line(Shape):
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
         else:
             if joining_type != Type.NON_JOINING:
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+                max_tree_width = self.max_tree_width(size)
+                child_interval = length / (max_tree_width + 2)
+                for child_index in range(max_tree_width):
+                    glyph.addAnchorPoint(
+                        CHILD_EDGE_ANCHORS[int(child)][child_index],
+                        'basemark' if child else 'base',
+                        child_interval * (child_index + 2),
+                        0,
+                    )
+                if child:
+                    glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', child_interval, 0)
+                else:
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
@@ -454,6 +483,9 @@ class Line(Shape):
             glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', stroke_width, 'round')
+
+    def can_be_child(self):
+        return True
 
     def max_tree_width(self, size):
         return 2 if size == 2 else 1
@@ -519,7 +551,7 @@ class Curve(Shape):
             self.long,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
@@ -546,10 +578,19 @@ class Curve(Shape):
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         if joining_type != Type.NON_JOINING:
-            x = r * math.cos(math.radians(a1))
-            y = r * math.sin(math.radians(a1))
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x, y)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+            max_tree_width = self.max_tree_width(size)
+            child_interval = da / (max_tree_width + 2)
+            for child_index in range(max_tree_width):
+                glyph.addAnchorPoint(
+                    CHILD_EDGE_ANCHORS[int(child)][child_index],
+                    'basemark' if child else 'base',
+                    *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
+                )
+            if child:
+                glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(a1 + child_interval)))
+            else:
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
         glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
         glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
         if joining_type == Type.ORIENTING:
@@ -571,6 +612,9 @@ class Curve(Shape):
                     math.radians(relative_mark_angle))))
             glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
+
+    def can_be_child(self):
+        return True
 
     def max_tree_width(self, size):
         return 1
@@ -662,7 +706,7 @@ class Circle(Shape):
             self.stretch,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
@@ -680,8 +724,11 @@ class Circle(Shape):
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
         if joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+            if child:
+                glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', 0, 0)
+            else:
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
         scale_x = 1.0 + self.stretch
         if self.stretch:
@@ -693,8 +740,11 @@ class Circle(Shape):
             glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
 
+    def can_be_child(self):
+        return True
+
     def max_tree_width(self, size):
-        return 1
+        return 0
 
     def is_shadable(self):
         return True
@@ -826,7 +876,7 @@ class Complex(Shape):
         def endPath(self):
             pass
 
-        def _get_crossing_point(self, component):
+        def get_crossing_point(self, component):
             entry_list = self.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if component.angle_in == component.angle_out:
@@ -860,7 +910,7 @@ class Complex(Shape):
             py = asy + ady * u
             return px, py
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type):
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         first_entry = None
         last_exit = None
         last_rel1 = None
@@ -870,11 +920,11 @@ class Complex(Shape):
                 continue
             scalar, component = op
             proxy = Complex.Proxy()
-            component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING)
+            component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if self._all_circles and last_crossing_point is not None:
-                this_point = proxy._get_crossing_point(component)
+                this_point = proxy.get_crossing_point(component)
                 if first_entry is None:
                     first_entry = entry_list[0]
                 else:
@@ -914,6 +964,14 @@ class Complex(Shape):
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + stroke_width + LIGHT_LINE)
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - stroke_width + LIGHT_LINE)
+
+    def can_be_child(self):
+        #return not callable(self.instructions[0]) and self.instructions[0][1].can_be_child()
+        return False
+
+    def max_tree_width(self, size):
+        #return min(op[1].max_tree_width(size) for op in self.instructions if not callable(op))
+        return 0
 
     def is_shadable(self):
         return all(callable(op) or op[1].is_shadable() for op in self.instructions)
@@ -1020,6 +1078,7 @@ class Schema:
             size,
             joining_type=Type.JOINING,
             side_bearing=DEFAULT_SIDE_BEARING,
+            child=False,
             anchor=None,
             marks=None,
             ignored=False,
@@ -1038,6 +1097,7 @@ class Schema:
         self.size = size
         self.joining_type = joining_type
         self.side_bearing = side_bearing
+        self.child = child
         self.anchor = anchor
         self.marks = marks or []
         self.ignored = ignored
@@ -1073,6 +1133,7 @@ class Schema:
         size=CLONE_DEFAULT,
         joining_type=CLONE_DEFAULT,
         side_bearing=CLONE_DEFAULT,
+        child=CLONE_DEFAULT,
         anchor=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         ignored=CLONE_DEFAULT,
@@ -1091,6 +1152,7 @@ class Schema:
             self.size if size is CLONE_DEFAULT else size,
             self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
             self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
+            self.child if child is CLONE_DEFAULT else child,
             self.anchor if anchor is CLONE_DEFAULT else anchor,
             self.marks if marks is CLONE_DEFAULT else marks,
             self.ignored if ignored is CLONE_DEFAULT else ignored,
@@ -1126,6 +1188,7 @@ class Schema:
             self.cps[-1] == 0x1BC9D,
             self.size,
             self.side_bearing,
+            self.child,
             self.anchor,
             tuple(m.group for m in self.marks or []),
         )
@@ -1156,12 +1219,17 @@ class Schema:
             agl_name, readable_name = ('_'.join(component) for component in zip(*list(map(get_names, cps))))
             name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
         if self.cp == -1:
-            name = '{}.{}.{}{}'.format(
-                name or 'dupl',
-                str(self.path),
-                int(self.size),
-                ('.' + self.anchor) if self.anchor else '',
-            )
+            name = f'''{
+                    name or 'dupl'
+                }.{
+                    self.path
+                }.{
+                    int(self.size)
+                }{
+                    '.' + self.anchor if self.anchor else ''
+                }{
+                    '.blws' if self.child else ''
+                }'''
         return '{}{}'.format(
             name,
             '.ss{:02}'.format(self.ss) if self.ss else '',
@@ -1334,6 +1402,7 @@ class Lookup:
             reversed=False,
     ):
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
+        assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
              flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         self.feature = feature
@@ -1464,9 +1533,24 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     classes['vv_base'].append(valid_continuing_overlap)
     return [lookup]
 
+def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt')
+    letter_overlap = next(s for s in new_schemas if isinstance(s.path, Overlap) and not s.path.continuing and s.path.lineage is None)
+    valid_letter_overlap = letter_overlap.clone(cp=-1, path=letter_overlap.path.clone(lineage=[(1, 0)]))
+    add_rule(lookup, Rule([letter_overlap], [valid_letter_overlap]))
+    classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
+    classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
+    return [lookup]
+
 def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
-    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING)
+    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, 0)
+    for child_index in range(MAX_TREE_WIDTH):
+        if CHILD_EDGE_CLASSES[child_index] not in classes:
+            classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
+        for layer_index in range(MAX_TREE_DEPTH):
+            if INTER_EDGE_CLASSES[layer_index][child_index] not in classes:
+                classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
         if schema.joining_type != Type.NON_JOINING and not schema.anchor:
             add_rule(lookup, Rule([schema], [root_parent_edge, schema]))
@@ -1481,59 +1565,93 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
         'ce',
     )
     old_groups = [s.path.group() for s in classes['ce']]
+    child_edges = {}
+    parent_edges = {}
+    def get_child_edge(lineage):
+        lineage = tuple(lineage)
+        child_edge = child_edges.get(lineage)
+        if child_edge is None:
+            child_edge = default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))
+            child_edges[lineage] = child_edge
+        return child_edge
+    def get_parent_edge(lineage):
+        lineage = tuple(lineage)
+        parent_edge = parent_edges.get(lineage)
+        if parent_edge is None:
+            parent_edge = default_parent_edge.clone(cp=-1, path=default_parent_edge.path.clone(lineage=lineage))
+            parent_edges[lineage] = parent_edge
+        return parent_edge
+    for schema in schemas:
+        if isinstance(schema.path, Overlap) and schema.path.lineage is not None:
+            child_edges[tuple(schema.path.lineage)] = schema
+            if (not schema.path.continuing
+                and len(schema.path.lineage) == 1
+                and schema.path.lineage[0][0] == 1
+            ):
+                default_child_edge = schema
+        elif isinstance(schema.path, ParentEdge):
+            parent_edges[tuple(schema.path.lineage)] = schema
+            if not schema.path.lineage:
+                default_parent_edge = schema
     for schema in new_schemas:
         if isinstance(schema.path, Overlap):
             classes['ce'].append(schema)
         elif isinstance(schema.path, ParentEdge):
             classes['ce'].append(schema)
-    default_child_edge = next(s for s in schemas if isinstance(s.path, Overlap)
-        and not s.path.continuing
-        and s.path.lineage is not None
-        and len(s.path.lineage) == 1
-        and s.path.lineage[0][0] == 1)
-    default_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
     for edge in new_schemas:
         if edge.path.group() not in old_groups:
             if isinstance(edge.path, Overlap) and not edge.path.continuing and edge.path.lineage is not None:
                 lineage = list(edge.path.lineage)
                 lineage[-1] = (lineage[-1][0] + 1, 0)
                 if lineage[-1][0] <= MAX_TREE_WIDTH:
-                    add_rule(lookup, Rule(
-                        [edge],
-                        [default_child_edge],
-                        [],
-                        [default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))],
-                    ))
+                    new_child_edge = get_child_edge(lineage)
+                    classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                    add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
                 lineage = list(edge.path.lineage)
                 lineage[-1] = (1, lineage[-1][0])
-                add_rule(lookup, Rule(
-                    [edge],
-                    [default_parent_edge],
-                    [],
-                    [default_parent_edge.clone(cp=-1, path=ParentEdge(lineage))],
-                ))
+                new_parent_edge = get_parent_edge(lineage)
+                classes[PARENT_EDGE_CLASS].append(new_parent_edge)
+                classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
             elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
                 lineage = list(edge.path.lineage)
                 if len(lineage) < MAX_TREE_DEPTH:
                     lineage.append((1, lineage[-1][0]))
-                    add_rule(lookup, Rule(
-                        [edge],
-                        [default_child_edge],
-                        [],
-                        [default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))],
-                    ))
+                    new_child_edge = get_child_edge(lineage)
+                    classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                    add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
                 lineage = list(edge.path.lineage)
                 while lineage and lineage[-1][0] == lineage[-1][1]:
                     lineage.pop()
                 if lineage:
                     lineage[-1] = (lineage[-1][0] + 1, lineage[-1][1])
                     if lineage[-1][0] <= MAX_TREE_WIDTH:
-                        add_rule(lookup, Rule(
-                            [edge],
-                            [default_parent_edge],
-                            [],
-                            [default_parent_edge.clone(cp=-1, path=ParentEdge(lineage))],
-                        ))
+                        new_parent_edge = get_parent_edge(lineage)
+                        classes[PARENT_EDGE_CLASS].append(new_parent_edge)
+                        classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                        add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
+    return [lookup]
+
+def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('blws', 'dupl', 'dflt', 0)
+    children_to_be = []
+    for schema in new_schemas:
+        if isinstance(schema.path, ParentEdge) and schema.path.lineage:
+            classes['mv'].append(schema)
+        elif (schema.joining_type != Type.NON_JOINING
+            and not schema.anchor
+            and not schema.child
+            and schema.path.can_be_child()
+        ):
+            children_to_be.append(schema)
+    for child_to_be in children_to_be:
+        child = child_to_be.clone(cp=-1, child=True)
+        classes[PARENT_EDGE_CLASS].append(child)
+        for child_index in range(MAX_TREE_WIDTH):
+            classes[CHILD_EDGE_CLASSES[child_index]].append(child)
+        add_rule(lookup, Rule('mv', [child_to_be], [], [child]))
     return [lookup]
 
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1543,6 +1661,8 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
     zwj = None
     r = None
     for schema in schemas:
+        if schema.child:
+            continue
         if schema.cps == [0x200D]:
             assert zwj is None, 'Multiple ZWJs found'
             zwj = schema
@@ -2148,7 +2268,7 @@ def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups = []
-    all_classes = {}
+    all_classes = collections.defaultdict(list)
     all_named_lookups = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
@@ -2201,7 +2321,8 @@ def run_phases(all_input_schemas, phases):
         all_input_schemas = all_output_schemas
         all_schemas.update(all_input_schemas)
         all_lookups.extend(lookups)
-        all_classes.update(classes)
+        for class_name, schemas in classes.items():
+            all_classes[class_name].extend(schemas)
         all_named_lookups.update(named_lookups)
     return all_schemas, all_lookups, all_classes, all_named_lookups
 
@@ -2324,9 +2445,10 @@ PHASES = [
     dont_ignore_default_ignorables,
     shade,
     decompose,
-    #validate_overlap_controls,
+    validate_overlap_controls,
     add_parent_edges,
     categorize_edges,
+    make_mark_variants_of_children,
     ligate_pernin_r,
     join_with_next_step,
     #ss_pernin,
@@ -2608,11 +2730,11 @@ SCHEMAS = [
     Schema(0x1BC98, LOW_VERTICAL, 1, Type.NON_JOINING),
     Schema(0x1BC99, LOW_ARROW, 1, Type.NON_JOINING),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
-    Schema(0x1BC9D, DTLS, 0),
+    Schema(0x1BC9D, DTLS, 0, Type.NON_JOINING),
     Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
-    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, ignored=True),
-    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, ignored=True),
+    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, 0, ignored=True),
+    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, 0, ignored=True),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
@@ -2632,10 +2754,25 @@ class Builder:
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
 
-    def _add_lookup(self, feature_tag, anchor_class_name, lookup_flags=0):
+    def _add_lookup(
+        self,
+        feature_tag,
+        anchor_class_name,
+        flags=0,
+        mark_filtering_set=None,
+    ):
+        assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
+        assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
+        if mark_filtering_set:
+             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         lookup = fontTools.feaLib.ast.LookupBlock(anchor_class_name)
-        if lookup_flags:
-            lookup.statements.append(fontTools.feaLib.ast.LookupFlagStatement(lookup_flags))
+        if flags:
+            lookup.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
+                flags,
+                markFilteringSet=fontTools.feaLib.ast.GlyphClassName(mark_filtering_set)
+                    if mark_filtering_set
+                    else None,
+                ))
         self._fea.statements.append(lookup)
         self._anchors[anchor_class_name] = lookup
         feature = fontTools.feaLib.ast.FeatureBlock(feature_tag)
@@ -2644,7 +2781,31 @@ class Builder:
         feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
         self._fea.statements.append(feature)
 
-    def _add_lookups(self):
+    def _add_lookups(self, class_asts):
+        parent_edge_lookup = None
+        child_edge_lookups = [None] * MAX_TREE_WIDTH
+        self._add_lookup(
+                'abvm',
+                PARENT_EDGE_ANCHOR,
+                0,
+                class_asts[PARENT_EDGE_CLASS],
+            )
+        for layer_index in range(MAX_TREE_DEPTH):
+            if layer_index < 2:
+                for child_index in range(MAX_TREE_WIDTH):
+                    self._add_lookup(
+                            'blwm',
+                            CHILD_EDGE_ANCHORS[layer_index][child_index],
+                            0,
+                            class_asts[CHILD_EDGE_CLASSES[child_index]],
+                        )
+            for child_index in range(MAX_TREE_WIDTH):
+                self._add_lookup(
+                    'mkmk',
+                    INTER_EDGE_ANCHORS[layer_index][child_index],
+                    fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                    class_asts[INTER_EDGE_CLASSES[layer_index][child_index]],
+                )
         self._add_lookup('curs', CURSIVE_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
         self._add_lookup('mark', RELATIVE_1_ANCHOR)
         self._add_lookup('mark', RELATIVE_2_ANCHOR)
@@ -2690,6 +2851,7 @@ class Builder:
         glyph = self.font.createChar(schema.cp, glyph_name)
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = ('mark' if (schema.anchor
+                or schema.child
                 or isinstance(schema.path, Overlap) and schema.path.lineage is not None
                 or isinstance(schema.path, ParentEdge))
             else 'baseglyph' if schema.joining_type == Type.NON_JOINING
@@ -2702,6 +2864,7 @@ class Builder:
             schema.size,
             schema.anchor,
             schema.joining_type,
+            schema.child,
         )
         return glyph
 
@@ -2798,7 +2961,6 @@ class Builder:
         glyph.width = 0
 
     def augment(self):
-        self._add_lookups()
         self.font.temporary = {}
         schemas, lookups, classes, named_lookups = run_phases(self._schemas, self._phases)
         assert not named_lookups, 'Named lookups have not been implemented for pre-merge phases'
@@ -2825,6 +2987,7 @@ class Builder:
             self._fea.statements.append(named_lookup_ast)
             named_lookup_asts[name] = named_lookup_ast
         self._fea.statements.extend(l.to_ast(class_asts, named_lookup_asts) for l in lookups)
+        self._add_lookups(class_asts)
 
     def merge_features(self, tt_font, old_fea):
         self._fea.statements.extend(
