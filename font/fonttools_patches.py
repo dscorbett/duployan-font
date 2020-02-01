@@ -25,28 +25,6 @@ import fontTools.feaLib.builder
 import fontTools.feaLib.error
 import fontTools.ttLib.tables.otTables
 
-def add_multiple_subst(self, location, prefix, glyph, suffix, replacements, forceChain=False):
-    if prefix or suffix or forceChain:
-        chain = self.get_lookup_(location, fontTools.feaLib.builder.ChainContextSubstBuilder)
-        sub = self.get_chained_lookup_(location, fontTools.feaLib.builder.MultipleSubstBuilder)
-        sub.mapping[glyph] = replacements
-        chain.substitutions.append((prefix, [{glyph}], suffix, [sub]))
-        return
-    lookup = self.get_lookup_(location, fontTools.feaLib.builder.MultipleSubstBuilder)
-    if glyph in lookup.mapping:
-        if replacements == lookup.mapping[glyph]:
-            fontTools.feaLib.builder.log.info(
-                'Removing duplicate multiple substitution from glyph "%s" to %s%s',
-                glyph,
-                replacements,
-                ' at {}:{}:{}'.format(*location) if location else '',
-            )
-        else:
-            raise fontTools.feaLib.error.FeatureLibError(
-                'Already defined substitution for glyph "%s"' % glyph,
-                location)
-    lookup.mapping[glyph] = replacements
-
 def fixLookupOverFlows(ttf, overflowRecord):
     ok = 0
     lookup_index = overflowRecord.LookupListIndex

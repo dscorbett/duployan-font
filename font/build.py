@@ -47,8 +47,6 @@ def generate_feature_string(font, lookup):
         return fea_file.read().decode('utf-8')
 
 def patch_fonttools():
-    fontTools.feaLib.builder.Builder.add_multiple_subst = fonttools_patches.add_multiple_subst
-
     getGlyphID_inner = fontTools.ttLib.TTFont.getGlyphID
     def getGlyphID(self, glyphName, requireReal=False):
         try:
