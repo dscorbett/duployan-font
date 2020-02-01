@@ -58,6 +58,9 @@ WIDTH_MARKER_PLACES = 7
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
+def mkmk(anchor):
+    return f'mkmk_{anchor}'
+
 class Type(enum.Enum):
     JOINING = enum.auto()
     ORIENTING = enum.auto()
@@ -400,6 +403,7 @@ class Dot(Shape):
         pen.lineTo((0, 0))
         glyph.stroke('circular', stroke_width, 'round')
         if anchor:
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(0, 0))
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
         elif joining_type != Type.NON_JOINING:
             x = 2 * DEFAULT_SIDE_BEARING + stroke_width
@@ -451,6 +455,7 @@ class Line(Shape):
         length = int(500 * (size or 0.2) / length_denominator)
         pen.lineTo((length, 0))
         if anchor:
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length / 2, 0))
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
         else:
             if joining_type != Type.NON_JOINING:
@@ -468,19 +473,21 @@ class Line(Shape):
                 else:
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+            anchor_name = mkmk if child else lambda a: a
+            base = 'basemark' if child else 'base'
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2 + 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
             else:
                 if size == 1 and self.angle == 240:
                     # Special case for U+1BC4F DUPLOYAN LETTER LONG I
-                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', -(stroke_width + LIGHT_LINE), 0)
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, -(stroke_width + LIGHT_LINE), 0)
                 else:
-                    glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', length / 2, (stroke_width + LIGHT_LINE) / 2)
-                glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', length / 2, -(stroke_width + LIGHT_LINE) / 2)
-            glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', length / 2, 0)
-            glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', length, 0)
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
+            glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
+            glyph.addAnchorPoint(anchor_name(TANGENT_ANCHOR), base, length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', stroke_width, 'round')
 
@@ -591,26 +598,28 @@ class Curve(Shape):
             else:
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-        glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', *rect(r, math.radians(relative_mark_angle)))
-        glyph.addAnchorPoint(TANGENT_ANCHOR, 'base', p3[0], p3[1])
+        anchor_name = mkmk if child else lambda a: a
+        base = 'basemark' if child else 'base'
+        glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(anchor_name(TANGENT_ANCHOR), base, p3[0], p3[1])
         if joining_type == Type.ORIENTING:
-            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
-            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
         if self.stretch:
             scale_x = 1.0
             scale_y = 1.0 + self.stretch
             if self.long:
                 scale_x, scale_y = scale_y, scale_x
             theta = math.radians(self.angle_in % 180)
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base',
+            glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
                 *(rect(0, 0) if abs(da) > 180 else rect(
                     min(stroke_width, r - (stroke_width + LIGHT_LINE)),
                     math.radians(relative_mark_angle))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
 
     def can_be_child(self):
@@ -729,15 +738,17 @@ class Circle(Shape):
             else:
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *rect(0, 0))
+        anchor_name = mkmk if child else lambda a: a
+        base = 'basemark' if child else 'base'
+        glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
         scale_x = 1.0 + self.stretch
         if self.stretch:
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
             glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
-            glyph.addAnchorPoint(RELATIVE_2_ANCHOR, 'base', *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
 
     def can_be_child(self):
@@ -1826,6 +1837,20 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
             add_rule(lookup, Rule('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], output_class_name))
     return [lookup]
 
+def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_rule):
+    for schema in schemas:
+        for anchor in [
+            RELATIVE_1_ANCHOR,
+            RELATIVE_2_ANCHOR,
+            MIDDLE_ANCHOR,
+            TANGENT_ANCHOR,
+            ABOVE_ANCHOR,
+            BELOW_ANCHOR,
+        ]:
+            if schema.child or schema.anchor == anchor:
+                classes[f'_{mkmk(anchor)}'].append(schema)
+    return []
+
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
     carry_0_schema = Schema(-1, Carry(0), 0)
@@ -2455,6 +2480,7 @@ PHASES = [
     join_with_previous,
     join_with_next,
     rotate_diacritics,
+    classify_marks_for_trees,
 ]
 
 GLYPH_PHASES = [
@@ -2807,12 +2833,23 @@ class Builder:
                     class_asts[INTER_EDGE_CLASSES[layer_index][child_index]],
                 )
         self._add_lookup('curs', CURSIVE_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
-        self._add_lookup('mark', RELATIVE_1_ANCHOR)
-        self._add_lookup('mark', RELATIVE_2_ANCHOR)
-        self._add_lookup('mark', MIDDLE_ANCHOR)
-        self._add_lookup('mark', TANGENT_ANCHOR)
-        self._add_lookup('mark', ABOVE_ANCHOR)
-        self._add_lookup('mark', BELOW_ANCHOR)
+        for feature, is_mkmk in [
+            ('mark', False),
+            ('mkmk', True),
+        ]:
+            for anchor in [
+                RELATIVE_1_ANCHOR,
+                RELATIVE_2_ANCHOR,
+                MIDDLE_ANCHOR,
+                TANGENT_ANCHOR,
+                ABOVE_ANCHOR,
+                BELOW_ANCHOR,
+            ]:
+                self._add_lookup(
+                    feature,
+                    mkmk(anchor) if is_mkmk else anchor,
+                    mark_filtering_set=class_asts[f'_{mkmk(anchor)}'] if is_mkmk else None,
+                )
 
     def _add_altuni(self, cp, glyph_name):
         glyph = self.font.temporary[glyph_name]
@@ -2839,7 +2876,7 @@ class Builder:
         base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
         for mark_glyph in mark_glyphs:
             mark_anchors = [p for p in self.font[mark_glyph].anchorPoints if p[1] == 'mark']
-            assert len(mark_anchors) == 1
+            assert len(mark_anchors) == 1 or len(mark_anchors) == 2 and mark_anchors[1][0].startswith(mkmk(mark_anchors[0][0]))
             mark_anchor = mark_anchors[0]
             base_anchor = base_anchors[mark_anchor[0]]
             glyph.addReference(mark_glyph, psMat.translate(
