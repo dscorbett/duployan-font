@@ -91,7 +91,7 @@ class Context:
         return '{}{}'.format(
                 self.angle,
                 '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
-            ).replace('.', '__')
+            )
 
     def __eq__(self, other):
         return self.angle == other.angle and self.clockwise == other.clockwise
@@ -1821,7 +1821,7 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
         else:
             for base_context in schema.diacritic_angles.items():
                 base_contexts.add(base_context)
-                base_context_class = classes['rd_c_{}_{}'.format(*base_context).replace('.', '__')]
+                base_context_class = classes['rd_c_{}_{}'.format(*base_context)]
                 if schema not in base_context_class:
                     if not base_context_class:
                         new_base_contexts.add(base_context)
@@ -1829,12 +1829,12 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
     for base_context in base_contexts:
         if base_context in new_base_contexts:
             anchor, angle = base_context
-            output_class_name = f'rd_o_{anchor}_{angle}'.replace('.', '__')
+            output_class_name = f'rd_o_{anchor}_{angle}'
             for target_schema in classes['rd_i_' + str(anchor)]:
                 if anchor == target_schema.anchor:
                     output_schema = target_schema.rotate_diacritic(angle)
                     classes[output_class_name].append(output_schema)
-            add_rule(lookup, Rule('rd_c_{}_{}'.format(anchor, angle).replace('.', '__'), 'rd_i_' + str(anchor), [], output_class_name))
+            add_rule(lookup, Rule(f'rd_c_{anchor}_{angle}', f'rd_i_{anchor}', [], output_class_name))
     return [lookup]
 
 def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_rule):
