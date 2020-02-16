@@ -294,6 +294,25 @@ class ShadedLetterSelector(Shape):
     def context_out(self):
         return NO_CONTEXT
 
+class ChildEdgeCount(Shape):
+    def __init__(self, count):
+        self.count = count
+
+    def clone(
+        self,
+        *,
+        count=CLONE_DEFAULT,
+    ):
+        return ChildEdgeCount(
+            self.count if count is CLONE_DEFAULT else count,
+        )
+
+    def __str__(self):
+        return f'_width.{self.count}'
+
+    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        pass
+
 class Overlap(Shape):
     def __init__(self, sfd_name, continuing, lineage=None):
         self.sfd_name = sfd_name
@@ -1553,6 +1572,18 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
     return [lookup]
 
+def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt', 0)
+    letter_overlap = next(s for s in new_schemas if isinstance(s.path, Overlap) and not s.path.continuing and s.path.lineage is not None)
+    for count in range(MAX_TREE_WIDTH, 0, -1):
+        add_rule(lookup, Rule(
+            [],
+            [letter_overlap],
+            [letter_overlap] * (count - 1),
+            [Schema(-1, ChildEdgeCount(count), 0, Type.NON_JOINING, 0), letter_overlap]
+        ))
+    return [lookup]
+
 def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, 0)
@@ -2471,6 +2502,7 @@ PHASES = [
     shade,
     decompose,
     validate_overlap_controls,
+    count_letter_overlaps,
     add_parent_edges,
     categorize_edges,
     make_mark_variants_of_children,
@@ -2889,6 +2921,7 @@ class Builder:
         self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = ('mark' if (schema.anchor
                 or schema.child
+                or isinstance(schema.path, ChildEdgeCount)
                 or isinstance(schema.path, Overlap) and schema.path.lineage is not None
                 or isinstance(schema.path, ParentEdge))
             else 'baseglyph' if schema.joining_type == Type.NON_JOINING
