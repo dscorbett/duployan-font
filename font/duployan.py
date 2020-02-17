@@ -1959,21 +1959,25 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             original_carry_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
+                classes['sw_c'].append(schema)
         elif isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_left_digit_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
+                classes[f'sw_ldx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_right_digit_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
+                classes[f'sw_rdx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, CursiveWidthDigit):
             cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_cursive_digit_schemas.append(schema)
             if schema in new_glyphs:
                 classes['sw'].append(schema)
+                classes[f'sw_cdx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, Dummy):
             dummy = schema
     for augend_schema in original_cursive_digit_schemas:
@@ -1981,22 +1985,26 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         place = augend_schema.path.place
         augend = augend_schema.path.digit
         for (
-            skip,
+            skip_left,
+            skip_right,
             original_digit_schemas,
             digit_schemas,
             digit_path,
         ) in [(
-            6 * WIDTH_MARKER_PLACES - 2,
+            True,
+            True,
             original_cursive_digit_schemas,
             cursive_digit_schemas,
             CursiveWidthDigit,
         ), (
-            2 * WIDTH_MARKER_PLACES - 2,
+            False,
+            False,
             original_left_digit_schemas,
             left_digit_schemas,
             LeftBoundDigit,
         ), (
-            4 * WIDTH_MARKER_PLACES - 2,
+            True,
+            False,
             original_right_digit_schemas,
             right_digit_schemas,
             RightBoundDigit,
@@ -2009,7 +2017,22 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     if dummy is None:
                         dummy = Schema(-1, Dummy(), 0)
                     add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
-                contexts_in = [augend_schema, *['sw'] * skip, carry_in_schema]
+                contexts_in = [augend_schema]
+                for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
+                    contexts_in.append('sw_c')
+                    contexts_in.append(f'sw_cdx_{cursive_place}')
+                for left_place in range(0, WIDTH_MARKER_PLACES if skip_left else augend_schema.path.place):
+                    contexts_in.append('sw_c')
+                    contexts_in.append(f'sw_ldx_{left_place}')
+                if skip_left:
+                    for right_place in range(0, WIDTH_MARKER_PLACES if skip_right else augend_schema.path.place):
+                        contexts_in.append('sw_c')
+                        contexts_in.append(f'sw_rdx_{right_place}')
+                if skip_right:
+                    for cursive_place in range(0, augend_schema.path.place):
+                        contexts_in.append('sw_c')
+                        contexts_in.append(f'sw_cdx_{cursive_place}')
+                contexts_in.append(carry_in_schema)
                 for addend_schema in original_digit_schemas:
                     if place != addend_schema.path.place:
                         continue
