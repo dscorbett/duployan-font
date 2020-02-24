@@ -48,7 +48,6 @@ INTER_EDGE_ANCHORS = [[f'edge{layer_index}_{child_index + 1}' for child_index in
 RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_ANCHOR = 'rel2'
 MIDDLE_ANCHOR = 'mid'
-TANGENT_ANCHOR = 'tan'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
@@ -506,7 +505,6 @@ class Line(Shape):
                     glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
-            glyph.addAnchorPoint(anchor_name(TANGENT_ANCHOR), base, length, 0)
         glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
         glyph.stroke('circular', stroke_width, 'round')
 
@@ -518,6 +516,9 @@ class Line(Shape):
 
     def is_shadable(self):
         return True
+
+    def contextualize(self, context_in, context_out):
+        return self if context_in.angle is None else self.clone(angle=context_in.angle)
 
     def context_in(self):
         return Context(self.angle)
@@ -534,8 +535,10 @@ class Line(Shape):
             RELATIVE_1_ANCHOR: angle,
             RELATIVE_2_ANCHOR: angle,
             MIDDLE_ANCHOR: (angle + 90) % 180,
-            TANGENT_ANCHOR: (angle + 90) % 180,
         }
+
+    def reversed(self):
+        return self.clone(angle=(self.angle + 180) % 360)
 
 class Curve(Shape):
     def __init__(self, angle_in, angle_out, clockwise, stretch=0, long=False):
@@ -620,7 +623,6 @@ class Curve(Shape):
         anchor_name = mkmk if child else lambda a: a
         base = 'basemark' if child else 'base'
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
-        glyph.addAnchorPoint(anchor_name(TANGENT_ANCHOR), base, p3[0], p3[1])
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
             glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
@@ -678,7 +680,6 @@ class Curve(Shape):
             RELATIVE_1_ANCHOR: halfway_angle,
             RELATIVE_2_ANCHOR: halfway_angle,
             MIDDLE_ANCHOR: (halfway_angle + 90) % 180,
-            TANGENT_ANCHOR: (self.angle_out + 90) % 180,
         }
 
     def reversed(self):
@@ -1025,25 +1026,29 @@ class Complex(Shape):
                     if i and initial_hook:
                         component = component.reversed()
                     if forced_context is not None:
-                        if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
-                            component = component.reversed()
-                        if forced_context.angle is not None and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
-                            angle_out = component.angle_out
-                            if component.clockwise and angle_out > component.angle_in:
-                                angle_out -= 360
-                            elif not component.clockwise and angle_out < component.angle_in:
-                                angle_out += 360
-                            da = angle_out - component.angle_in
-                            if initial_hook:
-                                component = component.clone(
-                                    angle_in=(forced_context.angle - da) % 360,
-                                    angle_out=forced_context.angle,
-                                )
-                            else:
-                                component = component.clone(
-                                    angle_in=forced_context.angle,
-                                    angle_out=(forced_context.angle + da) % 360,
-                                )
+                        if isinstance(component, Line):
+                            if forced_context.angle is not None:
+                                component = component.clone(angle=forced_context.angle)
+                        else:
+                            if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
+                                component = component.reversed()
+                            if forced_context.angle is not None and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                                angle_out = component.angle_out
+                                if component.clockwise and angle_out > component.angle_in:
+                                    angle_out -= 360
+                                elif not component.clockwise and angle_out < component.angle_in:
+                                    angle_out += 360
+                                da = angle_out - component.angle_in
+                                if initial_hook:
+                                    component = component.clone(
+                                        angle_in=(forced_context.angle - da) % 360,
+                                        angle_out=forced_context.angle,
+                                    )
+                                else:
+                                    component = component.clone(
+                                        angle_in=forced_context.angle,
+                                        angle_out=(forced_context.angle + da) % 360,
+                                    )
                     instructions.append((scalar, component))
                     if initial_hook:
                         context_out = component.context_in()
@@ -1060,7 +1065,7 @@ class Complex(Shape):
         return self.clone(instructions=instructions)
 
     def context_in(self):
-        return self.instructions[0][1].context_in()
+        return next(op for op in self.instructions if not callable(op))[1].context_in()
 
     def context_out(self):
         return self.instructions[-1][1].context_out()
@@ -1874,7 +1879,6 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
             RELATIVE_1_ANCHOR,
             RELATIVE_2_ANCHOR,
             MIDDLE_ANCHOR,
-            TANGENT_ANCHOR,
             ABOVE_ANCHOR,
             BELOW_ANCHOR,
         ]:
@@ -2580,6 +2584,7 @@ WI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (5 / 3, M)])
 WEI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
 RTL_SECANT = Line(240, True)
 LTR_SECANT = Line(330, True)
+TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, True)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, True))], hook=True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 TANGENT_HOOK = Complex([(1, Curve(180, 270, False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, True))])
 HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, True))])
@@ -2763,7 +2768,7 @@ SCHEMAS = [
     Schema(0x1BC75, P, 2, Type.NON_JOINING),
     Schema(0x1BC76, RTL_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
-    Schema(0x1BC78, LINE, 0.5, Type.ORIENTING, anchor=TANGENT_ANCHOR),
+    Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
     Schema(0x1BC79, TAIL, 1),
     Schema(0x1BC7A, J, 2),
     Schema(0x1BC7B, M, 2),
@@ -2873,7 +2878,6 @@ class Builder:
                 RELATIVE_1_ANCHOR,
                 RELATIVE_2_ANCHOR,
                 MIDDLE_ANCHOR,
-                TANGENT_ANCHOR,
                 ABOVE_ANCHOR,
                 BELOW_ANCHOR,
             ]:
