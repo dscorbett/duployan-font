@@ -38,10 +38,12 @@ LIGHT_LINE = 70
 SHADED_LINE = 120
 MAX_TREE_WIDTH = 2
 MAX_TREE_DEPTH = 3
+CONTINUING_OVERLAP_CLASS = '_cont'
 PARENT_EDGE_CLASS = '_pe'
 CHILD_EDGE_CLASSES = [f'_ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
 INTER_EDGE_CLASSES = [[f'_edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 CURSIVE_ANCHOR = 'cursive'
+CONTINUING_OVERLAP_ANCHOR = 'cont'
 PARENT_EDGE_ANCHOR = 'pe'
 CHILD_EDGE_ANCHORS = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
 INTER_EDGE_ANCHORS = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
@@ -496,23 +498,25 @@ class Line(Shape):
             glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length / 2, 0))
             glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
         else:
+            anchor_name = mkmk if child else lambda a: a
+            base = 'basemark' if child else 'base'
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
                 child_interval = length / (max_tree_width + 2)
                 for child_index in range(max_tree_width):
                     glyph.addAnchorPoint(
                         CHILD_EDGE_ANCHORS[int(child)][child_index],
-                        'basemark' if child else 'base',
+                        base,
                         child_interval * (child_index + 2),
                         0,
                     )
                 if child:
                     glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', child_interval, 0)
                 else:
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', child_interval, 0)
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', child_interval * (max_tree_width + 1), 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
-            anchor_name = mkmk if child else lambda a: a
-            base = 'basemark' if child else 'base'
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
@@ -626,22 +630,24 @@ class Curve(Shape):
             pen.curveTo(p1, p2, p3)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
+        anchor_name = mkmk if child else lambda a: a
+        base = 'basemark' if child else 'base'
         if joining_type != Type.NON_JOINING:
             max_tree_width = self.max_tree_width(size)
             child_interval = da / (max_tree_width + 2)
             for child_index in range(max_tree_width):
                 glyph.addAnchorPoint(
                     CHILD_EDGE_ANCHORS[int(child)][child_index],
-                    'basemark' if child else 'base',
+                    base,
                     *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
                 )
             if child:
                 glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(a1 + child_interval)))
             else:
+                glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
+                glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-        anchor_name = mkmk if child else lambda a: a
-        base = 'basemark' if child else 'base'
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
@@ -772,14 +778,15 @@ class Circle(Shape):
         pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
+        anchor_name = mkmk if child else lambda a: a
+        base = 'basemark' if child else 'base'
         if joining_type != Type.NON_JOINING:
             if child:
                 glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', 0, 0)
             else:
+                glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
-        anchor_name = mkmk if child else lambda a: a
-        base = 'basemark' if child else 'base'
         glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
         scale_x = 1.0 + self.stretch
         if self.stretch:
@@ -1598,6 +1605,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     add_rule(lookup, Rule([continuing_overlap], [valid_continuing_overlap]))
     classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
     classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
+    classes[CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
     return [lookup]
 
 def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1805,7 +1813,14 @@ def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        0,
+        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+        reversed=True,
+    )
     contexts_in = OrderedSet()
     new_contexts_in = set()
     old_input_count = len(classes['jp_i'])
@@ -2914,7 +2929,8 @@ class Builder:
                     fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                     class_asts[INTER_EDGE_CLASSES[layer_index][child_index]],
                 )
-        self._add_lookup('curs', CURSIVE_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
+        self._add_lookup('curs', CONTINUING_OVERLAP_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
+        self._add_lookup('curs', CURSIVE_ANCHOR, 0, class_asts[CONTINUING_OVERLAP_CLASS])
         for feature, is_mkmk in [
             ('mark', False),
             ('mkmk', True),
