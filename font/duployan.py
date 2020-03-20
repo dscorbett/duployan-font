@@ -1924,7 +1924,9 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
     return []
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt')
+    lookup_before = Lookup('psts', 'dupl', 'dflt')
+    lookup_main = Lookup('psts', 'dupl', 'dflt')
+    lookup_after = Lookup('psts', 'dupl', 'dflt')
     carry_0_schema = Schema(-1, Carry(0), 0)
     left_bound_markers = {}
     right_bound_markers = {}
@@ -1932,43 +1934,67 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     start = Schema(-1, Start(), 0)
     end = Schema(-1, End(), 0)
     for glyph in new_glyphs:
+        if isinstance(glyph, Schema):
+            continue
         if glyph.glyphclass == 'baseligature':
+            overlap_entry = None
+            overlap_exit = None
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
                 if anchor_class_name == CURSIVE_ANCHOR:
                     if type == 'entry':
                         entry = x
                     elif type == 'exit':
                         exit = x
-            cursive_width = exit - entry
-            bounding_box = glyph.boundingBox()
-            if bounding_box == (0, 0, 0, 0):
-                left_bound = 0
-                right_bound = cursive_width
-            else:
-                left_bound = bounding_box[0] - entry
-                right_bound = bounding_box[2] - entry
-            digits = []
-            for width, digit_path, width_markers in [
-                (left_bound, LeftBoundDigit, left_bound_markers),
-                (right_bound, RightBoundDigit, right_bound_markers),
-                (cursive_width, CursiveWidthDigit, cursive_width_markers),
+                elif anchor_class_name == CONTINUING_OVERLAP_ANCHOR:
+                    if type == 'entry':
+                        overlap_entry = x
+                    elif type == 'exit':
+                        overlap_exit = x
+            if overlap_entry is None:
+                overlap_entry = entry
+            if overlap_exit is None:
+                overlap_exit = exit
+            x_min, _, x_max, _ = glyph.boundingBox()
+            if x_min == x_max == 0:
+                x_min = entry
+                x_max = exit
+            for segment_exit, segment_entry, peripheral, look_behind in [
+                (overlap_entry, entry, True, True),
+                (overlap_exit, overlap_entry, False, False),
+                (exit, overlap_exit, True, False),
             ]:
-                assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    if width >= 0
-                    else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    ), f'Glyph {glyph.glyphname} is too wide: {width} units'
-                digits_base = len(digits)
-                digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
-                quotient = round(width)
-                for i in range(WIDTH_MARKER_PLACES):
-                    quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-                    args = (i, remainder)
-                    if args not in width_markers:
-                        width_markers[args] = Schema(-1, digit_path(*args), 0)
-                    digits[digits_base + i * 2 + 1] = width_markers[args]
-            if digits:
-                add_rule(lookup, Rule([glyph], [start, glyph, end, *digits]))
-    return [lookup]
+                left_bound = x_min - segment_entry
+                right_bound = x_max - segment_entry
+                cursive_width = segment_exit - segment_entry
+                digits = []
+                for width, digit_path, width_markers in [
+                    (left_bound, LeftBoundDigit, left_bound_markers),
+                    (right_bound, RightBoundDigit, right_bound_markers),
+                    (cursive_width, CursiveWidthDigit, cursive_width_markers),
+                ]:
+                    assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                        if width >= 0
+                        else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                        ), f'Glyph {glyph.glyphname} is too wide: {width} units'
+                    digits_base = len(digits)
+                    digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
+                    quotient = round(width)
+                    for i in range(WIDTH_MARKER_PLACES):
+                        quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+                        args = (i, remainder)
+                        if args not in width_markers:
+                            width_markers[args] = Schema(-1, digit_path(*args), 0)
+                        digits[digits_base + i * 2 + 1] = width_markers[args]
+                if digits:
+                    if peripheral:
+                        outputs = [glyph, *digits]
+                        if look_behind:
+                            add_rule(lookup_before, Rule([glyph], outputs))
+                        else:
+                            add_rule(lookup_after, Rule([glyph], outputs))
+                    else:
+                        add_rule(lookup_main, Rule([glyph], [start, glyph, end, *digits]))
+    return [lookup_after, lookup_main, lookup_before]
 
 def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
@@ -2236,7 +2262,7 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         for schema in new_digits:
             skipped_schemas = [class_name] * schema.path.place
             add_rule(lookup, Rule(
-                [end, *[class_name] * schema.path.place] if after_end else [],
+                [end, *[class_name] * (WIDTH_MARKER_PLACES + schema.path.place)] if after_end else [],
                 [schema],
                 [] if after_end else [*[class_name] * (WIDTH_MARKER_PLACES - 1 - schema.path.place), end],
                 [Schema(-1, digit_path(schema.path.place, schema.path.digit, status), 0)]))
@@ -2279,7 +2305,7 @@ def copy_penultimate_cursive_width_to_end(glyphs, new_glyphs, classes, named_loo
         zero_schema = cursive_digit_schemas[key - schema.path.digit]
         if schema.path.digit != 0:
             add_rule(lookup_1, Rule(
-                [end, *['cp'] * schema.path.place],
+                [end, *['cp'] * (schema.path.place + WIDTH_MARKER_PLACES)],
                 [schema],
                 [],
                 [zero_schema]))
@@ -2289,7 +2315,7 @@ def copy_penultimate_cursive_width_to_end(glyphs, new_glyphs, classes, named_loo
             classes['cp'].append(done_schema)
             done_cursive_digit_schemas[done_key] = done_schema
         add_rule(lookup_2, Rule(
-            [schema, *['cp'] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end, *['cp'] * schema.path.place],
+            [schema, *['cp'] * (2 * WIDTH_MARKER_PLACES - schema.path.place - 1), end, *['cp'] * (schema.path.place + WIDTH_MARKER_PLACES)],
             [zero_schema],
             [],
             [done_cursive_digit_schemas[done_key]]))
@@ -2429,8 +2455,7 @@ def run_phases(all_input_schemas, phases):
             else:
                 might_have_feedback = True
             for output_schema in output_schemas:
-                if isinstance(output_schema, Schema):
-                    all_output_schemas.add(output_schema)
+                all_output_schemas.add(output_schema)
             new_input_schemas = OrderedSet()
             if might_have_feedback:
                 for output_schema in output_schemas:
@@ -3115,7 +3140,7 @@ class Builder:
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
-                fontTools.feaLib.ast.GlyphClass([str(s) for s in schemas]))
+                fontTools.feaLib.ast.GlyphClass([str(s) if isinstance(s, Schema) else s.glyphname for s in schemas]))
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
         for name, lookup in named_lookups.items():
