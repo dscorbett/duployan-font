@@ -1996,6 +1996,40 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         add_rule(lookup_main, Rule([glyph], [start, glyph, end, *digits]))
     return [lookup_after, lookup_main, lookup_before]
 
+def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+    lookup = Lookup('psts', 'dupl', 'dflt', 0, 'zp')
+    zeros = [None] * WIDTH_MARKER_PLACES
+    if 'zp_zero' not in named_lookups:
+        named_lookups['zp_zero'] = Lookup(None, None, None)
+    for glyph in glyphs:
+        if isinstance(glyph, Schema):
+            if isinstance(glyph.path, CursiveWidthDigit):
+                classes['zp'].append(glyph)
+                classes[f'zp_{glyph.path.place}'].append(glyph)
+                if glyph.path.digit == 0:
+                    zeros[glyph.path.place] = glyph
+        else:
+            name_components = glyph.glyphname.split('.')
+            if len(name_components) > 2 and name_components[2] == 'X':
+                classes['zp'].append(glyph)
+                continuing_overlap = glyph
+    for schema in new_glyphs:
+        if isinstance(schema, Schema) and isinstance(schema.path, CursiveWidthDigit) and schema.path.digit != 0:
+            add_rule(named_lookups['zp_zero'], Rule([schema], [zeros[schema.path.place]]))
+    add_rule(lookup, Rule(
+        [continuing_overlap],
+        [f'zp_{place}' for place in range(WIDTH_MARKER_PLACES)],
+        [],
+        lookups=['zp_zero'] * WIDTH_MARKER_PLACES,
+    ))
+    add_rule(lookup, Rule(
+        [],
+        [f'zp_{place}' for place in range(WIDTH_MARKER_PLACES)],
+        [continuing_overlap],
+        lookups=['zp_zero'] * WIDTH_MARKER_PLACES,
+    ))
+    return [lookup]
+
 def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
@@ -2606,6 +2640,7 @@ PHASES = [
 
 GLYPH_PHASES = [
     add_width_markers,
+    clear_peripheral_width_markers,
     sum_width_markers,
     calculate_bound_extrema,
     remove_false_start_markers,
