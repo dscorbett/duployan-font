@@ -1924,9 +1924,13 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
     return []
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup_before = Lookup('psts', 'dupl', 'dflt')
-    lookup_main = Lookup('psts', 'dupl', 'dflt')
-    lookup_after = Lookup('psts', 'dupl', 'dflt')
+    lookups_per_position = 12
+    lookups_before = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
+    lookups_main = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
+    lookups_after = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
+    rule_count_before = 0
+    rule_count_main = 0
+    rule_count_after = 0
     carry_0_schema = Schema(-1, Carry(0), 0)
     left_bound_markers = {}
     right_bound_markers = {}
@@ -1989,12 +1993,17 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     if peripheral:
                         outputs = [glyph, *digits]
                         if look_behind:
-                            add_rule(lookup_before, Rule([glyph], outputs))
+                            lookup = lookups_before[rule_count_before % lookups_per_position]
+                            rule_count_before += 1
                         else:
-                            add_rule(lookup_after, Rule([glyph], outputs))
+                            lookup = lookups_after[rule_count_after % lookups_per_position]
+                            rule_count_after += 1
                     else:
-                        add_rule(lookup_main, Rule([glyph], [start, glyph, end, *digits]))
-    return [lookup_after, lookup_main, lookup_before]
+                        outputs = [start, glyph, end, *digits]
+                        lookup = lookups_main[rule_count_main % lookups_per_position]
+                        rule_count_main += 1
+                    add_rule(lookup, Rule([glyph], outputs))
+    return [*lookups_after, *lookups_main, *lookups_before]
 
 def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt', 0, 'zp')
