@@ -2289,16 +2289,16 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         elif isinstance(schema.path, RightBoundDigit) and schema.path.status == DigitStatus.NORMAL:
             classes['tr'].append(schema)
             new_right_bounds.append(schema)
-    for new_digits, lookup, class_name, after_end, digit_path, status in [
-        (new_left_bounds, left_lookup, 'tl', True, LeftBoundDigit, DigitStatus.ALMOST_DONE),
-        (new_right_bounds, right_lookup, 'tr', True, RightBoundDigit, DigitStatus.DONE),
+    for new_digits, lookup, class_name, digit_path, status in [
+        (new_left_bounds, left_lookup, 'tl', LeftBoundDigit, DigitStatus.ALMOST_DONE),
+        (new_right_bounds, right_lookup, 'tr', RightBoundDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
             skipped_schemas = [class_name] * schema.path.place
             add_rule(lookup, Rule(
-                [end, *[class_name] * (WIDTH_MARKER_PLACES + schema.path.place)] if after_end else [],
+                [end, *[class_name] * (WIDTH_MARKER_PLACES + schema.path.place)],
                 [schema],
-                [] if after_end else [*[class_name] * (WIDTH_MARKER_PLACES - 1 - schema.path.place), end],
+                [],
                 [Schema(-1, digit_path(schema.path.place, schema.path.digit, status), 0)]))
     return [left_lookup, right_lookup]
 
