@@ -1560,9 +1560,9 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
-        if isinstance(schema.path, Overlap):
-            if schema.path.valid:
-                return [lookup]
+        if isinstance(schema.path, ChildEdge):
+            return [lookup]
+        if isinstance(schema.path, InvalidOverlap):
             if schema.path.continuing:
                 continuing_overlap = schema
             else:
@@ -1576,33 +1576,25 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
                 new_class = f'vv_base_{max_tree_width}'
                 classes[new_class].append(schema)
                 new_classes[max_tree_width] = new_class
+    assert global_max_tree_width == MAX_TREE_WIDTH
     classes['vv_invalid'].append(letter_overlap)
     classes['vv_invalid'].append(continuing_overlap)
-    add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
-    assert global_max_tree_width == MAX_TREE_WIDTH
-    for i in range(global_max_tree_width - 2):
-        for j in range(global_max_tree_width - 2 - i):
-            add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, *[letter_overlap] * j, continuing_overlap], [letter_overlap]))
-    for i in range(global_max_tree_width - 1):
-        add_rule(lookup, Rule([], [continuing_overlap], [*[letter_overlap] * i, continuing_overlap], [continuing_overlap]))
-    for max_tree_width, new_class in new_classes.items():
-        add_rule(lookup, Rule([new_class], 'vv_invalid', ['vv_invalid'] * max_tree_width, 'vv_invalid'))
-    valid_letter_overlap = letter_overlap.clone(cp=-1, path=letter_overlap.path.clone(valid=True))
-    add_rule(lookup, Rule(['vv_base'], [letter_overlap], [], [valid_letter_overlap]))
-    classes['vv_base'].append(valid_letter_overlap)
-    valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=continuing_overlap.path.clone(valid=True))
-    add_rule(lookup, Rule(['vv_base'], [continuing_overlap], [], [valid_continuing_overlap]))
-    classes['vv_base'].append(valid_continuing_overlap)
-    return [lookup]
-
-def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
-    letter_overlap = next(s for s in new_schemas if isinstance(s.path, InvalidOverlap) and not s.path.continuing)
-    continuing_overlap = next(s for s in new_schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     valid_letter_overlap = letter_overlap.clone(cp=-1, path=ChildEdge(lineage=[(1, 0)]))
     valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=ContinuingOverlap())
-    add_rule(lookup, Rule([letter_overlap], [valid_letter_overlap]))
-    add_rule(lookup, Rule([continuing_overlap], [valid_continuing_overlap]))
+    classes['vv_valid'].append(valid_letter_overlap)
+    classes['vv_valid'].append(valid_continuing_overlap)
+    add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
+    add_rule(lookup, Rule('vv_valid', 'vv_invalid', [], 'vv_valid'))
+    for i in range(global_max_tree_width - 2):
+        add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'vv_invalid'], [letter_overlap]))
+    if global_max_tree_width > 1:
+        add_rule(lookup, Rule([], [continuing_overlap], 'vv_invalid', [continuing_overlap]))
+    for max_tree_width, new_class in new_classes.items():
+        add_rule(lookup, Rule([new_class], 'vv_invalid', ['vv_invalid'] * max_tree_width, 'vv_invalid'))
+    add_rule(lookup, Rule(['vv_base'], [letter_overlap], [], [valid_letter_overlap]))
+    classes['vv_base'].append(valid_letter_overlap)
+    add_rule(lookup, Rule(['vv_base'], [continuing_overlap], [], [valid_continuing_overlap]))
+    classes['vv_base'].append(valid_continuing_overlap)
     classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
     classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
     classes[CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
