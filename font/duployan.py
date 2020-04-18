@@ -17,6 +17,7 @@ __all__ = ['Builder']
 
 import collections
 import enum
+import itertools
 import io
 import math
 import re
@@ -1626,6 +1627,110 @@ def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
             add_rule(lookup, Rule([schema], [root_parent_edge, schema]))
     return [lookup]
 
+def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
+    if maximum_depth <= 0:
+        return []
+    trees = []
+    if prefix_depth is None:
+        subtrees = make_trees(node, edge, maximum_depth - 1)
+        widths = range(MAX_TREE_WIDTH + 1) if top_widths is None else top_widths
+        for width in widths:
+            for index_set in itertools.product(range(len(subtrees)), repeat=width):
+                tree = [node, *[edge] * width] if top_widths is None else []
+                for i in index_set:
+                    tree.extend(subtrees[i])
+                trees.append(tree)
+    elif prefix_depth == 1:
+        trees.append([])
+    else:
+        shallow_subtrees = make_trees(node, edge, maximum_depth - 2)
+        deep_subtrees = make_trees(node, edge, maximum_depth - 1, prefix_depth=prefix_depth - 1)
+        widths = range(1, MAX_TREE_WIDTH + 1) if top_widths is None else top_widths
+        for width in widths:
+            for shallow_index_set in itertools.product(range(len(shallow_subtrees)), repeat=width - 1):
+                for deep_subtree in deep_subtrees:
+                    for edge_count in [width] if prefix_depth == 2 else range(width, MAX_TREE_WIDTH + 1):
+                        tree = [node, *[edge] * edge_count] if top_widths is None else []
+                        for i in shallow_index_set:
+                            tree.extend(shallow_subtrees[i])
+                        tree.extend(deep_subtree)
+                        trees.append(tree)
+    return trees
+
+def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'iv',
+        True,
+    )
+    for schema in new_schemas:
+        if isinstance(schema.path, ParentEdge):
+            node = schema
+            classes['iv'].append(schema)
+        elif isinstance(schema.path, ChildEdge):
+            valid_letter_overlap = schema
+            classes['iv'].append(schema)
+        elif isinstance(schema.path, ContinuingOverlap):
+            valid_continuing_overlap = schema
+            classes['iv'].append(schema)
+        elif isinstance(schema.path, InvalidOverlap):
+            if schema.path.continuing:
+                invalid_continuing_overlap = schema
+            else:
+                invalid_letter_overlap = schema
+            classes['iv'].append(schema)
+    classes['iv_valid'].append(valid_letter_overlap)
+    classes['iv_valid'].append(valid_continuing_overlap)
+    classes['iv_invalid'].append(invalid_letter_overlap)
+    classes['iv_invalid'].append(invalid_continuing_overlap)
+    add_rule(lookup, Rule([], 'iv_valid', 'iv_invalid', 'iv_invalid'))
+    for older_sibling_count in range(MAX_TREE_WIDTH - 1, -1, -1):
+        # A continuing overlap not at the top level must be licensed by an
+        # ancestral continuing overlap.
+        # TODO: Optimization: All but the youngest child can use
+        # `valid_letter_overlap` instead of `'iv_valid'`.
+        for subtrees in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
+            for older_sibling_count_of_continuing_overlap in range(MAX_TREE_WIDTH):
+                add_rule(lookup, Rule(
+                    [valid_letter_overlap] * older_sibling_count,
+                    [valid_letter_overlap],
+                    [*subtrees, node, *[valid_letter_overlap] * older_sibling_count_of_continuing_overlap, valid_continuing_overlap],
+                    [invalid_letter_overlap]
+                ))
+        # Trees have a maximum depth of `MAX_TREE_DEPTH` letters.
+        # TODO: Optimization: Why use a nested `for` loop? Can a combination of
+        # `top_width` and `prefix_depth` work?
+        for subtrees in make_trees(node, valid_letter_overlap, MAX_TREE_DEPTH, top_widths=range(older_sibling_count + 1)):
+            for deep_subtree in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
+                add_rule(lookup, Rule(
+                    [valid_letter_overlap] * older_sibling_count,
+                    'iv_valid',
+                    [*subtrees, *deep_subtree],
+                    'iv_invalid',
+                ))
+        # Anything valid needs to be explicitly kept valid, since there might
+        # not be enough context to tell that an invalid overlap is invalid.
+        # TODO: Optimization: The last subtree can just be one node instead of
+        # the full subtree.
+        for subtrees in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
+            add_rule(lookup, Rule(
+                [valid_letter_overlap] * older_sibling_count if older_sibling_count else [node],
+                'iv_valid',
+                subtrees,
+                'iv_valid',
+            ))
+    # If an overlap gets here without being kept valid, it is invalid.
+    # FIXME: This should be just one rule, without context, but `add_rule`
+    # is broken: it does not take into account what rules precede it in the
+    # lookup when determining the possible output schemas.
+    add_rule(lookup, Rule([], 'iv_valid', 'iv_valid', 'iv_valid'))
+    add_rule(lookup, Rule([node], 'iv_valid', [], 'iv_invalid'))
+    add_rule(lookup, Rule('iv_valid', 'iv_valid', [], 'iv_invalid'))
+    return [lookup]
+
 def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'blws',
@@ -2628,6 +2733,7 @@ PHASES = [
     validate_overlap_controls,
     count_letter_overlaps,
     add_parent_edges,
+    invalidate_overlap_controls,
     categorize_edges,
     make_mark_variants_of_children,
     ligate_pernin_r,
