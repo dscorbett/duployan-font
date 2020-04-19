@@ -79,9 +79,6 @@ def tweak_font(options, builder):
         if 'FFTM' in tt_font:
             del tt_font['FFTM']
 
-        # This font has no vendor.
-        tt_font['OS/2'].achVendID = '    '
-
         # Merge all the lookups.
         font = builder.font
         lookups = font.gpos_lookups + font.gsub_lookups
