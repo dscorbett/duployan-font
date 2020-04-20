@@ -164,6 +164,13 @@ class End(Shape):
     def name_is_enough(self):
         return True
 
+class VeryEnd(Shape):
+    def __str__(self):
+        return '_.VERYEND'
+
+    def name_is_enough(self):
+        return True
+
 class Carry(Shape):
     def __init__(self, value):
         self.value = int(value)
@@ -2034,6 +2041,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     cursive_width_markers = {}
     start = Schema(-1, Start(), 0)
     end = Schema(-1, End(), 0)
+    very_end = Schema(-1, VeryEnd(), 0)
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
@@ -2093,6 +2101,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                             lookup = lookups_before[rule_count_before % lookups_per_position]
                             rule_count_before += 1
                         else:
+                            outputs.append(very_end)
                             lookup = lookups_after[rule_count_after % lookups_per_position]
                             rule_count_after += 1
                     else:
@@ -2101,6 +2110,33 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         rule_count_main += 1
                     add_rule(lookup, Rule([glyph], outputs))
     return [*lookups_after, *lookups_main, *lookups_before]
+
+def add_very_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_rule):
+    lookup = Lookup('psts', 'dupl', 'dflt', 0)
+    very_end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, VeryEnd))
+    for glyph in new_glyphs:
+        if (not isinstance(glyph, Schema)
+            and glyph.glyphclass == 'mark'
+            and not (glyph.glyphname.startswith('_') or glyph.glyphname.startswith('dupl._'))
+        ):
+            add_rule(lookup, Rule([glyph], [glyph, very_end]))
+    return [lookup]
+
+def remove_false_very_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'fv',
+    )
+    if 'fv' in classes:
+        return [lookup]
+    dummy = Schema(-1, Dummy(), 0)
+    very_end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, VeryEnd))
+    classes['fv'].append(very_end)
+    add_rule(lookup, Rule([], [very_end], [very_end], [dummy]))
+    return [lookup]
 
 def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt', 0, 'zp')
@@ -2153,7 +2189,6 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     original_right_digit_schemas = []
     cursive_digit_schemas = {}
     original_cursive_digit_schemas = []
-    dummy = None
     for schema in glyphs:
         if not isinstance(schema, Schema):
             continue
@@ -2217,8 +2252,6 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 carry_in_is_new = carry_in_schema in new_glyphs
                 if carry_in_is_new and carry_in_schema.path.value not in dummied_carry_schemas:
                     dummied_carry_schemas.add(carry_in_schema.path.value)
-                    if dummy is None:
-                        dummy = Schema(-1, Dummy(), 0)
                     add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
                 contexts_in = [augend_schema]
                 for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
@@ -2378,8 +2411,10 @@ def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
 def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
     left_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tl', True)
     right_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tr', True)
+    cursive_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tc', True)
     new_left_bounds = []
     new_right_bounds = []
+    new_cursive_widths = []
     for schema in new_glyphs:
         if not isinstance(schema, Schema):
             continue
@@ -2389,15 +2424,21 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 classes['tl'].append(end)
             if end not in classes['tr']:
                 classes['tr'].append(end)
+            if end not in classes['tc']:
+                classes['tc'].append(end)
         elif isinstance(schema.path, LeftBoundDigit) and schema.path.status == DigitStatus.NORMAL:
             classes['tl'].append(schema)
             new_left_bounds.append(schema)
         elif isinstance(schema.path, RightBoundDigit) and schema.path.status == DigitStatus.NORMAL:
             classes['tr'].append(schema)
             new_right_bounds.append(schema)
+        elif isinstance(schema.path, CursiveWidthDigit) and schema.path.status == DigitStatus.NORMAL:
+            classes['tc'].append(schema)
+            new_cursive_widths.append(schema)
     for new_digits, lookup, class_name, digit_path, status in [
         (new_left_bounds, left_lookup, 'tl', LeftBoundDigit, DigitStatus.ALMOST_DONE),
         (new_right_bounds, right_lookup, 'tr', RightBoundDigit, DigitStatus.DONE),
+        (new_cursive_widths, cursive_lookup, 'tc', CursiveWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
             skipped_schemas = [class_name] * schema.path.place
@@ -2406,60 +2447,7 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 [schema],
                 [],
                 [Schema(-1, digit_path(schema.path.place, schema.path.digit, status), 0)]))
-    return [left_lookup, right_lookup]
-
-def copy_penultimate_cursive_width_to_end(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup_1 = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'cp',
-    )
-    lookup_2 = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'cp',
-    )
-    cursive_digit_schemas = {}
-    done_cursive_digit_schemas = {}
-    for schema in glyphs:
-        if not isinstance(schema, Schema):
-            continue
-        if isinstance(schema.path, End):
-            end = schema
-            if end not in classes['cp']:
-                classes['cp'].append(end)
-        elif isinstance(schema.path, CursiveWidthDigit):
-            if schema.path.status == DigitStatus.NORMAL and (schema in new_glyphs or schema.path.digit == 0):
-                cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            elif schema.path.status == DigitStatus.DONE:
-                done_cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            if schema in new_glyphs:
-                classes['cp'].append(schema)
-    for key, schema in cursive_digit_schemas.items():
-        if schema not in new_glyphs:
-            continue
-        zero_schema = cursive_digit_schemas[key - schema.path.digit]
-        if schema.path.digit != 0:
-            add_rule(lookup_1, Rule(
-                [end, *['cp'] * (schema.path.place + WIDTH_MARKER_PLACES)],
-                [schema],
-                [],
-                [zero_schema]))
-        done_key = schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit
-        if done_key not in done_cursive_digit_schemas:
-            done_schema = Schema(-1, CursiveWidthDigit(schema.path.place, schema.path.digit, DigitStatus.DONE), 0)
-            classes['cp'].append(done_schema)
-            done_cursive_digit_schemas[done_key] = done_schema
-        add_rule(lookup_2, Rule(
-            [schema, *['cp'] * (2 * WIDTH_MARKER_PLACES - schema.path.place - 1), end, *['cp'] * (schema.path.place + WIDTH_MARKER_PLACES)],
-            [zero_schema],
-            [],
-            [done_cursive_digit_schemas[done_key]]))
-    return [lookup_1, lookup_2]
+    return [left_lookup, right_lookup, cursive_lookup]
 
 def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
@@ -2747,6 +2735,8 @@ PHASES = [
 
 GLYPH_PHASES = [
     add_width_markers,
+    add_very_end_markers_for_marks,
+    remove_false_very_end_markers,
     clear_peripheral_width_markers,
     sum_width_markers,
     calculate_bound_extrema,
@@ -2754,7 +2744,6 @@ GLYPH_PHASES = [
     remove_false_end_markers,
     expand_start_markers,
     mark_maximum_bounds,
-    copy_penultimate_cursive_width_to_end,
     copy_maximum_left_bound_to_start,
     dist,
 ]
@@ -3262,6 +3251,9 @@ class Builder:
         glyph = self.font.createChar(schema.cp, str(schema))
         glyph.glyphclass = 'mark'
         glyph.width = 0
+        if isinstance(schema.path, VeryEnd):
+            glyph.glyphclass = 'baseglyph'
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     def augment(self):
         self.font.temporary = {}

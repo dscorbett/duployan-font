@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 1BC4E::[_=+120|u1BC02.p=0+0|u1BC46.i.C.270.90.pos.2=1@0,-300+0|_=+320|dupl.L.0.0.rel2=1@-308,-490+0]
+1BC02 1BC4E::[_=+120|u1BC02.p=0+0|u1BC46.i.C.270.90.pos.2=1@0,-300+200|_=+120|dupl.L.0.0.rel2=1@-308,-490+0]
 1BC03 1BC4E::[_=+120|u1BC03.t=0+500|u1BC46.i.C.0.180.pos.2=1@0,100+0|_=+220|dupl.L.90.0.rel2._1=1@20,100+0]
-1BC04 1BC4E::[_=+120|u1BC04.f=0+288|u1BC46.i.C.300.120.pos.2=1@0,-225+0|_=+307|dupl.L.30.0.rel2=1@-176,-408+0]
-1BC05 1BC4E::[_=+421|u1BC05.k=0+-288|u1BC46.i.C.240.60.pos.2=1@0,-325+0|_=+408|dupl.L.150.0.rel2=1@-365,-508+0]
-1BC06 1BC4E::[_=+120|u1BC06.l=0+500|u1BC46.i.C.45.225.pos.2=1@0,335+0|_=+149|dupl.L.135.0.rel2=1@12,490+0]
+1BC04 1BC4E::[_=+120|u1BC04.f=0+288|u1BC46.i.C.300.120.pos.2=1@0,-225+173|_=+133|dupl.L.30.0.rel2=1@-175,-408+0]
+1BC05 1BC4E::[_=+421|u1BC05.k=0+-288|u1BC46.i.C.240.60.pos.2=1@0,-325+173|_=+234|dupl.L.150.0.rel2=1@-364,-508+0]
+1BC06 1BC4E::[_=+120|u1BC06.l=0+500|u1BC46.i.C.45.225.pos.2=1@0,335+-141|_=+291|dupl.L.135.0.rel2=1@11,490+0]
 
 1BC1D::[_=+420|u1BC1D.mN.C.180.0.pos.6=0+0|_=+120|u1BC9E.doubleMark.L.0.0.mid=0@-532,0+0]
 1BC1E::[_=+120|u1BC1E.nM.C.0.180.neg.6=0+0|_=+420|u1BC9E.doubleMark.L.0.0.mid=0@-232,0+0]
-1BC1F::[_=+120|u1BC1F.jM.C.90.270.neg.6=0+0|_=+840|u1BC9E.doubleMark.L.90.0.mid=0@-480,150+0]
-1BC20::[_=+120|u1BC20.sJ.C.270.90.pos.6=0+0|_=+840|u1BC9E.doubleMark.L.90.0.mid=0@-480,-150+0]
+1BC1F::[_=+120|u1BC1F.jM.C.90.270.neg.6=0+720|_=+120|u1BC9E.doubleMark.L.90.0.mid=0@-480,150+0]
+1BC20::[_=+120|u1BC20.sJ.C.270.90.pos.6=0+720|_=+120|u1BC9E.doubleMark.L.90.0.mid=0@-480,-150+0]
 1BC2B::[_=+520|u1BC2B.mNS.C.180.0.pos.8=0+0|_=+120|u1BC9E.doubleMark.L.0.0.mid=0@-632,0+0]
 1BC2C::[_=+120|u1BC2C.nMS.C.0.180.neg.8=0+0|_=+520|u1BC9E.doubleMark.L.0.0.mid=0@-232,0+0]
-1BC2D::[_=+120|u1BC2D.jMS.C.90.270.neg.8=0+0|_=+1560|u1BC9E.doubleMark.L.90.0.mid=0@-840,200+0]
-1BC2E::[_=+120|u1BC2E.sJS.C.270.90.pos.8=0+0|_=+1560|u1BC9E.doubleMark.L.90.0.mid=0@-840,-200+0]
+1BC2D::[_=+120|u1BC2D.jMS.C.90.270.neg.8=0+1440|_=+120|u1BC9E.doubleMark.L.90.0.mid=0@-840,200+0]
+1BC2E::[_=+120|u1BC2E.sJS.C.270.90.pos.8=0+1440|_=+120|u1BC9E.doubleMark.L.90.0.mid=0@-840,-200+0]
