@@ -53,7 +53,10 @@ def run_test(line, png_file):
             p = subprocess.Popen(
                 [
                     'hb-view',
+                    '--font-file',
                     FONT,
+                    '--font-size',
+                    'upem',
                     '-u',
                     code_points,
                     '--remove-default-ignorables',
@@ -62,7 +65,7 @@ def run_test(line, png_file):
                     '-O',
                     'png',
                     '--margin',
-                    '200 0',
+                    '800 0',
                     *options.split(),
                 ],
                 stderr=subprocess.PIPE,
