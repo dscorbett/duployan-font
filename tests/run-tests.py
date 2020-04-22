@@ -20,6 +20,13 @@ import re
 import subprocess
 import sys
 
+POSITIVE_ADVANCE_WIDTH = re.compile(r'(?<=\+)-?[1-9][0-9]*')
+MARKER_GLYPHS = re.compile(r'(?<=[\[|])(?:(?:dupl\.)?_[^\]|]*\|?)+(?=[|\]])')
+
+def collapse_marker_glyphs(match):
+    total_advance_width = sum(map(int, POSITIVE_ADVANCE_WIDTH.findall(match.group(0))))
+    return f'_=+{total_advance_width}' if total_advance_width else ''
+
 def run_test(line, png_file):
     global FONT
     code_points, options, expected_output = line.split(':')
@@ -36,11 +43,15 @@ def run_test(line, png_file):
         stdout=subprocess.PIPE)
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    actual_output = (re.sub(
-            r'(?<=[\[|])(dupl\.)?_[^+]*\+0\|?',
-            '',
-            p.stdout.read().decode('utf-8').rstrip())
-        .replace('|]', ']'))
+    actual_output = (
+        MARKER_GLYPHS.sub(
+            collapse_marker_glyphs,
+            p.stdout.read().decode('utf-8').rstrip(),
+        )
+        .replace('[|', '[')
+        .replace('||', '|')
+        .replace('|]', ']')
+    )
     if actual_output != expected_output:
         print()
         print('Actual:   ' + actual_output)
