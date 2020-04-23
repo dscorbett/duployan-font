@@ -15,17 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
-import re
 import subprocess
 import sys
 
-POSITIVE_ADVANCE_WIDTH = re.compile(r'(?<=\+)-?[1-9][0-9]*')
-MARKER_GLYPHS = re.compile(r'(?<=[\[|])(?:(?:dupl\.)?_[^\]|]*\|?)+(?=[|\]])')
-
-def collapse_marker_glyphs(match):
-    total_advance_width = sum(map(int, POSITIVE_ADVANCE_WIDTH.findall(match.group(0))))
-    return f'_=+{total_advance_width}' if total_advance_width else ''
+def parse_json(s):
+    x = 0
+    y = 0
+    for glyph in json.loads(s):
+        name = glyph['g']
+        if not (name.startswith('_') or name.startswith('dupl._')):
+            yield f'{name}@{x + glyph["dx"]},{y + glyph["dy"]}'
+        x += int(glyph['ax'])
+        y += int(glyph['ay'])
+    yield f'_@{x},{y}'
 
 def run_test(line, png_file):
     global FONT
@@ -36,6 +40,8 @@ def run_test(line, png_file):
             FONT,
             '-u',
             code_points,
+            '-O',
+            'json',
             '--remove-default-ignorables',
             *options.split(),
         ],
@@ -43,15 +49,7 @@ def run_test(line, png_file):
         stdout=subprocess.PIPE)
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    actual_output = (
-        MARKER_GLYPHS.sub(
-            collapse_marker_glyphs,
-            p.stdout.read().decode('utf-8').rstrip(),
-        )
-        .replace('[|', '[')
-        .replace('||', '|')
-        .replace('|]', ']')
-    )
+    actual_output = f'[{"|".join(parse_json(p.stdout.read().decode("utf-8")))}]'
     if actual_output != expected_output:
         print()
         print('Actual:   ' + actual_output)
