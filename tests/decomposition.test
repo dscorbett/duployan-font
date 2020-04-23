@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC5A 1BC18::[u1BC44.o.O.45.45.pos.4._2@461,0|dupl.H.1.rel1@320,0|u1BC18.rh.L.45.2@461,359|dupl.H.1.rel1@911,210|dupl.H.1.rel2@1109,408|_@1581,0]
-1BC03 1BC5A 1BC06::[u1BC03.t@120,0|u1BC44.o.C.0.45.neg.4@620,-200|dupl.H.1.rel1@620,-200|u1BC06.l@479,191|_@1099,0]
+1BC5A 1BC18::[u1BC44.o.45p45._2@461,0|dupl.Dot.rel1@320,0|u1BC18.rh._1@461,359|dupl.Dot.rel1@911,210|dupl.Dot.rel2@1109,408|_@1581,0]
+1BC03 1BC5A 1BC06::[u1BC03.t@120,0|u1BC44.o.0n45@620,-200|dupl.Dot.rel1@620,-200|u1BC06.l@479,191|_@1099,0]

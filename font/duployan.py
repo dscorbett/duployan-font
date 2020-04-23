@@ -116,6 +116,9 @@ class Shape:
     def name_is_enough(self):
         return False
 
+    def __str__(self):
+        raise NotImplementedError
+
     def group(self):
         return str(self)
 
@@ -258,7 +261,7 @@ class Space(Shape):
         )
 
     def __str__(self):
-        return 'Z.{}'.format(int(self.angle))
+        return str(int(self.angle))
 
     def group(self):
         return (
@@ -336,7 +339,7 @@ class ChildEdge(Shape):
         )
 
     def __str__(self):
-        return f'''V.{
+        return f'''{
                 '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
             }.{
                 '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1]) if self.lineage else '0'
@@ -353,7 +356,7 @@ class ContinuingOverlap(Shape):
         return ContinuingOverlap()
 
     def __str__(self):
-        return 'X'
+        return ''
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
@@ -440,7 +443,7 @@ class Step(Shape):
 
 class Dot(Shape):
     def __str__(self):
-        return 'H'
+        return ''
 
     def clone(self):
         return Dot()
@@ -484,7 +487,7 @@ class Line(Shape):
         )
 
     def __str__(self):
-        return 'L.{}'.format(int(self.angle))
+        return str(int(self.angle))
 
     def group(self):
         return (
@@ -598,10 +601,13 @@ class Curve(Shape):
         )
 
     def __str__(self):
-        return 'C.{}.{}.{}'.format(
-            int(self.angle_in),
-            int(self.angle_out),
-            'neg' if self.clockwise else 'pos')
+        return f'''{
+                int(self.angle_in)
+            }{
+                'n' if self.clockwise else 'p'
+            }{
+                int(self.angle_out)
+            }'''
 
     def group(self):
         return (
@@ -749,11 +755,15 @@ class Circle(Shape):
         )
 
     def __str__(self):
-        return 'O.{}.{}.{}{}'.format(
-            int(self.angle_in),
-            int(self.angle_out),
-            'neg' if self.clockwise else 'pos',
-            '.rev' if self.reversed else '')
+        return f'''{
+                int(self.angle_in)
+            }{
+                'n' if self.clockwise else 'p'
+            }{
+                int(self.angle_out)
+            }{
+                '.rev' if self.reversed else ''
+            }'''
 
     def group(self):
         angle_in = self.angle_in
@@ -902,9 +912,7 @@ class Complex(Shape):
         )
 
     def __str__(self):
-        return f'''W.{
-            '.'.join(f"{op[1]}.{int(op[0])}" for op in self.instructions if not callable(op))
-        }'''
+        return next(str(op[1]) for op in self.instructions if not callable(op))
 
     def group(self):
         return (
@@ -1122,22 +1130,25 @@ class Schema:
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
         (r'^ZERO WIDTH JOINER$', 'ZWJ'),
+        (r'^NARROW NO-BREAK SPACE$', 'NNBSP'),
         (r'^MEDIUM MATHEMATICAL SPACE$', 'MMSP'),
         (r'^WORD JOINER$', 'WJ'),
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
-        (r'^DUPLOYAN SIGN O WITH CROSS$', 'LIKALISTI'),
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
-        (r'\b(QUAD|SPACE)\b', 'SP'),
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
-        (r'\bCHINOOK\b', 'CHN'),
-        (r'\bROMANIAN\b', 'RO'),
+        (r' MARK$', ''),
+        (r'\bQUAD\b', 'SPACE'),
         (r' (WITH|AND) ', ' '),
-        (r'(?<! |-)[A-Z]+', lambda m: m.group(0).lower()),
-        (r'[ -]+', ''),
+        (r'.+', lambda m: m.group(0).lower()),
+        (r'[ -]+', '_'),
+    ]]
+    _SEQUENCE_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
+        (r'__zwj__', '___'),
+        (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
     ]]
     _canonical_names = {}
 
@@ -1254,6 +1265,7 @@ class Schema:
 
     def _calculate_group(self):
         return (
+            type(self.path),
             self.path.group(),
             self.cps[-1] == 0x1BC9D,
             self.size,
@@ -1286,20 +1298,30 @@ class Schema:
         if -1 in cps:
             name = ''
         else:
-            agl_name, readable_name = ('_'.join(component) for component in zip(*list(map(get_names, cps))))
-            name = agl_name if agl_name == readable_name else '{}.{}'.format(agl_name, readable_name)
+            agl_name, readable_name = zip(*[*map(get_names, cps)])
+            joined_agl_name = '_'.join(agl_name)
+            if agl_name == readable_name:
+                name = joined_agl_name
+            else:
+                joined_readable_name = '__'.join(readable_name)
+                for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
+                    joined_readable_name = regex.sub(repl, joined_readable_name)
+                name = f'{joined_agl_name}.{joined_readable_name}'
         if self.cp == -1:
-            name = f'''{
-                    name or 'dupl'
-                }.{
-                    self.path
-                }.{
-                    int(self.size)
-                }{
-                    '.' + self.anchor if self.anchor else ''
-                }{
-                    '.blws' if self.child else ''
-                }'''
+            if not name:
+                name_from_path = str(self.path)
+                if name_from_path.startswith('_'):
+                    name = name_from_path
+                else:
+                    name = f'dupl.{type(self.path).__name__}'
+                    if name_from_path:
+                        name += f'.{name_from_path}'
+                if self.anchor:
+                    name += f'.{self.anchor}'
+            elif self.joining_type == Type.ORIENTING or isinstance(self.path, ChildEdge):
+                name += f'.{self.path}'
+            if self.child:
+                name += '.blws'
         return '{}{}'.format(
             name,
             '.ss{:02}'.format(self.ss) if self.ss else '',
@@ -2117,7 +2139,7 @@ def add_very_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, a
     for glyph in new_glyphs:
         if (not isinstance(glyph, Schema)
             and glyph.glyphclass == 'mark'
-            and not (glyph.glyphname.startswith('_') or glyph.glyphname.startswith('dupl._'))
+            and not glyph.glyphname.startswith('_')
         ):
             add_rule(lookup, Rule([glyph], [glyph, very_end]))
     return [lookup]
@@ -2157,8 +2179,8 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
                 if glyph.path.digit == 0:
                     zeros[glyph.path.place] = glyph
         else:
-            name_components = glyph.glyphname.split('.')
-            if len(name_components) > 2 and name_components[2] == 'X':
+            # FIXME: Relying on glyph names is brittle.
+            if glyph.glyphname.startswith('u1BCA1.'):
                 classes['zp'].append(glyph)
                 continuing_overlap = glyph
     for schema in new_glyphs:

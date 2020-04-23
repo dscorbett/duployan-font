@@ -25,7 +25,7 @@ def parse_json(s):
     y = 0
     for glyph in json.loads(s):
         name = glyph['g']
-        if not (name.startswith('_') or name.startswith('dupl._')):
+        if not name.startswith('_'):
             yield f'{name}@{x + glyph["dx"]},{y + glyph["dy"]}'
         x += int(glyph['ax'])
         y += int(glyph['ay'])
