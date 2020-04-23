@@ -2073,7 +2073,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 (exit, overlap_exit, True, False),
             ]:
                 left_bound = x_min - segment_entry
-                right_bound = x_max - segment_entry
+                right_bound = x_max - segment_entry if not look_behind else 0
                 cursive_width = segment_exit - segment_entry
                 digits = []
                 for width, digit_path, width_markers in [
@@ -2139,7 +2139,13 @@ def remove_false_very_end_markers(glyphs, new_glyphs, classes, named_lookups, ad
     return [lookup]
 
 def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt', 0, 'zp')
+    lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        'zp',
+    )
     zeros = [None] * WIDTH_MARKER_PLACES
     if 'zp_zero' not in named_lookups:
         named_lookups['zp_zero'] = Lookup(None, None, None)
