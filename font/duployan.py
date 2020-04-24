@@ -3117,7 +3117,7 @@ class Builder:
                 )
 
     def _add_altuni(self, cp, glyph_name):
-        glyph = self.font.temporary[glyph_name]
+        glyph = self.font[glyph_name]
         if cp != -1:
             if glyph.unicode == -1:
                 glyph.unicode = cp
@@ -3135,7 +3135,6 @@ class Builder:
         for mark in schema.marks:
             mark_glyphs.append(self._draw_glyph(mark).glyphname)
         glyph = self.font.createChar(schema.cp, glyph_name)
-        self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = 'baseligature'
         glyph.addReference(base_glyph)
         base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
@@ -3151,7 +3150,6 @@ class Builder:
 
     def _draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
-        self.font.temporary[glyph_name] = glyph
         glyph.glyphclass = ('mark' if (schema.anchor
                 or schema.child
                 or isinstance(schema.path, ChildEdgeCount)
@@ -3176,10 +3174,8 @@ class Builder:
         glyph_name = str(schema)
         if schema.path.name_in_sfd():
             return self.font[schema.path.name_in_sfd()]
-        if glyph_name in self.font.temporary:
-            return self._add_altuni(schema.cp, glyph_name)
         if glyph_name in self.font:
-            return self.font[glyph_name]
+            return self._add_altuni(schema.cp, glyph_name)
         if schema.marks:
             glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
@@ -3269,7 +3265,6 @@ class Builder:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     def augment(self):
-        self.font.temporary = {}
         schemas, lookups, classes, named_lookups = run_phases(self._schemas, self._phases)
         assert not named_lookups, 'Named lookups have not been implemented for pre-merge phases'
         merge_schemas(schemas, lookups, classes)
