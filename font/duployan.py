@@ -146,6 +146,28 @@ class Shape:
     def calculate_diacritic_angles(self):
         return {}
 
+class SFDGlyphWrapper(Shape):
+    def __init__(self, sfd_name):
+        self.sfd_name = sfd_name
+
+    def clone(
+        self,
+        *,
+        sfd_name=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
+        )
+
+    def __str__(self):
+        return ''
+
+    def group(self):
+        return self.sfd_name
+
+    def name_in_sfd(self):
+        return self.sfd_name
+
 class Dummy(Shape):
     def __str__(self):
         return '_'
@@ -257,24 +279,9 @@ class Space(Shape):
     def context_out(self):
         return NO_CONTEXT
 
-class InvalidDTLS(Shape):
-    def __init__(self, sfd_name):
-        self.sfd_name = sfd_name
-
-    def clone(
-        self,
-        *,
-        sfd_name=CLONE_DEFAULT,
-    ):
-        return InvalidDTLS(
-            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
-        )
-
+class InvalidDTLS(SFDGlyphWrapper):
     def __str__(self):
         return ''
-
-    def name_in_sfd(self):
-        return self.sfd_name
 
     def context_in(self):
         return NO_CONTEXT
@@ -337,9 +344,9 @@ class ContinuingOverlap(Shape):
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
-class InvalidOverlap(Shape):
+class InvalidOverlap(SFDGlyphWrapper):
     def __init__(self, sfd_name, continuing):
-        self.sfd_name = sfd_name
+        super().__init__(sfd_name)
         self.continuing = continuing
 
     def clone(
@@ -355,9 +362,6 @@ class InvalidOverlap(Shape):
 
     def __str__(self):
         return 'fallback'
-
-    def name_in_sfd(self):
-        return self.sfd_name
 
 class ParentEdge(Shape):
     def __init__(self, lineage):
@@ -386,9 +390,9 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'basemark', 0, 0)
             glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'mark', 0, 0)
 
-class InvalidStep(Shape):
+class InvalidStep(SFDGlyphWrapper):
     def __init__(self, sfd_name, angle):
-        self.sfd_name = sfd_name
+        super().__init__(sfd_name)
         self.angle = angle
 
     def clone(
@@ -404,9 +408,6 @@ class InvalidStep(Shape):
 
     def __str__(self):
         return 'fallback'
-
-    def name_in_sfd(self):
-        return self.sfd_name
 
     def contextualize(self, context_in, context_out):
         return Space(self.angle)
@@ -1114,6 +1115,8 @@ class Schema:
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
+        (r'\bACCENT\b', ''),
+        (r'\bDIAERESIS\b', 'DIERESIS'),
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
         (r' MARK$', ''),
@@ -3035,6 +3038,9 @@ class Builder:
         for schema in schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
+        for glyph in font.selection.all().byGlyphs:
+            if glyph.unicode != -1 and glyph.unicode not in code_points:
+                self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
@@ -3168,14 +3174,12 @@ class Builder:
 
     def _draw_glyph(self, schema):
         glyph_name = str(schema)
+        if schema.path.name_in_sfd():
+            return self.font[schema.path.name_in_sfd()]
         if glyph_name in self.font.temporary:
             return self._add_altuni(schema.cp, glyph_name)
         if glyph_name in self.font:
             return self.font[glyph_name]
-        if schema.path.name_in_sfd():
-            glyph = self.font[schema.path.name_in_sfd()]
-            glyph.glyphname = glyph_name
-            return glyph
         if schema.marks:
             glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
@@ -3271,6 +3275,10 @@ class Builder:
         merge_schemas(schemas, lookups, classes)
         for schema in schemas:
             self._draw_glyph(schema)
+        for schema in schemas:
+            name_in_sfd = schema.path.name_in_sfd()
+            if name_in_sfd:
+                self.font[name_in_sfd].glyphname = str(schema)
         schemas, more_lookups, more_classes, more_named_lookups = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
         lookups += more_lookups
         classes.update(more_classes)
