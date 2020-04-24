@@ -113,8 +113,8 @@ class Shape:
     def clone(self):
         raise NotImplementedError
 
-    def name_is_enough(self):
-        return False
+    def name_in_sfd(self):
+        return None
 
     def __str__(self):
         raise NotImplementedError
@@ -150,29 +150,17 @@ class Dummy(Shape):
     def __str__(self):
         return '_'
 
-    def name_is_enough(self):
-        return True
-
 class Start(Shape):
     def __str__(self):
         return '_.START'
-
-    def name_is_enough(self):
-        return True
 
 class End(Shape):
     def __str__(self):
         return '_.END'
 
-    def name_is_enough(self):
-        return True
-
 class VeryEnd(Shape):
     def __str__(self):
         return '_.VERYEND'
-
-    def name_is_enough(self):
-        return True
 
 class Carry(Shape):
     def __init__(self, value):
@@ -181,9 +169,6 @@ class Carry(Shape):
 
     def __str__(self):
         return f'_.c.{self.value}'
-
-    def name_is_enough(self):
-        return True
 
 class DigitStatus(enum.Enum):
     NORMAL = enum.auto()
@@ -205,9 +190,6 @@ class LeftBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
-    def name_is_enough(self):
-        return True
-
 class RightBoundDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -223,9 +205,6 @@ class RightBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
-    def name_is_enough(self):
-        return True
-
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -240,9 +219,6 @@ class CursiveWidthDigit(Shape):
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
-
-    def name_is_enough(self):
-        return True
 
 class Space(Shape):
     def __init__(self, angle, with_margin=True):
@@ -281,7 +257,7 @@ class Space(Shape):
     def context_out(self):
         return NO_CONTEXT
 
-class ShadedLetterSelector(Shape):
+class InvalidDTLS(Shape):
     def __init__(self, sfd_name):
         self.sfd_name = sfd_name
 
@@ -290,15 +266,15 @@ class ShadedLetterSelector(Shape):
         *,
         sfd_name=CLONE_DEFAULT,
     ):
-        return ShadedLetterSelector(
+        return InvalidDTLS(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
         )
 
     def __str__(self):
-        return self.sfd_name
+        return ''
 
-    def name_is_enough(self):
-        return True
+    def name_in_sfd(self):
+        return self.sfd_name
 
     def context_in(self):
         return NO_CONTEXT
@@ -378,10 +354,10 @@ class InvalidOverlap(Shape):
         )
 
     def __str__(self):
-        return self.sfd_name
+        return 'fallback'
 
-    def name_is_enough(self):
-        return True
+    def name_in_sfd(self):
+        return self.sfd_name
 
 class ParentEdge(Shape):
     def __init__(self, lineage):
@@ -410,7 +386,7 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'basemark', 0, 0)
             glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'mark', 0, 0)
 
-class Step(Shape):
+class InvalidStep(Shape):
     def __init__(self, sfd_name, angle):
         self.sfd_name = sfd_name
         self.angle = angle
@@ -421,16 +397,16 @@ class Step(Shape):
         sfd_name=CLONE_DEFAULT,
         angle=CLONE_DEFAULT,
     ):
-        return Step(
+        return InvalidStep(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
             self.angle if angle is CLONE_DEFAULT else angle,
         )
 
     def __str__(self):
-        return self.sfd_name
+        return 'fallback'
 
-    def name_is_enough(self):
-        return True
+    def name_in_sfd(self):
+        return self.sfd_name
 
     def contextualize(self, context_in, context_out):
         return Space(self.angle)
@@ -1280,8 +1256,6 @@ class Schema:
         self._glyph_name = None
 
     def _calculate_name(self):
-        if self.path.name_is_enough():
-            return str(self.path)
         def get_names(cp):
             try:
                 agl_name = readable_name = fontTools.agl.UV2AGL[cp]
@@ -1322,6 +1296,10 @@ class Schema:
                 name += f'.{self.path}'
             if self.child:
                 name += '.blws'
+        if self.path.name_in_sfd():
+            name_from_path = str(self.path)
+            if name_from_path:
+                name += f'.{name_from_path}'
         return '{}{}'.format(
             name,
             '.ss{:02}'.format(self.ss) if self.ss else '',
@@ -1346,7 +1324,7 @@ class Schema:
         return self._glyph_name
 
     def contextualize(self, context_in, context_out):
-        assert self.joining_type == Type.ORIENTING or isinstance(self.path, Step)
+        assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep)
         path = self.path.contextualize(context_in, context_out)
         if path is self.path:
             return self
@@ -1915,11 +1893,11 @@ def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     old_input_count = len(classes['js_i'])
     for schema in new_schemas:
-        if isinstance(schema.path, Step):
+        if isinstance(schema.path, InvalidStep):
             classes['js_i'].append(schema)
         if (schema.joining_type != Type.NON_JOINING
             and not schema.anchor
-            and not isinstance(schema.path, Step)
+            and not isinstance(schema.path, InvalidStep)
         ):
             classes['js_c'].append(schema)
     new_context = 'js_o' not in classes
@@ -2851,12 +2829,12 @@ LOW_WAVE = Complex([(333, Space(270)), (2, Curve(270, 45, False)), (RADIUS * mat
 LOW_VERTICAL = Complex([(333, Space(270)), (0.5, Line(90, True))])
 LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, True)), (0.4, Line(240, True))])
 LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
-DTLS = ShadedLetterSelector('u1BC9D')
+DTLS = InvalidDTLS('u1BC9D')
 CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
 OVERLAP = InvalidOverlap('u1BCA0', False)
 CONTINUING_OVERLAP = InvalidOverlap('u1BCA1', True)
-DOWN_STEP = Step('u1BCA2', 270)
-UP_STEP = Step('u1BCA3', 90)
+DOWN_STEP = InvalidStep('u1BCA2', 270)
+UP_STEP = InvalidStep('u1BCA3', 90)
 LINE = Line(90, True)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
@@ -3194,7 +3172,10 @@ class Builder:
             return self._add_altuni(schema.cp, glyph_name)
         if glyph_name in self.font:
             return self.font[glyph_name]
-        assert not schema.path.name_is_enough(), f'The SFD has no glyph named {glyph_name}'
+        if schema.path.name_in_sfd():
+            glyph = self.font[schema.path.name_in_sfd()]
+            glyph.glyphname = glyph_name
+            return glyph
         if schema.marks:
             glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
