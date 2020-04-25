@@ -146,6 +146,9 @@ class Shape:
     def calculate_diacritic_angles(self):
         return {}
 
+    def must_be_mark(self):
+        return False
+
 class SFDGlyphWrapper(Shape):
     def __init__(self, sfd_name):
         self.sfd_name = sfd_name
@@ -172,13 +175,22 @@ class Dummy(Shape):
     def __str__(self):
         return '_'
 
+    def must_be_mark(self):
+        return True
+
 class Start(Shape):
     def __str__(self):
         return '_.START'
 
+    def must_be_mark(self):
+        return True
+
 class End(Shape):
     def __str__(self):
         return '_.END'
+
+    def must_be_mark(self):
+        return True
 
 class VeryEnd(Shape):
     def __str__(self):
@@ -191,6 +203,9 @@ class Carry(Shape):
 
     def __str__(self):
         return f'_.c.{self.value}'
+
+    def must_be_mark(self):
+        return True
 
 class DigitStatus(enum.Enum):
     NORMAL = enum.auto()
@@ -212,6 +227,9 @@ class LeftBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
+    def must_be_mark(self):
+        return True
+
 class RightBoundDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -227,6 +245,9 @@ class RightBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
+    def must_be_mark(self):
+        return True
+
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -241,6 +262,9 @@ class CursiveWidthDigit(Shape):
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    def must_be_mark(self):
+        return True
 
 class Space(Shape):
     def __init__(self, angle, with_margin=True):
@@ -308,6 +332,9 @@ class ChildEdgeCount(Shape):
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
+    def must_be_mark(self):
+        return True
+
 class ChildEdge(Shape):
     def __init__(self, lineage):
         self.lineage = lineage
@@ -334,6 +361,9 @@ class ChildEdge(Shape):
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
         glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'basemark', 0, 0)
 
+    def must_be_mark(self):
+        return True
+
 class ContinuingOverlap(Shape):
     def clone(self):
         return ContinuingOverlap()
@@ -343,6 +373,9 @@ class ContinuingOverlap(Shape):
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
+
+    def must_be_mark(self):
+        return True
 
 class InvalidOverlap(SFDGlyphWrapper):
     def __init__(self, sfd_name, continuing):
@@ -389,6 +422,9 @@ class ParentEdge(Shape):
             child_index = self.lineage[-1][0] - 1
             glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'basemark', 0, 0)
             glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'mark', 0, 0)
+
+    def must_be_mark(self):
+        return True
 
 class InvalidStep(SFDGlyphWrapper):
     def __init__(self, sfd_name, angle):
@@ -1170,6 +1206,7 @@ class Schema:
         self.ss = ss
         self._original_shape = _original_shape or type(path)
         self.diacritic_angles = self._calculate_diacritic_angles()
+        self.glyph_class = self._calculate_glyph_class()
         self.group = self._calculate_group()
         self._glyph_name = None
         self._canonical_schema = self
@@ -1241,6 +1278,15 @@ class Schema:
 
     def _calculate_diacritic_angles(self):
         return self.path.calculate_diacritic_angles()
+
+    def _calculate_glyph_class(self):
+        return (
+            'mark'
+                if self.anchor or self.child or self.path.must_be_mark()
+                else 'baseglyph'
+                if self.joining_type == Type.NON_JOINING
+                else 'baseligature'
+        )
 
     def _calculate_group(self):
         return (
@@ -2044,7 +2090,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     cursive_width_markers = {}
     start = Schema(-1, Start(), 0)
     end = Schema(-1, End(), 0)
-    very_end = Schema(-1, VeryEnd(), 0)
+    very_end = Schema(-1, VeryEnd(), 0, Type.NON_JOINING)
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
@@ -3135,7 +3181,6 @@ class Builder:
         for mark in schema.marks:
             mark_glyphs.append(self._draw_glyph(mark).glyphname)
         glyph = self.font.createChar(schema.cp, glyph_name)
-        glyph.glyphclass = 'baseligature'
         glyph.addReference(base_glyph)
         base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
         for mark_glyph in mark_glyphs:
@@ -3150,14 +3195,6 @@ class Builder:
 
     def _draw_base_glyph(self, schema, glyph_name):
         glyph = self.font.createChar(schema.cp, glyph_name)
-        glyph.glyphclass = ('mark' if (schema.anchor
-                or schema.child
-                or isinstance(schema.path, ChildEdgeCount)
-                or isinstance(schema.path, ChildEdge)
-                or isinstance(schema.path, ContinuingOverlap)
-                or isinstance(schema.path, ParentEdge))
-            else 'baseglyph' if schema.joining_type == Type.NON_JOINING
-            else 'baseligature')
         pen = glyph.glyphPen()
         schema.path(
             glyph,
@@ -3180,6 +3217,7 @@ class Builder:
             glyph = self._draw_glyph_with_marks(schema, glyph_name)
         else:
             glyph = self._draw_base_glyph(schema, glyph_name)
+        glyph.glyphclass = schema.glyph_class
         if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
             glyph.right_side_bearing = schema.side_bearing
@@ -3258,10 +3296,9 @@ class Builder:
     def _create_marker(self, schema):
         assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
         glyph = self.font.createChar(schema.cp, str(schema))
-        glyph.glyphclass = 'mark'
+        glyph.glyphclass = schema.glyph_class
         glyph.width = 0
         if isinstance(schema.path, VeryEnd):
-            glyph.glyphclass = 'baseglyph'
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     def augment(self):
