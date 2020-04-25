@@ -11,8 +11,7 @@ License: Apache-2.0
 
 Files: font/Duployan.sfd
 Copyright: Copyright (c) 2018-2019, David Corbett (corbett.dav@husky.neu.edu).
-  Copyright (c) 2015, 2018, Google Inc.
-  Copyright (c) 2019-2020, Google LLC.
+  Copyright (c) 2018-2020, Google LLC.
 License: OFL-1.1
 
 Files: font/fonttools_patches.py
