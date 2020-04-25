@@ -1874,11 +1874,7 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
             classes['mv'].append(schema)
-        elif (schema.joining_type != Type.NON_JOINING
-            and not schema.anchor
-            and not schema.child
-            and schema.path.can_be_child()
-        ):
+        elif schema.glyph_class == 'baseligature' and schema.path.can_be_child():
             children_to_be.append(schema)
     for child_to_be in children_to_be:
         child = child_to_be.clone(cp=-1, child=True)
