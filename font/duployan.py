@@ -260,19 +260,24 @@ class CursiveWidthDigit(Shape):
         return True
 
 class Space(Shape):
-    def __init__(self, angle, with_margin=True):
+    def __init__(
+        self,
+        angle,
+        *,
+        margins=True,
+    ):
         self.angle = angle
-        self.with_margin = with_margin
+        self.margins = margins
 
     def clone(
         self,
         *,
         angle=CLONE_DEFAULT,
-        with_margin=CLONE_DEFAULT,
+        margins=CLONE_DEFAULT,
     ):
         return Space(
             self.angle if angle is CLONE_DEFAULT else angle,
-            self.with_margin if with_margin is CLONE_DEFAULT else with_margin,
+            self.margins if margins is CLONE_DEFAULT else margins,
         )
 
     def __str__(self):
@@ -281,13 +286,13 @@ class Space(Shape):
     def group(self):
         return (
             self.angle,
-            self.with_margin,
+            self.margins,
         )
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.with_margin * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
 
     def context_in(self):
@@ -371,7 +376,12 @@ class ContinuingOverlap(Shape):
         return True
 
 class InvalidOverlap(SFDGlyphWrapper):
-    def __init__(self, sfd_name, continuing):
+    def __init__(
+        self,
+        sfd_name,
+        *,
+        continuing,
+    ):
         super().__init__(sfd_name)
         self.continuing = continuing
 
@@ -383,7 +393,7 @@ class InvalidOverlap(SFDGlyphWrapper):
     ):
         return InvalidOverlap(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
-            self.continuing if continuing is CLONE_DEFAULT else continuing,
+            continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
         )
 
     def __str__(self):
@@ -477,19 +487,24 @@ class Dot(Shape):
         return NO_CONTEXT
 
 class Line(Shape):
-    def __init__(self, angle, fixed_length=False):
+    def __init__(
+        self,
+        angle,
+        *,
+        stretchy=True,
+    ):
         self.angle = angle
-        self.fixed_length = fixed_length
+        self.stretchy = stretchy
 
     def clone(
         self,
         *,
         angle=CLONE_DEFAULT,
-        fixed_length=CLONE_DEFAULT,
+        stretchy=CLONE_DEFAULT,
     ):
         return Line(
             self.angle if angle is CLONE_DEFAULT else angle,
-            self.fixed_length if fixed_length is CLONE_DEFAULT else fixed_length,
+            stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
         )
 
     def __str__(self):
@@ -498,17 +513,17 @@ class Line(Shape):
     def group(self):
         return (
             self.angle,
-            self.fixed_length,
+            self.stretchy,
         )
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pen.moveTo((0, 0))
-        if self.fixed_length:
-            length_denominator = 1
-        else:
+        if self.stretchy:
             length_denominator = abs(math.sin(math.radians(self.angle)))
             if length_denominator < EPSILON:
                 length_denominator = 1
+        else:
+            length_denominator = 1
         length = int(500 * (size or 0.2) / length_denominator)
         pen.lineTo((length, 0))
         if anchor:
@@ -582,7 +597,15 @@ class Line(Shape):
         return self.clone(angle=(self.angle + 180) % 360)
 
 class Curve(Shape):
-    def __init__(self, angle_in, angle_out, clockwise, stretch=0, long=False):
+    def __init__(
+        self,
+        angle_in,
+        angle_out,
+        *,
+        clockwise,
+        stretch=0,
+        long=False,
+    ):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
@@ -601,9 +624,9 @@ class Curve(Shape):
         return Curve(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
-            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            self.stretch if stretch is CLONE_DEFAULT else stretch,
-            self.long if long is CLONE_DEFAULT else long,
+            clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
+            long=self.long if long is CLONE_DEFAULT else long,
         )
 
     def __str__(self):
@@ -710,9 +733,9 @@ class Curve(Shape):
         return Curve(
             angle_in,
             (angle_in + da) % 360,
-            (self.clockwise
+            clockwise=self.clockwise
                 if angle_out is None or da != 180
-                else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in)))
+                else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
@@ -736,7 +759,15 @@ class Curve(Shape):
         )
 
 class Circle(Shape):
-    def __init__(self, angle_in, angle_out, clockwise, reversed, stretch=0):
+    def __init__(
+        self,
+        angle_in,
+        angle_out,
+        *,
+        clockwise,
+        reversed=False,
+        stretch=0,
+    ):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
@@ -755,9 +786,9 @@ class Circle(Shape):
         return Circle(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
-            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            self.reversed if reversed is CLONE_DEFAULT else reversed,
-            self.stretch if stretch is CLONE_DEFAULT else stretch,
+            clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
+            stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
         )
 
     def __str__(self):
@@ -849,11 +880,11 @@ class Circle(Shape):
             return Circle(
                 angle_in,
                 angle_out,
-                clockwise_from_adjacent_curve != self.reversed
+                clockwise=clockwise_from_adjacent_curve != self.reversed
                     if clockwise_from_adjacent_curve is not None
                     else self.clockwise,
-                self.reversed,
-                self.stretch,
+                reversed=self.reversed,
+                stretch=self.stretch,
             )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
@@ -865,22 +896,64 @@ class Circle(Shape):
         if clockwise_ignoring_reversal == clockwise_ignoring_curvature:
             if self.reversed:
                 if da != 180:
-                    return Curve(angle_in, (angle_out + 180) % 360, clockwise, self.stretch, True)
+                    return Curve(
+                        angle_in,
+                        (angle_out + 180) % 360,
+                        clockwise=clockwise,
+                        stretch=self.stretch,
+                        long=True,
+                    )
                 else:
-                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed, self.stretch)
+                    return Circle(
+                        angle_in,
+                        (angle_out + 180) % 360,
+                        clockwise=clockwise,
+                        reversed=self.reversed,
+                        stretch=self.stretch,
+                    )
             else:
-                return Curve(angle_in, angle_out, clockwise, self.stretch, True)
+                return Curve(
+                    angle_in,
+                    angle_out,
+                    clockwise=clockwise,
+                    stretch=self.stretch,
+                    long=True,
+                )
         else:
             if self.reversed:
                 if da != 180:
-                    return Curve(angle_in, angle_out, clockwise, self.stretch, True)
+                    return Curve(
+                        angle_in,
+                        angle_out,
+                        clockwise=clockwise,
+                        stretch=self.stretch,
+                        long=True,
+                    )
                 else:
-                    return Circle(angle_in, (angle_out + 180) % 360, clockwise, self.reversed, self.stretch)
+                    return Circle(
+                        angle_in,
+                        (angle_out + 180) % 360,
+                        clockwise=clockwise,
+                        reversed=self.reversed,
+                        stretch=self.stretch,
+                    )
             else:
                 if da != 180 and context_in.clockwise != context_out.clockwise:
-                    return Circle(angle_in, angle_out, clockwise, self.reversed, self.stretch)
+                    return Circle(
+                        angle_in,
+                        angle_out,
+                        clockwise=clockwise,
+                        reversed=self.reversed,
+                        stretch=self.stretch,
+                    )
                 else:
-                    return Curve(angle_in, angle_out, clockwise, self.stretch, True)
+                    return Curve(
+                        angle_in,
+                        angle_out,
+                        clockwise=clockwise,
+                        stretch=self.stretch,
+                        long=True,
+                    )
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
@@ -894,7 +967,7 @@ class Complex(Shape):
         instructions,
         *,
         hook=False,
-        _all_circles=None
+        _all_circles=None,
     ):
         self.instructions = instructions
         self.hook = hook
@@ -1166,6 +1239,7 @@ class Schema:
             path,
             size,
             joining_type=Type.JOINING,
+            *,
             side_bearing=DEFAULT_SIDE_BEARING,
             child=False,
             anchor=None,
@@ -1241,19 +1315,19 @@ class Schema:
             self.path if path is CLONE_DEFAULT else path,
             self.size if size is CLONE_DEFAULT else size,
             self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
-            self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
-            self.child if child is CLONE_DEFAULT else child,
-            self.anchor if anchor is CLONE_DEFAULT else anchor,
-            self.marks if marks is CLONE_DEFAULT else marks,
-            self.ignored if ignored is CLONE_DEFAULT else ignored,
-            self.styles if styles is CLONE_DEFAULT else styles,
-            self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
-            self.context_in if context_in is CLONE_DEFAULT else context_in,
-            self.context_out if context_out is CLONE_DEFAULT else context_out,
-            self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
-            self.cps if cps is CLONE_DEFAULT else cps,
-            self.ss if ss is CLONE_DEFAULT else ss,
-            self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
+            side_bearing=self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
+            child=self.child if child is CLONE_DEFAULT else child,
+            anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
+            marks=self.marks if marks is CLONE_DEFAULT else marks,
+            ignored=self.ignored if ignored is CLONE_DEFAULT else ignored,
+            styles=self.styles if styles is CLONE_DEFAULT else styles,
+            ss_pernin=self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
+            context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
+            context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
+            base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
+            cps=self.cps if cps is CLONE_DEFAULT else cps,
+            ss=self.ss if ss is CLONE_DEFAULT else ss,
+            _original_shape=self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
         )
 
     def __repr__(self):
@@ -1413,7 +1487,16 @@ class OrderedSet(dict):
         self.pop(item, None)
 
 class Rule:
-    def __init__(self, a1, a2, a3=None, a4=None, lookups=None, x_advances=None):
+    def __init__(
+        self,
+        a1,
+        a2,
+        a3=None,
+        a4=None,
+        *,
+        lookups=None,
+        x_advances=None,
+    ):
         def _l(glyphs):
             return [glyphs] if isinstance(glyphs, str) else glyphs
         if a4 is None and lookups is None and x_advances is None:
@@ -1514,6 +1597,7 @@ class Lookup:
             feature,
             script,
             language,
+            *,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
             mark_filtering_set=None,
             reversed=False,
@@ -1667,20 +1751,20 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     return [lookup]
 
 def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', 0)
+    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0)
     letter_overlap = next(s for s in new_schemas if isinstance(s.path, ChildEdge))
     for count in range(MAX_TREE_WIDTH, 0, -1):
         add_rule(lookup, Rule(
             [],
             [letter_overlap],
             [letter_overlap] * (count - 1),
-            [Schema(-1, ChildEdgeCount(count), 0, Type.NON_JOINING, 0), letter_overlap]
+            [Schema(-1, ChildEdgeCount(count), 0, Type.NON_JOINING, side_bearing=0), letter_overlap]
         ))
     return [lookup]
 
 def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
-    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, 0)
+    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
         if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
             classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
@@ -1727,9 +1811,9 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
         'rclt',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
-        True,
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
+        reversed=True,
     )
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge):
@@ -1801,8 +1885,8 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
         'blws',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
     )
     old_groups = [s.path.group() for s in classes['all']]
     child_edges = {}
@@ -1874,7 +1958,7 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blws', 'dupl', 'dflt', 0)
+    lookup = Lookup('blws', 'dupl', 'dflt', flags=0)
     children_to_be = []
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
@@ -1927,7 +2011,7 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
     return [liga, dlig]
 
 def shade(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rlig', 'dupl', 'dflt', 0)
+    lookup = Lookup('rlig', 'dupl', 'dflt', flags=0)
     dtls = next(s for s in schemas if s.cps == [0x1BC9D])
     for schema in new_schemas:
         if not schema.anchor and len(schema.cps) == 1 and schema.path.is_shadable():
@@ -1975,7 +2059,7 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
         'rclt',
         'dupl',
         'dflt',
-        0,
+        flags=0,
         mark_filtering_set=CONTINUING_OVERLAP_CLASS,
         reversed=True,
     )
@@ -2040,7 +2124,7 @@ def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', 0, reversed=True)
+    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0, reversed=True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
     for schema in schemas:
@@ -2165,7 +2249,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     return [*lookups_after, *lookups_main, *lookups_before]
 
 def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt', 0)
+    lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
     end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
     for glyph in new_glyphs:
         if (not isinstance(glyph, Schema)
@@ -2180,8 +2264,8 @@ def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
     )
     if 'all' in classes:
         return [lookup]
@@ -2196,8 +2280,8 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
     )
     zeros = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
@@ -2236,8 +2320,8 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
     )
     carry_schemas = {}
     dummied_carry_schemas = set()
@@ -2352,7 +2436,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                             else [sum_digit_schema, carry_out_schema])
                         sum_lookup_name = str(sum_digit)
                         if sum_lookup_name not in named_lookups:
-                            named_lookups[sum_lookup_name] = Lookup(None, None, None, 0)
+                            named_lookups[sum_lookup_name] = Lookup(None, None, None, flags=0)
                         add_rule(lookup, Rule(contexts_in, [addend_schema], [], lookups=[sum_lookup_name]))
                         add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
     return [lookup]
@@ -2362,30 +2446,30 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ldx',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='ldx',
     )
     named_lookups['ldx_copy'] = Lookup(
         None,
         None,
         None,
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ldx',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='ldx',
     )
     left_digit_schemas = {}
     right_lookup = Lookup(
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'rdx',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='rdx',
     )
     named_lookups['rdx_copy'] = Lookup(
         None,
         None,
         None,
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'rdx',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='rdx',
     )
     right_digit_schemas = {}
     for schema in glyphs:
@@ -2434,9 +2518,9 @@ def remove_false_start_markers(glyphs, new_glyphs, classes, named_lookups, add_r
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
-        True,
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
+        reversed=True,
     )
     dummy = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Dummy))
     start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
@@ -2445,7 +2529,7 @@ def remove_false_start_markers(glyphs, new_glyphs, classes, named_lookups, add_r
     return [lookup]
 
 def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt', 0)
+    lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
     start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
         start,
@@ -2454,9 +2538,30 @@ def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     return [lookup]
 
 def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    left_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'ldx', True)
-    right_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'rdx', True)
-    cursive_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'cdx', True)
+    left_lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        flags=0,
+        mark_filtering_set='ldx',
+        reversed=True,
+    )
+    right_lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        flags=0,
+        mark_filtering_set='rdx',
+        reversed=True,
+    )
+    cursive_lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        flags=0,
+        mark_filtering_set='cdx',
+        reversed=True,
+    )
     new_left_bounds = []
     new_right_bounds = []
     new_cursive_widths = []
@@ -2492,8 +2597,8 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
         'psts',
         'dupl',
         'dflt',
-        fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
     )
     new_left_totals = []
     new_left_start_totals = [None] * WIDTH_MARKER_PLACES
@@ -2524,7 +2629,7 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
     return [lookup]
 
 def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', 'dupl', 'dflt', 0)
+    lookup = Lookup('dist', 'dupl', 'dflt', flags=0)
     for schema in new_glyphs:
         if not isinstance(schema, Schema):
             continue
@@ -2808,7 +2913,7 @@ GLYPH_PHASES = [
 
 SPACE = Space(0)
 H = Dot()
-X = Complex([(0.288, Line(73, True)), (0.168, Line(152, True)), (0.288, Line(73, True))])
+X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
 P_REVERSE = Line(90)
 T = Line(0)
@@ -2820,74 +2925,74 @@ K_REVERSE = Line(60)
 L = Line(45)
 L_REVERSE = Line(225)
 L_SHALLOW = Line(25)
-M = Curve(180, 0, False, 0.2)
-M_REVERSE = Curve(180, 0, True, 0.2)
-N = Curve(0, 180, True, 0.2)
-N_REVERSE = Curve(0, 180, False, 0.2)
-N_SHALLOW = Curve(295, 245, True)
-J = Curve(90, 270, True, 0.2)
-J_REVERSE = Curve(90, 270, False, 0.2)
-J_SHALLOW = Curve(25, 335, True)
-S = Curve(270, 90, False, 0.2)
-S_REVERSE = Curve(270, 90, True, 0.2)
-S_SHALLOW = Curve(335, 25, False)
-M_S = Curve(180, 0, False, 0.8)
-N_S = Curve(0, 180, True, 0.8)
-J_S = Curve(90, 270, True, 0.8)
-S_S = Curve(270, 90, False, 0.8)
-S_T = Curve(270, 0, False)
-S_P = Curve(270, 180, True)
-T_S = Curve(0, 270, True)
-W = Curve(180, 270, False)
-S_N = Curve(0, 90, False)
-K_R_S = Curve(90, 180, False)
-S_K = Curve(90, 0, True)
+M = Curve(180, 0, clockwise=False, stretch=0.2)
+M_REVERSE = Curve(180, 0, clockwise=True, stretch=0.2)
+N = Curve(0, 180, clockwise=True, stretch=0.2)
+N_REVERSE = Curve(0, 180, clockwise=False, stretch=0.2)
+N_SHALLOW = Curve(295, 245, clockwise=True)
+J = Curve(90, 270, clockwise=True, stretch=0.2)
+J_REVERSE = Curve(90, 270, clockwise=False, stretch=0.2)
+J_SHALLOW = Curve(25, 335, clockwise=True)
+S = Curve(270, 90, clockwise=False, stretch=0.2)
+S_REVERSE = Curve(270, 90, clockwise=True, stretch=0.2)
+S_SHALLOW = Curve(335, 25, clockwise=False)
+M_S = Curve(180, 0, clockwise=False, stretch=0.8)
+N_S = Curve(0, 180, clockwise=True, stretch=0.8)
+J_S = Curve(90, 270, clockwise=True, stretch=0.8)
+S_S = Curve(270, 90, clockwise=False, stretch=0.8)
+S_T = Curve(270, 0, clockwise=False)
+S_P = Curve(270, 180, clockwise=True)
+T_S = Curve(0, 270, clockwise=True)
+W = Curve(180, 270, clockwise=False)
+S_N = Curve(0, 90, clockwise=False)
+K_R_S = Curve(90, 180, clockwise=False)
+S_K = Curve(90, 0, clockwise=True)
 J_N = Complex([(1, S_K), (1, N)])
 J_N_S = Complex([(3, S_K), (4, N_S)])
-O = Circle(0, 0, False, False)
-O_REVERSE = Circle(0, 0, True, True)
-YE = Complex([(0.47, T), (0.385, Line(242, True)), (0.47, T), (0.385, Line(242, True)), (0.47, T), (0.385, Line(242, True)), (0.47, T)])
-U_N = Curve(90, 180, True)
-LONG_U = Curve(225, 45, False, 4, True)
-ROMANIAN_U = Complex([(4, Curve(180, 0, False)), lambda c: c, (2, Curve(0, 180, False))], hook=True)
-UH = Circle(45, 45, False, False, 2)
-OU = Complex([(4, Circle(180, 145, False, False)), lambda c: c, (5 / 3, Curve(145, 270, False, False))], hook=True)
-WA = Complex([(4, Circle(180, 180, False, False)), (2, Circle(180, 180, False, False))])
-WO = Complex([(4, Circle(180, 180, False, False)), (2.5, Circle(180, 180, False, False))])
-WI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (5 / 3, M)])
-WEI = Complex([(4, Circle(180, 180, False, False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
-RTL_SECANT = Line(240, True)
-LTR_SECANT = Line(330, True)
-TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, True)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, True))], hook=True)
+O = Circle(0, 0, clockwise=False)
+O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
+YE = Complex([(0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
+U_N = Curve(90, 180, clockwise=True)
+LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
+ROMANIAN_U = Complex([(4, Curve(180, 0, clockwise=False)), lambda c: c, (2, Curve(0, 180, clockwise=False))], hook=True)
+UH = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
+OU = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
+WA = Complex([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
+WO = Complex([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
+WI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
+WEI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
+RTL_SECANT = Line(240, stretchy=False)
+LTR_SECANT = Line(330, stretchy=False)
+TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
-TANGENT_HOOK = Complex([(1, Curve(180, 270, False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, True))])
-HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, True))])
-HIGH_TIGHT_ACUTE = Complex([(82, Space(90)), (0.5, Line(45, True))])
-HIGH_GRAVE = Complex([(333, Space(90)), (0.5, Line(135, True))])
-HIGH_LONG_GRAVE = Complex([(333, Space(90)), (0.75, Line(180, True)), (0.4, Line(120, True))])
+TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, clockwise=True))])
+HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, stretchy=False))])
+HIGH_TIGHT_ACUTE = Complex([(82, Space(90)), (0.5, Line(45, stretchy=False))])
+HIGH_GRAVE = Complex([(333, Space(90)), (0.5, Line(135, stretchy=False))])
+HIGH_LONG_GRAVE = Complex([(333, Space(90)), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
 HIGH_DOT = Complex([(333, Space(90)), (0.5, O)])
 HIGH_CIRCLE = Complex([(333, Space(90)), (2, O)])
-HIGH_LINE = Complex([(333, Space(90)), (0.5, Line(180, True))])
-HIGH_WAVE = Complex([(333, Space(90)), (2, Curve(270, 45, False)), (RADIUS * math.sqrt(2) / 500, Line(45, True)), (2, Curve(45, 270, True))])
-HIGH_VERTICAL = Complex([(333, Space(90)), (0.5, Line(90, True))])
-LOW_ACUTE = Complex([(333, Space(270)), (0.5, Line(45, True))])
-LOW_TIGHT_ACUTE = Complex([(82, Space(270)), (0.5, Line(45, True))])
-LOW_GRAVE = Complex([(333, Space(270)), (0.5, Line(135, True))])
-LOW_LONG_GRAVE = Complex([(333, Space(270)), (0.75, Line(180, True)), (0.4, Line(120, True))])
+HIGH_LINE = Complex([(333, Space(90)), (0.5, Line(180, stretchy=False))])
+HIGH_WAVE = Complex([(333, Space(90)), (2, Curve(270, 45, clockwise=False)), (RADIUS * math.sqrt(2) / 500, Line(45, stretchy=False)), (2, Curve(45, 270, clockwise=True))])
+HIGH_VERTICAL = Complex([(333, Space(90)), (0.5, Line(90, stretchy=False))])
+LOW_ACUTE = Complex([(333, Space(270)), (0.5, Line(45, stretchy=False))])
+LOW_TIGHT_ACUTE = Complex([(82, Space(270)), (0.5, Line(45, stretchy=False))])
+LOW_GRAVE = Complex([(333, Space(270)), (0.5, Line(135, stretchy=False))])
+LOW_LONG_GRAVE = Complex([(333, Space(270)), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
 LOW_DOT = Complex([(333, Space(270)), (0.5, O)])
 LOW_CIRCLE = Complex([(333, Space(270)), (2, O)])
-LOW_LINE = Complex([(333, Space(270)), (0.5, Line(180, True))])
-LOW_WAVE = Complex([(333, Space(270)), (2, Curve(270, 45, False)), (RADIUS * math.sqrt(2) / 500, Line(45, True)), (2, Curve(45, 270, True))])
-LOW_VERTICAL = Complex([(333, Space(270)), (0.5, Line(90, True))])
-LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, True)), (0.4, Line(240, True))])
-LIKALISTI = Complex([(5, O), (375, Space(90, False)), (0.5, P), (math.hypot(125, 125), Space(135, False)), (0.5, Line(0, True))])
+LOW_LINE = Complex([(333, Space(270)), (0.5, Line(180, stretchy=False))])
+LOW_WAVE = Complex([(333, Space(270)), (2, Curve(270, 45, clockwise=False)), (RADIUS * math.sqrt(2) / 500, Line(45, stretchy=False)), (2, Curve(45, 270, clockwise=True))])
+LOW_VERTICAL = Complex([(333, Space(270)), (0.5, Line(90, stretchy=False))])
+LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
+LIKALISTI = Complex([(5, O), (375, Space(90, margins=False)), (0.5, P), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
 DTLS = InvalidDTLS('u1BC9D')
-CHINOOK_PERIOD = Complex([(1, Line(11, True)), (179, Space(90, False)), (1, Line(191, True))])
-OVERLAP = InvalidOverlap('u1BCA0', False)
-CONTINUING_OVERLAP = InvalidOverlap('u1BCA1', True)
+CHINOOK_PERIOD = Complex([(1, Line(11, stretchy=False)), (179, Space(90, margins=False)), (1, Line(191, stretchy=False))])
+OVERLAP = InvalidOverlap('u1BCA0', continuing=False)
+CONTINUING_OVERLAP = InvalidOverlap('u1BCA1', continuing=True)
 DOWN_STEP = InvalidStep('u1BCA2', 270)
 UP_STEP = InvalidStep('u1BCA3', 90)
-LINE = Line(90, True)
+LINE = Line(90, stretchy=False)
 
 DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
@@ -2895,8 +3000,8 @@ LINE_2 = Schema(-1, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
 LINE_MIDDLE = Schema(-1, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
-    Schema(0x0020, SPACE, 260, Type.NON_JOINING, 260),
-    Schema(0x00A0, SPACE, 260, Type.NON_JOINING, 260),
+    Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
+    Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0304, T, 0, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
@@ -2912,8 +3017,8 @@ SCHEMAS = [
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
     Schema(0x200B, SPACE, 0, side_bearing=0, ignored=True),
-    Schema(0x200C, SPACE, 0, Type.NON_JOINING, 0, ignored=True),
-    Schema(0x200D, SPACE, 0, Type.NON_JOINING, 0),
+    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
+    Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
     Schema(0x2060, SPACE, 0, side_bearing=0, ignored=True),
@@ -3070,8 +3175,8 @@ SCHEMAS = [
     Schema(0x1BC9D, DTLS, 0, Type.NON_JOINING),
     Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
-    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, 0, ignored=True),
-    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, 0, ignored=True),
+    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
+    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
     Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
     Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
 ]
@@ -3098,7 +3203,8 @@ class Builder:
         self,
         feature_tag,
         anchor_class_name,
-        flags=0,
+        *,
+        flags,
         mark_filtering_set=None,
     ):
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
@@ -3127,8 +3233,8 @@ class Builder:
         self._add_lookup(
                 'abvm',
                 PARENT_EDGE_ANCHOR,
-                0,
-                class_asts[PARENT_EDGE_CLASS],
+                flags=0,
+                mark_filtering_set=class_asts[PARENT_EDGE_CLASS],
             )
         for layer_index in range(MAX_TREE_DEPTH):
             if layer_index < 2:
@@ -3136,18 +3242,18 @@ class Builder:
                     self._add_lookup(
                             'blwm',
                             CHILD_EDGE_ANCHORS[layer_index][child_index],
-                            0,
-                            class_asts[CHILD_EDGE_CLASSES[child_index]],
+                            flags=0,
+                            mark_filtering_set=class_asts[CHILD_EDGE_CLASSES[child_index]],
                         )
             for child_index in range(MAX_TREE_WIDTH):
                 self._add_lookup(
                     'mkmk',
                     INTER_EDGE_ANCHORS[layer_index][child_index],
-                    fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-                    class_asts[INTER_EDGE_CLASSES[layer_index][child_index]],
+                    flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                    mark_filtering_set=class_asts[INTER_EDGE_CLASSES[layer_index][child_index]],
                 )
-        self._add_lookup('curs', CONTINUING_OVERLAP_ANCHOR, fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
-        self._add_lookup('curs', CURSIVE_ANCHOR, 0, class_asts[CONTINUING_OVERLAP_CLASS])
+        self._add_lookup('curs', CONTINUING_OVERLAP_ANCHOR, flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
+        self._add_lookup('curs', CURSIVE_ANCHOR, flags=0, mark_filtering_set=class_asts[CONTINUING_OVERLAP_CLASS])
         for feature, is_mkmk in [
             ('mark', False),
             ('mkmk', True),
@@ -3162,6 +3268,7 @@ class Builder:
                 self._add_lookup(
                     feature,
                     mkmk(anchor) if is_mkmk else anchor,
+                    flags=0,
                     mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'] if is_mkmk else None,
                 )
 
@@ -3331,7 +3438,7 @@ class Builder:
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
         for name, (lookup, phase) in named_lookups_with_phases.items():
-            named_lookup_ast = lookup.to_ast(PrefixView(phase, class_asts), None, name=name)
+            named_lookup_ast = lookup.to_ast(PrefixView(phase, class_asts), None, name)
             self._fea.statements.append(named_lookup_ast)
             named_lookup_asts[name] = named_lookup_ast
         self._fea.statements.extend(
