@@ -1533,10 +1533,12 @@ class Lookup:
         self.rules = []
         assert (feature is None) == (script is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
         if script == 'dupl':
-            self.required = feature in [
+            assert feature not in [
+                'rtlm',
                 'frac',
                 'numr',
                 'dnom',
+                'rand',
                 'locl',
                 'ccmp',
                 'nukt',
@@ -1554,6 +1556,8 @@ class Lookup:
                 'init',
                 'medi',
                 'fina',
+            ], f"The feature '{feature}' is not simple enough for the phase system to handle"
+            self.required = feature in [
                 'abvs',
                 'blws',
                 'calt',
@@ -1604,8 +1608,8 @@ class Lookup:
             self.append(rule)
 
 def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_1 = Lookup('ccmp', 'dupl', 'dflt')
-    lookup_2 = Lookup('ccmp', 'dupl', 'dflt')
+    lookup_1 = Lookup('abvs', 'dupl', 'dflt')
+    lookup_2 = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
         if schema.ignored:
             add_rule(lookup_1, Rule([schema], [schema, schema]))
