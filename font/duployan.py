@@ -1534,11 +1534,17 @@ class Lookup:
         assert (feature is None) == (script is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
         if script == 'dupl':
             assert feature not in [
+                'rvrn',
+                'ltra',
+                'ltrm',
+                'rtla',
                 'rtlm',
                 'frac',
                 'numr',
                 'dnom',
                 'rand',
+                'trak',
+                'HARF',
                 'locl',
                 'ccmp',
                 'nukt',
@@ -1556,6 +1562,7 @@ class Lookup:
                 'init',
                 'medi',
                 'fina',
+                'BUZZ',
             ], f"The feature '{feature}' is not simple enough for the phase system to handle"
             self.required = feature in [
                 'abvs',
