@@ -1349,10 +1349,15 @@ class Schema:
             name_from_path = str(self.path)
             if name_from_path:
                 name += f'.{name_from_path}'
-        return '{}{}'.format(
-            name,
-            '.ss{:02}'.format(self.ss) if self.ss else '',
-        )
+        if self.ss:
+            name += f'.ss{self.ss:02}'
+        if -1 not in cps:
+            assert cps == [*map(ord, fontTools.agl.toUnicode(name))], f'''The glyph name "{
+                    name
+                }" does not correspond to the sequence <{
+                    ', '.join(f'U+{cp:04X}' for cp in cps)
+                }>'''
+        return name
 
     def __str__(self):
         if self._glyph_name is None:
