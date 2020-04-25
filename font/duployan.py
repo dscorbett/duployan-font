@@ -39,10 +39,10 @@ LIGHT_LINE = 70
 SHADED_LINE = 120
 MAX_TREE_WIDTH = 2
 MAX_TREE_DEPTH = 3
-CONTINUING_OVERLAP_CLASS = '_cont'
-PARENT_EDGE_CLASS = '_pe'
-CHILD_EDGE_CLASSES = [f'_ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
-INTER_EDGE_CLASSES = [[f'_edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
+CONTINUING_OVERLAP_CLASS = 'global..cont'
+PARENT_EDGE_CLASS = 'global..pe'
+CHILD_EDGE_CLASSES = [f'global..ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
+INTER_EDGE_CLASSES = [[f'global..edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 CURSIVE_ANCHOR = 'cursive'
 CONTINUING_OVERLAP_ANCHOR = 'cont'
 PARENT_EDGE_ANCHOR = 'pe'
@@ -1638,29 +1638,29 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
             if max_tree_width:
                 if max_tree_width > global_max_tree_width:
                     global_max_tree_width = max_tree_width
-                classes['vv_base'].append(schema)
-                new_class = f'vv_base_{max_tree_width}'
+                classes['base'].append(schema)
+                new_class = f'base_{max_tree_width}'
                 classes[new_class].append(schema)
                 new_classes[max_tree_width] = new_class
     assert global_max_tree_width == MAX_TREE_WIDTH
-    classes['vv_invalid'].append(letter_overlap)
-    classes['vv_invalid'].append(continuing_overlap)
+    classes['invalid'].append(letter_overlap)
+    classes['invalid'].append(continuing_overlap)
     valid_letter_overlap = letter_overlap.clone(cp=-1, path=ChildEdge(lineage=[(1, 0)]))
     valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=ContinuingOverlap())
-    classes['vv_valid'].append(valid_letter_overlap)
-    classes['vv_valid'].append(valid_continuing_overlap)
-    add_rule(lookup, Rule('vv_invalid', 'vv_invalid', [], 'vv_invalid'))
-    add_rule(lookup, Rule('vv_valid', 'vv_invalid', [], 'vv_valid'))
+    classes['valid'].append(valid_letter_overlap)
+    classes['valid'].append(valid_continuing_overlap)
+    add_rule(lookup, Rule('invalid', 'invalid', [], 'invalid'))
+    add_rule(lookup, Rule('valid', 'invalid', [], 'valid'))
     for i in range(global_max_tree_width - 2):
-        add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'vv_invalid'], [letter_overlap]))
+        add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'invalid'], [letter_overlap]))
     if global_max_tree_width > 1:
-        add_rule(lookup, Rule([], [continuing_overlap], 'vv_invalid', [continuing_overlap]))
+        add_rule(lookup, Rule([], [continuing_overlap], 'invalid', [continuing_overlap]))
     for max_tree_width, new_class in new_classes.items():
-        add_rule(lookup, Rule([new_class], 'vv_invalid', ['vv_invalid'] * max_tree_width, 'vv_invalid'))
-    add_rule(lookup, Rule(['vv_base'], [letter_overlap], [], [valid_letter_overlap]))
-    classes['vv_base'].append(valid_letter_overlap)
-    add_rule(lookup, Rule(['vv_base'], [continuing_overlap], [], [valid_continuing_overlap]))
-    classes['vv_base'].append(valid_continuing_overlap)
+        add_rule(lookup, Rule([new_class], 'invalid', ['invalid'] * max_tree_width, 'invalid'))
+    add_rule(lookup, Rule(['base'], [letter_overlap], [], [valid_letter_overlap]))
+    classes['base'].append(valid_letter_overlap)
+    add_rule(lookup, Rule(['base'], [continuing_overlap], [], [valid_continuing_overlap]))
+    classes['base'].append(valid_continuing_overlap)
     classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
     classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
     classes[CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
@@ -1682,10 +1682,10 @@ def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, 0)
     for child_index in range(MAX_TREE_WIDTH):
-        if CHILD_EDGE_CLASSES[child_index] not in classes:
+        if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
             classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
         for layer_index in range(MAX_TREE_DEPTH):
-            if INTER_EDGE_CLASSES[layer_index][child_index] not in classes:
+            if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
                 classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
         if schema.joining_type != Type.NON_JOINING and not schema.anchor:
@@ -1728,36 +1728,36 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'iv',
+        'all',
         True,
     )
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge):
             node = schema
-            classes['iv'].append(schema)
+            classes['all'].append(schema)
         elif isinstance(schema.path, ChildEdge):
             valid_letter_overlap = schema
-            classes['iv'].append(schema)
+            classes['all'].append(schema)
         elif isinstance(schema.path, ContinuingOverlap):
             valid_continuing_overlap = schema
-            classes['iv'].append(schema)
+            classes['all'].append(schema)
         elif isinstance(schema.path, InvalidOverlap):
             if schema.path.continuing:
                 invalid_continuing_overlap = schema
             else:
                 invalid_letter_overlap = schema
-            classes['iv'].append(schema)
-    classes['iv_valid'].append(valid_letter_overlap)
-    classes['iv_valid'].append(valid_continuing_overlap)
-    classes['iv_invalid'].append(invalid_letter_overlap)
-    classes['iv_invalid'].append(invalid_continuing_overlap)
-    add_rule(lookup, Rule([], 'iv_valid', 'iv_invalid', 'iv_invalid'))
+            classes['all'].append(schema)
+    classes['valid'].append(valid_letter_overlap)
+    classes['valid'].append(valid_continuing_overlap)
+    classes['invalid'].append(invalid_letter_overlap)
+    classes['invalid'].append(invalid_continuing_overlap)
+    add_rule(lookup, Rule([], 'valid', 'invalid', 'invalid'))
     for older_sibling_count in range(MAX_TREE_WIDTH - 1, -1, -1):
         # A continuing overlap not at the top level must be licensed by an
         # ancestral continuing overlap.
         # TODO: Optimization: All but the youngest child can use
-        # `valid_letter_overlap` instead of `'iv_valid'`.
-        for subtrees in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
+        # `valid_letter_overlap` instead of `'valid'`.
+        for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
             for older_sibling_count_of_continuing_overlap in range(MAX_TREE_WIDTH):
                 add_rule(lookup, Rule(
                     [valid_letter_overlap] * older_sibling_count,
@@ -1769,31 +1769,31 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
         # TODO: Optimization: Why use a nested `for` loop? Can a combination of
         # `top_width` and `prefix_depth` work?
         for subtrees in make_trees(node, valid_letter_overlap, MAX_TREE_DEPTH, top_widths=range(older_sibling_count + 1)):
-            for deep_subtree in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
+            for deep_subtree in make_trees(node, 'valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
                 add_rule(lookup, Rule(
                     [valid_letter_overlap] * older_sibling_count,
-                    'iv_valid',
+                    'valid',
                     [*subtrees, *deep_subtree],
-                    'iv_invalid',
+                    'invalid',
                 ))
         # Anything valid needs to be explicitly kept valid, since there might
         # not be enough context to tell that an invalid overlap is invalid.
         # TODO: Optimization: The last subtree can just be one node instead of
         # the full subtree.
-        for subtrees in make_trees(node, 'iv_valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
+        for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
             add_rule(lookup, Rule(
                 [valid_letter_overlap] * older_sibling_count if older_sibling_count else [node],
-                'iv_valid',
+                'valid',
                 subtrees,
-                'iv_valid',
+                'valid',
             ))
     # If an overlap gets here without being kept valid, it is invalid.
     # FIXME: This should be just one rule, without context, but `add_rule`
     # is broken: it does not take into account what rules precede it in the
     # lookup when determining the possible output schemas.
-    add_rule(lookup, Rule([], 'iv_valid', 'iv_valid', 'iv_valid'))
-    add_rule(lookup, Rule([node], 'iv_valid', [], 'iv_invalid'))
-    add_rule(lookup, Rule('iv_valid', 'iv_valid', [], 'iv_invalid'))
+    add_rule(lookup, Rule([], 'valid', 'valid', 'valid'))
+    add_rule(lookup, Rule([node], 'valid', [], 'invalid'))
+    add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
     return [lookup]
 
 def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1802,9 +1802,9 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ce',
+        'all',
     )
-    old_groups = [s.path.group() for s in classes['ce']]
+    old_groups = [s.path.group() for s in classes['all']]
     child_edges = {}
     parent_edges = {}
     def get_child_edge(lineage):
@@ -1834,9 +1834,9 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
                 default_parent_edge = schema
     for schema in new_schemas:
         if isinstance(schema.path, ChildEdge):
-            classes['ce'].append(schema)
+            classes['all'].append(schema)
         elif isinstance(schema.path, ParentEdge):
-            classes['ce'].append(schema)
+            classes['all'].append(schema)
     for edge in new_schemas:
         if edge.path.group() not in old_groups:
             if isinstance(edge.path, ChildEdge):
@@ -1878,7 +1878,7 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
     children_to_be = []
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
-            classes['mv'].append(schema)
+            classes['all'].append(schema)
         elif schema.glyph_class == 'baseligature' and schema.path.can_be_child():
             children_to_be.append(schema)
     for child_to_be in children_to_be:
@@ -1886,7 +1886,7 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
         classes[PARENT_EDGE_CLASS].append(child)
         for child_index in range(MAX_TREE_WIDTH):
             classes[CHILD_EDGE_CLASSES[child_index]].append(child)
-        add_rule(lookup, Rule('mv', [child_to_be], [], [child]))
+        add_rule(lookup, Rule('all', [child_to_be], [], [child]))
     return [lookup]
 
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1910,12 +1910,12 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
             and Style.PERNIN in schema.styles
             and len(schema.cps) == 1
         ):
-            classes['ll_vowel'].append(schema)
+            classes['vowel'].append(schema)
             vowels.append(schema)
-    assert classes['ll_vowel'], 'No Pernin circle vowels found'
+    assert classes['vowel'], 'No Pernin circle vowels found'
     if vowels:
-        add_rule(liga, Rule([], 'll_vowel', [zwj, r, 'll_vowel'], 'll_vowel'))
-        add_rule(dlig, Rule([], 'll_vowel', [r, 'll_vowel'], 'll_vowel'))
+        add_rule(liga, Rule([], 'vowel', [zwj, r, 'vowel'], 'vowel'))
+        add_rule(dlig, Rule([], 'vowel', [r, 'vowel'], 'vowel'))
     for vowel in vowels:
         reversed_vowel = vowel.clone(
             cp=-1,
@@ -1945,22 +1945,22 @@ def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
 
 def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
-    old_input_count = len(classes['js_i'])
+    old_input_count = len(classes['i'])
     for schema in new_schemas:
         if isinstance(schema.path, InvalidStep):
-            classes['js_i'].append(schema)
+            classes['i'].append(schema)
         if (schema.joining_type != Type.NON_JOINING
             and not schema.anchor
             and not isinstance(schema.path, InvalidStep)
         ):
-            classes['js_c'].append(schema)
-    new_context = 'js_o' not in classes
-    for i, target_schema in enumerate(classes['js_i']):
+            classes['c'].append(schema)
+    new_context = 'o' not in classes
+    for i, target_schema in enumerate(classes['i']):
         if new_context or i >= old_input_count:
             output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT)
-            classes['js_o'].append(output_schema)
+            classes['o'].append(output_schema)
     if new_context:
-        add_rule(lookup, Rule([], 'js_i', 'js_c', 'js_o'))
+        add_rule(lookup, Rule([], 'i', 'c', 'o'))
     return [lookup]
 
 def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1981,62 +1981,62 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
     )
     contexts_in = OrderedSet()
     new_contexts_in = set()
-    old_input_count = len(classes['jp_i'])
+    old_input_count = len(classes['i'])
     for schema in schemas:
         if not schema.anchor:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_in == NO_CONTEXT
                     and schema in new_schemas):
-                classes['jp_i'].append(schema)
+                classes['i'].append(schema)
             if schema.joining_type != Type.NON_JOINING:
                 context_in = schema.path.context_out()
                 if context_in != NO_CONTEXT:
                     contexts_in.add(context_in)
-                    context_in_class = classes['jp_c_' + str(context_in)]
+                    context_in_class = classes[f'c_{context_in}']
                     if schema not in context_in_class:
                         if not context_in_class:
                             new_contexts_in.add(context_in)
                         context_in_class.append(schema)
     for context_in in contexts_in:
-        output_class_name = 'jp_o_' + str(context_in)
+        output_class_name = f'o_{context_in}'
         new_context = context_in in new_contexts_in
-        for i, target_schema in enumerate(classes['jp_i']):
+        for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(context_in, NO_CONTEXT)
                 classes[output_class_name].append(output_schema)
         if new_context:
-            add_rule(lookup, Rule('jp_c_' + str(context_in), 'jp_i', [], output_class_name))
+            add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
     return [lookup]
 
 def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
     contexts_out = OrderedSet()
     new_contexts_out = set()
-    old_input_count = len(classes['jn_i'])
+    old_input_count = len(classes['i'])
     for schema in schemas:
         if not schema.anchor:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_out == NO_CONTEXT
                     and schema in new_schemas):
-                classes['jn_i'].append(schema)
+                classes['i'].append(schema)
             if schema.joining_type != Type.NON_JOINING:
                 context_out = schema.path.context_in()
                 if context_out != NO_CONTEXT:
                     contexts_out.add(context_out)
-                    context_out_class = classes['jn_c_' + str(context_out)]
+                    context_out_class = classes[f'c_{context_out}']
                     if schema not in context_out_class:
                         if not context_out_class:
                             new_contexts_out.add(context_out)
                         context_out_class.append(schema)
     for context_out in contexts_out:
-        output_class_name = 'jn_o_' + str(context_out)
+        output_class_name = f'o_{context_out}'
         new_context = context_out in new_contexts_out
-        for i, target_schema in enumerate(classes['jn_i']):
+        for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(target_schema.context_in, context_out)
                 classes[output_class_name].append(output_schema)
         if new_context:
-            add_rule(lookup, Rule([], 'jn_i', 'jn_c_' + str(context_out), output_class_name))
+            add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
     return [lookup]
 
 def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2048,11 +2048,11 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
             if (schema.joining_type == Type.ORIENTING
                     and schema.base_angle is None
                     and schema in new_schemas):
-                classes['rd_i_' + str(schema.anchor)].append(schema)
+                classes[f'i_{schema.anchor}'].append(schema)
         else:
             for base_context in schema.diacritic_angles.items():
                 base_contexts.add(base_context)
-                base_context_class = classes['rd_c_{}_{}'.format(*base_context)]
+                base_context_class = classes['c_{}_{}'.format(*base_context)]
                 if schema not in base_context_class:
                     if not base_context_class:
                         new_base_contexts.add(base_context)
@@ -2060,12 +2060,12 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
     for base_context in base_contexts:
         if base_context in new_base_contexts:
             anchor, angle = base_context
-            output_class_name = f'rd_o_{anchor}_{angle}'
-            for target_schema in classes['rd_i_' + str(anchor)]:
+            output_class_name = f'o_{anchor}_{angle}'
+            for target_schema in classes[f'i_{anchor}']:
                 if anchor == target_schema.anchor:
                     output_schema = target_schema.rotate_diacritic(angle)
                     classes[output_class_name].append(output_schema)
-            add_rule(lookup, Rule(f'rd_c_{anchor}_{angle}', f'rd_i_{anchor}', [], output_class_name))
+            add_rule(lookup, Rule(f'c_{anchor}_{angle}', f'i_{anchor}', [], output_class_name))
     return [lookup]
 
 def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2078,7 +2078,7 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
             BELOW_ANCHOR,
         ]:
             if schema.child or schema.anchor == anchor:
-                classes[f'_{mkmk(anchor)}'].append(schema)
+                classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
@@ -2181,13 +2181,13 @@ def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'fv',
+        'all',
     )
-    if 'fv' in classes:
+    if 'all' in classes:
         return [lookup]
     dummy = Schema(-1, Dummy(), 0)
     end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
-    classes['fv'].append(end)
+    classes['all'].append(end)
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
@@ -2197,37 +2197,37 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'zp',
+        'all',
     )
     zeros = [None] * WIDTH_MARKER_PLACES
-    if 'zp_zero' not in named_lookups:
-        named_lookups['zp_zero'] = Lookup(None, None, None)
+    if 'zero' not in named_lookups:
+        named_lookups['zero'] = Lookup(None, None, None)
     for glyph in glyphs:
         if isinstance(glyph, Schema):
             if isinstance(glyph.path, CursiveWidthDigit):
-                classes['zp'].append(glyph)
-                classes[f'zp_{glyph.path.place}'].append(glyph)
+                classes['all'].append(glyph)
+                classes[str(glyph.path.place)].append(glyph)
                 if glyph.path.digit == 0:
                     zeros[glyph.path.place] = glyph
         else:
             # FIXME: Relying on glyph names is brittle.
             if glyph.glyphname.startswith('u1BCA1.'):
-                classes['zp'].append(glyph)
+                classes['all'].append(glyph)
                 continuing_overlap = glyph
     for schema in new_glyphs:
         if isinstance(schema, Schema) and isinstance(schema.path, CursiveWidthDigit) and schema.path.digit != 0:
-            add_rule(named_lookups['zp_zero'], Rule([schema], [zeros[schema.path.place]]))
+            add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
     add_rule(lookup, Rule(
         [continuing_overlap],
-        [f'zp_{place}' for place in range(WIDTH_MARKER_PLACES)],
+        [*map(str, range(WIDTH_MARKER_PLACES))],
         [],
-        lookups=['zp_zero'] * WIDTH_MARKER_PLACES,
+        lookups=['zero'] * WIDTH_MARKER_PLACES,
     ))
     add_rule(lookup, Rule(
         [],
-        [f'zp_{place}' for place in range(WIDTH_MARKER_PLACES)],
+        [*map(str, range(WIDTH_MARKER_PLACES))],
         [continuing_overlap],
-        lookups=['zp_zero'] * WIDTH_MARKER_PLACES,
+        lookups=['zero'] * WIDTH_MARKER_PLACES,
     ))
     return [lookup]
 
@@ -2237,7 +2237,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'sw',
+        'all',
     )
     carry_schemas = {}
     dummied_carry_schemas = set()
@@ -2255,26 +2255,26 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             carry_schemas[schema.path.value] = schema
             original_carry_schemas.append(schema)
             if schema in new_glyphs:
-                classes['sw'].append(schema)
-                classes['sw_c'].append(schema)
+                classes['all'].append(schema)
+                classes['c'].append(schema)
         elif isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_left_digit_schemas.append(schema)
             if schema in new_glyphs:
-                classes['sw'].append(schema)
-                classes[f'sw_ldx_{schema.path.place}'].append(schema)
+                classes['all'].append(schema)
+                classes[f'ldx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_right_digit_schemas.append(schema)
             if schema in new_glyphs:
-                classes['sw'].append(schema)
-                classes[f'sw_rdx_{schema.path.place}'].append(schema)
+                classes['all'].append(schema)
+                classes[f'rdx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, CursiveWidthDigit):
             cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_cursive_digit_schemas.append(schema)
             if schema in new_glyphs:
-                classes['sw'].append(schema)
-                classes[f'sw_cdx_{schema.path.place}'].append(schema)
+                classes['all'].append(schema)
+                classes[f'cdx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, Dummy):
             dummy = schema
     for augend_schema in original_cursive_digit_schemas:
@@ -2314,19 +2314,19 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
                 contexts_in = [augend_schema]
                 for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
-                    contexts_in.append('sw_c')
-                    contexts_in.append(f'sw_cdx_{cursive_place}')
+                    contexts_in.append('c')
+                    contexts_in.append(f'cdx_{cursive_place}')
                 for left_place in range(0, WIDTH_MARKER_PLACES if skip_left else augend_schema.path.place):
-                    contexts_in.append('sw_c')
-                    contexts_in.append(f'sw_ldx_{left_place}')
+                    contexts_in.append('c')
+                    contexts_in.append(f'ldx_{left_place}')
                 if skip_left:
                     for right_place in range(0, WIDTH_MARKER_PLACES if skip_right else augend_schema.path.place):
-                        contexts_in.append('sw_c')
-                        contexts_in.append(f'sw_rdx_{right_place}')
+                        contexts_in.append('c')
+                        contexts_in.append(f'rdx_{right_place}')
                 if skip_right:
                     for cursive_place in range(0, augend_schema.path.place):
-                        contexts_in.append('sw_c')
-                        contexts_in.append(f'sw_cdx_{cursive_place}')
+                        contexts_in.append('c')
+                        contexts_in.append(f'cdx_{cursive_place}')
                 contexts_in.append(carry_in_schema)
                 for addend_schema in original_digit_schemas:
                     if place != addend_schema.path.place:
@@ -2350,7 +2350,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         outputs = ([sum_digit_schema]
                             if place == WIDTH_MARKER_PLACES - 1
                             else [sum_digit_schema, carry_out_schema])
-                        sum_lookup_name = f'sw_{sum_digit}'
+                        sum_lookup_name = str(sum_digit)
                         if sum_lookup_name not in named_lookups:
                             named_lookups[sum_lookup_name] = Lookup(None, None, None, 0)
                         add_rule(lookup, Rule(contexts_in, [addend_schema], [], lookups=[sum_lookup_name]))
@@ -2363,14 +2363,14 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ml',
+        'ldx',
     )
-    named_lookups['ml_copy'] = Lookup(
+    named_lookups['ldx_copy'] = Lookup(
         None,
         None,
         None,
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ml',
+        'ldx',
     )
     left_digit_schemas = {}
     right_lookup = Lookup(
@@ -2378,14 +2378,14 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'mr',
+        'rdx',
     )
-    named_lookups['mr_copy'] = Lookup(
+    named_lookups['rdx_copy'] = Lookup(
         None,
         None,
         None,
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'mr',
+        'rdx',
     )
     right_digit_schemas = {}
     for schema in glyphs:
@@ -2394,11 +2394,11 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
         if isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             if schema in new_glyphs:
-                classes['ml'].append(schema)
+                classes['ldx'].append(schema)
         elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             if schema in new_glyphs:
-                classes['mr'].append(schema)
+                classes['rdx'].append(schema)
     for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
         for i in range(0, WIDTH_MARKER_RADIX):
             left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
@@ -2411,8 +2411,8 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
                     continue
                 j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX
                 for schema_i, digit_schemas, lookup, marker_class, copy_lookup_name, compare in [
-                    (left_schema_i, left_digit_schemas, left_lookup, 'ml', 'ml_copy', int.__gt__),
-                    (right_schema_i, right_digit_schemas, right_lookup, 'mr', 'mr_copy', int.__lt__),
+                    (left_schema_i, left_digit_schemas, left_lookup, 'ldx', 'ldx_copy', int.__gt__),
+                    (right_schema_i, right_digit_schemas, right_lookup, 'rdx', 'rdx_copy', int.__lt__),
                 ]:
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
@@ -2435,12 +2435,12 @@ def remove_false_start_markers(glyphs, new_glyphs, classes, named_lookups, add_r
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'fs',
+        'all',
         True,
     )
     dummy = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Dummy))
     start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
-    classes['fs'].append(start)
+    classes['all'].append(start)
     add_rule(lookup, Rule([start], [start], [], [dummy]))
     return [lookup]
 
@@ -2454,9 +2454,9 @@ def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     return [lookup]
 
 def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    left_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tl', True)
-    right_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tr', True)
-    cursive_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'tc', True)
+    left_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'ldx', True)
+    right_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'rdx', True)
+    cursive_lookup = Lookup('psts', 'dupl', 'dflt', 0, 'cdx', True)
     new_left_bounds = []
     new_right_bounds = []
     new_cursive_widths = []
@@ -2465,18 +2465,18 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         if not isinstance(schema, Schema):
             continue
         if isinstance(schema.path, LeftBoundDigit):
-            classes['tl'].append(schema)
+            classes['ldx'].append(schema)
             new_left_bounds.append(schema)
         elif isinstance(schema.path, RightBoundDigit):
-            classes['tr'].append(schema)
+            classes['rdx'].append(schema)
             new_right_bounds.append(schema)
         elif isinstance(schema.path, CursiveWidthDigit):
-            classes['tc'].append(schema)
+            classes['cdx'].append(schema)
             new_cursive_widths.append(schema)
     for new_digits, lookup, class_name, digit_path, status in [
-        (new_left_bounds, left_lookup, 'tl', LeftBoundDigit, DigitStatus.ALMOST_DONE),
-        (new_right_bounds, right_lookup, 'tr', RightBoundDigit, DigitStatus.DONE),
-        (new_cursive_widths, cursive_lookup, 'tc', CursiveWidthDigit, DigitStatus.DONE),
+        (new_left_bounds, left_lookup, 'ldx', LeftBoundDigit, DigitStatus.ALMOST_DONE),
+        (new_right_bounds, right_lookup, 'rdx', RightBoundDigit, DigitStatus.DONE),
+        (new_cursive_widths, cursive_lookup, 'cdx', CursiveWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
             skipped_schemas = [class_name] * schema.path.place
@@ -2493,13 +2493,13 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
         'dupl',
         'dflt',
         fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        'ct',
+        'all',
     )
     new_left_totals = []
     new_left_start_totals = [None] * WIDTH_MARKER_PLACES
     start = next(s for s in glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
-    if start not in classes['ct']:
-        classes['ct'].append(start)
+    if start not in classes['all']:
+        classes['all'].append(start)
     for schema in new_glyphs:
         if not isinstance(schema, Schema):
             continue
@@ -2509,17 +2509,17 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
             elif schema.path.status == DigitStatus.DONE and schema.path.digit == 0:
                 new_left_start_totals[schema.path.place] = schema
     for total in new_left_totals:
-        classes['ct'].append(total)
+        classes['all'].append(total)
         if total.path.digit == 0:
             done = new_left_start_totals[total.path.place]
         else:
             done = Schema(-1, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
-        classes['ct'].append(done)
+        classes['all'].append(done)
         if total.path.digit != 0:
             add_rule(lookup, Rule(
-                [start, *['ct'] * total.path.place],
+                [start, *['all'] * total.path.place],
                 [new_left_start_totals[total.path.place]],
-                [*['ct'] * (WIDTH_MARKER_PLACES - 1), total],
+                [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
                 [done]))
     return [lookup]
 
@@ -2576,19 +2576,41 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
 
     register_output_schemas(rule)
 
+class PrefixView:
+    def __init__(self, source, delegate):
+        self.prefix = f'{source.__name__}..'
+        self._delegate = delegate
+
+    def _prefixed(self, key):
+        is_global = key.startswith('global..')
+        assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'
+        return key if is_global else self.prefix + key
+
+    def __getitem__(self, key):
+        return self._delegate[self._prefixed(key)]
+
+    def __setitem__(self, key, value):
+        self._delegate[self._prefixed(key)] = value
+
+    def __contains__(self, item):
+        return self._prefixed(item) in self._delegate
+
+    def items(self):
+        return self._delegate.items()
+
 def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
-    all_lookups = []
+    all_lookups_with_phases = []
     all_classes = collections.defaultdict(list)
-    all_named_lookups = {}
+    all_named_lookups_with_phases = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
         autochthonous_schemas = OrderedSet()
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
-        classes = collections.defaultdict(list)
-        named_lookups = {}
+        classes = PrefixView(phase, all_classes)
+        named_lookups = PrefixView(phase, {})
         lookups = None
         while new_input_schemas:
             output_lookups = phase(
@@ -2608,7 +2630,7 @@ def run_phases(all_input_schemas, phases):
             if lookups is None:
                 lookups = output_lookups
             else:
-                assert len(lookups) == len(output_lookups), 'Incompatible lookup counts for phase {}'.format(phase)
+                assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
                 for i, lookup in enumerate(lookups):
                     lookup.extend(output_lookups[i])
             if len(output_lookups) == 1:
@@ -2631,11 +2653,9 @@ def run_phases(all_input_schemas, phases):
                         new_input_schemas.add(output_schema)
         all_input_schemas = all_output_schemas
         all_schemas.update(all_input_schemas)
-        all_lookups.extend(lookups)
-        for class_name, schemas in classes.items():
-            all_classes[class_name].extend(schemas)
-        all_named_lookups.update(named_lookups)
-    return all_schemas, all_lookups, all_classes, all_named_lookups
+        all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
+        all_named_lookups_with_phases.update((name, (lookup, phase)) for name, lookup in named_lookups.items())
+    return all_schemas, all_lookups_with_phases, all_classes, all_named_lookups_with_phases
 
 class Grouper:
     def __init__(self, groups):
@@ -2740,13 +2760,14 @@ def rename_schemas(groups):
         for schema in group:
             schema.canonical_schema(canonical_schema)
 
-def merge_schemas(schemas, lookups, classes):
+def merge_schemas(schemas, lookups_with_phases, classes):
     grouper = group_schemas(schemas)
-    for lookup in reversed(lookups):
+    for lookup, phase in reversed(lookups_with_phases):
+        prefix_classes = PrefixView(phase, classes)
         for rule in lookup.rules:
-            sift_groups(grouper, rule, rule.contexts_in, classes)
-            sift_groups(grouper, rule, rule.contexts_out, classes)
-            sift_groups(grouper, rule, rule.inputs, classes)
+            sift_groups(grouper, rule, rule.contexts_in, prefix_classes)
+            sift_groups(grouper, rule, rule.contexts_out, prefix_classes)
+            sift_groups(grouper, rule, rule.inputs, prefix_classes)
     rename_schemas(grouper.groups())
 
 def chord_to_radius(c, theta):
@@ -3141,7 +3162,7 @@ class Builder:
                 self._add_lookup(
                     feature,
                     mkmk(anchor) if is_mkmk else anchor,
-                    mark_filtering_set=class_asts[f'_{mkmk(anchor)}'] if is_mkmk else None,
+                    mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'] if is_mkmk else None,
                 )
 
     def _add_altuni(self, cp, glyph_name):
@@ -3284,19 +3305,20 @@ class Builder:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     def augment(self):
-        schemas, lookups, classes, named_lookups = run_phases(self._schemas, self._phases)
-        assert not named_lookups, 'Named lookups have not been implemented for pre-merge phases'
-        merge_schemas(schemas, lookups, classes)
+        schemas, lookups_with_phases, classes, named_lookups_with_phases = run_phases(self._schemas, self._phases)
+        assert not named_lookups_with_phases, 'Named lookups have not been implemented for pre-merge phases'
+        merge_schemas(schemas, lookups_with_phases, classes)
         for schema in schemas:
             self._draw_glyph(schema)
         for schema in schemas:
             name_in_sfd = schema.path.name_in_sfd()
             if name_in_sfd:
                 self.font[name_in_sfd].glyphname = str(schema)
-        schemas, more_lookups, more_classes, more_named_lookups = run_phases([Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
-        lookups += more_lookups
+        schemas, more_lookups_with_phases, more_classes, more_named_lookups_with_phases = run_phases(
+            [Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
+        lookups_with_phases += more_lookups_with_phases
         classes.update(more_classes)
-        named_lookups.update(more_named_lookups)
+        named_lookups_with_phases.update(more_named_lookups_with_phases)
         for schema in schemas:
             if isinstance(schema, Schema):
                 self._create_marker(schema)
@@ -3308,11 +3330,13 @@ class Builder:
                 fontTools.feaLib.ast.GlyphClass([str(s) if isinstance(s, Schema) else s.glyphname for s in schemas]))
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
-        for name, lookup in named_lookups.items():
-            named_lookup_ast = lookup.to_ast(class_asts, None, name=name)
+        for name, (lookup, phase) in named_lookups_with_phases.items():
+            named_lookup_ast = lookup.to_ast(PrefixView(phase, class_asts), None, name=name)
             self._fea.statements.append(named_lookup_ast)
             named_lookup_asts[name] = named_lookup_ast
-        self._fea.statements.extend(l.to_ast(class_asts, named_lookup_asts) for l in lookups)
+        self._fea.statements.extend(
+            lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts))
+                for lp in lookups_with_phases)
         self._add_lookups(class_asts)
 
     def merge_features(self, tt_font, old_fea):
