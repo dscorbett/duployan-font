@@ -151,8 +151,9 @@ class Shape:
     def calculate_diacritic_angles(self):
         return {}
 
-    def must_be_mark(self):
-        return False
+    @staticmethod
+    def guaranteed_glyph_class():
+        return None
 
 class SFDGlyphWrapper(Shape):
     def __init__(self, sfd_name):
@@ -176,23 +177,33 @@ class SFDGlyphWrapper(Shape):
     def name_in_sfd(self):
         return self.sfd_name
 
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.BLOCKER
+
 class Dummy(Shape):
     def __str__(self):
         return '_'
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class Start(Shape):
     def __str__(self):
         return '_.START'
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class End(Shape):
     def __str__(self):
         return '_.END'
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.BLOCKER
 
 class Carry(Shape):
     def __init__(self, value):
@@ -202,8 +213,9 @@ class Carry(Shape):
     def __str__(self):
         return f'_.c.{self.value}'
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class DigitStatus(enum.Enum):
     NORMAL = enum.auto()
@@ -225,8 +237,9 @@ class LeftBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class RightBoundDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
@@ -243,8 +256,9 @@ class RightBoundDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class CursiveWidthDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
@@ -261,8 +275,9 @@ class CursiveWidthDigit(Shape):
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class Space(Shape):
     def __init__(
@@ -335,8 +350,9 @@ class ChildEdgeCount(Shape):
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class ChildEdge(Shape):
     def __init__(self, lineage):
@@ -364,8 +380,9 @@ class ChildEdge(Shape):
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
         glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'basemark', 0, 0)
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class ContinuingOverlap(Shape):
     def clone(self):
@@ -377,8 +394,9 @@ class ContinuingOverlap(Shape):
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class InvalidOverlap(SFDGlyphWrapper):
     def __init__(
@@ -431,8 +449,9 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'basemark', 0, 0)
             glyph.addAnchorPoint(INTER_EDGE_ANCHORS[layer_index][child_index], 'mark', 0, 0)
 
-    def must_be_mark(self):
-        return True
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
 
 class InvalidStep(SFDGlyphWrapper):
     def __init__(self, sfd_name, angle):
@@ -1352,9 +1371,9 @@ class Schema:
         return self.path.calculate_diacritic_angles()
 
     def _calculate_glyph_class(self):
-        return (
+        return self.path.guaranteed_glyph_class() or (
             GlyphClass.MARK
-                if self.anchor or self.child or self.path.must_be_mark()
+                if self.anchor or self.child
                 else GlyphClass.BLOCKER
                 if self.joining_type == Type.NON_JOINING
                 else GlyphClass.JOINER
@@ -2183,7 +2202,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     right_bound_markers = {}
     cursive_width_markers = {}
     start = Schema(-1, Start(), 0)
-    end = Schema(-1, End(), 0, Type.NON_JOINING)
+    end = Schema(-1, End(), 0)
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
