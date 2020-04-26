@@ -63,6 +63,11 @@ assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 def mkmk(anchor):
     return f'mkmk_{anchor}'
 
+class GlyphClass:
+    BLOCKER = 'baseglyph'
+    JOINER = 'baseligature'
+    MARK = 'mark'
+
 class Type(enum.Enum):
     JOINING = enum.auto()
     ORIENTING = enum.auto()
@@ -1348,11 +1353,11 @@ class Schema:
 
     def _calculate_glyph_class(self):
         return (
-            'mark'
+            GlyphClass.MARK
                 if self.anchor or self.child or self.path.must_be_mark()
-                else 'baseglyph'
+                else GlyphClass.BLOCKER
                 if self.joining_type == Type.NON_JOINING
-                else 'baseligature'
+                else GlyphClass.JOINER
         )
 
     def _calculate_group(self):
@@ -1963,7 +1968,7 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
             classes['all'].append(schema)
-        elif schema.glyph_class == 'baseligature' and schema.path.can_be_child():
+        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child():
             children_to_be.append(schema)
     for child_to_be in children_to_be:
         child = child_to_be.clone(cp=-1, child=True)
@@ -2182,7 +2187,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
-        if glyph.glyphclass == 'baseligature':
+        if glyph.glyphclass == GlyphClass.JOINER:
             overlap_entry = None
             overlap_exit = None
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
@@ -2253,7 +2258,7 @@ def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_ru
     end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
     for glyph in new_glyphs:
         if (not isinstance(glyph, Schema)
-            and glyph.glyphclass == 'mark'
+            and glyph.glyphclass == GlyphClass.MARK
             and not glyph.glyphname.startswith('_')
         ):
             add_rule(lookup, Rule([glyph], [glyph, end]))
@@ -3389,11 +3394,11 @@ class Builder:
         ligatures = []
         for glyph in self.font.glyphs():
             glyph_class = glyph.glyphclass
-            if glyph_class == 'baseglyph':
+            if glyph_class == GlyphClass.BLOCKER:
                 bases.append(glyph.glyphname)
-            elif glyph_class == 'mark':
+            elif glyph_class == GlyphClass.MARK:
                 marks.append(glyph.glyphname)
-            elif glyph_class == 'baseligature':
+            elif glyph_class == GlyphClass.JOINER:
                 ligatures.append(glyph.glyphname)
         gdef = fontTools.feaLib.ast.TableBlock('GDEF')
         gdef.statements.append(fontTools.feaLib.ast.GlyphClassDefStatement(
