@@ -1241,7 +1241,7 @@ class Schema:
         (r'^COMBINING ', ''),
         (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
         (r'^SHORTHAND FORMAT ', ''),
-        (r'\bACCENT\b', ''),
+        (r' ACCENT\b', ''),
         (r'\bDIAERESIS\b', 'DIERESIS'),
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
