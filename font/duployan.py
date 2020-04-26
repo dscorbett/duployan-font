@@ -1351,7 +1351,7 @@ class Schema:
             child=False,
             anchor=None,
             marks=None,
-            ignored=False,
+            unignored=False,
             styles=None,
             ss_pernin=None,
             context_in=None,
@@ -1370,7 +1370,7 @@ class Schema:
         self.child = child
         self.anchor = anchor
         self.marks = marks or []
-        self.ignored = ignored
+        self.unignored = unignored
         self.styles = frozenset(Style.__dict__.keys() if styles is None else styles)
         self.ss_pernin = ss_pernin
         self.context_in = context_in or NO_CONTEXT
@@ -1407,7 +1407,7 @@ class Schema:
         child=CLONE_DEFAULT,
         anchor=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
-        ignored=CLONE_DEFAULT,
+        unignored=CLONE_DEFAULT,
         styles=CLONE_DEFAULT,
         ss_pernin=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
@@ -1426,7 +1426,7 @@ class Schema:
             child=self.child if child is CLONE_DEFAULT else child,
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
-            ignored=self.ignored if ignored is CLONE_DEFAULT else ignored,
+            unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
             styles=self.styles if styles is CLONE_DEFAULT else styles,
             ss_pernin=self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
@@ -1811,13 +1811,13 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
     lookup_1 = Lookup('abvs', 'dupl', 'dflt')
     lookup_2 = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
-        if schema.ignored:
+        if schema.unignored:
             add_rule(lookup_1, Rule([schema], [schema, schema]))
             add_rule(lookup_2, Rule([schema, schema], [schema]))
     return [lookup_1, lookup_2]
 
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
+    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0)
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
@@ -1883,7 +1883,7 @@ def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
             if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
                 classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
-        if schema.joining_type != Type.NON_JOINING and not schema.anchor:
+        if schema.glyph_class == GlyphClass.JOINER:
             add_rule(lookup, Rule([schema], [root_parent_edge, schema]))
     return [lookup]
 
@@ -2144,10 +2144,7 @@ def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
     for schema in new_schemas:
         if isinstance(schema.path, InvalidStep):
             classes['i'].append(schema)
-        if (schema.joining_type != Type.NON_JOINING
-            and not schema.anchor
-            and not isinstance(schema.path, InvalidStep)
-        ):
+        if schema.glyph_class == GlyphClass.JOINER:
             classes['c'].append(schema)
     new_context = 'o' not in classes
     for i, target_schema in enumerate(classes['i']):
@@ -2178,7 +2175,7 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
     new_contexts_in = set()
     old_input_count = len(classes['i'])
     for schema in schemas:
-        if not schema.anchor:
+        if schema.glyph_class == GlyphClass.JOINER:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_in == NO_CONTEXT
                     and schema in new_schemas):
@@ -2209,7 +2206,7 @@ def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     new_contexts_out = set()
     old_input_count = len(classes['i'])
     for schema in schemas:
-        if not schema.anchor:
+        if schema.glyph_class == GlyphClass.JOINER:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_out == NO_CONTEXT
                     and schema in new_schemas):
@@ -2761,6 +2758,40 @@ def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
     return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule):
+    def ignored(schema):
+        glyph_class = schema.glyph_class if isinstance(schema, Schema) else schema.glyphclass
+        return (
+            glyph_class == GlyphClass.BLOCKER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_BASE_GLYPHS
+            or glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
+            or glyph_class == GlyphClass.MARK and (
+                lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS
+                or lookup.mark_filtering_set and schema not in classes[lookup.mark_filtering_set]
+            )
+        )
+
+    def check_ignored(target_part):
+        for s in target_part:
+            if isinstance(s, str):
+                ignored_schema = next(filter(ignored, classes[s]), None)
+                assert ignored_schema is None, f'''At least one glyph in @{s} ({
+                        ignored_schema
+                    }) appears in a substitution where it is ignored'''
+            else:
+                assert not ignored(s), f'{s} appears in a substitution where it is ignored'
+
+    check_ignored(rule.contexts_in)
+    if lookup.feature is None:
+        # The first item in a named lookup’s input sequence is immune to that
+        # named lookup’s lookup flags. It is guaranteed to (try to) match the
+        # glyph at the targeted position in the rule that references the named
+        # lookup.
+        inputs = iter(rule.inputs)
+        next(inputs)
+        check_ignored(inputs)
+    else:
+        check_ignored(rule.inputs)
+    check_ignored(rule.contexts_out)
+
     for input in rule.inputs:
         if isinstance(input, str):
             if all(s in autochthonous_schemas for s in classes[input]):
@@ -3127,12 +3158,12 @@ SCHEMAS = [
     Schema(0x2008, SPACE, 268, side_bearing=268),
     Schema(0x2009, SPACE, 200, side_bearing=200),
     Schema(0x200A, SPACE, 100, side_bearing=100),
-    Schema(0x200B, SPACE, 0, side_bearing=0, ignored=True),
-    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
+    Schema(0x200B, SPACE, 0, side_bearing=0, unignored=True),
+    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
-    Schema(0x2060, SPACE, 0, side_bearing=0, ignored=True),
+    Schema(0x2060, SPACE, 0, side_bearing=0, unignored=True),
     Schema(0xEC02, P_REVERSE, 1),
     Schema(0xEC03, T_REVERSE, 1),
     Schema(0xEC04, F_REVERSE, 1),
@@ -3142,7 +3173,7 @@ SCHEMAS = [
     Schema(0xEC1A, N_REVERSE, 6),
     Schema(0xEC1B, J_REVERSE, 6),
     Schema(0xEC1C, S_REVERSE, 6),
-    Schema(0xFEFF, SPACE, 0, side_bearing=0, ignored=True),
+    Schema(0xFEFF, SPACE, 0, side_bearing=0, unignored=True),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC01, X, 1, Type.NON_JOINING),
     Schema(0x1BC02, P, 1),
@@ -3286,10 +3317,10 @@ SCHEMAS = [
     Schema(0x1BC9D, DTLS, 0, Type.NON_JOINING),
     Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
-    Schema(0x1BCA0, OVERLAP, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
-    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, Type.NON_JOINING, side_bearing=0, ignored=True),
-    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, ignored=True),
-    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, ignored=True),
+    Schema(0x1BCA0, OVERLAP, 0, side_bearing=0, unignored=True),
+    Schema(0x1BCA1, CONTINUING_OVERLAP, 0, side_bearing=0, unignored=True),
+    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, unignored=True),
+    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, unignored=True),
 ]
 
 class Builder:
