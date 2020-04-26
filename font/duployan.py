@@ -436,7 +436,7 @@ class ParentEdge(Shape):
         )
 
     def __str__(self):
-        return f'''_pe.{
+        return f'''_.pe.{
                 '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
             }.{
                 '_'.join(str(x[1]) for x in self.lineage) if self.lineage else '0'
@@ -1442,12 +1442,15 @@ class Schema:
                 name += f'.{name_from_path}'
         if self.ss:
             name += f'.ss{self.ss:02}'
-        if -1 not in cps:
-            assert cps == [*map(ord, fontTools.agl.toUnicode(name))], f'''The glyph name "{
-                    name
-                }" does not correspond to the sequence <{
-                    ', '.join(f'U+{cp:04X}' for cp in cps)
-                }>'''
+        agl_string = fontTools.agl.toUnicode(name)
+        agl_cps = [*map(ord, agl_string)]
+        assert not agl_cps if -1 in cps else cps == agl_cps, f'''The glyph name "{
+                name
+            }" corresponds to <{
+                ', '.join(f'U+{cp:04X}' for cp in agl_cps)
+            }> but its glyph corresponds to <{
+                ', '.join(f'U+{cp:04X}' for cp in cps if cp != -1)
+            }>'''
         return name
 
     def __str__(self):
