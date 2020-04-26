@@ -124,8 +124,16 @@ class Shape:
     def __str__(self):
         raise NotImplementedError
 
+    @staticmethod
+    def name_implies_type():
+        return False
+
     def group(self):
         return str(self)
+
+    @staticmethod
+    def invisible():
+        return False
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         raise NotImplementedError
@@ -183,7 +191,15 @@ class SFDGlyphWrapper(Shape):
 
 class Dummy(Shape):
     def __str__(self):
-        return '_'
+        return ''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -191,7 +207,15 @@ class Dummy(Shape):
 
 class Start(Shape):
     def __str__(self):
-        return '_.START'
+        return 'START'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -199,7 +223,15 @@ class Start(Shape):
 
 class End(Shape):
     def __str__(self):
-        return '_.END'
+        return 'END'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -211,7 +243,15 @@ class Carry(Shape):
         assert self.value == value, value
 
     def __str__(self):
-        return f'_.c.{self.value}'
+        return f'c.{self.value}'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -231,11 +271,19 @@ class LeftBoundDigit(Shape):
         self.status = status
 
     def __str__(self):
-        return f'''_.{
+        return f'''{
                 "LDX" if self.status == DigitStatus.DONE else "ldx"
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -250,11 +298,19 @@ class RightBoundDigit(Shape):
         self.status = status
 
     def __str__(self):
-        return f'''_.{
+        return f'''{
                 "RDX" if self.status == DigitStatus.DONE else "rdx"
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -269,11 +325,19 @@ class CursiveWidthDigit(Shape):
         self.status = status
 
     def __str__(self):
-        return f'''_.{
+        return f'''{
                 "CDX" if self.status == DigitStatus.DONE else "cdx"
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -309,6 +373,10 @@ class Space(Shape):
             self.margins,
         )
 
+    @staticmethod
+    def invisible():
+        return True
+
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
@@ -322,9 +390,6 @@ class Space(Shape):
         return NO_CONTEXT
 
 class InvalidDTLS(SFDGlyphWrapper):
-    def __str__(self):
-        return ''
-
     def context_in(self):
         return NO_CONTEXT
 
@@ -345,7 +410,15 @@ class ChildEdgeCount(Shape):
         )
 
     def __str__(self):
-        return f'_width.{self.count}'
+        return f'width.{self.count}'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
@@ -374,6 +447,10 @@ class ChildEdge(Shape):
                 '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1]) if self.lineage else '0'
             }'''
 
+    @staticmethod
+    def invisible():
+        return True
+
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
@@ -390,6 +467,10 @@ class ContinuingOverlap(Shape):
 
     def __str__(self):
         return ''
+
+    @staticmethod
+    def invisible():
+        return True
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
@@ -419,9 +500,6 @@ class InvalidOverlap(SFDGlyphWrapper):
             continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
         )
 
-    def __str__(self):
-        return 'fallback'
-
 class ParentEdge(Shape):
     def __init__(self, lineage):
         self.lineage = lineage
@@ -436,11 +514,19 @@ class ParentEdge(Shape):
         )
 
     def __str__(self):
-        return f'''_.pe.{
+        return f'''pe.{
                 '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
             }.{
                 '_'.join(str(x[1]) for x in self.lineage) if self.lineage else '0'
             }'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if self.lineage:
@@ -468,9 +554,6 @@ class InvalidStep(SFDGlyphWrapper):
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
             self.angle if angle is CLONE_DEFAULT else angle,
         )
-
-    def __str__(self):
-        return 'fallback'
 
     def contextualize(self, context_in, context_out):
         return Space(self.angle)
@@ -1409,9 +1492,8 @@ class Schema:
                     readable_name = regex.sub(repl, readable_name)
             return agl_name, readable_name
         cps = self.cps
-        if -1 in cps:
-            name = ''
-        else:
+        if -1 not in cps:
+            first_component_implies_type = False
             agl_name, readable_name = zip(*[*map(get_names, cps)])
             joined_agl_name = '_'.join(agl_name)
             if agl_name == readable_name:
@@ -1421,27 +1503,29 @@ class Schema:
                 for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
                     joined_readable_name = regex.sub(repl, joined_readable_name)
                 name = f'{joined_agl_name}.{joined_readable_name}'
-        if self.cp == -1:
-            if not name:
-                name_from_path = str(self.path)
-                if name_from_path.startswith('_'):
-                    name = name_from_path
-                else:
-                    name = f'dupl.{type(self.path).__name__}'
-                    if name_from_path:
-                        name += f'.{name_from_path}'
-                if self.anchor:
-                    name += f'.{self.anchor}'
-            elif self.joining_type == Type.ORIENTING or isinstance(self.path, ChildEdge):
-                name += f'.{self.path}'
-            if self.child:
-                name += '.blws'
-        if self.path.name_in_sfd():
+        else:
+            first_component_implies_type = self.path.name_implies_type()
+            if first_component_implies_type:
+                name = ''
+            else:
+                name = f'dupl.{type(self.path).__name__}'
+        if first_component_implies_type or self.path.name_in_sfd() or (
+            self.cp == -1
+            and (self.joining_type == Type.ORIENTING or isinstance(self.path, ChildEdge))
+        ):
             name_from_path = str(self.path)
             if name_from_path:
-                name += f'.{name_from_path}'
+                if name:
+                    name += '.'
+                name += name_from_path
+        if -1 in cps and self.anchor:
+            name += f'.{self.anchor}'
+        if self.child:
+            name += '.blws'
         if self.ss:
             name += f'.ss{self.ss:02}'
+        if first_component_implies_type or self.cp == -1 and self.path.invisible():
+            name = f'_{"." if name and first_component_implies_type else ""}{name}'
         agl_string = fontTools.agl.toUnicode(name)
         agl_cps = [*map(ord, agl_string)]
         assert not agl_cps if -1 in cps else cps == agl_cps, f'''The glyph name "{
@@ -2322,7 +2406,7 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
                     zeros[glyph.path.place] = glyph
         else:
             # FIXME: Relying on glyph names is brittle.
-            if glyph.glyphname.startswith('u1BCA1.'):
+            if glyph.glyphname.startswith('_u1BCA1'):
                 classes['all'].append(glyph)
                 continuing_overlap = glyph
     for schema in new_glyphs:
@@ -3335,7 +3419,7 @@ class Builder:
         pen = glyph.glyphPen()
         schema.path(
             glyph,
-            pen,
+            not glyph_name.startswith('_') and pen,
             SHADED_LINE if schema.cps[-1] == 0x1BC9D else LIGHT_LINE,
             schema.size,
             schema.anchor,

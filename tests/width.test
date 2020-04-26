@@ -25,7 +25,7 @@
 # U+1BC0D is wide enough that the trees below it have no effect on the
 # total width.
 2123 1BC0D 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA0 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BCA0.letter_overlap.1._@1726,402|u1BC04.f.blws@1630,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA0 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BCA0.letter_overlap.1._@1726,402|u1BC05.k.blws@1822,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA1 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BCA1.continuing_overlap@1726,0|u1BC04.f@1630,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA1 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BCA1.continuing_overlap@1726,0|u1BC05.k@1822,-83|uni2123.versicle@2346,0|_@2952,0]
+2123 1BC0D 1BCA0 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC04.f.blws@1630,-83|uni2123.versicle@2346,0|_@2952,0]
+2123 1BC0D 1BCA0 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC05.k.blws@1822,-83|uni2123.versicle@2346,0|_@2952,0]
+2123 1BC0D 1BCA1 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC04.f@1630,-83|uni2123.versicle@2346,0|_@2952,0]
+2123 1BC0D 1BCA1 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC05.k@1822,-83|uni2123.versicle@2346,0|_@2952,0]
