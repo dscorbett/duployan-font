@@ -2940,7 +2940,13 @@ def run_phases(all_input_schemas, phases):
         all_schemas.update(all_input_schemas)
         all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
         all_named_lookups_with_phases.update((name, (lookup, phase)) for name, lookup in named_lookups.items())
-    return all_schemas, all_lookups_with_phases, all_classes, all_named_lookups_with_phases
+    return (
+        all_schemas,
+        all_input_schemas,
+        all_lookups_with_phases,
+        all_classes,
+        all_named_lookups_with_phases,
+    )
 
 class Grouper:
     def __init__(self, groups):
@@ -3372,7 +3378,7 @@ class Builder:
         for schema in schemas:
             if schema.cp != -1:
                 code_points[schema.cp] += 1
-        for glyph in font.selection.all().byGlyphs:
+        for glyph in font.glyphs():
             if glyph.unicode != -1 and glyph.unicode not in code_points:
                 self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
@@ -3465,49 +3471,19 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    def _draw_glyph_with_marks(self, schema, glyph_name):
-        base_glyph = self._draw_glyph(schema.without_marks).glyphname
-        mark_glyphs = []
-        for mark in schema.marks:
-            mark_glyphs.append(self._draw_glyph(mark).glyphname)
-        glyph = self.font.createChar(schema.cp, glyph_name)
-        glyph.addReference(base_glyph)
-        base_anchors = {p[0]: p for p in self.font[base_glyph].anchorPoints if p[1] == 'base'}
-        for mark_glyph in mark_glyphs:
-            mark_anchors = [p for p in self.font[mark_glyph].anchorPoints if p[1] == 'mark']
-            assert len(mark_anchors) == 1 or len(mark_anchors) == 2 and mark_anchors[1][0].startswith(mkmk(mark_anchors[0][0]))
-            mark_anchor = mark_anchors[0]
-            base_anchor = base_anchors[mark_anchor[0]]
-            glyph.addReference(mark_glyph, psMat.translate(
-                base_anchor[2] - mark_anchor[2],
-                base_anchor[3] - mark_anchor[3]))
-        return glyph
-
-    def _draw_base_glyph(self, schema, glyph_name):
-        glyph = self.font.createChar(schema.cp, glyph_name)
+    @staticmethod
+    def _draw_glyph(glyph, schema):
+        assert not schema.marks
         pen = glyph.glyphPen()
         schema.path(
             glyph,
-            not glyph_name.startswith('_') and pen,
+            not glyph.glyphname.startswith('_') and pen,
             SHADED_LINE if schema.cps[-1] == 0x1BC9D else LIGHT_LINE,
             schema.size,
             schema.anchor,
             schema.joining_type,
             schema.child,
         )
-        return glyph
-
-    def _draw_glyph(self, schema):
-        glyph_name = str(schema)
-        if schema.path.name_in_sfd():
-            return self.font[schema.path.name_in_sfd()]
-        if glyph_name in self.font:
-            return self._add_altuni(schema.cp, glyph_name)
-        if schema.marks:
-            glyph = self._draw_glyph_with_marks(schema, glyph_name)
-        else:
-            glyph = self._draw_base_glyph(schema, glyph_name)
-        glyph.glyphclass = schema.glyph_class
         if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
             glyph.right_side_bearing = schema.side_bearing
@@ -3517,7 +3493,27 @@ class Builder:
             entry_x = next((x for _, type, x, _ in glyph.anchorPoints if type == 'entry'), 0)
             glyph.transform(psMat.translate(-entry_x, BASELINE - center_y))
             glyph.width = 0
+
+    def _create_glyph(self, schema, *, with_contours):
+        if schema.path.name_in_sfd():
+            return self.font[schema.path.name_in_sfd()]
+        glyph_name = str(schema)
+        if glyph_name in self.font:
+            return self._add_altuni(schema.cp, glyph_name)
+        glyph = self.font.createChar(schema.cp, glyph_name)
+        glyph.glyphclass = schema.glyph_class
+        if with_contours:
+            self._draw_glyph(glyph, schema)
+        else:
+            glyph.width = glyph.width
         return glyph
+
+    def _create_marker(self, schema):
+        assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
+        glyph = self._create_glyph(schema, with_contours=False)
+        # TODO: Put this somewhere more relevant to `End`.
+        if isinstance(schema.path, End):
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     def _complete_gpos(self):
         mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
@@ -3583,26 +3579,29 @@ class Builder:
             ()))
         self._fea.statements.append(gdef)
 
-    def _create_marker(self, schema):
-        assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
-        glyph = self.font.createChar(schema.cp, str(schema))
-        glyph.glyphclass = schema.glyph_class
-        glyph.width = 0
-        if isinstance(schema.path, End):
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-
     def augment(self):
-        schemas, lookups_with_phases, classes, named_lookups_with_phases = run_phases(self._schemas, self._phases)
+        (
+            schemas,
+            output_schemas,
+            lookups_with_phases,
+            classes,
+            named_lookups_with_phases,
+        ) = run_phases(self._schemas, self._phases)
         assert not named_lookups_with_phases, 'Named lookups have not been implemented for pre-merge phases'
         merge_schemas(schemas, lookups_with_phases, classes)
         for schema in schemas:
-            self._draw_glyph(schema)
+            self._create_glyph(schema, with_contours=schema in output_schemas)
         for schema in schemas:
             name_in_sfd = schema.path.name_in_sfd()
             if name_in_sfd:
                 self.font[name_in_sfd].glyphname = str(schema)
-        schemas, more_lookups_with_phases, more_classes, more_named_lookups_with_phases = run_phases(
-            [Hashable(g) for g in self.font.glyphs()], GLYPH_PHASES)
+        (
+            schemas,
+            _,
+            more_lookups_with_phases,
+            more_classes,
+            more_named_lookups_with_phases,
+        ) = run_phases([*map(Hashable, self.font.glyphs())], GLYPH_PHASES)
         lookups_with_phases += more_lookups_with_phases
         classes.update(more_classes)
         named_lookups_with_phases.update(more_named_lookups_with_phases)
