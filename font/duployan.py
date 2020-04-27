@@ -1574,6 +1574,25 @@ class Schema:
             path=self.path.rotate_diacritic(angle),
             base_angle=angle)
 
+class FreezableList:
+    def __init__(self):
+        self._delegate = []
+
+    def freeze(self):
+        self._delegate = tuple(self._delegate)
+
+    def __iter__(self):
+        return iter(self._delegate)
+
+    def __len__(self):
+        return len(self._delegate)
+
+    def append(self, object):
+        try:
+            self._delegate.append(object)
+        except AttributeError:
+            raise ValueError('Appending to a frozen list') from None
+
 class Hashable:
     def __init__(self, delegate):
         self.delegate = delegate
@@ -1723,7 +1742,7 @@ class Lookup:
         self.flags = flags
         self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
-        self.rules = []
+        self.rules = FreezableList()
         assert (feature is None) == (script is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
         if script == 'dupl':
             assert feature not in [
@@ -1796,6 +1815,9 @@ class Lookup:
                 else None))
         ast.statements.extend(r.to_ast(class_asts, named_lookup_asts, contextual, multiple, self.reversed) for r in self.rules)
         return ast
+
+    def freeze(self):
+        self.rules.freeze()
 
     def append(self, rule):
         self.rules.append(rule)
@@ -2795,10 +2817,13 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
     for input in rule.inputs:
         if isinstance(input, str):
             if all(s in autochthonous_schemas for s in classes[input]):
+                classes[input].freeze()
                 return
         elif input in autochthonous_schemas:
             return
+
     lookup.append(rule)
+
     if lookup.required and not rule.contexts_in and not rule.contexts_out and len(rule.inputs) == 1:
         input = rule.inputs[0]
         if isinstance(input, str):
@@ -2809,17 +2834,30 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
 
     def register_output_schemas(rule):
         if rule.outputs is not None:
+            froze = False
             for output in rule.outputs:
                 if isinstance(output, str):
+                    must_freeze = False
                     for o in classes[output]:
-                        output_schemas.add(o)
+                        if o not in output_schemas:
+                            must_freeze = True
+                            output_schemas.add(o)
+                    if must_freeze:
+                        classes[output].freeze()
+                        froze = True
                 else:
                     output_schemas.add(output)
+            return froze
         elif rule.lookups is not None:
             for lookup in rule.lookups:
                 if lookup is not None:
+                    froze = False
                     for rule in named_lookups[lookup].rules:
-                        register_output_schemas(rule)
+                        if register_output_schemas(rule):
+                            froze = True
+                    if froze:
+                        named_lookups[lookup].freeze()
+            return False
 
     register_output_schemas(rule)
 
@@ -2849,7 +2887,7 @@ def run_phases(all_input_schemas, phases):
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases = []
-    all_classes = collections.defaultdict(list)
+    all_classes = collections.defaultdict(FreezableList)
     all_named_lookups_with_phases = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
