@@ -1329,7 +1329,6 @@ class Schema:
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r'\bFULL STOP\b', 'PERIOD'),
         (r' MARK$', ''),
-        (r'\bQUAD\b', 'SPACE'),
         (r' (WITH|AND) ', ' '),
         (r'.+', lambda m: m.group(0).lower()),
         (r'[ -]+', '_'),
@@ -1342,7 +1341,7 @@ class Schema:
 
     def __init__(
             self,
-            cp,
+            cmap,
             path,
             size,
             joining_type=Type.JOINING,
@@ -1362,7 +1361,7 @@ class Schema:
             _original_shape=None,
     ):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
-        self.cp = cp
+        self.cmap = cmap
         self.path = path
         self.size = size
         self.joining_type = joining_type
@@ -1376,7 +1375,7 @@ class Schema:
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
         self.base_angle = base_angle
-        self.cps = cps or [cp]
+        self.cps = cps or ([] if cmap is None else [cmap])
         self.ss = ss
         self._original_shape = _original_shape or type(path)
         self.diacritic_angles = self._calculate_diacritic_angles()
@@ -1384,12 +1383,14 @@ class Schema:
         self.group = self._calculate_group()
         self._glyph_name = None
         self._canonical_schema = self
-        self.without_marks = marks and self.clone(cp=-1, marks=None)
+        self.without_marks = marks and self.clone(cmap=None, marks=None)
 
     def sort_key(self):
+        cmap_string = '' if self.cmap is None else chr(self.cmap)
         return (
-            self.cp == -1,
-            -1 in self.cps,
+            self.cmap is None,
+            cmap_string != unicodedata.normalize('NFD', cmap_string),
+            not self.cps,
             len(self.cps),
             self.ss,
             self._original_shape != type(self.path),
@@ -1399,7 +1400,7 @@ class Schema:
     def clone(
         self,
         *,
-        cp=CLONE_DEFAULT,
+        cmap=CLONE_DEFAULT,
         path=CLONE_DEFAULT,
         size=CLONE_DEFAULT,
         joining_type=CLONE_DEFAULT,
@@ -1418,7 +1419,7 @@ class Schema:
         _original_shape=CLONE_DEFAULT,
     ):
         return Schema(
-            self.cp if cp is CLONE_DEFAULT else cp,
+            self.cmap if cmap is CLONE_DEFAULT else cmap,
             self.path if path is CLONE_DEFAULT else path,
             self.size if size is CLONE_DEFAULT else size,
             self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
@@ -1439,7 +1440,7 @@ class Schema:
 
     def __repr__(self):
         return '<Schema {}>'.format(', '.join(map(str, [
-            (str if self.cp == -1 else hex)(self.cp),
+            self.cmap and f'{self.cmap:04X}',
             self.path,
             self.size,
             self.side_bearing,
@@ -1466,7 +1467,7 @@ class Schema:
         return (
             type(self.path),
             self.path.group(),
-            self.cps[-1] == 0x1BC9D,
+            self.cps[-1:] == [0x1BC9D],
             self.size,
             self.side_bearing,
             self.child,
@@ -1492,7 +1493,7 @@ class Schema:
                     readable_name = regex.sub(repl, readable_name)
             return agl_name, readable_name
         cps = self.cps
-        if -1 not in cps:
+        if cps:
             first_component_implies_type = False
             agl_name, readable_name = zip(*[*map(get_names, cps)])
             joined_agl_name = '_'.join(agl_name)
@@ -1510,7 +1511,7 @@ class Schema:
             else:
                 name = f'dupl.{type(self.path).__name__}'
         if first_component_implies_type or self.path.name_in_sfd() or (
-            self.cp == -1
+            self.cmap is None
             and (self.joining_type == Type.ORIENTING or isinstance(self.path, ChildEdge))
         ):
             name_from_path = str(self.path)
@@ -1518,22 +1519,22 @@ class Schema:
                 if name:
                     name += '.'
                 name += name_from_path
-        if -1 in cps and self.anchor:
+        if not cps and self.anchor:
             name += f'.{self.anchor}'
         if self.child:
             name += '.blws'
         if self.ss:
             name += f'.ss{self.ss:02}'
-        if first_component_implies_type or self.cp == -1 and self.path.invisible():
+        if first_component_implies_type or self.cmap is None and self.path.invisible():
             name = f'_{"." if name and first_component_implies_type else ""}{name}'
         agl_string = fontTools.agl.toUnicode(name)
         agl_cps = [*map(ord, agl_string)]
-        assert not agl_cps if -1 in cps else cps == agl_cps, f'''The glyph name "{
+        assert cps == agl_cps, f'''The glyph name "{
                 name
             }" corresponds to <{
                 ', '.join(f'U+{cp:04X}' for cp in agl_cps)
             }> but its glyph corresponds to <{
-                ', '.join(f'U+{cp:04X}' for cp in cps if cp != -1)
+                ', '.join(f'U+{cp:04X}' for cp in cps)
             }>'''
         return name
 
@@ -1561,7 +1562,7 @@ class Schema:
         if path is self.path:
             return self
         return self.clone(
-            cp=-1,
+            cmap=None,
             path=path,
             anchor=None,
             marks=None,
@@ -1570,7 +1571,7 @@ class Schema:
 
     def rotate_diacritic(self, angle):
         return self.clone(
-            cp=-1,
+            cmap=None,
             path=self.path.rotate_diacritic(angle),
             base_angle=angle)
 
@@ -1862,8 +1863,8 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     assert global_max_tree_width == MAX_TREE_WIDTH
     classes['invalid'].append(letter_overlap)
     classes['invalid'].append(continuing_overlap)
-    valid_letter_overlap = letter_overlap.clone(cp=-1, path=ChildEdge(lineage=[(1, 0)]))
-    valid_continuing_overlap = continuing_overlap.clone(cp=-1, path=ContinuingOverlap())
+    valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=[(1, 0)]))
+    valid_continuing_overlap = continuing_overlap.clone(cmap=None, path=ContinuingOverlap())
     classes['valid'].append(valid_letter_overlap)
     classes['valid'].append(valid_continuing_overlap)
     add_rule(lookup, Rule('invalid', 'invalid', [], 'invalid'))
@@ -1891,13 +1892,13 @@ def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule
             [],
             [letter_overlap],
             [letter_overlap] * (count - 1),
-            [Schema(-1, ChildEdgeCount(count), 0, Type.NON_JOINING, side_bearing=0), letter_overlap]
+            [Schema(None, ChildEdgeCount(count), 0, Type.NON_JOINING, side_bearing=0), letter_overlap]
         ))
     return [lookup]
 
 def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
-    root_parent_edge = Schema(-1, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
+    root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
         if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
             classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
@@ -2028,14 +2029,14 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
         lineage = tuple(lineage)
         child_edge = child_edges.get(lineage)
         if child_edge is None:
-            child_edge = default_child_edge.clone(cp=-1, path=default_child_edge.path.clone(lineage=lineage))
+            child_edge = default_child_edge.clone(cmap=None, path=default_child_edge.path.clone(lineage=lineage))
             child_edges[lineage] = child_edge
         return child_edge
     def get_parent_edge(lineage):
         lineage = tuple(lineage)
         parent_edge = parent_edges.get(lineage)
         if parent_edge is None:
-            parent_edge = default_parent_edge.clone(cp=-1, path=default_parent_edge.path.clone(lineage=lineage))
+            parent_edge = default_parent_edge.clone(cmap=None, path=default_parent_edge.path.clone(lineage=lineage))
             parent_edges[lineage] = parent_edge
         return parent_edge
     for schema in schemas:
@@ -2099,7 +2100,7 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
         elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child():
             children_to_be.append(schema)
     for child_to_be in children_to_be:
-        child = child_to_be.clone(cp=-1, child=True)
+        child = child_to_be.clone(cmap=None, child=True)
         classes[PARENT_EDGE_CLASS].append(child)
         for child_index in range(MAX_TREE_WIDTH):
             classes[CHILD_EDGE_CLASSES[child_index]].append(child)
@@ -2135,7 +2136,7 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
         add_rule(dlig, Rule([], 'vowel', [r, 'vowel'], 'vowel'))
     for vowel in vowels:
         reversed_vowel = vowel.clone(
-            cp=-1,
+            cmap=None,
             path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True),
             cps=vowel.cps + zwj.cps + r.cps,
         )
@@ -2150,7 +2151,7 @@ def shade(schemas, new_schemas, classes, named_lookups, add_rule):
         if not schema.anchor and len(schema.cps) == 1 and schema.path.is_shadable():
             add_rule(lookup, Rule(
                 [schema, dtls],
-                [schema.clone(cp=-1, cps=[*schema.cps, 0x1BC9D])]))
+                [schema.clone(cmap=None, cps=[*schema.cps, 0x1BC9D])]))
     return [lookup]
 
 def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2181,7 +2182,10 @@ def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('ss01', 'dupl', 'dflt')
     for schema in schemas:
         if schema in new_schemas and schema.ss_pernin:
-            add_rule(lookup, Rule([schema], [schema.clone(cp=-1, ss_pernin=None, ss=1, **schema.ss_pernin)]))
+            add_rule(lookup, Rule(
+                [schema],
+                [schema.clone(cmap=None, ss_pernin=None, ss=1, **schema.ss_pernin)],
+            ))
     return [lookup]
 
 def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2303,12 +2307,12 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     rule_count_before = 0
     rule_count_main = 0
     rule_count_after = 0
-    carry_0_schema = Schema(-1, Carry(0), 0)
+    carry_0_schema = Schema(None, Carry(0), 0)
     left_bound_markers = {}
     right_bound_markers = {}
     cursive_width_markers = {}
-    start = Schema(-1, Start(), 0)
-    end = Schema(-1, End(), 0)
+    start = Schema(None, Start(), 0)
+    end = Schema(None, End(), 0)
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
@@ -2359,7 +2363,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
                         args = (i, remainder)
                         if args not in width_markers:
-                            width_markers[args] = Schema(-1, digit_path(*args), 0)
+                            width_markers[args] = Schema(None, digit_path(*args), 0)
                         digits[digits_base + i * 2 + 1] = width_markers[args]
                 if digits:
                     if peripheral:
@@ -2399,7 +2403,7 @@ def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
     )
     if 'all' in classes:
         return [lookup]
-    dummy = Schema(-1, Dummy(), 0)
+    dummy = Schema(None, Dummy(), 0)
     end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
     classes['all'].append(end)
     add_rule(lookup, Rule([], [end], [end], [dummy]))
@@ -2553,13 +2557,13 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                         if carry_out in carry_schemas:
                             carry_out_schema = carry_schemas[carry_out]
                         else:
-                            carry_out_schema = Schema(-1, Carry(carry_out), 0)
+                            carry_out_schema = Schema(None, Carry(carry_out), 0)
                             carry_schemas[carry_out] = carry_out_schema
                         sum_index = place * WIDTH_MARKER_RADIX + sum_digit
                         if sum_index in digit_schemas:
                             sum_digit_schema = digit_schemas[sum_index]
                         else:
-                            sum_digit_schema = Schema(-1, digit_path(place, sum_digit), 0)
+                            sum_digit_schema = Schema(None, digit_path(place, sum_digit), 0)
                             digit_schemas[sum_index] = sum_digit_schema
                         outputs = ([sum_digit_schema]
                             if place == WIDTH_MARKER_PLACES - 1
@@ -2663,7 +2667,7 @@ def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
         start,
-        *(Schema(-1, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
+        *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
     ]))
     return [lookup]
 
@@ -2719,7 +2723,7 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 [],
                 [schema],
                 [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
-                [Schema(-1, digit_path(schema.path.place, schema.path.digit, status), 0)]))
+                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
     return [left_lookup, right_lookup, cursive_lookup]
 
 def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups, add_rule):
@@ -2748,7 +2752,7 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
         if total.path.digit == 0:
             done = new_left_start_totals[total.path.place]
         else:
-            done = Schema(-1, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
+            done = Schema(None, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
         classes['all'].append(done)
         if total.path.digit != 0:
             add_rule(lookup, Rule(
@@ -3180,10 +3184,10 @@ DOWN_STEP = InvalidStep('u1BCA2', 270)
 UP_STEP = InvalidStep('u1BCA3', 90)
 LINE = Line(90, stretchy=False)
 
-DOT_1 = Schema(-1, H, 1, anchor=RELATIVE_1_ANCHOR)
-DOT_2 = Schema(-1, H, 1, anchor=RELATIVE_2_ANCHOR)
-LINE_2 = Schema(-1, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
-LINE_MIDDLE = Schema(-1, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
+DOT_1 = Schema(None, H, 1, anchor=RELATIVE_1_ANCHOR)
+DOT_2 = Schema(None, H, 1, anchor=RELATIVE_2_ANCHOR)
+LINE_2 = Schema(None, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
+LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
@@ -3376,8 +3380,8 @@ class Builder:
         self._anchors = {}
         code_points = collections.defaultdict(int)
         for schema in schemas:
-            if schema.cp != -1:
-                code_points[schema.cp] += 1
+            if schema.cmap is not None:
+                code_points[schema.cmap] += 1
         for glyph in font.glyphs():
             if glyph.unicode != -1 and glyph.unicode not in code_points:
                 self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
@@ -3458,13 +3462,13 @@ class Builder:
                     mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'] if is_mkmk else None,
                 )
 
-    def _add_altuni(self, cp, glyph_name):
+    def _add_altuni(self, uni, glyph_name):
         glyph = self.font[glyph_name]
-        if cp != -1:
+        if uni != -1:
             if glyph.unicode == -1:
-                glyph.unicode = cp
+                glyph.unicode = uni
             else:
-                new_altuni = ((cp, -1, 0),)
+                new_altuni = ((uni, -1, 0),)
                 if glyph.altuni is None:
                     glyph.altuni = new_altuni
                 else:
@@ -3478,7 +3482,7 @@ class Builder:
         schema.path(
             glyph,
             not glyph.glyphname.startswith('_') and pen,
-            SHADED_LINE if schema.cps[-1] == 0x1BC9D else LIGHT_LINE,
+            SHADED_LINE if schema.cps[-1:] == [0x1BC9D] else LIGHT_LINE,
             schema.size,
             schema.anchor,
             schema.joining_type,
@@ -3498,9 +3502,10 @@ class Builder:
         if schema.path.name_in_sfd():
             return self.font[schema.path.name_in_sfd()]
         glyph_name = str(schema)
+        uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
-            return self._add_altuni(schema.cp, glyph_name)
-        glyph = self.font.createChar(schema.cp, glyph_name)
+            return self._add_altuni(uni, glyph_name)
+        glyph = self.font.createChar(uni, glyph_name)
         glyph.glyphclass = schema.glyph_class
         if with_contours:
             self._draw_glyph(glyph, schema)
@@ -3509,7 +3514,7 @@ class Builder:
         return glyph
 
     def _create_marker(self, schema):
-        assert schema.cp == -1, f'A marker has the code point U+{schema.cp:X}'
+        assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
         glyph = self._create_glyph(schema, with_contours=False)
         # TODO: Put this somewhere more relevant to `End`.
         if isinstance(schema.path, End):
