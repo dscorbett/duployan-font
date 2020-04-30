@@ -51,6 +51,7 @@ INTER_EDGE_ANCHORS = [[f'edge{layer_index}_{child_index + 1}' for child_index in
 RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_ANCHOR = 'rel2'
 MIDDLE_ANCHOR = 'mid'
+SECANT_ANCHOR = 'sec'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 CLONE_DEFAULT = object()
@@ -599,28 +600,41 @@ class Line(Shape):
         angle,
         *,
         stretchy=True,
+        secant=None,
+        dots=None,
     ):
         self.angle = angle
         self.stretchy = stretchy
+        self.secant = secant
+        self.dots = dots
 
     def clone(
         self,
         *,
         angle=CLONE_DEFAULT,
         stretchy=CLONE_DEFAULT,
+        secant=CLONE_DEFAULT,
+        dots=CLONE_DEFAULT,
     ):
         return Line(
             self.angle if angle is CLONE_DEFAULT else angle,
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
+            secant=self.secant if secant is CLONE_DEFAULT else secant,
+            dots=self.dots if dots is CLONE_DEFAULT else dots,
         )
 
     def __str__(self):
-        return str(int(self.angle))
+        s = str(int(self.angle))
+        if self.dots:
+            s += '.dotted'
+        return s
 
     def group(self):
         return (
             self.angle,
             self.stretchy,
+            self.secant,
+            self.dots,
         )
 
     def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -632,10 +646,19 @@ class Line(Shape):
         else:
             length_denominator = 1
         length = int(500 * (size or 0.2) / length_denominator)
-        pen.lineTo((length, 0))
+        if self.dots:
+            dot_interval = length / (self.dots - 1)
+            for dot_index in range(1, self.dots):
+                pen.endPath()
+                pen.moveTo((dot_interval * dot_index, 0))
+        else:
+            pen.lineTo((length, 0))
         if anchor:
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length / 2, 0))
-            glyph.addAnchorPoint(anchor, 'mark', *rect(length / 2, 0))
+            length *= self.secant or 0.5
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length, 0))
+            glyph.addAnchorPoint(anchor, 'mark', *rect(length, 0))
+        elif self.secant:
+            glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, 0)
         else:
             anchor_name = mkmk if child else lambda a: a
             base = 'basemark' if child else 'base'
@@ -656,6 +679,7 @@ class Line(Shape):
                     glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', child_interval * (max_tree_width + 1), 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+                glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
@@ -672,7 +696,7 @@ class Line(Shape):
         glyph.stroke('circular', stroke_width, 'round')
 
     def can_be_child(self):
-        return True
+        return not (self.secant or self.dots)
 
     def max_tree_width(self, size):
         return 2 if size == 2 else 1
@@ -798,6 +822,7 @@ class Curve(Shape):
                 glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+            glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
@@ -1512,7 +1537,11 @@ class Schema:
                 name = f'dupl.{type(self.path).__name__}'
         if first_component_implies_type or self.path.name_in_sfd() or (
             self.cmap is None
-            and (self.joining_type == Type.ORIENTING or isinstance(self.path, ChildEdge))
+            and (
+                self.joining_type == Type.ORIENTING
+                or isinstance(self.path, ChildEdge)
+                or isinstance(self.path, Line) and self.path.dots
+            )
         ):
             name_from_path = str(self.path)
             if name_from_path:
@@ -1839,6 +1868,17 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
             add_rule(lookup_2, Rule([schema, schema], [schema]))
     return [lookup_1, lookup_2]
 
+def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('abvs', 'dupl', 'dflt')
+    continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+    for schema in new_schemas:
+        if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+            add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
+            add_rule(lookup, Rule([schema], [schema, continuing_overlap]))
+        elif schema.glyph_class == GlyphClass.JOINER and (isinstance(schema.path, Line) or isinstance(schema.path, Curve)):
+            classes['base'].append(schema)
+    return [lookup]
+
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', flags=0)
     new_classes = {}
@@ -2012,6 +2052,17 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
     add_rule(lookup, Rule([], 'valid', 'valid', 'valid'))
     add_rule(lookup, Rule([node], 'valid', [], 'invalid'))
     add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
+    return [lookup]
+
+def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('abvs', 'dupl', 'dflt', flags=0, reversed=True)
+    invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+    for schema in new_schemas:
+        if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+            mark_variant = schema.clone(cmap=None, anchor=SECANT_ANCHOR)
+            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [mark_variant]))
+            guideline = Schema(None, Line((schema.path.angle + 90) % 180, dots=7), 1.5)
+            add_rule(lookup, Rule([], [schema], [mark_variant], [guideline]))
     return [lookup]
 
 def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -2292,6 +2343,7 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
             RELATIVE_1_ANCHOR,
             RELATIVE_2_ANCHOR,
             MIDDLE_ANCHOR,
+            SECANT_ANCHOR,
             ABOVE_ANCHOR,
             BELOW_ANCHOR,
         ]:
@@ -3072,10 +3124,12 @@ PHASES = [
     dont_ignore_default_ignorables,
     shade,
     decompose,
+    expand_secants,
     validate_overlap_controls,
     count_letter_overlaps,
     add_parent_edges,
     invalidate_overlap_controls,
+    add_secant_guidelines,
     categorize_edges,
     make_mark_variants_of_children,
     ligate_pernin_r,
@@ -3151,6 +3205,12 @@ WA = Complex([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clock
 WO = Complex([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
 WI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
 WEI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
+LEFT_HORIZONTAL_SECANT = Line(0, secant=2 / 3)
+MID_HORIZONTAL_SECANT = Line(0, secant=0.5)
+RIGHT_HORIZONTAL_SECANT = Line(0, secant=1 / 3)
+LOW_VERTICAL_SECANT = Line(90, secant=2 / 3)
+MID_VERTICAL_SECANT = Line(90, secant=0.5)
+HIGH_VERTICAL_SECANT = Line(90, secant=1 / 3)
 RTL_SECANT = Line(240, stretchy=False)
 LTR_SECANT = Line(330, stretchy=False)
 TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
@@ -3329,12 +3389,12 @@ SCHEMAS = [
     Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC6A, S_K, 2),
-    Schema(0x1BC70, T, 2, Type.NON_JOINING),
-    Schema(0x1BC71, T, 2, Type.NON_JOINING),
-    Schema(0x1BC72, T, 2, Type.NON_JOINING),
-    Schema(0x1BC73, P, 2, Type.NON_JOINING),
-    Schema(0x1BC74, P, 2, Type.NON_JOINING),
-    Schema(0x1BC75, P, 2, Type.NON_JOINING),
+    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2),
+    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2),
+    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2),
+    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2),
+    Schema(0x1BC74, MID_VERTICAL_SECANT, 2),
+    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2),
     Schema(0x1BC76, RTL_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
@@ -3452,6 +3512,7 @@ class Builder:
                 RELATIVE_1_ANCHOR,
                 RELATIVE_2_ANCHOR,
                 MIDDLE_ANCHOR,
+                SECANT_ANCHOR,
                 ABOVE_ANCHOR,
                 BELOW_ANCHOR,
             ]:
