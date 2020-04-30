@@ -1,4 +1,5 @@
 # Copyright 2018-2019 David Corbett
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +24,9 @@ env:
         - FF_VERSION=20190801
         - HB_VERSION=2.5.2
     matrix:
-        - OLD_REQUIREMENTS=false
-        - OLD_REQUIREMENTS=true
+        - REQUIREMENTS=frozen
+        - REQUIREMENTS=oldest
+        - REQUIREMENTS=newest
 cache:
     directories:
         - .ff
@@ -54,11 +56,16 @@ before_install:
     - make HB_VERSION=$HB_VERSION hb-shape
     - export PATH="$PWD/.hb/harfbuzz-$HB_VERSION/util:$PATH"
 
-    -
-        if [ "$OLD_REQUIREMENTS" = true ];
+    - |
+        if [ "$REQUIREMENTS" = oldest ]
         then
-            pip install packaging;
-            ./get-old-requirements.py --input requirements-to-freeze.txt --output requirements.txt;
+            pip install packaging
+            ./get-old-requirements.py --input requirements-to-freeze.txt --output requirements.txt
+        fi
+    - |
+        if [ "$REQUIREMENTS" = newest ]
+        then
+            cp requirements-to-freeze.txt requirements.txt
         fi
 install:
     - pip install -r requirements.txt
