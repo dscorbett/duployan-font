@@ -136,7 +136,7 @@ class Shape:
     def invisible():
         return False
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         raise NotImplementedError
 
     def can_be_child(self):
@@ -378,7 +378,7 @@ class Space(Shape):
     def invisible():
         return True
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -421,7 +421,7 @@ class ChildEdgeCount(Shape):
     def invisible():
         return True
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
     @staticmethod
@@ -452,7 +452,7 @@ class ChildEdge(Shape):
     def invisible():
         return True
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
@@ -473,7 +473,7 @@ class ContinuingOverlap(Shape):
     def invisible():
         return True
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pass
 
     @staticmethod
@@ -529,7 +529,7 @@ class ParentEdge(Shape):
     def invisible():
         return True
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
@@ -572,7 +572,7 @@ class Dot(Shape):
     def clone(self):
         return Dot()
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -637,7 +637,7 @@ class Line(Shape):
             self.dots,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pen.moveTo((0, 0))
         if self.stretchy:
             length_denominator = abs(math.sin(math.radians(self.angle)))
@@ -778,7 +778,7 @@ class Curve(Shape):
             self.long,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
@@ -948,7 +948,7 @@ class Circle(Shape):
             self.stretch,
         )
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
@@ -1195,7 +1195,7 @@ class Complex(Shape):
             py = asy + ady * u
             return px, py
 
-    def __call__(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         first_entry = None
         last_exit = None
         last_rel1 = None
@@ -1205,7 +1205,7 @@ class Complex(Shape):
                 continue
             scalar, component = op
             proxy = Complex.Proxy()
-            component(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
+            component.draw(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if self._all_circles and last_crossing_point is not None:
@@ -3540,7 +3540,7 @@ class Builder:
     def _draw_glyph(glyph, schema):
         assert not schema.marks
         pen = glyph.glyphPen()
-        schema.path(
+        schema.path.draw(
             glyph,
             not glyph.glyphname.startswith('_') and pen,
             SHADED_LINE if schema.cps[-1:] == [0x1BC9D] else LIGHT_LINE,
