@@ -1680,70 +1680,98 @@ class Rule:
         else:
             self.outputs = _l(a4)
 
-    def to_ast(self, class_asts, named_lookup_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
-        def glyph_to_ast(glyph):
+    def to_asts(self, class_asts, named_lookup_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
+        def glyph_to_ast(glyph, unrolling_from=None, unrolling_to=None):
             if isinstance(glyph, str):
-                return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
+                if glyph == unrolling_from:
+                    return fontTools.feaLib.ast.GlyphName(unrolling_to)
+                else:
+                    return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
             if isinstance(glyph, Schema):
                 return fontTools.feaLib.ast.GlyphName(str(glyph))
             return fontTools.feaLib.ast.GlyphName(glyph.glyphname)
-        def glyphs_to_ast(glyphs):
-            return [glyph_to_ast(glyph) for glyph in glyphs]
-        def glyph_to_name(glyph):
-            assert not isinstance(glyph, str), 'Glyph classes are not allowed where only glyphs are expected'
+        def glyphs_to_ast(glyphs, unrolling_from=None, unrolling_to=None):
+            return [glyph_to_ast(glyph, unrolling_from, unrolling_to) for glyph in glyphs]
+        def glyph_to_name(glyph, unrolling_from=None, unrolling_to=None):
+            if isinstance(glyph, str):
+                if glyph == unrolling_from:
+                    return unrolling_to
+                else:
+                    assert not isinstance(glyph, str), f'Glyph classes are not allowed where only glyphs are expected: @{glyph}'
             if isinstance(glyph, Schema):
                 return str(glyph)
             return glyph.glyphname
-        def glyphs_to_names(glyphs):
-            return [glyph_to_name(glyph) for glyph in glyphs]
+        def glyphs_to_names(glyphs, unrolling_from=None, unrolling_to=None):
+            return [glyph_to_name(glyph, unrolling_from, unrolling_to) for glyph in glyphs]
         if self.lookups is not None:
             assert not in_reverse_lookup, 'Reverse chaining contextual substitutions do not support lookup references'
-            return fontTools.feaLib.ast.ChainContextSubstStatement(
+            return [fontTools.feaLib.ast.ChainContextSubstStatement(
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.inputs),
                 glyphs_to_ast(self.contexts_out),
-                [None if name is None else named_lookup_asts[name] for name in self.lookups])
+                [None if name is None else named_lookup_asts[name] for name in self.lookups],
+            )]
         elif self.x_advances is not None:
             assert not in_reverse_lookup, 'There is no reverse positioning lookup type'
             assert len(self.inputs) == 1, 'Only single adjustment positioning has been implemented'
-            return fontTools.feaLib.ast.SinglePosStatement(
+            return [fontTools.feaLib.ast.SinglePosStatement(
                 list(zip(
                     glyphs_to_ast(self.inputs),
                     [fontTools.feaLib.ast.ValueRecord(xAdvance=x_advance) for x_advance in self.x_advances])),
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.contexts_out),
-                in_contextual_lookup)
+                in_contextual_lookup,
+            )]
         elif len(self.inputs) == 1:
             if len(self.outputs) == 1 and not in_multiple_lookup:
                 if in_reverse_lookup:
-                    return fontTools.feaLib.ast.ReverseChainSingleSubstStatement(
+                    return [fontTools.feaLib.ast.ReverseChainSingleSubstStatement(
                         glyphs_to_ast(self.contexts_in),
                         glyphs_to_ast(self.contexts_out),
                         glyphs_to_ast(self.inputs),
-                        glyphs_to_ast(self.outputs))
+                        glyphs_to_ast(self.outputs),
+                    )]
                 else:
-                    return fontTools.feaLib.ast.SingleSubstStatement(
+                    return [fontTools.feaLib.ast.SingleSubstStatement(
                         glyphs_to_ast(self.inputs),
                         glyphs_to_ast(self.outputs),
                         glyphs_to_ast(self.contexts_in),
                         glyphs_to_ast(self.contexts_out),
-                        in_contextual_lookup)
+                        in_contextual_lookup,
+                    )]
             else:
                 assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
-                return fontTools.feaLib.ast.MultipleSubstStatement(
-                    glyphs_to_ast(self.contexts_in),
-                    glyph_to_name(self.inputs[0]),
-                    glyphs_to_ast(self.contexts_out),
-                    glyphs_to_names(self.outputs),
-                    in_contextual_lookup)
+                input = self.inputs[0]
+                if isinstance(input, str) and input in self.outputs:
+                    # Allow a class in multiple substitution output that also appears as an
+                    # input by unrolling all uses of the class in parallel.
+                    asts = []
+                    for glyph_name in class_asts[input].glyphs.glyphs:
+                        asts.append(fontTools.feaLib.ast.MultipleSubstStatement(
+                            glyphs_to_ast(self.contexts_in, input, glyph_name),
+                            glyph_name,
+                            glyphs_to_ast(self.contexts_out, input, glyph_name),
+                            glyphs_to_names(self.outputs, input, glyph_name),
+                            in_contextual_lookup,
+                        ))
+                    return asts
+                else:
+                    return [fontTools.feaLib.ast.MultipleSubstStatement(
+                        glyphs_to_ast(self.contexts_in),
+                        glyph_to_name(input),
+                        glyphs_to_ast(self.contexts_out),
+                        glyphs_to_names(self.outputs),
+                        in_contextual_lookup,
+                    )]
         else:
             assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
-            return fontTools.feaLib.ast.LigatureSubstStatement(
+            return [fontTools.feaLib.ast.LigatureSubstStatement(
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.inputs),
                 glyphs_to_ast(self.contexts_out),
                 glyph_to_name(self.outputs[0]),
-                in_contextual_lookup)
+                in_contextual_lookup,
+            )]
 
     def is_contextual(self):
         return bool(self.contexts_in or self.contexts_out)
@@ -1843,7 +1871,10 @@ class Lookup:
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
                 if self.mark_filtering_set
                 else None))
-        ast.statements.extend(r.to_ast(class_asts, named_lookup_asts, contextual, multiple, self.reversed) for r in self.rules)
+        ast.statements.extend(
+            ast
+                for r in self.rules
+                for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed))
         return ast
 
     def freeze(self):
@@ -1871,12 +1902,15 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
 def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+    first_iteration = 'secant' not in classes
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
-            add_rule(lookup, Rule([schema], [schema, continuing_overlap]))
+            classes['secant'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER and (isinstance(schema.path, Line) or isinstance(schema.path, Curve)):
             classes['base'].append(schema)
+    if first_iteration:
+        add_rule(lookup, Rule(['secant'], ['secant', continuing_overlap]))
     return [lookup]
 
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -1947,7 +1981,8 @@ def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
                 classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
-            add_rule(lookup, Rule([schema], [root_parent_edge, schema]))
+            classes['all'].append(schema)
+    add_rule(lookup, Rule(['all'], [root_parent_edge, 'all']))
     return [lookup]
 
 def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
