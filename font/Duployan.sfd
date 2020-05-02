@@ -20,7 +20,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1523136075
-ModificationTime: 1587859426
+ModificationTime: 1588434063
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -56,7 +56,7 @@ BeginPrivate: 0
 EndPrivate
 TeXData: 1 0 0 272629 136314 90876 0 1048576 90876 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
 AnchorClass2: "above" "'mark' absolutely positioned marks-1" "below" "'mark' absolutely positioned marks-2"
-BeginChars: 1114113 51
+BeginChars: 1114113 52
 
 StartChar: uni0000
 Encoding: 0 0 0
@@ -1747,6 +1747,26 @@ SplineSet
  439 -134 l 1
  439 -187 l 1
  307 -187 l 1
+EndSplineSet
+EndChar
+
+StartChar: uniE000
+Encoding: 57344 57344 51
+Width: 75
+Flags: HWO
+LayerCount: 2
+Fore
+SplineSet
+0 75 m 1
+ 75 75 l 1
+ 75 0 l 1
+ 0 0 l 1
+ 0 75 l 1
+0 714 m 1
+ 75 714 l 1
+ 75 639 l 1
+ 0 639 l 1
+ 0 714 l 1
 EndSplineSet
 EndChar
 EndChars

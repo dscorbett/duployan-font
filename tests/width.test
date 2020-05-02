@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-2123 0020 2123::[uni2123.versicle@0,0|space@606,0|uni2123.versicle@866,0|_@1472,0]
-2123 1BC00 1BC02 2123::[uni2123.versicle@0,0|u1BC00.h@486,0|u1BC02.p@966,-250|uni2123.versicle@1086,0|_@1692,0]
-2123 1BC02 1BC00 2123::[uni2123.versicle@0,0|u1BC02.p@726,0|u1BC00.h@726,-250|uni2123.versicle@1086,0|_@1692,0]
-2123 1BC02 2003 1BC02 2123::[uni2123.versicle@0,0|u1BC02.p@726,0|uni2003.em_space@726,-250|u1BC02.p@1966,-500|uni2123.versicle@2086,0|_@2692,0]
-2123 1BC02 200D 1BC46 2123::[uni2123.versicle@0,0|u1BC02.p@726,0|u1BC46.i.270p90@726,-300|uni2123.versicle@1046,0|_@1652,0]
-2123 1BC03 1BC0A EC03 2123::[uni2123.versicle@0,0|u1BC03.t@1303,0|u1BC0A.g@1803,-500|uniEC03.reversed_t@1226,-1000|uni2123.versicle@1923,0|_@2529,0]
-2123 1BC03 1BC0A 1BC08 2123::[uni2123.versicle@0,0|u1BC03.t@803,0|u1BC0A.g@1303,-500|u1BC08.d@726,-1000|uni2123.versicle@1846,0|_@2452,0]
-2123 1BC1B 2123::[uni2123.versicle@0,0|u1BC1B.j@726,0|uni2123.versicle@1566,0|_@2172,0]
+E000 0020 E000::[uniE000.bound@0,0|space@75,0|uniE000.bound@335,0|_@410,0]
+E000 1BC00 1BC02 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|u1BC02.p@435,-250|uniE000.bound@555,0|_@630,0]
+E000 1BC02 1BC00 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC00.h@195,-250|uniE000.bound@555,0|_@630,0]
+E000 1BC02 2003 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,0|uni2003.em_space@195,-250|u1BC02.p@1435,-500|uniE000.bound@1555,0|_@1630,0]
+E000 1BC02 200D 1BC46 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC46.i.270p90@195,-300|uniE000.bound@515,0|_@590,0]
+E000 1BC03 1BC0A EC03 E000::[uniE000.bound@0,0|u1BC03.t@772,0|u1BC0A.g@1272,-500|uniEC03.reversed_t@695,-1000|uniE000.bound@1392,0|_@1467,0]
+E000 1BC03 1BC0A 1BC08 E000::[uniE000.bound@0,0|u1BC03.t@272,0|u1BC0A.g@772,-500|u1BC08.d@195,-1000|uniE000.bound@1315,0|_@1390,0]
+E000 1BC1B E000::[uniE000.bound@0,0|u1BC1B.j@195,0|uniE000.bound@1035,0|_@1110,0]
 
 # U+1BC0D is wide enough that the trees below it have no effect on the
 # total width.
-2123 1BC0D 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA0 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC04.f.blws@1630,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA0 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC05.k.blws@1822,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA1 1BC04 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC04.f@1630,-83|uni2123.versicle@2346,0|_@2952,0]
-2123 1BC0D 1BCA1 1BC05 2123::[uni2123.versicle@0,0|u1BC0D.d_s@726,0|u1BC05.k@1822,-83|uni2123.versicle@2346,0|_@2952,0]
+E000 1BC0D E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|uniE000.bound@1815,0|_@1890,0]
+E000 1BC0D 1BCA0 1BC04 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC04.f.blws@1099,-83|uniE000.bound@1815,0|_@1890,0]
+E000 1BC0D 1BCA0 1BC05 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC05.k.blws@1291,-83|uniE000.bound@1815,0|_@1890,0]
+E000 1BC0D 1BCA1 1BC04 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC04.f@1099,-83|uniE000.bound@1815,0|_@1890,0]
+E000 1BC0D 1BCA1 1BC05 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC05.k@1291,-83|uniE000.bound@1815,0|_@1890,0]
