@@ -1,4 +1,5 @@
 # Copyright 2018-2019 David Corbett
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +57,8 @@ freeze:
 	. $(TMP)/bin/activate; \
 	pip install -U pip; \
 	pip install -r requirements-to-freeze.txt; \
-	pip freeze >requirements.txt; \
+	sed -n '1,/^$$/p' requirements-to-freeze.txt >requirements.txt; \
+	pip freeze >>requirements.txt; \
 	deactivate
 	$(RM) -r $(TMP)
 	git diff requirements.txt
