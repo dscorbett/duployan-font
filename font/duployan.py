@@ -3587,13 +3587,12 @@ class Builder:
         )
         if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
-            glyph.right_side_bearing = schema.side_bearing
         else:
             bbox = glyph.boundingBox()
             center_y = (bbox[3] - bbox[1]) / 2 + bbox[1]
             entry_x = next((x for _, type, x, _ in glyph.anchorPoints if type == 'entry'), 0)
             glyph.transform(psMat.translate(-entry_x, BASELINE - center_y))
-            glyph.width = 0
+        glyph.right_side_bearing = schema.side_bearing
 
     def _create_glyph(self, schema, *, with_contours):
         if schema.path.name_in_sfd():
