@@ -1329,6 +1329,11 @@ class Style(enum.Enum):
 
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
+        # Familiar glyph names from AGLFN
+        (r'^EXCLAMATION MARK$', 'EXCLAM'),
+        (r'^LEFT PARENTHESIS$', 'PARENLEFT'),
+        (r'^RIGHT PARENTHESIS$', 'PARENRIGHT'),
+        # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
         (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
@@ -1339,6 +1344,7 @@ class Schema:
         (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
         (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
         (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
+        # Unicode name aliases
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
         (r'^ZERO WIDTH JOINER$', 'ZWJ'),
@@ -1346,16 +1352,25 @@ class Schema:
         (r'^MEDIUM MATHEMATICAL SPACE$', 'MMSP'),
         (r'^WORD JOINER$', 'WJ'),
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
+        # Custom name aliases
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
-        (r'^COMBINING ', ''),
-        (r'^DUPLOYAN ((LETTER|AFFIX( ATTACHED)?|SIGN|PUNCTUATION) )?', ''),
-        (r'^SHORTHAND FORMAT ', ''),
-        (r' ACCENT\b', ''),
-        (r'\bDIAERESIS\b', 'DIERESIS'),
-        (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
+        # Familiar vocabulary choices from AGLFN
+        (r'\bEQUALS\b', 'EQUAL'),
         (r'\bFULL STOP\b', 'PERIOD'),
-        (r' MARK$', ''),
-        (r' (WITH|AND) ', ' '),
+        (r'\bQUOTATION MARK\b', 'QUOTE'),
+        (r'\bSOLIDUS\b', 'SLASH'),
+        (r'(?<=ER|SS)[- ]THAN\b', ''),
+        # Unnecessary words
+        (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
+        (r' ACCENT\b', ''),
+        (r' (AND|WITH) ', ' '),
+        (r'\bCOMBINING ', ''),
+        (r'\bDIGIT ', ''),
+        (r'^DUPLOYAN ((AFFIX( ATTACHED)?|LETTER|PUNCTUATION|SIGN) )?', ''),
+        (r' (MARK|SIGN)$', ''),
+        (r'[- ]POINTING\b', ''),
+        (r'^SHORTHAND FORMAT ', ''),
+        # Final munging
         (r'.+', lambda m: m.group(0).lower()),
         (r'[ -]+', '_'),
     ]]
@@ -1505,31 +1520,29 @@ class Schema:
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
+    @staticmethod
+    def _u_name(cp):
+        return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
+
+    @classmethod
+    def _readable_name(cls, cp):
+        try:
+            name = unicodedata.name(chr(cp))
+        except ValueError:
+            name = cls._u_name(cp)
+        for regex, repl in cls._CHARACTER_NAME_SUBSTITUTIONS:
+            name = regex.sub(repl, name)
+        return name
+
     def _calculate_name(self):
-        def get_names(cp):
-            try:
-                agl_name = readable_name = fontTools.agl.UV2AGL[cp]
-            except KeyError:
-                agl_name = '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
-                try:
-                    readable_name = unicodedata.name(chr(cp))
-                except ValueError:
-                    readable_name = agl_name
-                for regex, repl in self._CHARACTER_NAME_SUBSTITUTIONS:
-                    readable_name = regex.sub(repl, readable_name)
-            return agl_name, readable_name
         cps = self.cps
         if cps:
             first_component_implies_type = False
-            agl_name, readable_name = zip(*[*map(get_names, cps)])
-            joined_agl_name = '_'.join(agl_name)
-            if agl_name == readable_name:
-                name = joined_agl_name
-            else:
-                joined_readable_name = '__'.join(readable_name)
-                for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
-                    joined_readable_name = regex.sub(repl, joined_readable_name)
-                name = f'{joined_agl_name}.{joined_readable_name}'
+            name = '__'.join(map(self._readable_name, cps))
+            for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
+                name = regex.sub(repl, name)
+            if cps != [*map(ord, fontTools.agl.toUnicode(name))]:
+                name = f'{"_".join(map(self._u_name, cps))}.{name}'
         else:
             first_component_implies_type = self.path.name_implies_type()
             if first_component_implies_type:
