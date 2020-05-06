@@ -28,8 +28,8 @@ import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
 import fontTools.feaLib.parser
+import fontTools.misc.transform
 import fontTools.otlLib.builder
-import psMat
 
 BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
@@ -382,7 +382,10 @@ class Space(Shape):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
-            glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
+            glyph.transform(
+                fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
+                ('round',),
+            )
 
     def context_in(self):
         return NO_CONTEXT
@@ -692,7 +695,10 @@ class Line(Shape):
                     glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
-        glyph.transform(psMat.rotate(math.radians(self.angle)), ('round',))
+        glyph.transform(
+            fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
+            ('round',)
+        )
         glyph.stroke('circular', stroke_width, 'round')
 
     def can_be_child(self):
@@ -834,7 +840,12 @@ class Curve(Shape):
                 scale_x, scale_y = scale_y, scale_x
             theta = math.radians(self.angle_in % 180)
             glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
-            glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
+            glyph.transform(
+                fontTools.misc.transform.Identity
+                    .rotate(theta)
+                    .scale(scale_x, scale_y)
+                    .rotate(-theta),
+            )
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
             glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
@@ -979,7 +990,12 @@ class Circle(Shape):
         if self.stretch:
             scale_y = 1.0
             theta = math.radians(self.angle_in % 180)
-            glyph.transform(psMat.compose(psMat.rotate(-theta), psMat.compose(psMat.scale(scale_x, scale_y), psMat.rotate(theta))))
+            glyph.transform(
+                fontTools.misc.transform.Identity
+                    .rotate(theta)
+                    .scale(scale_x, scale_y)
+                    .rotate(-theta),
+            )
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
@@ -1213,7 +1229,7 @@ class Complex(Shape):
                 if first_entry is None:
                     first_entry = entry_list[0]
                 else:
-                    proxy.transform(psMat.translate(
+                    proxy.transform(fontTools.misc.transform.Offset(
                         last_crossing_point[0] - this_point[0],
                         last_crossing_point[1] - this_point[1],
                     ))
@@ -1222,7 +1238,7 @@ class Complex(Shape):
                 if first_entry is None:
                     first_entry = this_point
                 else:
-                    proxy.transform(psMat.translate(
+                    proxy.transform(fontTools.misc.transform.Offset(
                         last_exit[0] - this_point[0],
                         last_exit[1] - this_point[1],
                     ))
@@ -3604,7 +3620,7 @@ class Builder:
             bbox = glyph.boundingBox()
             center_y = (bbox[3] - bbox[1]) / 2 + bbox[1]
             entry_x = next((x for _, type, x, _ in glyph.anchorPoints if type == 'entry'), 0)
-            glyph.transform(psMat.translate(-entry_x, BASELINE - center_y))
+            glyph.transform(fontTools.misc.transform.Offset(-entry_x, BASELINE - center_y))
         glyph.right_side_bearing = schema.side_bearing
 
     def _create_glyph(self, schema, *, with_contours):
