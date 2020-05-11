@@ -1345,10 +1345,6 @@ class Style(enum.Enum):
 
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
-        # Familiar glyph names from AGLFN
-        (r'^EXCLAMATION MARK$', 'EXCLAM'),
-        (r'^LEFT PARENTHESIS$', 'PARENLEFT'),
-        (r'^RIGHT PARENTHESIS$', 'PARENRIGHT'),
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
@@ -1371,7 +1367,6 @@ class Schema:
         # Custom name aliases
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
         # Familiar vocabulary choices from AGLFN
-        (r'\bEQUALS\b', 'EQUAL'),
         (r'\bFULL STOP\b', 'PERIOD'),
         (r'\bQUOTATION MARK\b', 'QUOTE'),
         (r'\bSOLIDUS\b', 'SLASH'),
@@ -1537,6 +1532,10 @@ class Schema:
         self._glyph_name = None
 
     @staticmethod
+    def _agl_name(cp):
+        return fontTools.agl.UV2AGL[cp] if cp <= 0x7F else None
+
+    @staticmethod
     def _u_name(cp):
         return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
 
@@ -1554,11 +1553,15 @@ class Schema:
         cps = self.cps
         if cps:
             first_component_implies_type = False
-            name = '__'.join(map(self._readable_name, cps))
-            for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
-                name = regex.sub(repl, name)
-            if cps != [*map(ord, fontTools.agl.toUnicode(name))]:
-                name = f'{"_".join(map(self._u_name, cps))}.{name}'
+            try:
+                name = '_'.join(map(self._agl_name, cps))
+            except:
+                name = '_'.join(map(self._u_name, cps))
+                readable_name = '__'.join(map(self._readable_name, cps))
+                for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
+                    readable_name = regex.sub(repl, readable_name)
+                if name != readable_name.replace('__', '_'):
+                    name = f'{name}.{readable_name}'
         else:
             first_component_implies_type = self.path.name_implies_type()
             if first_component_implies_type:
