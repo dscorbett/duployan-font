@@ -263,6 +263,28 @@ class DigitStatus(enum.Enum):
     ALMOST_DONE = enum.auto()
     DONE = enum.auto()
 
+class EntryWidthDigit(Shape):
+    def __init__(self, place, digit):
+        self.place = int(place)
+        self.digit = int(digit)
+        assert self.place == place, place
+        assert self.digit == digit, digit
+
+    def __str__(self):
+        return f'idx.{self.digit}e{self.place}'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
 class LeftBoundDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
@@ -2421,13 +2443,10 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookups_per_position = 12
-    lookups_before = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
-    lookups_main = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
-    lookups_after = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
-    rule_count_before = 0
-    rule_count_main = 0
-    rule_count_after = 0
+    lookups = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
+    rule_count = 0
     carry_0_schema = Schema(None, Carry(0), 0)
+    entry_width_markers = {}
     left_bound_markers = {}
     right_bound_markers = {}
     cursive_width_markers = {}
@@ -2442,65 +2461,48 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
                 if anchor_class_name == CURSIVE_ANCHOR:
                     if type == 'entry':
-                        entry = x
+                        cursive_entry = x
                     elif type == 'exit':
-                        exit = x
+                        cursive_exit = x
                 elif anchor_class_name == CONTINUING_OVERLAP_ANCHOR:
                     if type == 'entry':
                         overlap_entry = x
                     elif type == 'exit':
                         overlap_exit = x
             if overlap_entry is None:
-                overlap_entry = entry
+                overlap_entry = cursive_entry
             if overlap_exit is None:
-                overlap_exit = exit
+                overlap_exit = cursive_exit
             x_min, _, x_max, _ = glyph.boundingBox()
             if x_min == x_max == 0:
-                x_min = entry
-                x_max = exit
-            for segment_exit, segment_entry, peripheral, look_behind in [
-                (overlap_entry, entry, True, True),
-                (overlap_exit, overlap_entry, False, False),
-                (exit, overlap_exit, True, False),
+                x_min = cursive_entry
+                x_max = cursive_exit
+            digits = []
+            for width, digit_path, width_markers in [
+                (cursive_entry - overlap_entry, EntryWidthDigit, entry_width_markers),
+                (x_min - cursive_entry, LeftBoundDigit, left_bound_markers),
+                (x_max - cursive_entry, RightBoundDigit, right_bound_markers),
+                (overlap_exit - cursive_entry, CursiveWidthDigit, cursive_width_markers),
+                (cursive_exit - cursive_entry, CursiveWidthDigit, cursive_width_markers),
             ]:
-                left_bound = x_min - segment_entry
-                right_bound = x_max - segment_entry if not look_behind else 0
-                cursive_width = segment_exit - segment_entry
-                digits = []
-                for width, digit_path, width_markers in [
-                    (left_bound, LeftBoundDigit, left_bound_markers),
-                    (right_bound, RightBoundDigit, right_bound_markers),
-                    (cursive_width, CursiveWidthDigit, cursive_width_markers),
-                ]:
-                    assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                        if width >= 0
-                        else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                        ), f'Glyph {glyph.glyphname} is too wide: {width} units'
-                    digits_base = len(digits)
-                    digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
-                    quotient = round(width)
-                    for i in range(WIDTH_MARKER_PLACES):
-                        quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-                        args = (i, remainder)
-                        if args not in width_markers:
-                            width_markers[args] = Schema(None, digit_path(*args), 0)
-                        digits[digits_base + i * 2 + 1] = width_markers[args]
-                if digits:
-                    if peripheral:
-                        outputs = [glyph, *digits]
-                        if look_behind:
-                            lookup = lookups_before[rule_count_before % lookups_per_position]
-                            rule_count_before += 1
-                        else:
-                            outputs.append(end)
-                            lookup = lookups_after[rule_count_after % lookups_per_position]
-                            rule_count_after += 1
-                    else:
-                        outputs = [start, glyph, *digits]
-                        lookup = lookups_main[rule_count_main % lookups_per_position]
-                        rule_count_main += 1
-                    add_rule(lookup, Rule([glyph], outputs))
-    return [*lookups_after, *lookups_main, *lookups_before]
+                assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                    if width >= 0
+                    else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                    ), f'Glyph {glyph.glyphname} is too wide: {width} units'
+                digits_base = len(digits)
+                digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
+                quotient = round(width)
+                for i in range(WIDTH_MARKER_PLACES):
+                    quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+                    args = (i, remainder)
+                    if args not in width_markers:
+                        width_markers[args] = Schema(None, digit_path(*args), 0)
+                    digits[digits_base + i * 2 + 1] = width_markers[args]
+            if digits:
+                lookup = lookups[rule_count % lookups_per_position]
+                rule_count += 1
+                add_rule(lookup, Rule([glyph], [start, glyph, *digits, end]))
+    return lookups
 
 def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
@@ -2529,7 +2531,7 @@ def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
-def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def clear_entry_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2542,7 +2544,7 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
         named_lookups['zero'] = Lookup(None, None, None)
     for glyph in glyphs:
         if isinstance(glyph, Schema):
-            if isinstance(glyph.path, CursiveWidthDigit):
+            if isinstance(glyph.path, EntryWidthDigit):
                 classes['all'].append(glyph)
                 classes[str(glyph.path.place)].append(glyph)
                 if glyph.path.digit == 0:
@@ -2553,18 +2555,18 @@ def clear_peripheral_width_markers(glyphs, new_glyphs, classes, named_lookups, a
                 classes['all'].append(glyph)
                 continuing_overlap = glyph
     for schema in new_glyphs:
-        if isinstance(schema, Schema) and isinstance(schema.path, CursiveWidthDigit) and schema.path.digit != 0:
+        if isinstance(schema, Schema) and isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
             add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
     add_rule(lookup, Rule(
         [continuing_overlap],
         [*map(str, range(WIDTH_MARKER_PLACES))],
         [],
-        lookups=['zero'] * WIDTH_MARKER_PLACES,
+        lookups=[None] * WIDTH_MARKER_PLACES,
     ))
     add_rule(lookup, Rule(
         [],
         [*map(str, range(WIDTH_MARKER_PLACES))],
-        [continuing_overlap],
+        [],
         lookups=['zero'] * WIDTH_MARKER_PLACES,
     ))
     return [lookup]
@@ -2580,6 +2582,8 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     carry_schemas = {}
     dummied_carry_schemas = set()
     original_carry_schemas = []
+    entry_digit_schemas = {}
+    original_entry_digit_schemas = []
     left_digit_schemas = {}
     original_left_digit_schemas = []
     right_digit_schemas = {}
@@ -2588,6 +2592,10 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     original_cursive_digit_schemas = []
     for schema in glyphs:
         if not isinstance(schema, Schema):
+            # FIXME: Relying on glyph names is brittle.
+            if schema.glyphname.startswith('_u1BCA1'):
+                classes['all'].append(schema)
+                continuing_overlap = schema
             continue
         if isinstance(schema.path, Carry):
             carry_schemas[schema.path.value] = schema
@@ -2595,6 +2603,12 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             if schema in new_glyphs:
                 classes['all'].append(schema)
                 classes['c'].append(schema)
+        elif isinstance(schema.path, EntryWidthDigit):
+            entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_entry_digit_schemas.append(schema)
+            if schema in new_glyphs:
+                classes['all'].append(schema)
+                classes[f'idx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_left_digit_schemas.append(schema)
@@ -2619,13 +2633,70 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         augend_is_new = augend_schema in new_glyphs
         place = augend_schema.path.place
         augend = augend_schema.path.digit
+        for after_continuing_overlap in [True, False]:
+            for carry_in_schema in original_carry_schemas:
+                carry_in = carry_in_schema.path.value
+                carry_in_is_new = carry_in_schema in new_glyphs
+                contexts_in = [augend_schema]
+                for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
+                    contexts_in.append('c')
+                    contexts_in.append(f'cdx_{cursive_place}')
+                if after_continuing_overlap:
+                    for cursive_place in range(0, WIDTH_MARKER_PLACES):
+                        contexts_in.append('c')
+                        contexts_in.append(f'cdx_{cursive_place}')
+                    contexts_in.append(continuing_overlap)
+                for entry_place in range(0, augend_schema.path.place):
+                    contexts_in.append('c')
+                    contexts_in.append(f'idx_{entry_place}')
+                contexts_in.append(carry_in_schema)
+                for addend_schema in original_entry_digit_schemas:
+                    if place != addend_schema.path.place:
+                        continue
+                    if not (carry_in_is_new or augend_is_new or addend_schema in new_glyphs):
+                        continue
+                    addend = addend_schema.path.digit
+                    carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
+                    if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
+                        if carry_out in carry_schemas:
+                            carry_out_schema = carry_schemas[carry_out]
+                        else:
+                            carry_out_schema = Schema(None, Carry(carry_out), 0)
+                            carry_schemas[carry_out] = carry_out_schema
+                        sum_index = place * WIDTH_MARKER_RADIX + sum_digit
+                        if sum_index in entry_digit_schemas:
+                            sum_digit_schema = entry_digit_schemas[sum_index]
+                        else:
+                            sum_digit_schema = Schema(None, EntryWidthDigit(place, sum_digit), 0)
+                            entry_digit_schemas[sum_index] = sum_digit_schema
+                        outputs = ([sum_digit_schema]
+                            if place == WIDTH_MARKER_PLACES - 1
+                            else [sum_digit_schema, carry_out_schema])
+                        sum_lookup_name = str(sum_digit)
+                        if sum_lookup_name not in named_lookups:
+                            named_lookups[sum_lookup_name] = Lookup(None, None, None, flags=0)
+                        add_rule(lookup, Rule(contexts_in, [addend_schema], [], lookups=[sum_lookup_name]))
+                        add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
+    for augend_schema in original_entry_digit_schemas:
+        augend_is_new = augend_schema in new_glyphs
+        place = augend_schema.path.place
+        augend = augend_schema.path.digit
         for (
             skip_left,
+            skip_cursive,
             skip_right,
             original_digit_schemas,
             digit_schemas,
             digit_path,
         ) in [(
+            True,
+            False,
+            True,
+            original_cursive_digit_schemas,
+            cursive_digit_schemas,
+            CursiveWidthDigit,
+        ), (
+            True,
             True,
             True,
             original_cursive_digit_schemas,
@@ -2634,11 +2705,13 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         ), (
             False,
             False,
+            False,
             original_left_digit_schemas,
             left_digit_schemas,
             LeftBoundDigit,
         ), (
             True,
+            False,
             False,
             original_right_digit_schemas,
             right_digit_schemas,
@@ -2651,9 +2724,9 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     dummied_carry_schemas.add(carry_in_schema.path.value)
                     add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
                 contexts_in = [augend_schema]
-                for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
+                for entry_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
                     contexts_in.append('c')
-                    contexts_in.append(f'cdx_{cursive_place}')
+                    contexts_in.append(f'idx_{entry_place}')
                 for left_place in range(0, WIDTH_MARKER_PLACES if skip_left else augend_schema.path.place):
                     contexts_in.append('c')
                     contexts_in.append(f'ldx_{left_place}')
@@ -2661,6 +2734,10 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     for right_place in range(0, WIDTH_MARKER_PLACES if skip_right else augend_schema.path.place):
                         contexts_in.append('c')
                         contexts_in.append(f'rdx_{right_place}')
+                if skip_cursive:
+                    for cursive_place in range(0, WIDTH_MARKER_PLACES):
+                        contexts_in.append('c')
+                        contexts_in.append(f'cdx_{cursive_place}')
                 if skip_right:
                     for cursive_place in range(0, augend_schema.path.place):
                         contexts_in.append('c')
@@ -3213,7 +3290,7 @@ GLYPH_PHASES = [
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
-    clear_peripheral_width_markers,
+    clear_entry_width_markers,
     sum_width_markers,
     calculate_bound_extrema,
     remove_false_start_markers,
