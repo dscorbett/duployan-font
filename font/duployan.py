@@ -339,7 +339,7 @@ class RightBoundDigit(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
-class CursiveWidthDigit(Shape):
+class AnchorWidthDigit(Shape):
     def __init__(self, place, digit, status=DigitStatus.NORMAL):
         self.place = int(place)
         self.digit = int(digit)
@@ -349,7 +349,7 @@ class CursiveWidthDigit(Shape):
 
     def __str__(self):
         return f'''{
-                "CDX" if self.status == DigitStatus.DONE else "cdx"
+                "ADX" if self.status == DigitStatus.DONE else "adx"
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
@@ -2449,7 +2449,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     entry_width_markers = {}
     left_bound_markers = {}
     right_bound_markers = {}
-    cursive_width_markers = {}
+    anchor_width_markers = {}
     start = Schema(None, Start(), 0)
     end = Schema(None, End(), 0)
     for glyph in new_glyphs:
@@ -2482,8 +2482,8 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 (cursive_entry - overlap_entry, EntryWidthDigit, entry_width_markers),
                 (x_min - cursive_entry, LeftBoundDigit, left_bound_markers),
                 (x_max - cursive_entry, RightBoundDigit, right_bound_markers),
-                (overlap_exit - cursive_entry, CursiveWidthDigit, cursive_width_markers),
-                (cursive_exit - cursive_entry, CursiveWidthDigit, cursive_width_markers),
+                (overlap_exit - cursive_entry, AnchorWidthDigit, anchor_width_markers),
+                (cursive_exit - cursive_entry, AnchorWidthDigit, anchor_width_markers),
             ]:
                 assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                     if width >= 0
@@ -2588,8 +2588,8 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     original_left_digit_schemas = []
     right_digit_schemas = {}
     original_right_digit_schemas = []
-    cursive_digit_schemas = {}
-    original_cursive_digit_schemas = []
+    anchor_digit_schemas = {}
+    original_anchor_digit_schemas = []
     for schema in glyphs:
         if not isinstance(schema, Schema):
             # FIXME: Relying on glyph names is brittle.
@@ -2621,15 +2621,15 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             if schema in new_glyphs:
                 classes['all'].append(schema)
                 classes[f'rdx_{schema.path.place}'].append(schema)
-        elif isinstance(schema.path, CursiveWidthDigit):
-            cursive_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_cursive_digit_schemas.append(schema)
+        elif isinstance(schema.path, AnchorWidthDigit):
+            anchor_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            original_anchor_digit_schemas.append(schema)
             if schema in new_glyphs:
                 classes['all'].append(schema)
-                classes[f'cdx_{schema.path.place}'].append(schema)
+                classes[f'adx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, Dummy):
             dummy = schema
-    for augend_schema in original_cursive_digit_schemas:
+    for augend_schema in original_anchor_digit_schemas:
         augend_is_new = augend_schema in new_glyphs
         place = augend_schema.path.place
         augend = augend_schema.path.digit
@@ -2638,13 +2638,13 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 carry_in = carry_in_schema.path.value
                 carry_in_is_new = carry_in_schema in new_glyphs
                 contexts_in = [augend_schema]
-                for cursive_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
+                for anchor_place in range(augend_schema.path.place + 1, WIDTH_MARKER_PLACES):
                     contexts_in.append('c')
-                    contexts_in.append(f'cdx_{cursive_place}')
+                    contexts_in.append(f'adx_{anchor_place}')
                 if after_continuing_overlap:
-                    for cursive_place in range(0, WIDTH_MARKER_PLACES):
+                    for anchor_place in range(0, WIDTH_MARKER_PLACES):
                         contexts_in.append('c')
-                        contexts_in.append(f'cdx_{cursive_place}')
+                        contexts_in.append(f'adx_{anchor_place}')
                     contexts_in.append(continuing_overlap)
                 for entry_place in range(0, augend_schema.path.place):
                     contexts_in.append('c')
@@ -2683,7 +2683,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         augend = augend_schema.path.digit
         for (
             skip_left,
-            skip_cursive,
+            skip_anchor,
             skip_right,
             original_digit_schemas,
             digit_schemas,
@@ -2692,16 +2692,16 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             True,
             False,
             True,
-            original_cursive_digit_schemas,
-            cursive_digit_schemas,
-            CursiveWidthDigit,
+            original_anchor_digit_schemas,
+            anchor_digit_schemas,
+            AnchorWidthDigit,
         ), (
             True,
             True,
             True,
-            original_cursive_digit_schemas,
-            cursive_digit_schemas,
-            CursiveWidthDigit,
+            original_anchor_digit_schemas,
+            anchor_digit_schemas,
+            AnchorWidthDigit,
         ), (
             False,
             False,
@@ -2734,14 +2734,14 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     for right_place in range(0, WIDTH_MARKER_PLACES if skip_right else augend_schema.path.place):
                         contexts_in.append('c')
                         contexts_in.append(f'rdx_{right_place}')
-                if skip_cursive:
-                    for cursive_place in range(0, WIDTH_MARKER_PLACES):
+                if skip_anchor:
+                    for anchor_place in range(0, WIDTH_MARKER_PLACES):
                         contexts_in.append('c')
-                        contexts_in.append(f'cdx_{cursive_place}')
+                        contexts_in.append(f'adx_{anchor_place}')
                 if skip_right:
-                    for cursive_place in range(0, augend_schema.path.place):
+                    for anchor_place in range(0, augend_schema.path.place):
                         contexts_in.append('c')
-                        contexts_in.append(f'cdx_{cursive_place}')
+                        contexts_in.append(f'adx_{anchor_place}')
                 contexts_in.append(carry_in_schema)
                 for addend_schema in original_digit_schemas:
                     if place != addend_schema.path.place:
@@ -2885,17 +2885,17 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         mark_filtering_set='rdx',
         reversed=True,
     )
-    cursive_lookup = Lookup(
+    anchor_lookup = Lookup(
         'psts',
         'dupl',
         'dflt',
         flags=0,
-        mark_filtering_set='cdx',
+        mark_filtering_set='adx',
         reversed=True,
     )
     new_left_bounds = []
     new_right_bounds = []
-    new_cursive_widths = []
+    new_anchor_widths = []
     end = next(s for s in glyphs if isinstance(s, Schema) and isinstance(s.path, End))
     for schema in new_glyphs:
         if not isinstance(schema, Schema):
@@ -2906,13 +2906,13 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         elif isinstance(schema.path, RightBoundDigit):
             classes['rdx'].append(schema)
             new_right_bounds.append(schema)
-        elif isinstance(schema.path, CursiveWidthDigit):
-            classes['cdx'].append(schema)
-            new_cursive_widths.append(schema)
+        elif isinstance(schema.path, AnchorWidthDigit):
+            classes['adx'].append(schema)
+            new_anchor_widths.append(schema)
     for new_digits, lookup, class_name, digit_path, status in [
         (new_left_bounds, left_lookup, 'ldx', LeftBoundDigit, DigitStatus.ALMOST_DONE),
         (new_right_bounds, right_lookup, 'rdx', RightBoundDigit, DigitStatus.DONE),
-        (new_cursive_widths, cursive_lookup, 'cdx', CursiveWidthDigit, DigitStatus.DONE),
+        (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
             skipped_schemas = [class_name] * schema.path.place
@@ -2921,7 +2921,7 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 [schema],
                 [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
                 [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
-    return [left_lookup, right_lookup, cursive_lookup]
+    return [left_lookup, right_lookup, anchor_lookup]
 
 def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups, add_rule):
     lookup = Lookup(
@@ -2966,7 +2966,7 @@ def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
             continue
         if ((isinstance(schema.path, LeftBoundDigit)
                 or isinstance(schema.path, RightBoundDigit)
-                or isinstance(schema.path, CursiveWidthDigit))
+                or isinstance(schema.path, AnchorWidthDigit))
                 and schema.path.status == DigitStatus.DONE):
             digit = schema.path.digit
             if schema.path.place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
@@ -2974,7 +2974,7 @@ def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
             x_advance = digit * WIDTH_MARKER_RADIX ** schema.path.place
             if not isinstance(schema.path, RightBoundDigit):
                 x_advance = -x_advance
-            if schema.path.place == 0 and not isinstance(schema.path, CursiveWidthDigit):
+            if schema.path.place == 0 and not isinstance(schema.path, AnchorWidthDigit):
                 x_advance += DEFAULT_SIDE_BEARING
             if x_advance:
                 add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))
