@@ -2447,7 +2447,7 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
     return []
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookups_per_position = 12
+    lookups_per_position = 17
     lookups = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
     rule_count = 0
     carry_0_schema = Schema(None, Carry(0), 0)
