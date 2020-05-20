@@ -43,17 +43,29 @@ CONTINUING_OVERLAP_CLASS = 'global..cont'
 PARENT_EDGE_CLASS = 'global..pe'
 CHILD_EDGE_CLASSES = [f'global..ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
 INTER_EDGE_CLASSES = [[f'global..edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
-CURSIVE_ANCHOR = 'cursive'
-CONTINUING_OVERLAP_ANCHOR = 'cont'
 PARENT_EDGE_ANCHOR = 'pe'
 CHILD_EDGE_ANCHORS = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
 INTER_EDGE_ANCHORS = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 RELATIVE_1_ANCHOR = 'rel1'
 RELATIVE_2_ANCHOR = 'rel2'
 MIDDLE_ANCHOR = 'mid'
-SECANT_ANCHOR = 'sec'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
+SECANT_ANCHOR = 'sec'
+MARK_ANCHORS = [
+    RELATIVE_1_ANCHOR,
+    RELATIVE_2_ANCHOR,
+    MIDDLE_ANCHOR,
+    ABOVE_ANCHOR,
+    BELOW_ANCHOR,
+    SECANT_ANCHOR,
+]
+CONTINUING_OVERLAP_ANCHOR = 'cont'
+CURSIVE_ANCHOR = 'cursive'
+CURSIVE_ANCHORS = [
+    CONTINUING_OVERLAP_ANCHOR,
+    CURSIVE_ANCHOR,
+]
 CLONE_DEFAULT = object()
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
@@ -2434,21 +2446,17 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
 
 def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_rule):
     for schema in schemas:
-        for anchor in [
-            RELATIVE_1_ANCHOR,
-            RELATIVE_2_ANCHOR,
-            MIDDLE_ANCHOR,
-            SECANT_ANCHOR,
-            ABOVE_ANCHOR,
-            BELOW_ANCHOR,
-        ]:
+        for anchor in MARK_ANCHORS:
             if schema.child or schema.anchor == anchor:
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
 def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
-    lookups_per_position = 17
-    lookups = [Lookup('psts', 'dupl', 'dflt') for _ in range(lookups_per_position)]
+    lookups_per_position = 68
+    lookups = [
+        Lookup('psts', 'dupl', 'dflt', flags=0)
+        for _ in range(lookups_per_position)
+    ]
     rule_count = 0
     carry_0_schema = Schema(None, Carry(0), 0)
     entry_width_markers = {}
@@ -2461,34 +2469,41 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         if isinstance(glyph, Schema):
             continue
         if glyph.glyphclass == GlyphClass.JOINER:
-            overlap_entry = None
-            overlap_exit = None
+            mark_xs = {}
+            entry_xs = {}
+            exit_xs = {}
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
-                if anchor_class_name == CURSIVE_ANCHOR:
-                    if type == 'entry':
-                        cursive_entry = x
-                    elif type == 'exit':
-                        cursive_exit = x
-                elif anchor_class_name == CONTINUING_OVERLAP_ANCHOR:
-                    if type == 'entry':
-                        overlap_entry = x
-                    elif type == 'exit':
-                        overlap_exit = x
-            if overlap_entry is None:
-                overlap_entry = cursive_entry
-            if overlap_exit is None:
-                overlap_exit = cursive_exit
+                if type in ['base', 'basemark']:
+                    mark_xs[anchor_class_name] = x
+                elif type == 'entry':
+                    entry_xs[anchor_class_name] = x
+                elif type == 'exit':
+                    exit_xs[anchor_class_name] = x
+            if not mark_xs and not entry_xs and not exit_xs:
+                # This glyph never appears in the final glyph buffer.
+                continue
+            entry_xs.setdefault(CURSIVE_ANCHOR, 0)
+            if CURSIVE_ANCHOR not in exit_xs:
+                exit_xs[CURSIVE_ANCHOR] = exit_xs[CONTINUING_OVERLAP_ANCHOR]
+            entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
+            exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
             x_min, _, x_max, _ = glyph.boundingBox()
             if x_min == x_max == 0:
-                x_min = cursive_entry
-                x_max = cursive_exit
+                x_min = entry_xs[CURSIVE_ANCHOR]
+                x_max = exit_xs[CURSIVE_ANCHOR]
             digits = []
             for width, digit_path, width_markers in [
-                (cursive_entry - overlap_entry, EntryWidthDigit, entry_width_markers),
-                (x_min - cursive_entry, LeftBoundDigit, left_bound_markers),
-                (x_max - cursive_entry, RightBoundDigit, right_bound_markers),
-                (overlap_exit - cursive_entry, AnchorWidthDigit, anchor_width_markers),
-                (cursive_exit - cursive_entry, AnchorWidthDigit, anchor_width_markers),
+                (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
+                (x_min - entry_xs[CURSIVE_ANCHOR], LeftBoundDigit, left_bound_markers),
+                (x_max - entry_xs[CURSIVE_ANCHOR], RightBoundDigit, right_bound_markers),
+                *[
+                    (mark_xs[anchor] - entry_xs[CURSIVE_ANCHOR] if anchor in mark_xs else 0, AnchorWidthDigit, anchor_width_markers)
+                    for anchor in MARK_ANCHORS
+                ],
+                *[
+                    (exit_xs[anchor] - entry_xs[CURSIVE_ANCHOR], AnchorWidthDigit, anchor_width_markers)
+                    for anchor in CURSIVE_ANCHORS
+                ],
             ]:
                 assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                     if width >= 0
@@ -2665,7 +2680,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 False,
                 'i',
                 'a',
-                1,
+                len(MARK_ANCHORS) + len(CURSIVE_ANCHORS) - 1,
                 original_anchor_digit_schemas,
                 anchor_digit_schemas,
                 AnchorWidthDigit,
@@ -3652,14 +3667,7 @@ class Builder:
             ('mark', False),
             ('mkmk', True),
         ]:
-            for anchor in [
-                RELATIVE_1_ANCHOR,
-                RELATIVE_2_ANCHOR,
-                MIDDLE_ANCHOR,
-                SECANT_ANCHOR,
-                ABOVE_ANCHOR,
-                BELOW_ANCHOR,
-            ]:
+            for anchor in MARK_ANCHORS:
                 self._add_lookup(
                     feature,
                     mkmk(anchor) if is_mkmk else anchor,
