@@ -2968,9 +2968,12 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
             done = Schema(None, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
         classes['all'].append(done)
         if total.path.digit != 0:
+            input = new_left_start_totals[total.path.place]
+            if input not in classes['all']:
+                classes['all'].append(input)
             add_rule(lookup, Rule(
                 [start, *['all'] * total.path.place],
-                [new_left_start_totals[total.path.place]],
+                [input],
                 [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
                 [done]))
     return [lookup]
