@@ -2929,6 +2929,8 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
         (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
+            if schema.path.status != DigitStatus.NORMAL:
+                continue
             skipped_schemas = [class_name] * schema.path.place
             add_rule(lookup, Rule(
                 [],
