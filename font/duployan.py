@@ -2468,23 +2468,22 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
             continue
-        if glyph.glyphclass == GlyphClass.JOINER:
-            mark_xs = {}
+        if (glyph.glyphclass == GlyphClass.JOINER
+            or glyph.glyphclass == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in glyph.anchorPoints)
+        ):
             entry_xs = {}
             exit_xs = {}
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
-                if type in ['base', 'basemark']:
-                    mark_xs[anchor_class_name] = x
-                elif type == 'entry':
+                if type in ['entry', 'mark']:
                     entry_xs[anchor_class_name] = x
-                elif type == 'exit':
+                elif type in ['base', 'basemark', 'exit']:
                     exit_xs[anchor_class_name] = x
-            if not mark_xs and not entry_xs and not exit_xs:
+            if not (entry_xs or exit_xs):
                 # This glyph never appears in the final glyph buffer.
                 continue
             entry_xs.setdefault(CURSIVE_ANCHOR, 0)
             if CURSIVE_ANCHOR not in exit_xs:
-                exit_xs[CURSIVE_ANCHOR] = exit_xs[CONTINUING_OVERLAP_ANCHOR]
+                exit_xs[CURSIVE_ANCHOR] = exit_xs.get(CONTINUING_OVERLAP_ANCHOR, 0)
             entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
             exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
             x_min, _, x_max, _ = glyph.boundingBox()
@@ -2494,10 +2493,10 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             digits = []
             for width, digit_path, width_markers in [
                 (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
-                (x_min - entry_xs[CURSIVE_ANCHOR], LeftBoundDigit, left_bound_markers),
-                (x_max - entry_xs[CURSIVE_ANCHOR], RightBoundDigit, right_bound_markers),
+                (x_min - entry_xs[CURSIVE_ANCHOR] if glyph.glyphclass == GlyphClass.JOINER else 0, LeftBoundDigit, left_bound_markers),
+                (x_max - entry_xs[CURSIVE_ANCHOR] if glyph.glyphclass == GlyphClass.JOINER else 0, RightBoundDigit, right_bound_markers),
                 *[
-                    (mark_xs[anchor] - entry_xs[CURSIVE_ANCHOR] if anchor in mark_xs else 0, AnchorWidthDigit, anchor_width_markers)
+                    (0, AnchorWidthDigit, anchor_width_markers)
                     for anchor in MARK_ANCHORS
                 ],
                 *[
