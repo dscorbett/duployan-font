@@ -66,6 +66,18 @@ CURSIVE_ANCHORS = [
     CONTINUING_OVERLAP_ANCHOR,
     CURSIVE_ANCHOR,
 ]
+ALL_ANCHORS = MARK_ANCHORS + CURSIVE_ANCHORS
+WIDTH_ANCHORS = [
+    # FIXME: This should be the same as `ALL_ANCHORS`, but that raises a
+    # `fontTools.ttLib.tables.otBase.OTLOffsetOverflowError`. The following
+    # anchors are the most important because their glyphs are the most
+    # likely to affect a stenogram’s width.
+    RELATIVE_2_ANCHOR,
+    MIDDLE_ANCHOR,
+    SECANT_ANCHOR,
+    CONTINUING_OVERLAP_ANCHOR,
+    CURSIVE_ANCHOR,
+]
 CLONE_DEFAULT = object()
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
@@ -365,6 +377,44 @@ class AnchorWidthDigit(Shape):
             }.{self.digit}{
                 "e" if self.status == DigitStatus.NORMAL else "E"
             }{self.place}'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
+class MarkAnchorSelector(Shape):
+    def __init__(self, index):
+        self.index = index
+
+    def __str__(self):
+        return f'anchor.{MARK_ANCHORS[self.index]}'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
+class GlyphClassSelector(Shape):
+    def __init__(self, glyph_class):
+        self.glyph_class = glyph_class
+
+    def __str__(self):
+        return f'gc.{self.glyph_class}'
 
     @staticmethod
     def name_implies_type():
@@ -2465,8 +2515,29 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     anchor_width_markers = {}
     start = Schema(None, Start(), 0)
     end = Schema(None, End(), 0)
+    mark_anchor_selectors = {}
+    def get_mark_anchor_selector(glyph):
+        only_anchor_class_name = None
+        for anchor_class_name, type, _, _ in glyph.anchorPoints:
+            if type == 'mark' and anchor_class_name in MARK_ANCHORS:
+                assert only_anchor_class_name is None, f'{glyph.glyphname} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
+                only_anchor_class_name = anchor_class_name
+        index = MARK_ANCHORS.index(only_anchor_class_name)
+        if index in mark_anchor_selectors:
+            return mark_anchor_selectors[index]
+        return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
+    glyph_class_selectors = {}
+    def get_glyph_class_selector(glyph):
+        glyph_class = glyph.glyphclass
+        if glyph_class in glyph_class_selectors:
+            return glyph_class_selectors[glyph_class]
+        return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
     for glyph in new_glyphs:
         if isinstance(glyph, Schema):
+            if isinstance(glyph.path, MarkAnchorSelector):
+                mark_anchor_selectors[glyph.path.index] = glyph
+            elif isinstance(glyph.path, GlyphClassSelector):
+                glyph_class_selectors[glyph.glyph_class] = glyph
             continue
         if (glyph.glyphclass == GlyphClass.JOINER
             or glyph.glyphclass == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in glyph.anchorPoints)
@@ -2474,6 +2545,8 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             entry_xs = {}
             exit_xs = {}
             for anchor_class_name, type, x, _ in glyph.anchorPoints:
+                if anchor_class_name in MARK_ANCHORS and anchor_class_name not in WIDTH_ANCHORS:
+                    x = 0
                 if type in ['entry', 'mark']:
                     entry_xs[anchor_class_name] = x
                 elif type in ['base', 'basemark', 'exit']:
@@ -2486,21 +2559,33 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 exit_xs[CURSIVE_ANCHOR] = exit_xs.get(CONTINUING_OVERLAP_ANCHOR, 0)
             entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
             exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
+            start_x = entry_xs[CURSIVE_ANCHOR if glyph.glyphclass == GlyphClass.JOINER else anchor_class_name]
             x_min, _, x_max, _ = glyph.boundingBox()
             if x_min == x_max == 0:
                 x_min = entry_xs[CURSIVE_ANCHOR]
                 x_max = exit_xs[CURSIVE_ANCHOR]
+            if glyph.glyphclass == GlyphClass.MARK:
+                mark_anchor_selector = [get_mark_anchor_selector(glyph)]
+            else:
+                mark_anchor_selector = []
+            glyph_class_selector = get_glyph_class_selector(glyph)
             digits = []
             for width, digit_path, width_markers in [
                 (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
-                (x_min - entry_xs[CURSIVE_ANCHOR] if glyph.glyphclass == GlyphClass.JOINER else 0, LeftBoundDigit, left_bound_markers),
-                (x_max - entry_xs[CURSIVE_ANCHOR] if glyph.glyphclass == GlyphClass.JOINER else 0, RightBoundDigit, right_bound_markers),
+                (x_min - start_x, LeftBoundDigit, left_bound_markers),
+                (x_max - start_x, RightBoundDigit, right_bound_markers),
                 *[
-                    (0, AnchorWidthDigit, anchor_width_markers)
-                    for anchor in MARK_ANCHORS
+                    (
+                        exit_xs[anchor] - start_x if anchor in exit_xs else 0,
+                        AnchorWidthDigit,
+                        anchor_width_markers,
+                    ) for anchor in MARK_ANCHORS
                 ],
                 *[
-                    (exit_xs[anchor] - entry_xs[CURSIVE_ANCHOR], AnchorWidthDigit, anchor_width_markers)
+                    (
+                        exit_xs[anchor] - start_x if glyph.glyphclass == GlyphClass.JOINER else 0,
+                        AnchorWidthDigit,
+                        anchor_width_markers)
                     for anchor in CURSIVE_ANCHORS
                 ],
             ]:
@@ -2517,10 +2602,9 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     if args not in width_markers:
                         width_markers[args] = Schema(None, digit_path(*args), 0)
                     digits[digits_base + i * 2 + 1] = width_markers[args]
-            if digits:
-                lookup = lookups[rule_count % lookups_per_position]
-                rule_count += 1
-                add_rule(lookup, Rule([glyph], [start, glyph, *digits, end]))
+            lookup = lookups[rule_count % lookups_per_position]
+            rule_count += 1
+            add_rule(lookup, Rule([glyph], [start, glyph_class_selector, *mark_anchor_selector, glyph, *digits, end]))
     return lookups
 
 def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_rule):
@@ -2609,6 +2693,34 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     original_right_digit_schemas = []
     anchor_digit_schemas = {}
     original_anchor_digit_schemas = []
+    mark_anchor_selectors = {}
+    def get_mark_anchor_selector(index, class_name):
+        if index in mark_anchor_selectors:
+            rv = mark_anchor_selectors[index]
+            classes[class_name].append(rv)
+            return rv
+        rv = Schema(
+            None,
+            MarkAnchorSelector(index - len(CURSIVE_ANCHORS)),
+            0,
+        )
+        classes['all'].append(rv)
+        classes[class_name].append(rv)
+        return mark_anchor_selectors.setdefault(index, rv)
+    glyph_class_selectors = {}
+    def get_glyph_class_selector(glyph_class, class_name):
+        if glyph_class in glyph_class_selectors:
+            rv = glyph_class_selectors[glyph_class]
+            classes[class_name].append(rv)
+            return rv
+        rv = Schema(
+            None,
+            GlyphClassSelector(glyph_class),
+            0,
+        )
+        classes['all'].append(rv)
+        classes[class_name].append(rv)
+        return glyph_class_selectors.setdefault(glyph_class, rv)
     for schema in glyphs:
         if not isinstance(schema, Schema):
             # FIXME: Relying on glyph names is brittle.
@@ -2648,61 +2760,62 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 classes[f'adx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, Dummy):
             dummy = schema
-    for original_augend_schemas, inner_iterable in [(
-        original_anchor_digit_schemas,
-        [
-            (
-                True,
-                True,
-                'a',
-                'i',
-                0,
-                original_entry_digit_schemas,
-                entry_digit_schemas,
-                EntryWidthDigit,
-            ), (
-                True,
-                False,
-                'a',
-                'i',
-                0,
-                original_entry_digit_schemas,
-                entry_digit_schemas,
-                EntryWidthDigit,
-            ),
-        ]
-    ), (
+        elif isinstance(schema.path, MarkAnchorSelector):
+            mark_anchor_selectors[schema.path.index] = schema
+        elif isinstance(schema.path, GlyphClassSelector):
+            glyph_class_selectors[schema.path.glyph_class] = schema
+    for (
+        original_augend_schemas,
+        augend_letter,
+        inner_iterable,
+    ) in [(
         original_entry_digit_schemas,
-        [
-            (
-                False,
-                False,
-                'i',
-                'a',
-                len(MARK_ANCHORS) + len(CURSIVE_ANCHORS) - 1,
-                original_anchor_digit_schemas,
-                anchor_digit_schemas,
-                AnchorWidthDigit,
-            ), (
-                False,
-                False,
-                'i',
-                'l',
-                0,
-                original_left_digit_schemas,
-                left_digit_schemas,
-                LeftBoundDigit,
-            ), (
-                False,
-                False,
-                'i',
-                'r',
-                0,
-                original_right_digit_schemas,
-                right_digit_schemas,
-                RightBoundDigit,
-            ),
-        ],
+        'i',
+        [*[(
+            False,
+            0,
+            i,
+            'a',
+            original_anchor_digit_schemas,
+            anchor_digit_schemas,
+            AnchorWidthDigit,
+        ) for i, anchor in enumerate(ALL_ANCHORS) if anchor in WIDTH_ANCHORS], (
+            False,
+            0,
+            0,
+            'l',
+            original_left_digit_schemas,
+            left_digit_schemas,
+            LeftBoundDigit,
+        ), (
+            False,
+            0,
+            0,
+            'r',
+            original_right_digit_schemas,
+            right_digit_schemas,
+            RightBoundDigit,
+        )],
+    ), (
+        original_anchor_digit_schemas,
+        'a',
+        [*[(
+            True,
+            i,
+            0,
+            'i',
+            original_entry_digit_schemas,
+            entry_digit_schemas,
+            EntryWidthDigit,
+        ) for i in range(len(ALL_ANCHORS) - 1, -1, -1)], *[(
+            False,
+            i,
+            len(ALL_ANCHORS) - 1 - i,
+            'a',
+            original_anchor_digit_schemas,
+            anchor_digit_schemas,
+            AnchorWidthDigit,
+        ) for i in range(len(ALL_ANCHORS))]],
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_glyphs
@@ -2710,10 +2823,9 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             augend = augend_schema.path.digit
             for (
                 continuing_overlap_is_relevant,
-                continuing_overlap_in_context_in,
-                augend_letter,
+                augend_skip_backtrack,
+                addend_skip_backtrack,
                 addend_letter,
-                max_addends_in_context_in,
                 original_addend_schemas,
                 addend_schemas,
                 addend_path,
@@ -2765,23 +2877,31 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                                     mark_filtering_set=context_in_lookup_name,
                                 )
                             add_rule(lookup, Rule([carry_in_schema], [addend_schema], [], lookups=[context_in_lookup_name]))
-                            if continuing_overlap_in_context_in or max_addends_in_context_in:
+                            classes[context_in_lookup_name].extend(classes[f'idx_{augend_schema.path.place}'])
+                            if addend_skip_backtrack != 0:
                                 classes[context_in_lookup_name].extend(classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'])
-                            for skip in range(0, max_addends_in_context_in + 1):
-                                add_rule(named_lookups[context_in_lookup_name], Rule(
-                                    [
-                                        augend_schema,
-                                        *(
-                                            [f'{augend_letter}dx_{augend_schema.path.place}', continuing_overlap]
-                                                if continuing_overlap_in_context_in
-                                                else []
-                                        ),
-                                        *[f'{addend_letter}dx_{sum_digit_schema.path.place}'] * skip
-                                    ],
-                                    [addend_schema],
-                                    [],
-                                    lookups=[sum_lookup_name],
+                            context_in_lookup_context_in = []
+                            if augend_letter == 'i' and addend_letter == 'a':
+                                context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.JOINER, context_in_lookup_name))
+                            context_in_lookup_context_in.append(augend_schema)
+                            context_in_lookup_context_in.extend([f'{augend_letter}dx_{augend_schema.path.place}'] * augend_skip_backtrack)
+                            if augend_letter == 'a' and addend_letter == 'a':
+                                context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
+                                context_in_lookup_context_in.append(f'idx_{augend_schema.path.place}')
+                            elif augend_skip_backtrack == 1:
+                                context_in_lookup_context_in.append(continuing_overlap)
+                            elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
+                                context_in_lookup_context_in.append(get_mark_anchor_selector(
+                                    len(ALL_ANCHORS) - augend_skip_backtrack - 1,
+                                    context_in_lookup_name,
                                 ))
+                            context_in_lookup_context_in.extend([f'{addend_letter}dx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)
+                            add_rule(named_lookups[context_in_lookup_name], Rule(
+                                context_in_lookup_context_in,
+                                [addend_schema],
+                                [],
+                                lookups=[sum_lookup_name],
+                            ))
                             add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
     return [lookup]
 
