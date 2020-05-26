@@ -732,7 +732,7 @@ class Line(Shape):
                 length_denominator = 1
         else:
             length_denominator = 1
-        length = int(500 * (size or 0.2) / length_denominator)
+        length = int(500 * size / length_denominator)
         if self.dots:
             dot_interval = length / (self.dots - 1)
             for dot_index in range(1, self.dots):
@@ -3538,7 +3538,7 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x0304, T, 0, anchor=ABOVE_ANCHOR),
+    Schema(0x0304, T, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
     Schema(0x2000, SPACE, 500, side_bearing=500),
