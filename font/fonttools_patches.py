@@ -21,6 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import struct
+
 import fontTools.ttLib.tables.otTables
 
 def fixLookupOverFlows(ttf, overflowRecord):
@@ -51,6 +53,18 @@ def fixLookupOverFlows(ttf, overflowRecord):
 
 def getDataLength(self):
     return sum(map(len, self.items))
+
+def writeInt8(self, value):
+    self.items.append(struct.pack('>b', value))
+
+def writeShort(self, value):
+    self.items.append(struct.pack('>h', value))
+
+def writeUInt8(self, value):
+    self.items.append(struct.pack('>B', value))
+
+def writeUShort(self, value):
+    self.items.append(struct.pack('>H', value))
 
 def CountReference_len(self):
     return self.size

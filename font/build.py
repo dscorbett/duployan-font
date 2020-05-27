@@ -77,6 +77,10 @@ def patch_fonttools():
     fontTools.ttLib.tables.otBase.CountReference.__len__ = fonttools_patches.CountReference_len
     fontTools.ttLib.tables.otBase.OTTableWriter.__len__ = fonttools_patches.OTTableWriter_len
     fontTools.ttLib.tables.otBase.OTTableWriter.getDataLength = fonttools_patches.getDataLength
+    fontTools.ttLib.tables.otBase.OTTableWriter.writeInt8 = fonttools_patches.writeInt8
+    fontTools.ttLib.tables.otBase.OTTableWriter.writeShort = fonttools_patches.writeShort
+    fontTools.ttLib.tables.otBase.OTTableWriter.writeUInt8 = fonttools_patches.writeUInt8
+    fontTools.ttLib.tables.otBase.OTTableWriter.writeUShort = fonttools_patches.writeUShort
     fontTools.ttLib.tables.otTables.fixLookupOverFlows = fonttools_patches.fixLookupOverFlows
 
 def tweak_font(options, builder):
