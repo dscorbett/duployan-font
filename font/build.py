@@ -74,6 +74,7 @@ def patch_fonttools():
             getGlyphID_inner(self, glyphName, requireReal)
     fontTools.ttLib.TTFont.getGlyphID = getGlyphID
 
+    fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
     fontTools.ttLib.tables.otBase.CountReference.__len__ = fonttools_patches.CountReference_len
     fontTools.ttLib.tables.otBase.OTTableWriter.__len__ = fonttools_patches.OTTableWriter_len
     fontTools.ttLib.tables.otBase.OTTableWriter.getDataLength = fonttools_patches.getDataLength
@@ -81,7 +82,6 @@ def patch_fonttools():
     fontTools.ttLib.tables.otBase.OTTableWriter.writeShort = fonttools_patches.writeShort
     fontTools.ttLib.tables.otBase.OTTableWriter.writeUInt8 = fonttools_patches.writeUInt8
     fontTools.ttLib.tables.otBase.OTTableWriter.writeUShort = fonttools_patches.writeUShort
-    fontTools.ttLib.tables.otTables.fixLookupOverFlows = fonttools_patches.fixLookupOverFlows
 
 def tweak_font(options, builder):
     with fontTools.ttLib.TTFont(options.output, recalcBBoxes=False) as tt_font:

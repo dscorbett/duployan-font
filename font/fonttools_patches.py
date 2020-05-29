@@ -23,33 +23,28 @@
 
 import struct
 
+import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.tables.otTables
 
-def fixLookupOverFlows(ttf, overflowRecord):
-    ok = 0
-    lookup_index = overflowRecord.LookupListIndex
-    if overflowRecord.SubTableIndex is None:
-        lookup_index = lookup_index - 1
-    if lookup_index < 0:
-        return ok
-    if overflowRecord.tableType == 'GSUB':
+def compile(self, font):
+    writer = fontTools.ttLib.tables.otBase.OTTableWriter(tableTag=self.tableTag)
+    if self.tableTag == 'GSUB':
         ext_type = 7
-    elif overflowRecord.tableType == 'GPOS':
+    elif self.tableTag == 'GPOS':
         ext_type = 9
-    lookups = ttf[overflowRecord.tableType].table.LookupList.Lookup
-    for lookup_index in range(lookup_index, -1, -1):
-        lookup = lookups[lookup_index]
-        if lookup.SubTable[0].__class__.LookupType != ext_type:
-            lookup.LookupType = ext_type
-            for si in range(len(lookup.SubTable)):
-                subtable = lookup.SubTable[si]
-                ext_subtable_class = fontTools.ttLib.tables.otTables.lookupTypes[overflowRecord.tableType][ext_type]
-                ext_subtable = ext_subtable_class()
-                ext_subtable.Format = 1
-                ext_subtable.ExtSubTable = subtable
-                lookup.SubTable[si] = ext_subtable
-            ok = 1
-    return ok
+    else:
+        ext_type = None
+    if ext_type is not None:
+        for lookup in font[self.tableTag].table.LookupList.Lookup:
+            if lookup.SubTable[0].__class__.LookupType != ext_type:
+                lookup.LookupType = ext_type
+                for si, subtable in enumerate(lookup.SubTable):
+                    ext_subtable = fontTools.ttLib.tables.otTables.lookupTypes[self.tableTag][ext_type]()
+                    ext_subtable.Format = 1
+                    ext_subtable.ExtSubTable = subtable
+                    lookup.SubTable[si] = ext_subtable
+    self.table.compile(writer, font)
+    return writer.getAllData()
 
 def getDataLength(self):
     return sum(map(len, self.items))
