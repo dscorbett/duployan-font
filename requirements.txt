@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fonttools==4.10.2
+fonttools==4.11.0
