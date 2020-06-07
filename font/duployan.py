@@ -3171,6 +3171,7 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
         else:
             output_schemas.remove(input)
 
+    registered_lookups = {None}
     def register_output_schemas(rule):
         if rule.outputs is not None:
             froze = False
@@ -3189,7 +3190,8 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
             return froze
         elif rule.lookups is not None:
             for lookup in rule.lookups:
-                if lookup is not None:
+                if lookup not in registered_lookups:
+                    registered_lookups.add(lookup)
                     froze = False
                     for rule in named_lookups[lookup].rules:
                         if register_output_schemas(rule):
