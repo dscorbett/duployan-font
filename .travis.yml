@@ -67,6 +67,4 @@ before_install:
         then
             cp requirements-to-freeze.txt requirements.txt
         fi
-install:
-    - pip install -r requirements.txt
 script: xvfb-run -a make check
