@@ -31,7 +31,6 @@ import fontTools.feaLib.parser
 import fontTools.misc.transform
 import fontTools.otlLib.builder
 
-BASELINE = 402
 DEFAULT_SIDE_BEARING = 85
 EPSILON = 1e-5
 RADIUS = 50
@@ -1296,6 +1295,7 @@ class Complex(Shape):
             return px, py
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        first_is_invisible = None
         first_entry = None
         last_exit = None
         last_rel1 = None
@@ -1308,6 +1308,8 @@ class Complex(Shape):
             component.draw(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
+            if first_is_invisible is None:
+                first_is_invisible = component.invisible()
             if self._all_circles and last_crossing_point is not None:
                 this_point = proxy.get_crossing_point(component)
                 if first_entry is None:
@@ -1349,6 +1351,7 @@ class Complex(Shape):
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + stroke_width + LIGHT_LINE)
         glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - stroke_width + LIGHT_LINE)
+        return first_is_invisible
 
     def can_be_child(self):
         #return not callable(self.instructions[0]) and self.instructions[0][1].can_be_child()
@@ -3818,7 +3821,7 @@ class Builder:
     def _draw_glyph(glyph, schema):
         assert not schema.marks
         pen = glyph.glyphPen()
-        schema.path.draw(
+        floating = schema.path.draw(
             glyph,
             not glyph.glyphname.startswith('_') and pen,
             SHADED_LINE if schema.cps[-1:] == [0x1BC9D] else LIGHT_LINE,
@@ -3830,10 +3833,11 @@ class Builder:
         if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
         else:
-            bbox = glyph.boundingBox()
-            center_y = (bbox[3] - bbox[1]) / 2 + bbox[1]
             entry_x = next((x for _, type, x, _ in glyph.anchorPoints if type == 'entry'), 0)
-            glyph.transform(fontTools.misc.transform.Offset(-entry_x, BASELINE - center_y))
+            glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
+        if not floating:
+            _, y_min, _, _ = glyph.boundingBox()
+            glyph.transform(fontTools.misc.transform.Offset(0, -y_min))
         glyph.right_side_bearing = schema.side_bearing
 
     def _create_glyph(self, schema, *, with_contours):
