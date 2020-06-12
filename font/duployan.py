@@ -2616,7 +2616,7 @@ def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_ru
     for glyph in new_glyphs:
         if (not isinstance(glyph, Schema)
             and glyph.glyphclass == GlyphClass.MARK
-            and not glyph.glyphname.startswith('_')
+            and not glyph.temporary.path.invisible()
         ):
             add_rule(lookup, Rule([glyph], [glyph, end]))
     return [lookup]
@@ -2655,11 +2655,9 @@ def clear_entry_width_markers(glyphs, new_glyphs, classes, named_lookups, add_ru
                 classes[str(glyph.path.place)].append(glyph)
                 if glyph.path.digit == 0:
                     zeros[glyph.path.place] = glyph
-        else:
-            # FIXME: Relying on glyph names is brittle.
-            if glyph.glyphname.startswith('_u1BCA1'):
-                classes['all'].append(glyph)
-                continuing_overlap = glyph
+        elif glyph.temporary and isinstance(glyph.temporary.path, ContinuingOverlap):
+            classes['all'].append(glyph)
+            continuing_overlap = glyph
     for schema in new_glyphs:
         if isinstance(schema, Schema) and isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
             add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
@@ -2726,8 +2724,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         return glyph_class_selectors.setdefault(glyph_class, rv)
     for schema in glyphs:
         if not isinstance(schema, Schema):
-            # FIXME: Relying on glyph names is brittle.
-            if schema.glyphname.startswith('_u1BCA1'):
+            if schema.temporary and isinstance(schema.temporary.path, ContinuingOverlap):
                 classes['all'].append(schema)
                 continuing_overlap = schema
             continue
@@ -3823,7 +3820,7 @@ class Builder:
         pen = glyph.glyphPen()
         floating = schema.path.draw(
             glyph,
-            not glyph.glyphname.startswith('_') and pen,
+            not schema.path.invisible() and pen,
             SHADED_LINE if schema.cps[-1:] == [0x1BC9D] else LIGHT_LINE,
             schema.size,
             schema.anchor,
@@ -3839,6 +3836,7 @@ class Builder:
             _, y_min, _, _ = glyph.boundingBox()
             glyph.transform(fontTools.misc.transform.Offset(0, -y_min))
         glyph.right_side_bearing = schema.side_bearing
+        glyph.temporary = schema
 
     def _create_glyph(self, schema, *, with_contours):
         if schema.path.name_in_sfd():
