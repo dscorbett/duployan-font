@@ -160,7 +160,8 @@ class Shape:
         return False
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        raise NotImplementedError
+        if not self.invisible():
+            raise NotImplementedError
 
     def can_be_child(self):
         return False
@@ -256,6 +257,9 @@ class End(Shape):
     @staticmethod
     def invisible():
         return True
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -3838,7 +3842,7 @@ class Builder:
         glyph.right_side_bearing = schema.side_bearing
         glyph.temporary = schema
 
-    def _create_glyph(self, schema, *, with_contours):
+    def _create_glyph(self, schema, *, drawing):
         if schema.path.name_in_sfd():
             return self.font[schema.path.name_in_sfd()]
         glyph_name = str(schema)
@@ -3847,7 +3851,7 @@ class Builder:
             return self._add_altuni(uni, glyph_name)
         glyph = self.font.createChar(uni, glyph_name)
         glyph.glyphclass = schema.glyph_class
-        if with_contours:
+        if drawing:
             self._draw_glyph(glyph, schema)
         else:
             glyph.width = glyph.width
@@ -3855,10 +3859,8 @@ class Builder:
 
     def _create_marker(self, schema):
         assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
-        glyph = self._create_glyph(schema, with_contours=False)
-        # TODO: Put this somewhere more relevant to `End`.
-        if isinstance(schema.path, End):
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
+        glyph = self._create_glyph(schema, drawing=True)
+        glyph.width = 0
 
     def _complete_gpos(self):
         mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
@@ -3935,7 +3937,7 @@ class Builder:
         assert not named_lookups_with_phases, 'Named lookups have not been implemented for pre-merge phases'
         merge_schemas(schemas, lookups_with_phases, classes)
         for schema in schemas:
-            self._create_glyph(schema, with_contours=schema in output_schemas)
+            self._create_glyph(schema, drawing=schema in output_schemas)
         for schema in schemas:
             name_in_sfd = schema.path.name_in_sfd()
             if name_in_sfd:
