@@ -3231,11 +3231,12 @@ class PrefixView:
     def items(self):
         return self._delegate.items()
 
-def run_phases(all_input_schemas, phases):
+def run_phases(all_input_schemas, phases, all_classes=None):
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases = []
-    all_classes = collections.defaultdict(FreezableList)
+    if all_classes is None:
+        all_classes = collections.defaultdict(FreezableList)
     all_named_lookups_with_phases = {}
     for phase in phases:
         all_output_schemas = OrderedSet()
@@ -3948,7 +3949,7 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = run_phases([*map(Hashable, self.font.glyphs())], GLYPH_PHASES)
+        ) = run_phases([*map(Hashable, self.font.glyphs())], GLYPH_PHASES, classes)
         lookups_with_phases += more_lookups_with_phases
         classes.update(more_classes)
         named_lookups_with_phases.update(more_named_lookups_with_phases)
