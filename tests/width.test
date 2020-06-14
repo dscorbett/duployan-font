@@ -14,12 +14,12 @@
 # limitations under the License.
 
 E000 0020 E000::[uniE000.bound@0,0|space@75,0|uniE000.bound@335,0|_@410,0]
-E000 1BC00 1BC02 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|u1BC02.p@435,-500|uniE000.bound@555,0|_@630,0]
+E000 1BC00 1BC02 E000::[uniE000.bound@0,0|u1BC00.h@-45,500|u1BC02.p@435,0|uniE000.bound@555,0|_@630,0]
 E000 1BC02 1BC00 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC00.h@195,0|uniE000.bound@555,0|_@630,0]
 E000 1BC02 2003 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,0|uni2003.em_space@195,35|u1BC02.p@1435,-500|uniE000.bound@1555,0|_@1630,0]
 E000 1BC02 200D 1BC46 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC46.i.270p90@195,-100|uniE000.bound@515,0|_@590,0]
-E000 1BC03 1BC0A EC03 E000::[uniE000.bound@0,0|u1BC03.t@772,0|u1BC0A.g@1272,-999|uniEC03.reversed_t@695,-999|uniE000.bound@1392,0|_@1467,0]
-E000 1BC03 1BC0A 1BC08 E000::[uniE000.bound@0,0|u1BC03.t@272,0|u1BC0A.g@772,-999|u1BC08.d@195,-999|uniE000.bound@1315,0|_@1390,0]
+E000 1BC03 1BC0A EC03 E000::[uniE000.bound@0,0|u1BC03.t@772,999|u1BC0A.g@1272,0|uniEC03.reversed_t@695,0|uniE000.bound@1392,0|_@1467,0]
+E000 1BC03 1BC0A 1BC08 E000::[uniE000.bound@0,0|u1BC03.t@272,999|u1BC0A.g@772,0|u1BC08.d@195,0|uniE000.bound@1315,0|_@1390,0]
 E000 1BC1B E000::[uniE000.bound@0,0|u1BC1B.j@195,0|uniE000.bound@1035,0|_@1110,0]
 
 # U+1BC0D is wide enough that the trees below it have no effect on the
