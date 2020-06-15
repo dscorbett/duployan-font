@@ -1596,6 +1596,7 @@ class Schema:
         self.group = self._calculate_group()
         self._glyph_name = None
         self._canonical_schema = self
+        self.glyph = None
         self.without_marks = marks and self.clone(cmap=None, marks=None)
 
     def sort_key(self):
@@ -1823,16 +1824,6 @@ class FreezableList:
         except AttributeError:
             raise ValueError('Extending a frozen list') from None
 
-class Hashable:
-    def __init__(self, delegate):
-        self.delegate = delegate
-
-    def __hash__(self):
-        return id(self.delegate)
-
-    def __getattr__(self, attr):
-        return getattr(self.delegate, attr)
-
 class OrderedSet(dict):
     def __init__(self, iterable=None):
         super().__init__()
@@ -1887,9 +1878,7 @@ class Rule:
                     return fontTools.feaLib.ast.GlyphName(unrolling_to)
                 else:
                     return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
-            if isinstance(glyph, Schema):
-                return fontTools.feaLib.ast.GlyphName(str(glyph))
-            return fontTools.feaLib.ast.GlyphName(glyph.glyphname)
+            return fontTools.feaLib.ast.GlyphName(str(glyph))
         def glyphs_to_ast(glyphs, unrolling_from=None, unrolling_to=None):
             return [glyph_to_ast(glyph, unrolling_from, unrolling_to) for glyph in glyphs]
         def glyph_to_name(glyph, unrolling_from=None, unrolling_to=None):
@@ -1898,9 +1887,7 @@ class Rule:
                     return unrolling_to
                 else:
                     assert not isinstance(glyph, str), f'Glyph classes are not allowed where only glyphs are expected: @{glyph}'
-            if isinstance(glyph, Schema):
-                return str(glyph)
-            return glyph.glyphname
+            return str(glyph)
         def glyphs_to_names(glyphs, unrolling_from=None, unrolling_to=None):
             return [glyph_to_name(glyph, unrolling_from, unrolling_to) for glyph in glyphs]
         if self.lookups is not None:
@@ -2579,7 +2566,7 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
-def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68
     lookups = [
         Lookup('psts', 'dupl', 'dflt', flags=0)
@@ -2592,42 +2579,42 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
     right_bound_markers = {}
     anchor_width_markers = {}
     start = Schema(None, Start(), 0)
-    hub = next((s for s in glyphs if isinstance(s, Schema) and isinstance(s.path, Hub)), None)
+    hub = next((s for s in schemas if isinstance(s.path, Hub)), None)
     if hub is None:
         hub = Schema(None, Hub(), 0)
         classes[HUB_CLASS].append(hub)
         classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
     end = Schema(None, End(), 0)
     mark_anchor_selectors = {}
-    def get_mark_anchor_selector(glyph):
+    def get_mark_anchor_selector(schema):
         only_anchor_class_name = None
-        for anchor_class_name, type, _, _ in glyph.anchorPoints:
+        for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
             if type == 'mark' and anchor_class_name in MARK_ANCHORS:
-                assert only_anchor_class_name is None, f'{glyph.glyphname} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
+                assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
         index = MARK_ANCHORS.index(only_anchor_class_name)
         if index in mark_anchor_selectors:
             return mark_anchor_selectors[index]
         return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
     glyph_class_selectors = {}
-    def get_glyph_class_selector(glyph):
-        glyph_class = glyph.glyphclass
+    def get_glyph_class_selector(schema):
+        glyph_class = schema.glyph_class
         if glyph_class in glyph_class_selectors:
             return glyph_class_selectors[glyph_class]
         return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
-    for glyph in new_glyphs:
-        if isinstance(glyph, Schema):
-            if isinstance(glyph.path, MarkAnchorSelector):
-                mark_anchor_selectors[glyph.path.index] = glyph
-            elif isinstance(glyph.path, GlyphClassSelector):
-                glyph_class_selectors[glyph.glyph_class] = glyph
+    for schema in new_schemas:
+        if schema.glyph is None:
+            if isinstance(schema.path, MarkAnchorSelector):
+                mark_anchor_selectors[schema.path.index] = schema
+            elif isinstance(schema.path, GlyphClassSelector):
+                glyph_class_selectors[schema.glyph_class] = schema
             continue
-        if (glyph.glyphclass == GlyphClass.JOINER
-            or glyph.glyphclass == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in glyph.anchorPoints)
+        if (schema.glyph_class == GlyphClass.JOINER
+            or schema.glyph_class == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
         ):
             entry_xs = {}
             exit_xs = {}
-            for anchor_class_name, type, x, _ in glyph.anchorPoints:
+            for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
                 if anchor_class_name in MARK_ANCHORS and anchor_class_name not in WIDTH_ANCHORS:
                     x = 0
                 if type in ['entry', 'mark']:
@@ -2642,16 +2629,16 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 exit_xs[CURSIVE_ANCHOR] = exit_xs.get(CONTINUING_OVERLAP_ANCHOR, 0)
             entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
             exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
-            start_x = entry_xs[CURSIVE_ANCHOR if glyph.glyphclass == GlyphClass.JOINER else anchor_class_name]
-            x_min, _, x_max, _ = glyph.boundingBox()
+            start_x = entry_xs[CURSIVE_ANCHOR if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
+            x_min, _, x_max, _ = schema.glyph.boundingBox()
             if x_min == x_max == 0:
                 x_min = entry_xs[CURSIVE_ANCHOR]
                 x_max = exit_xs[CURSIVE_ANCHOR]
-            if glyph.glyphclass == GlyphClass.MARK:
-                mark_anchor_selector = [get_mark_anchor_selector(glyph)]
+            if schema.glyph_class == GlyphClass.MARK:
+                mark_anchor_selector = [get_mark_anchor_selector(schema)]
             else:
                 mark_anchor_selector = []
-            glyph_class_selector = get_glyph_class_selector(glyph)
+            glyph_class_selector = get_glyph_class_selector(schema)
             digits = []
             for width, digit_path, width_markers in [
                 (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
@@ -2666,7 +2653,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 ],
                 *[
                     (
-                        exit_xs[anchor] - start_x if glyph.glyphclass == GlyphClass.JOINER else 0,
+                        exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
                         AnchorWidthDigit,
                         anchor_width_markers)
                     for anchor in CURSIVE_ANCHORS
@@ -2675,7 +2662,7 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                     if width >= 0
                     else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    ), f'Glyph {glyph.glyphname} is too wide: {width} units'
+                    ), f'Glyph {schema} is too wide: {width} units'
                 digits_base = len(digits)
                 digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
                 quotient = round(width)
@@ -2687,29 +2674,29 @@ def add_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                     digits[digits_base + i * 2 + 1] = width_markers[args]
             lookup = lookups[rule_count % lookups_per_position]
             rule_count += 1
-            add_rule(lookup, Rule([glyph], [
+            add_rule(lookup, Rule([schema], [
                 start,
                 glyph_class_selector,
                 *mark_anchor_selector,
-                *([hub] if glyph.glyphclass == GlyphClass.JOINER and glyph.temporary.path.can_be_hub(glyph.temporary.size) else []),
-                glyph,
+                *([hub] if schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_hub(schema.size) else []),
+                schema,
                 *digits,
                 end,
             ]))
     return lookups
 
-def add_end_markers_for_marks(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def add_end_markers_for_marks(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
-    end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
-    for glyph in new_glyphs:
-        if (not isinstance(glyph, Schema)
-            and glyph.glyphclass == GlyphClass.MARK
-            and not glyph.temporary.path.invisible()
+    end = next(s for s in new_schemas if isinstance(s.path, End))
+    for schema in new_schemas:
+        if (schema.glyph is not None
+            and schema.glyph_class == GlyphClass.MARK
+            and not schema.path.invisible()
         ):
-            add_rule(lookup, Rule([glyph], [glyph, end]))
+            add_rule(lookup, Rule([schema], [schema, end]))
     return [lookup]
 
-def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def remove_false_end_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2720,12 +2707,12 @@ def remove_false_end_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
     if 'all' in classes:
         return [lookup]
     dummy = Schema(None, Dummy(), 0)
-    end = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, End))
+    end = next(s for s in new_schemas if isinstance(s.path, End))
     classes['all'].append(end)
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
-def clear_entry_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def clear_entry_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2736,18 +2723,17 @@ def clear_entry_width_markers(glyphs, new_glyphs, classes, named_lookups, add_ru
     zeros = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
         named_lookups['zero'] = Lookup(None, None, None)
-    for glyph in glyphs:
-        if isinstance(glyph, Schema):
-            if isinstance(glyph.path, EntryWidthDigit):
-                classes['all'].append(glyph)
-                classes[str(glyph.path.place)].append(glyph)
-                if glyph.path.digit == 0:
-                    zeros[glyph.path.place] = glyph
-        elif glyph.temporary and isinstance(glyph.temporary.path, ContinuingOverlap):
-            classes['all'].append(glyph)
-            continuing_overlap = glyph
-    for schema in new_glyphs:
-        if isinstance(schema, Schema) and isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
+    for schema in schemas:
+        if isinstance(schema.path, EntryWidthDigit):
+            classes['all'].append(schema)
+            classes[str(schema.path.place)].append(schema)
+            if schema.path.digit == 0:
+                zeros[schema.path.place] = schema
+        elif isinstance(schema.path, ContinuingOverlap):
+            classes['all'].append(schema)
+            continuing_overlap = schema
+    for schema in new_schemas:
+        if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
             add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
     add_rule(lookup, Rule(
         [continuing_overlap],
@@ -2763,7 +2749,7 @@ def clear_entry_width_markers(glyphs, new_glyphs, classes, named_lookups, add_ru
     ))
     return [lookup]
 
-def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def sum_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2810,40 +2796,38 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         classes['all'].append(rv)
         classes[class_name].append(rv)
         return glyph_class_selectors.setdefault(glyph_class, rv)
-    for schema in glyphs:
-        if not isinstance(schema, Schema):
-            if schema.temporary and isinstance(schema.temporary.path, ContinuingOverlap):
-                classes['all'].append(schema)
-                continuing_overlap = schema
-            continue
-        if isinstance(schema.path, Carry):
+    for schema in schemas:
+        if isinstance(schema.path, ContinuingOverlap):
+            classes['all'].append(schema)
+            continuing_overlap = schema
+        elif isinstance(schema.path, Carry):
             carry_schemas[schema.path.value] = schema
             original_carry_schemas.append(schema)
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['all'].append(schema)
                 classes['c'].append(schema)
         elif isinstance(schema.path, EntryWidthDigit):
             entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_entry_digit_schemas.append(schema)
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['all'].append(schema)
                 classes[f'idx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_left_digit_schemas.append(schema)
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['all'].append(schema)
                 classes[f'ldx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_right_digit_schemas.append(schema)
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['all'].append(schema)
                 classes[f'rdx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, AnchorWidthDigit):
             anchor_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
             original_anchor_digit_schemas.append(schema)
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['all'].append(schema)
                 classes[f'adx_{schema.path.place}'].append(schema)
         elif isinstance(schema.path, Dummy):
@@ -2906,7 +2890,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
         ) for i in range(len(ALL_ANCHORS))]],
     )]:
         for augend_schema in original_augend_schemas:
-            augend_is_new = augend_schema in new_glyphs
+            augend_is_new = augend_schema in new_schemas
             place = augend_schema.path.place
             augend = augend_schema.path.digit
             for (
@@ -2920,14 +2904,14 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
             ) in inner_iterable:
                 for carry_in_schema in original_carry_schemas:
                     carry_in = carry_in_schema.path.value
-                    carry_in_is_new = carry_in_schema in new_glyphs
+                    carry_in_is_new = carry_in_schema in new_schemas
                     if carry_in_is_new and carry_in_schema.path.value not in dummied_carry_schemas:
                         dummied_carry_schemas.add(carry_in_schema.path.value)
                         add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
                     for addend_schema in original_addend_schemas:
                         if place != addend_schema.path.place:
                             continue
-                        if not (carry_in_is_new or augend_is_new or addend_schema in new_glyphs):
+                        if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
                             continue
                         addend = addend_schema.path.digit
                         carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
@@ -2993,7 +2977,7 @@ def sum_width_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
                             add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
     return [lookup]
 
-def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def calculate_bound_extrema(schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'psts',
         'dupl',
@@ -3024,16 +3008,14 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
         mark_filtering_set='rdx',
     )
     right_digit_schemas = {}
-    for schema in glyphs:
-        if not isinstance(schema, Schema):
-            continue
+    for schema in schemas:
         if isinstance(schema.path, LeftBoundDigit):
             left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['ldx'].append(schema)
         elif isinstance(schema.path, RightBoundDigit):
             right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            if schema in new_glyphs:
+            if schema in new_schemas:
                 classes['rdx'].append(schema)
     for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
         for i in range(0, WIDTH_MARKER_RADIX):
@@ -3065,7 +3047,7 @@ def calculate_bound_extrema(glyphs, new_glyphs, classes, named_lookups, add_rule
                         [schema_i]))
     return [left_lookup, right_lookup]
 
-def remove_false_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def remove_false_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3074,13 +3056,13 @@ def remove_false_start_markers(glyphs, new_glyphs, classes, named_lookups, add_r
         mark_filtering_set='all',
         reversed=True,
     )
-    dummy = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Dummy))
-    start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
+    dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
+    start = next(s for s in new_schemas if isinstance(s.path, Start))
     classes['all'].append(start)
     add_rule(lookup, Rule([start], [start], [], [dummy]))
     return [lookup]
 
-def remove_false_hub_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def remove_false_hub_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3089,25 +3071,25 @@ def remove_false_hub_markers(glyphs, new_glyphs, classes, named_lookups, add_rul
         mark_filtering_set='all',
         reversed=True,
     )
-    dummy = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Dummy))
-    hub = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Hub))
-    continuing_overlap = next(g for g in new_glyphs if not isinstance(g, Schema) and g.temporary and isinstance(g.temporary.path, ContinuingOverlap))
+    dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
+    hub = next(s for s in new_schemas if isinstance(s.path, Hub))
+    continuing_overlap = next(s for s in new_schemas if isinstance(s.path, ContinuingOverlap))
     classes['all'].append(hub)
     classes['all'].append(continuing_overlap)
     add_rule(lookup, Rule([hub], [hub], [], [dummy]))
     add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
     return [lookup]
 
-def expand_start_markers(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
-    start = next(s for s in new_glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
+    start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
         start,
         *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
     ]))
     return [lookup]
 
-def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'psts',
         'dupl',
@@ -3135,10 +3117,8 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
     new_left_bounds = []
     new_right_bounds = []
     new_anchor_widths = []
-    end = next(s for s in glyphs if isinstance(s, Schema) and isinstance(s.path, End))
-    for schema in new_glyphs:
-        if not isinstance(schema, Schema):
-            continue
+    end = next(s for s in schemas if isinstance(s.path, End))
+    for schema in new_schemas:
         if isinstance(schema.path, LeftBoundDigit):
             classes['ldx'].append(schema)
             new_left_bounds.append(schema)
@@ -3164,7 +3144,7 @@ def mark_maximum_bounds(glyphs, new_glyphs, classes, named_lookups, add_rule):
                 [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
     return [left_lookup, right_lookup, anchor_lookup]
 
-def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def copy_maximum_left_bound_to_start(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3174,12 +3154,10 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
     )
     new_left_totals = []
     new_left_start_totals = [None] * WIDTH_MARKER_PLACES
-    start = next(s for s in glyphs if isinstance(s, Schema) and isinstance(s.path, Start))
+    start = next(s for s in schemas if isinstance(s.path, Start))
     if start not in classes['all']:
         classes['all'].append(start)
-    for schema in new_glyphs:
-        if not isinstance(schema, Schema):
-            continue
+    for schema in new_schemas:
         if isinstance(schema.path, LeftBoundDigit):
             if schema.path.status == DigitStatus.ALMOST_DONE:
                 new_left_totals.append(schema)
@@ -3203,11 +3181,9 @@ def copy_maximum_left_bound_to_start(glyphs, new_glyphs, classes, named_lookups,
                 [done]))
     return [lookup]
 
-def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
+def dist(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('dist', 'dupl', 'dflt', flags=0)
-    for schema in new_glyphs:
-        if not isinstance(schema, Schema):
-            continue
+    for schema in new_schemas:
         if ((isinstance(schema.path, LeftBoundDigit)
                 or isinstance(schema.path, RightBoundDigit)
                 or isinstance(schema.path, AnchorWidthDigit))
@@ -3226,7 +3202,7 @@ def dist(glyphs, new_glyphs, classes, named_lookups, add_rule):
 
 def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule):
     def ignored(schema):
-        glyph_class = schema.glyph_class if isinstance(schema, Schema) else schema.glyphclass
+        glyph_class = schema.glyph_class
         return (
             glyph_class == GlyphClass.BLOCKER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_BASE_GLYPHS
             or glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
@@ -3536,7 +3512,7 @@ PHASES = [
     classify_marks_for_trees,
 ]
 
-GLYPH_PHASES = [
+MARKER_PHASES = [
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
@@ -3966,7 +3942,6 @@ class Builder:
             _, y_min, _, _ = glyph.boundingBox()
             glyph.transform(fontTools.misc.transform.Offset(0, -y_min))
         glyph.right_side_bearing = schema.side_bearing
-        glyph.temporary = schema
 
     def _create_glyph(self, schema, *, drawing):
         if schema.path.name_in_sfd():
@@ -3977,6 +3952,7 @@ class Builder:
             return self._add_altuni(uni, glyph_name)
         glyph = self.font.createChar(uni, glyph_name)
         glyph.glyphclass = schema.glyph_class
+        glyph.temporary = schema
         if drawing:
             self._draw_glyph(glyph, schema)
         else:
@@ -4052,6 +4028,16 @@ class Builder:
             ()))
         self._fea.statements.append(gdef)
 
+    @staticmethod
+    def _glyph_to_schema(glyph):
+        if glyph.temporary is None:
+            schema = Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING)
+        else:
+            schema = glyph.temporary
+            glyph.temporary = None
+        schema.glyph = glyph
+        return schema
+
     def augment(self):
         (
             schemas,
@@ -4067,6 +4053,7 @@ class Builder:
         for schema in schemas:
             name_in_sfd = schema.path.name_in_sfd()
             if name_in_sfd:
+                self.font[name_in_sfd].temporary = schema
                 self.font[name_in_sfd].glyphname = str(schema)
         (
             schemas,
@@ -4074,19 +4061,20 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = run_phases([*map(Hashable, self.font.glyphs())], GLYPH_PHASES, classes)
+        ) = run_phases([*map(self._glyph_to_schema, self.font.glyphs())], MARKER_PHASES, classes)
         lookups_with_phases += more_lookups_with_phases
         classes.update(more_classes)
         named_lookups_with_phases.update(more_named_lookups_with_phases)
         for schema in schemas:
-            if isinstance(schema, Schema):
+            if schema.glyph is None:
                 self._create_marker(schema)
         class_asts = {}
         named_lookup_asts = {}
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
-                fontTools.feaLib.ast.GlyphClass([str(s) if isinstance(s, Schema) else s.glyphname for s in schemas]))
+                fontTools.feaLib.ast.GlyphClass([*map(str, schemas)]),
+            )
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
         named_lookups_to_do = [*named_lookups_with_phases.keys()]
