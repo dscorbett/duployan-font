@@ -1973,7 +1973,7 @@ class Lookup:
             script,
             language,
             *,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            flags=0,
             mark_filtering_set=None,
             reversed=False,
     ):
@@ -2100,7 +2100,7 @@ def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('rclt', 'dupl', 'dflt')
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
@@ -2146,7 +2146,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     return [lookup]
 
 def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('rclt', 'dupl', 'dflt')
     letter_overlap = next(s for s in new_schemas if isinstance(s.path, ChildEdge))
     for count in range(MAX_TREE_WIDTH, 0, -1):
         add_rule(lookup, Rule(
@@ -2277,7 +2277,7 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
     return [lookup]
 
 def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt', flags=0, reversed=True)
+    lookup = Lookup('abvs', 'dupl', 'dflt', reversed=True)
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
@@ -2365,7 +2365,7 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blws', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('blws', 'dupl', 'dflt')
     children_to_be = []
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
@@ -2381,8 +2381,18 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
     return [lookup]
 
 def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
-    liga = Lookup('liga', 'dupl', 'dflt')
-    dlig = Lookup('dlig', 'dupl', 'dflt')
+    liga = Lookup(
+        'liga',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
+    dlig = Lookup(
+        'dlig',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
     vowels = []
     zwj = None
     r = None
@@ -2418,7 +2428,7 @@ def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
     return [liga, dlig]
 
 def shade(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rlig', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('rlig', 'dupl', 'dflt')
     dtls = next(s for s in schemas if s.cps == [0x1BC9D])
     for schema in new_schemas:
         if not schema.anchor and len(schema.cps) == 1 and schema.path.is_shadable():
@@ -2435,7 +2445,13 @@ def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
+    )
     old_input_count = len(classes['i'])
     for schema in new_schemas:
         if isinstance(schema.path, InvalidStep):
@@ -2466,7 +2482,6 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
         'rclt',
         'dupl',
         'dflt',
-        flags=0,
         mark_filtering_set=CONTINUING_OVERLAP_CLASS,
         reversed=True,
     )
@@ -2500,7 +2515,12 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
     contexts_out = OrderedSet()
     new_contexts_out = set()
     old_input_count = len(classes['i'])
@@ -2531,7 +2551,7 @@ def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     return [lookup]
 
 def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', flags=0, reversed=True)
+    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
     for schema in schemas:
@@ -2569,7 +2589,7 @@ def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_r
 def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68
     lookups = [
-        Lookup('psts', 'dupl', 'dflt', flags=0)
+        Lookup('psts', 'dupl', 'dflt')
         for _ in range(lookups_per_position)
     ]
     rule_count = 0
@@ -2686,7 +2706,7 @@ def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
     return lookups
 
 def add_end_markers_for_marks(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('psts', 'dupl', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
     for schema in new_schemas:
         if (schema.glyph is not None
@@ -2754,7 +2774,6 @@ def sum_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
         'psts',
         'dupl',
         'dflt',
-        flags=0,
         mark_filtering_set='all',
     )
     carry_schemas = {}
@@ -2938,7 +2957,7 @@ def sum_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
                                 else [sum_digit_schema, carry_out_schema])
                             sum_lookup_name = str(sum_digit)
                             if sum_lookup_name not in named_lookups:
-                                named_lookups[sum_lookup_name] = Lookup(None, None, None, flags=0)
+                                named_lookups[sum_lookup_name] = Lookup(None, None, None)
                             if context_in_lookup_name not in named_lookups:
                                 classes[context_in_lookup_name].append(addend_schema)
                                 named_lookups[context_in_lookup_name] = Lookup(
@@ -3081,7 +3100,7 @@ def remove_false_hub_markers(schemas, new_schemas, classes, named_lookups, add_r
     return [lookup]
 
 def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('psts', 'dupl', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
         start,
@@ -3094,7 +3113,6 @@ def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
         'psts',
         'dupl',
         'dflt',
-        flags=0,
         mark_filtering_set='ldx',
         reversed=True,
     )
@@ -3102,7 +3120,6 @@ def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
         'psts',
         'dupl',
         'dflt',
-        flags=0,
         mark_filtering_set='rdx',
         reversed=True,
     )
@@ -3110,7 +3127,6 @@ def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
         'psts',
         'dupl',
         'dflt',
-        flags=0,
         mark_filtering_set='adx',
         reversed=True,
     )
@@ -3182,7 +3198,7 @@ def copy_maximum_left_bound_to_start(schemas, new_schemas, classes, named_lookup
     return [lookup]
 
 def dist(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', 'dupl', 'dflt', flags=0)
+    lookup = Lookup('dist', 'dupl', 'dflt')
     for schema in new_schemas:
         if ((isinstance(schema.path, LeftBoundDigit)
                 or isinstance(schema.path, RightBoundDigit)
