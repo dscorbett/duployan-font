@@ -1501,9 +1501,6 @@ class Complex(Shape):
     def context_out(self):
         return self.instructions[-1][1].context_out()
 
-class Style(enum.Enum):
-    PERNIN = enum.auto()
-
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         # Custom PUA names
@@ -1564,7 +1561,6 @@ class Schema:
             anchor=None,
             marks=None,
             unignored=False,
-            styles=None,
             ss_pernin=None,
             context_in=None,
             context_out=None,
@@ -1583,7 +1579,6 @@ class Schema:
         self.anchor = anchor
         self.marks = marks or []
         self.unignored = unignored
-        self.styles = frozenset(Style.__dict__.keys() if styles is None else styles)
         self.ss_pernin = ss_pernin
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
@@ -1623,7 +1618,6 @@ class Schema:
         anchor=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
-        styles=CLONE_DEFAULT,
         ss_pernin=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
@@ -1642,7 +1636,6 @@ class Schema:
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
-            styles=self.styles if styles is CLONE_DEFAULT else styles,
             ss_pernin=self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
@@ -2379,53 +2372,6 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
             classes[CHILD_EDGE_CLASSES[child_index]].append(child)
         add_rule(lookup, Rule('all', [child_to_be], [], [child]))
     return [lookup]
-
-def ligate_pernin_r(schemas, new_schemas, classes, named_lookups, add_rule):
-    liga = Lookup(
-        'liga',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
-    dlig = Lookup(
-        'dlig',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
-    vowels = []
-    zwj = None
-    r = None
-    for schema in schemas:
-        if schema.child:
-            continue
-        if schema.cps == [0x200D]:
-            assert zwj is None, 'Multiple ZWJs found'
-            zwj = schema
-        elif schema.cps == [0x1BC06]:
-            assert r is None, 'Multiple Pernin Rs found'
-            r = schema
-        elif (schema in new_schemas
-            and isinstance(schema.path, Circle)
-            and not schema.path.reversed
-            and Style.PERNIN in schema.styles
-            and len(schema.cps) == 1
-        ):
-            classes['vowel'].append(schema)
-            vowels.append(schema)
-    assert classes['vowel'], 'No Pernin circle vowels found'
-    if vowels:
-        add_rule(liga, Rule([], 'vowel', [zwj, r, 'vowel'], 'vowel'))
-        add_rule(dlig, Rule([], 'vowel', [r, 'vowel'], 'vowel'))
-    for vowel in vowels:
-        reversed_vowel = vowel.clone(
-            cmap=None,
-            path=vowel.path.clone(clockwise=not vowel.path.clockwise, reversed=True),
-            cps=vowel.cps + zwj.cps + r.cps,
-        )
-        add_rule(liga, Rule([vowel, zwj, r], [reversed_vowel]))
-        add_rule(dlig, Rule([vowel, r], [reversed_vowel]))
-    return [liga, dlig]
 
 def shade(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rlig', 'dupl', 'dflt')
@@ -3519,7 +3465,6 @@ PHASES = [
     add_secant_guidelines,
     categorize_edges,
     make_mark_variants_of_children,
-    ligate_pernin_r,
     join_with_next_step,
     #ss_pernin,
     join_with_previous,
@@ -3732,10 +3677,10 @@ SCHEMAS = [
     Schema(0x1BC3E, K_R_S, 6),
     Schema(0x1BC3F, S_K, 4),
     Schema(0x1BC40, S_K, 6),
-    Schema(0x1BC41, O, 2, Type.ORIENTING, styles=[Style.PERNIN]),
+    Schema(0x1BC41, O, 2, Type.ORIENTING),
     Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING),
-    Schema(0x1BC43, O, 3, Type.ORIENTING, styles=[Style.PERNIN]),
-    Schema(0x1BC44, O, 4, Type.ORIENTING, styles=[Style.PERNIN]),
+    Schema(0x1BC43, O, 3, Type.ORIENTING),
+    Schema(0x1BC44, O, 4, Type.ORIENTING),
     Schema(0x1BC45, O, 5, Type.ORIENTING),
     Schema(0x1BC46, M, 2, Type.ORIENTING),
     Schema(0x1BC47, S, 2, Type.ORIENTING),
