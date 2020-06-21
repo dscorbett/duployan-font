@@ -1015,9 +1015,9 @@ class Curve(Shape):
                 angle_in = (angle_out - da) % 360
             else:
                 angle_in = self.angle_in
-        return Curve(
-            angle_in,
-            (angle_in + da) % 360,
+        return self.clone(
+            angle_in=angle_in,
+            angle_out=(angle_in + da) % 360,
             clockwise=self.clockwise
                 if angle_out is None or da != 180
                 else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
@@ -1174,14 +1174,12 @@ class Circle(Shape):
                 if context_in.clockwise is not None
                 else context_out.clockwise)
         if angle_in == angle_out:
-            return Circle(
-                angle_in,
-                angle_out,
+            return self.clone(
+                angle_in=angle_in,
+                angle_out=angle_out,
                 clockwise=clockwise_from_adjacent_curve != self.reversed
                     if clockwise_from_adjacent_curve is not None
                     else self.clockwise,
-                reversed=self.reversed,
-                stretch=self.stretch,
             )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
@@ -1201,12 +1199,10 @@ class Circle(Shape):
                         long=True,
                     )
                 else:
-                    return Circle(
-                        angle_in,
-                        (angle_out + 180) % 360,
+                    return self.clone(
+                        angle_in=angle_in,
+                        angle_out=(angle_out + 180) % 360,
                         clockwise=clockwise,
-                        reversed=self.reversed,
-                        stretch=self.stretch,
                     )
             else:
                 return Curve(
@@ -1227,21 +1223,17 @@ class Circle(Shape):
                         long=True,
                     )
                 else:
-                    return Circle(
-                        angle_in,
-                        (angle_out + 180) % 360,
+                    return self.clone(
+                        angle_in=angle_in,
+                        angle_out=(angle_out + 180) % 360,
                         clockwise=clockwise,
-                        reversed=self.reversed,
-                        stretch=self.stretch,
                     )
             else:
                 if da != 180 and context_in.clockwise != context_out.clockwise:
-                    return Circle(
-                        angle_in,
-                        angle_out,
+                    return self.clone(
+                        angle_in=angle_in,
+                        angle_out=angle_out,
                         clockwise=clockwise,
-                        reversed=self.reversed,
-                        stretch=self.stretch,
                     )
                 else:
                     return Curve(
@@ -3528,6 +3520,10 @@ J_N = Complex([(1, S_K), (1, N)])
 J_N_S = Complex([(3, S_K), (4, N_S)])
 O = Circle(0, 0, clockwise=False)
 O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
+IE = Curve(180, 0, clockwise=False)
+SHORT_I = Curve(0, 180, clockwise=True)
+UI = Curve(90, 270, clockwise=False)
+EE = Curve(270, 90, clockwise=True)
 YE = Complex([(0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
 U_N = Curve(90, 180, clockwise=True)
 LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
@@ -3682,15 +3678,15 @@ SCHEMAS = [
     Schema(0x1BC43, O, 3, Type.ORIENTING),
     Schema(0x1BC44, O, 4, Type.ORIENTING),
     Schema(0x1BC45, O, 5, Type.ORIENTING),
-    Schema(0x1BC46, M, 2, Type.ORIENTING),
-    Schema(0x1BC47, S, 2, Type.ORIENTING),
-    Schema(0x1BC48, M, 2),
-    Schema(0x1BC49, N, 2),
-    Schema(0x1BC4A, J, 2),
-    Schema(0x1BC4B, S, 2),
-    Schema(0x1BC4C, S, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC4D, S, 2, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC4E, S, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC46, IE, 2, Type.ORIENTING),
+    Schema(0x1BC47, EE, 2, Type.ORIENTING),
+    Schema(0x1BC48, IE, 2),
+    Schema(0x1BC49, SHORT_I, 2),
+    Schema(0x1BC4A, UI, 2),
+    Schema(0x1BC4B, EE, 2),
+    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC4F, K, 1, marks=[DOT_1]),
     Schema(0x1BC50, YE, 1),
     Schema(0x1BC51, S_T, 2, Type.ORIENTING),
@@ -3729,8 +3725,8 @@ SCHEMAS = [
     Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
     Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
     Schema(0x1BC79, TAIL, 1),
-    Schema(0x1BC7A, J, 2),
-    Schema(0x1BC7B, M, 2),
+    Schema(0x1BC7A, UI, 2),
+    Schema(0x1BC7B, IE, 2),
     Schema(0x1BC7C, TANGENT_HOOK, 2),
     Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
