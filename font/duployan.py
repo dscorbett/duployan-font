@@ -877,12 +877,14 @@ class Curve(Shape):
         clockwise,
         stretch=0,
         long=False,
+        _secondary=None,
     ):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
         self.stretch = stretch
         self.long = long
+        self._secondary = clockwise if _secondary is None else _secondary
 
     def clone(
         self,
@@ -892,6 +894,7 @@ class Curve(Shape):
         clockwise=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
+        _secondary=CLONE_DEFAULT,
     ):
         return Curve(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -899,6 +902,7 @@ class Curve(Shape):
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
+            _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
         )
 
     def __str__(self):
@@ -1006,21 +1010,111 @@ class Curve(Shape):
     def is_shadable(self):
         return True
 
+    @staticmethod
+    def _in_degree_range(key, start, stop):
+        if start <= stop:
+            return start <= key <= stop
+        return start <= key or key <= stop
+
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
         angle_out = context_out.angle
         da = self.angle_out - self.angle_in
         if angle_in is None:
-            if angle_out is not None:
-                angle_in = (angle_out - da) % 360
-            else:
+            if angle_out is None:
                 angle_in = self.angle_in
+            else:
+                angle_in = (angle_out - da) % 360
+        if angle_out is None:
+            angle_out = (angle_in + da) % 360
+        candidate_angle_in = angle_in
+        candidate_angle_out = (candidate_angle_in + da) % 360
+        candidate_clockwise = self.clockwise
+        def flip():
+            nonlocal candidate_clockwise
+            nonlocal candidate_angle_in
+            nonlocal candidate_angle_out
+            candidate_clockwise = not candidate_clockwise
+            if context_in.angle is None:
+                candidate_angle_in = (2 * candidate_angle_out - candidate_angle_in) % 360
+            else:
+                candidate_angle_out = (2 * candidate_angle_in - candidate_angle_out) % 360
+        if candidate_clockwise != (context_in.angle is None):
+            flip()
+        clockwise_from_adjacent_curve = (
+            context_in.clockwise
+                if context_in.angle is not None
+                else context_out.clockwise
+        )
+        if clockwise_from_adjacent_curve not in [None, candidate_clockwise]:
+            flip()
+        if self._secondary:
+            flip()
+        if context_in.angle is None or context_out.angle is None:
+            loop_in_candidate = False
+        else:
+            tracer = (angle_out + 180) % 360
+            if context_in.clockwise is None:
+                if context_out.clockwise is None:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_in, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, candidate_angle_in)
+                elif context_out.clockwise:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, (candidate_angle_in + 75) % 360, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in + 75) % 360)
+                else:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, (candidate_angle_in - 75) % 360, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in - 75) % 360)
+            elif context_in.clockwise:
+                if context_out.clockwise is None:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, (candidate_angle_in + 75) % 360, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in + 75) % 360)
+                elif context_out.clockwise:
+                    if candidate_clockwise:
+                        loop_in_candidate = (
+                            not self._in_degree_range(tracer, (candidate_angle_in + 75) % 360, candidate_angle_out)
+                            or self._in_degree_range(angle_out, (candidate_angle_out - 75) % 360, (candidate_angle_out + 75) % 360)
+                        )
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in + 75) % 360)
+                else:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_in, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, candidate_angle_in)
+            else:
+                if context_out.clockwise is None:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, (candidate_angle_in - 75) % 360, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in - 75) % 360)
+                elif context_out.clockwise:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_in, candidate_angle_out)
+                    else:
+                        loop_in_candidate = not self._in_degree_range(tracer, candidate_angle_out, candidate_angle_in)
+                else:
+                    if candidate_clockwise:
+                        loop_in_candidate = not self._in_degree_range(tracer, (candidate_angle_in - 75) % 360, candidate_angle_out)
+                    else:
+                        loop_in_candidate = (
+                            not self._in_degree_range(tracer, candidate_angle_out, (candidate_angle_in - 75) % 360)
+                            or self._in_degree_range(angle_out, (candidate_angle_out - 75) % 360, (candidate_angle_out + 75) % 360)
+                        )
+        if loop_in_candidate:
+            flip()
         return self.clone(
-            angle_in=angle_in,
-            angle_out=(angle_in + da) % 360,
-            clockwise=self.clockwise
-                if angle_out is None or da != 180
-                else (abs(angle_out - angle_in) >= 180) == (angle_out > angle_in))
+            angle_in=candidate_angle_in,
+            angle_out=candidate_angle_out,
+            clockwise=candidate_clockwise,
+        )
 
     def context_in(self):
         return Context(self.angle_in, self.clockwise)
