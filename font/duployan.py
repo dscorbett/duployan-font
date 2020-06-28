@@ -117,7 +117,7 @@ class Context:
         angle=CLONE_DEFAULT,
         clockwise=CLONE_DEFAULT,
     ):
-        return Context(
+        return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
         )
@@ -271,7 +271,7 @@ class Hub(Shape):
         *,
         initial_secant=CLONE_DEFAULT,
     ):
-        return Hub(
+        return type(self)(
             initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
         )
 
@@ -515,7 +515,7 @@ class Space(Shape):
         angle=CLONE_DEFAULT,
         margins=CLONE_DEFAULT,
     ):
-        return Space(
+        return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.margins if margins is CLONE_DEFAULT else margins,
         )
@@ -571,7 +571,7 @@ class ChildEdgeCount(Shape):
         *,
         count=CLONE_DEFAULT,
     ):
-        return ChildEdgeCount(
+        return type(self)(
             self.count if count is CLONE_DEFAULT else count,
         )
 
@@ -602,7 +602,7 @@ class ChildEdge(Shape):
         *,
         lineage=CLONE_DEFAULT,
     ):
-        return ChildEdge(
+        return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
@@ -661,7 +661,7 @@ class InvalidOverlap(SFDGlyphWrapper):
         sfd_name=CLONE_DEFAULT,
         continuing=CLONE_DEFAULT,
     ):
-        return InvalidOverlap(
+        return type(self)(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
             continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
         )
@@ -675,7 +675,7 @@ class ParentEdge(Shape):
         *,
         lineage=CLONE_DEFAULT,
     ):
-        return ParentEdge(
+        return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
@@ -716,7 +716,7 @@ class InvalidStep(SFDGlyphWrapper):
         sfd_name=CLONE_DEFAULT,
         angle=CLONE_DEFAULT,
     ):
-        return InvalidStep(
+        return type(self)(
             self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
             self.angle if angle is CLONE_DEFAULT else angle,
         )
@@ -785,7 +785,7 @@ class Line(Shape):
         secant=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
     ):
-        return Line(
+        return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
             secant=self.secant if secant is CLONE_DEFAULT else secant,
@@ -936,7 +936,7 @@ class Curve(Shape):
         long=CLONE_DEFAULT,
         _secondary=CLONE_DEFAULT,
     ):
-        return Curve(
+        return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
@@ -1170,7 +1170,7 @@ class Circle(Shape):
         reversed=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
     ):
-        return Circle(
+        return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
@@ -1766,7 +1766,7 @@ class Schema:
         ss=CLONE_DEFAULT,
         _original_shape=CLONE_DEFAULT,
     ):
-        return Schema(
+        return type(self)(
             self.cmap if cmap is CLONE_DEFAULT else cmap,
             self.path if path is CLONE_DEFAULT else path,
             self.size if size is CLONE_DEFAULT else size,
