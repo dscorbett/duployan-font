@@ -3177,6 +3177,7 @@ def mark_hubs_after_initial_secants(schemas, new_schemas, classes, named_lookups
         'dupl',
         'dflt',
         mark_filtering_set='all',
+        reversed=True,
     )
     hub = None
     for schema in schemas:
@@ -3205,7 +3206,6 @@ def find_real_hub(schemas, new_schemas, classes, named_lookups, add_rule):
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
-        reversed=True,
     )
     for schema in new_schemas:
         if isinstance(schema.path, Dummy):
@@ -3222,11 +3222,12 @@ def find_real_hub(schemas, new_schemas, classes, named_lookups, add_rule):
         elif isinstance(schema.path, ContinuingOverlap):
             continuing_overlap = schema
             classes['all'].append(schema)
-    add_rule(lookup, Rule([hub], [hub], [], [dummy]))
-    add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
-    add_rule(lookup, Rule([], [initial_secant_marker], [hub], [dummy]))
+    add_rule(lookup, Rule([], [initial_secant_marker], [hub], [initial_secant_marker]))
     add_rule(lookup, Rule([], [initial_secant_marker], [initial_secant_hub], [dummy]))
     add_rule(lookup, Rule([], [initial_secant_marker], [], [initial_secant_hub]))
+    add_rule(lookup, Rule([hub], [hub], [], [dummy]))
+    add_rule(lookup, Rule([initial_secant_hub], [hub], [], [dummy]))
+    add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
     return [lookup]
 
 def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
