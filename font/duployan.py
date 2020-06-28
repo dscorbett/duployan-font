@@ -61,15 +61,17 @@ MARK_ANCHORS = [
     BELOW_ANCHOR,
     SECANT_ANCHOR,
 ]
+HUB_1_CONTINUING_OVERLAP_ANCHOR = 'hub1cont'
+HUB_2_CONTINUING_OVERLAP_ANCHOR = 'hub2cont'
 CONTINUING_OVERLAP_ANCHOR = 'cont'
-HUB_1_ANCHOR = 'hub1'
-HUB_2_ANCHOR = 'hub2'
+HUB_1_CURSIVE_ANCHOR = 'hub1cursive'
+HUB_2_CURSIVE_ANCHOR = 'hub2cursive'
 CURSIVE_ANCHOR = 'cursive'
 CURSIVE_ANCHORS = [
+    # The hub cursive anchors are intentionally skipped here: they are
+    # duplicates of the standard cursive anchors used only to finagle the
+    # baseline glyph into the root of the cursive attachment tree.
     CONTINUING_OVERLAP_ANCHOR,
-    # `HUB_1_ANCHOR` and `HUB_2_ANCHOR` are intentionally skipped here: they
-    # are duplicates of `CURSIVE_ANCHOR` used only to finagle the baseline
-    # glyph into the root of the cursive attachment tree.
     CURSIVE_ANCHOR,
 ]
 ALL_ANCHORS = MARK_ANCHORS + CURSIVE_ANCHORS
@@ -257,6 +259,22 @@ class Start(Shape):
         return GlyphClass.MARK
 
 class Hub(Shape):
+    def __init__(
+        self,
+        *,
+        initial_secant=False,
+    ):
+        self.initial_secant = initial_secant
+
+    def clone(
+        self,
+        *,
+        initial_secant=CLONE_DEFAULT,
+    ):
+        return Hub(
+            initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
+        )
+
     def __str__(self):
         return 'HUB'
 
@@ -269,8 +287,12 @@ class Hub(Shape):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        glyph.addAnchorPoint(HUB_1_ANCHOR, 'entry', 0, 0)
-        glyph.addAnchorPoint(HUB_2_ANCHOR, 'exit', 0, 0)
+        if self.initial_secant:
+            glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
+            glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'exit', 0, 0)
+        else:
+            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'entry', 0, 0)
+            glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'exit', 0, 0)
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -461,6 +483,22 @@ class GlyphClassSelector(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
+class InitialSecantMarker(Shape):
+    def __str__(self):
+        return 'SECANT'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    @staticmethod
+    def invisible():
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
 class Space(Shape):
     def __init__(
         self,
@@ -503,9 +541,9 @@ class Space(Shape):
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             if self.can_be_hub(size):
-                glyph.addAnchorPoint(HUB_2_ANCHOR, 'entry', 0, 0)
+                glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', 0, 0)
             else:
-                glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
+                glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             glyph.transform(
                 fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
                 ('round',),
@@ -714,7 +752,7 @@ class Dot(Shape):
             x = 2 * DEFAULT_SIDE_BEARING + stroke_width
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -x, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, 0)
-            glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', x, 0)
+            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', x, 0)
 
     def is_shadable(self):
         return True
@@ -793,6 +831,7 @@ class Line(Shape):
             glyph.addAnchorPoint(anchor, 'mark', *rect(length, 0))
         elif self.secant:
             glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, 0)
+            glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, 0)
         else:
             anchor_name = mkmk if child else lambda a: a
             base = 'basemark' if child else 'base'
@@ -813,10 +852,11 @@ class Line(Shape):
                     glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', child_interval * (max_tree_width + 1), 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+                    glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', child_interval, 0)
                     if self.can_be_hub(size):
-                        glyph.addAnchorPoint(HUB_2_ANCHOR, 'entry', 0, 0)
+                        glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', 0, 0)
                     else:
-                        glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', length, 0)
+                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', length, 0)
                 glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
@@ -970,10 +1010,11 @@ class Curve(Shape):
                 glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+                glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
                 if self.can_be_hub(size):
-                    glyph.addAnchorPoint(HUB_2_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 else:
-                    glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', p3[0], p3[1])
+                    glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
             glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
@@ -1191,10 +1232,11 @@ class Circle(Shape):
                 glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+                glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
                 if self.can_be_hub(size):
-                    glyph.addAnchorPoint(HUB_2_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 else:
-                    glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+                    glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
         glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
         scale_x = 1.0 + self.stretch
         if self.stretch:
@@ -1471,9 +1513,9 @@ class Complex(Shape):
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
             if self.can_be_hub(size):
-                glyph.addAnchorPoint(HUB_2_ANCHOR, 'entry', *first_entry)
+                glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *first_entry)
             else:
-                glyph.addAnchorPoint(HUB_1_ANCHOR, 'exit', *last_exit)
+                glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *last_exit)
         glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *last_rel1)
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + stroke_width + LIGHT_LINE)
@@ -2142,7 +2184,11 @@ def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
         elif schema.glyph_class == GlyphClass.JOINER and (isinstance(schema.path, Line) or isinstance(schema.path, Curve)):
             classes['base'].append(schema)
     if first_iteration:
-        add_rule(lookup, Rule(['secant'], ['secant', continuing_overlap]))
+        initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
+        add_rule(lookup, Rule(
+            ['secant'],
+            ['secant', continuing_overlap, initial_secant_marker],
+        ))
     return [lookup]
 
 def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3080,7 +3126,34 @@ def remove_false_start_markers(schemas, new_schemas, classes, named_lookups, add
     add_rule(lookup, Rule([start], [start], [], [dummy]))
     return [lookup]
 
-def remove_false_hub_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def mark_hubs_after_initial_secants(schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'psts',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
+    )
+    hub = None
+    for schema in schemas:
+        if isinstance(schema.path, Hub):
+            if hub:
+                return [lookup]
+            hub = schema
+            classes['all'].append(schema)
+        elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+            classes['secant'].append(schema)
+    initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))
+    classes[HUB_CLASS].append(initial_secant_hub)
+    classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
+    add_rule(lookup, Rule(
+        ['secant'],
+        [hub],
+        [],
+        [initial_secant_hub],
+    ))
+    return [lookup]
+
+def find_real_hub(schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3089,13 +3162,26 @@ def remove_false_hub_markers(schemas, new_schemas, classes, named_lookups, add_r
         mark_filtering_set='all',
         reversed=True,
     )
-    dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
-    hub = next(s for s in new_schemas if isinstance(s.path, Hub))
-    continuing_overlap = next(s for s in new_schemas if isinstance(s.path, ContinuingOverlap))
-    classes['all'].append(hub)
-    classes['all'].append(continuing_overlap)
+    for schema in new_schemas:
+        if isinstance(schema.path, Dummy):
+            dummy = schema
+        elif isinstance(schema.path, Hub):
+            if schema.path.initial_secant:
+                initial_secant_hub = schema
+            else:
+                hub = schema
+            classes['all'].append(schema)
+        elif isinstance(schema.path, InitialSecantMarker):
+            initial_secant_marker = schema
+            classes['all'].append(schema)
+        elif isinstance(schema.path, ContinuingOverlap):
+            continuing_overlap = schema
+            classes['all'].append(schema)
     add_rule(lookup, Rule([hub], [hub], [], [dummy]))
     add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
+    add_rule(lookup, Rule([], [initial_secant_marker], [hub], [dummy]))
+    add_rule(lookup, Rule([], [initial_secant_marker], [initial_secant_hub], [dummy]))
+    add_rule(lookup, Rule([], [initial_secant_marker], [], [initial_secant_hub]))
     return [lookup]
 
 def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3534,7 +3620,8 @@ MARKER_PHASES = [
     sum_width_markers,
     calculate_bound_extrema,
     remove_false_start_markers,
-    remove_false_hub_markers,
+    mark_hubs_after_initial_secants,
+    find_real_hub,
     expand_start_markers,
     mark_maximum_bounds,
     copy_maximum_left_bound_to_start,
@@ -3903,13 +3990,25 @@ class Builder:
         )
         self._add_lookup(
             'curs',
-            HUB_1_ANCHOR,
+            HUB_1_CONTINUING_OVERLAP_ANCHOR,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+            mark_filtering_set=class_asts[HUB_CLASS],
+        )
+        self._add_lookup(
+            'curs',
+            HUB_2_CONTINUING_OVERLAP_ANCHOR,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+            mark_filtering_set=class_asts[HUB_CLASS],
+        )
+        self._add_lookup(
+            'curs',
+            HUB_1_CURSIVE_ANCHOR,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
             mark_filtering_set=class_asts[CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
         self._add_lookup(
             'curs',
-            HUB_2_ANCHOR,
+            HUB_2_CURSIVE_ANCHOR,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
             mark_filtering_set=class_asts[CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
@@ -3954,7 +4053,11 @@ class Builder:
         if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
         else:
-            entry_x = next((x for _, type, x, _ in glyph.anchorPoints if type == 'entry'), 0)
+            entry_x = next(
+                (x for anchor_class_name, type, x, _ in glyph.anchorPoints
+                    if anchor_class_name == CURSIVE_ANCHOR and type == 'entry'),
+                0,
+            )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
         if not floating:
             _, y_min, _, _ = glyph.boundingBox()
