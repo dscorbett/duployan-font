@@ -771,11 +771,15 @@ class Line(Shape):
         stretchy=True,
         secant=None,
         dots=None,
+        tittle=None,
+        visible_base=True,
     ):
         self.angle = angle
         self.stretchy = stretchy
         self.secant = secant
         self.dots = dots
+        self.tittle = tittle
+        self.visible_base = visible_base
 
     def clone(
         self,
@@ -784,12 +788,16 @@ class Line(Shape):
         stretchy=CLONE_DEFAULT,
         secant=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
+        tittle=CLONE_DEFAULT,
+        visible_base=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
             secant=self.secant if secant is CLONE_DEFAULT else secant,
             dots=self.dots if dots is CLONE_DEFAULT else dots,
+            tittle=self.tittle if tittle is CLONE_DEFAULT else tittle,
+            visible_base=self.visible_base if visible_base is CLONE_DEFAULT else visible_base,
         )
 
     def __str__(self):
@@ -804,6 +812,8 @@ class Line(Shape):
             self.stretchy,
             self.secant,
             self.dots,
+            self.tittle,
+            self.visible_base,
         )
 
     def can_be_hub(self, size):
@@ -811,20 +821,24 @@ class Line(Shape):
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         pen.moveTo((0, 0))
-        if self.stretchy:
-            length_denominator = abs(math.sin(math.radians(self.angle)))
-            if length_denominator < EPSILON:
+        if self.visible_base:
+            if self.stretchy:
+                length_denominator = abs(math.sin(math.radians(self.angle)))
+                if length_denominator < EPSILON:
+                    length_denominator = 1
+            else:
                 length_denominator = 1
+            length = int(500 * size / length_denominator)
+            if self.dots:
+                dot_interval = length / (self.dots - 1)
+                for dot_index in range(1, self.dots):
+                    pen.endPath()
+                    pen.moveTo((dot_interval * dot_index, 0))
+            else:
+                pen.lineTo((length, 0))
         else:
-            length_denominator = 1
-        length = int(500 * size / length_denominator)
-        if self.dots:
-            dot_interval = length / (self.dots - 1)
-            for dot_index in range(1, self.dots):
-                pen.endPath()
-                pen.moveTo((dot_interval * dot_index, 0))
-        else:
-            pen.lineTo((length, 0))
+            stroke_width = LIGHT_LINE
+            length = 0
         if anchor:
             length *= self.secant or 0.5
             glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length, 0))
@@ -863,12 +877,13 @@ class Line(Shape):
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
             else:
-                if size == 1 and self.angle == 240:
-                    # Special case for U+1BC4F DUPLOYAN LETTER LONG I
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, -(stroke_width + LIGHT_LINE), 0)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
+                if self.tittle:
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, -(stroke_width + LIGHT_LINE), 0)
+                elif isinstance(self, LongI):
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, 0, 0)
                 else:
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -907,6 +922,49 @@ class Line(Shape):
 
     def reversed(self):
         return self.clone(angle=(self.angle + 180) % 360)
+
+class LongI(Line):
+    def __init__(
+        self,
+        angle,
+        *,
+        _tittle=True,
+        _visible_base=True,
+    ):
+        super().__init__(
+            angle,
+            tittle=_tittle,
+            visible_base=_visible_base,
+        )
+
+    def clone(
+        self,
+        *,
+        angle=CLONE_DEFAULT,
+        _tittle=CLONE_DEFAULT,
+        _visible_base=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            angle=self.angle if angle is CLONE_DEFAULT else angle,
+            _tittle=self.tittle if _tittle is CLONE_DEFAULT else _tittle,
+            _visible_base=self.visible_base if _visible_base is CLONE_DEFAULT else _visible_base,
+        )
+
+    def contextualize(self, context_in, context_out):
+        angle_in = context_in.angle
+        angle_out = context_out.angle
+        if ((angle_in == self.angle or angle_out == self.angle)
+            and (angle_in == angle_out or context_in == NO_CONTEXT or context_out == NO_CONTEXT)
+        ):
+            return self.clone(angle=180 - self.angle, _tittle=False)
+        elif angle_in != angle_out and context_in != NO_CONTEXT and context_out != NO_CONTEXT:
+            angle_out = (angle_out + 180) % 360
+            da = (angle_out - angle_in) % 360
+            angle = ((angle_in + angle_out) / 2) % 360
+            if (da < 180) == (angle_in <= angle <= angle_out):
+                angle = (angle + 180) % 360
+            return self.clone(angle=angle, _tittle=True, _visible_base=False)
+        return self.clone(_tittle=False)
 
 class Curve(Shape):
     def __init__(
@@ -3718,6 +3776,7 @@ IE = Curve(180, 0, clockwise=False)
 SHORT_I = Curve(0, 180, clockwise=True)
 UI = Curve(90, 270, clockwise=False)
 EE = Curve(270, 90, clockwise=True)
+LONG_I = LongI(240)
 YE = Complex([(0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
 U_N = Curve(90, 180, clockwise=True)
 LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
@@ -3881,7 +3940,7 @@ SCHEMAS = [
     Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
-    Schema(0x1BC4F, K, 1, marks=[DOT_1]),
+    Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC50, YE, 1),
     Schema(0x1BC51, S_T, 3, Type.ORIENTING),
     Schema(0x1BC52, S_P, 3, Type.ORIENTING),
