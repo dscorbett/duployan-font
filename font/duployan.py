@@ -164,8 +164,7 @@ class Shape:
     def group(self):
         return str(self)
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return False
 
     def can_be_hub(self, size):
@@ -234,8 +233,7 @@ class Dummy(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -250,8 +248,7 @@ class Start(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -282,8 +279,7 @@ class Hub(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -306,8 +302,7 @@ class End(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -329,8 +324,7 @@ class Carry(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -356,8 +350,7 @@ class EntryWidthDigit(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -383,8 +376,7 @@ class LeftBoundDigit(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -410,8 +402,7 @@ class RightBoundDigit(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -437,8 +428,7 @@ class AnchorWidthDigit(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -456,8 +446,7 @@ class MarkAnchorSelector(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -475,8 +464,7 @@ class GlyphClassSelector(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -491,8 +479,7 @@ class InitialSecantMarker(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     @staticmethod
@@ -529,8 +516,7 @@ class Space(Shape):
             self.margins,
         )
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def can_be_hub(self, size):
@@ -582,8 +568,7 @@ class ChildEdgeCount(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -613,8 +598,7 @@ class ChildEdge(Shape):
                 '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1]) if self.lineage else '0'
             }'''
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -634,8 +618,7 @@ class ContinuingOverlap(Shape):
     def __str__(self):
         return ''
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -690,8 +673,7 @@ class ParentEdge(Shape):
     def name_implies_type():
         return True
 
-    @staticmethod
-    def invisible():
+    def invisible(self):
         return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
@@ -816,11 +798,13 @@ class Line(Shape):
             self.visible_base,
         )
 
+    def invisible(self):
+        return not self.visible_base
+
     def can_be_hub(self, size):
         return self.dots or size >= 1 and not self.secant and self.angle % 180 != 0
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        pen.moveTo((0, 0))
         if self.visible_base:
             if self.stretchy:
                 length_denominator = abs(math.sin(math.radians(self.angle)))
@@ -829,6 +813,7 @@ class Line(Shape):
             else:
                 length_denominator = 1
             length = int(500 * size / length_denominator)
+            pen.moveTo((0, 0))
             if self.dots:
                 dot_interval = length / (self.dots - 1)
                 for dot_index in range(1, self.dots):
@@ -837,7 +822,6 @@ class Line(Shape):
             else:
                 pen.lineTo((length, 0))
         else:
-            stroke_width = LIGHT_LINE
             length = 0
         if anchor:
             length *= self.secant or 0.5
@@ -1872,7 +1856,7 @@ class Schema:
         return (
             type(self.path),
             self.path.group(),
-            self.cps[-1:] == [0x1BC9D],
+            self.path.invisible() or self.cps[-1:] != [0x1BC9D],
             self.size,
             self.side_bearing,
             self.child,
@@ -4146,10 +4130,11 @@ class Builder:
     def _draw_glyph(glyph, schema):
         assert not schema.marks
         pen = glyph.glyphPen()
+        invisible = schema.path.invisible()
         floating = schema.path.draw(
             glyph,
-            not schema.path.invisible() and pen,
-            SHADED_LINE if schema.cps[-1:] == [0x1BC9D] else LIGHT_LINE,
+            not invisible and pen,
+            LIGHT_LINE if invisible or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
             schema.size,
             schema.anchor,
             schema.joining_type,
