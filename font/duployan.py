@@ -956,7 +956,7 @@ class LongI(Line):
         if ((angle_in == self.angle or angle_out == self.angle)
             and (angle_in == angle_out or context_in == NO_CONTEXT or context_out == NO_CONTEXT)
         ):
-            return self.clone(angle=180 - self.angle, _tittle=False)
+            return self.clone(angle=(180 - self.angle) % 360, _tittle=False)
         elif angle_in != angle_out and context_in != NO_CONTEXT and context_out != NO_CONTEXT:
             angle_out = (angle_out + 180) % 360
             da = (angle_out - angle_in) % 360
