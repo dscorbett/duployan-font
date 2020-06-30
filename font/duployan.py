@@ -2478,14 +2478,15 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
     return [lookup]
 
 def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt', reversed=True)
+    lookup = Lookup('abvs', 'dupl', 'dflt')
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
-            mark_variant = schema.clone(cmap=None, anchor=SECANT_ANCHOR)
-            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [mark_variant]))
+            zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
             guideline = Schema(None, Line((schema.path.angle + 90) % 180, dots=7), 1.5)
-            add_rule(lookup, Rule([], [schema], [mark_variant], [guideline]))
+            mark_variant = schema.clone(cmap=None, anchor=SECANT_ANCHOR)
+            add_rule(lookup, Rule([], [schema], [invalid_continuing_overlap], [zwnj, guideline]))
+            add_rule(lookup, Rule([guideline], [invalid_continuing_overlap], [], [mark_variant]))
     return [lookup]
 
 def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):

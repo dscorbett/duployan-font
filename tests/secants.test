@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Fallback after letter that does not support secants
+E000 1BC00 1BC70 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted@1102,0|u1BC70.left_horizontal_secant._1@435,500|uniE000.bound@1555,0|_@1630,0]
+E000 1BC00 1BC71 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted._1@935,0|u1BC71.mid_horizontal_secant._1@435,500|uniE000.bound@1555,0|_@1630,0]
+E000 1BC00 1BC72 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted._2@768,0|u1BC72.right_horizontal_secant._1@435,500|uniE000.bound@1555,0|_@1630,0]
+E000 1BC00 1BC73 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted@435,0|u1BC73.low_vertical_secant._1@935,-667|uniE000.bound@1305,0|_@1380,0]
+E000 1BC00 1BC74 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted._1@435,0|u1BC74.mid_vertical_secant._1@935,-500|uniE000.bound@1305,0|_@1380,0]
+E000 1BC00 1BC75 E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted._2@435,0|u1BC75.high_vertical_secant._1@935,-333|uniE000.bound@1305,0|_@1380,0]
+
 # Isolated
-E000 1BC70 E000::[uniE000.bound@0,0|dupl.Line.90.dotted@862,0|u1BC70.left_horizontal_secant._2@195,500|uniE000.bound@1315,0|_@1390,0]
-E000 1BC71 E000::[uniE000.bound@0,0|dupl.Line.90.dotted@695,0|u1BC71.mid_horizontal_secant._2@195,500|uniE000.bound@1315,0|_@1390,0]
-E000 1BC72 E000::[uniE000.bound@0,0|dupl.Line.90.dotted@528,0|u1BC72.right_horizontal_secant._2@195,500|uniE000.bound@1315,0|_@1390,0]
-E000 1BC73 E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC73.low_vertical_secant._2@695,-667|uniE000.bound@1065,0|_@1140,0]
-E000 1BC74 E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC74.mid_vertical_secant._2@695,-500|uniE000.bound@1065,0|_@1140,0]
-E000 1BC75 E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC75.high_vertical_secant._2@695,-333|uniE000.bound@1065,0|_@1140,0]
+E000 1BC70 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted@862,0|u1BC70.left_horizontal_secant._1@195,500|uniE000.bound@1315,0|_@1390,0]
+E000 1BC71 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted._1@695,0|u1BC71.mid_horizontal_secant._1@195,500|uniE000.bound@1315,0|_@1390,0]
+E000 1BC72 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted._2@528,0|u1BC72.right_horizontal_secant._1@195,500|uniE000.bound@1315,0|_@1390,0]
+E000 1BC73 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted@195,0|u1BC73.low_vertical_secant._1@695,-667|uniE000.bound@1065,0|_@1140,0]
+E000 1BC74 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted._1@195,0|u1BC74.mid_vertical_secant._1@695,-500|uniE000.bound@1065,0|_@1140,0]
+E000 1BC75 E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted._2@195,0|u1BC75.high_vertical_secant._1@695,-333|uniE000.bound@1065,0|_@1140,0]
 
 # Initial
 E000 1BC70 1BC04 E000::[uniE000.bound@0,0|u1BC70.left_horizontal_secant@195,333|u1BC04.f@766,0|uniE000.bound@1315,0|_@1390,0]
@@ -76,13 +84,21 @@ E000 1BC1B 1BCA0 1BC0A 1BC73 E000::[uniE000.bound@0,0|u1BC1B.j@195,0|u1BC0A.g.bl
 E000 1BC1B 1BCA0 1BC0A 1BC74 E000::[uniE000.bound@0,0|u1BC1B.j@195,0|u1BC0A.g.blws@879,-489|u1BC74.mid_vertical_secant._1@446,-740|uniE000.bound@1035,0|_@1110,0]
 E000 1BC1B 1BCA0 1BC0A 1BC75 E000::[uniE000.bound@0,0|u1BC1B.j@195,0|u1BC0A.g.blws@879,-489|u1BC75.high_vertical_secant._1@446,-573|uniE000.bound@1035,0|_@1110,0]
 
+# Fallback with DTLS after letter that does not support secants
+E000 1BC00 1BC70 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted._3@1127,0|u1BC70_u1BC9D.LEFT_HORIZONTAL_SECANT._1@460,475|uniE000.bound@1605,0|_@1680,0]
+E000 1BC00 1BC71 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted._4@960,0|u1BC71_u1BC9D.MID_HORIZONTAL_SECANT._1@460,475|uniE000.bound@1605,0|_@1680,0]
+E000 1BC00 1BC72 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.90.dotted._5@793,0|u1BC72_u1BC9D.RIGHT_HORIZONTAL_SECANT._1@460,475|uniE000.bound@1605,0|_@1680,0]
+E000 1BC00 1BC73 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted._3@435,0|u1BC73_u1BC9D.LOW_VERTICAL_SECANT._1@935,-692|uniE000.bound@1305,0|_@1380,0]
+E000 1BC00 1BC74 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted._4@435,0|u1BC74_u1BC9D.MID_VERTICAL_SECANT._1@935,-525|uniE000.bound@1305,0|_@1380,0]
+E000 1BC00 1BC75 1BC9D E000::[uniE000.bound@0,0|u1BC00.h@-45,0|uni200D.zwj@315,0|dupl.Line.0.dotted._5@435,0|u1BC75_u1BC9D.HIGH_VERTICAL_SECANT._1@935,-358|uniE000.bound@1305,0|_@1380,0]
+
 # Isolated with DTLS
-E000 1BC70 1BC9D E000::[uniE000.bound@0,0|dupl.Line.90.dotted@887,0|u1BC70_u1BC9D.LEFT_HORIZONTAL_SECANT._2@220,475|uniE000.bound@1365,0|_@1440,0]
-E000 1BC71 1BC9D E000::[uniE000.bound@0,0|dupl.Line.90.dotted@720,0|u1BC71_u1BC9D.MID_HORIZONTAL_SECANT._2@220,475|uniE000.bound@1365,0|_@1440,0]
-E000 1BC72 1BC9D E000::[uniE000.bound@0,0|dupl.Line.90.dotted@553,0|u1BC72_u1BC9D.RIGHT_HORIZONTAL_SECANT._2@220,475|uniE000.bound@1365,0|_@1440,0]
-E000 1BC73 1BC9D E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC73_u1BC9D.LOW_VERTICAL_SECANT._2@695,-692|uniE000.bound@1065,0|_@1140,0]
-E000 1BC74 1BC9D E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC74_u1BC9D.MID_VERTICAL_SECANT._2@695,-525|uniE000.bound@1065,0|_@1140,0]
-E000 1BC75 1BC9D E000::[uniE000.bound@0,0|dupl.Line.0.dotted@195,0|u1BC75_u1BC9D.HIGH_VERTICAL_SECANT._2@695,-358|uniE000.bound@1065,0|_@1140,0]
+E000 1BC70 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted._3@887,0|u1BC70_u1BC9D.LEFT_HORIZONTAL_SECANT._1@220,475|uniE000.bound@1365,0|_@1440,0]
+E000 1BC71 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted._4@720,0|u1BC71_u1BC9D.MID_HORIZONTAL_SECANT._1@220,475|uniE000.bound@1365,0|_@1440,0]
+E000 1BC72 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.90.dotted._5@553,0|u1BC72_u1BC9D.RIGHT_HORIZONTAL_SECANT._1@220,475|uniE000.bound@1365,0|_@1440,0]
+E000 1BC73 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted._3@195,0|u1BC73_u1BC9D.LOW_VERTICAL_SECANT._1@695,-692|uniE000.bound@1065,0|_@1140,0]
+E000 1BC74 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted._4@195,0|u1BC74_u1BC9D.MID_VERTICAL_SECANT._1@695,-525|uniE000.bound@1065,0|_@1140,0]
+E000 1BC75 1BC9D E000::[uniE000.bound@0,0|uni200D.zwj@75,0|dupl.Line.0.dotted._5@195,0|u1BC75_u1BC9D.HIGH_VERTICAL_SECANT._1@695,-358|uniE000.bound@1065,0|_@1140,0]
 
 # Initial with DTLS
 E000 1BC70 1BC9D 1BC04 E000::[uniE000.bound@0,0|u1BC70_u1BC9D.LEFT_HORIZONTAL_SECANT@220,308|u1BC04.f@791,0|uniE000.bound@1365,0|_@1440,0]
