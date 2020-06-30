@@ -753,6 +753,7 @@ class Line(Shape):
         stretchy=True,
         secant=None,
         dots=None,
+        final_tick=False,
         tittle=None,
         visible_base=True,
     ):
@@ -760,6 +761,7 @@ class Line(Shape):
         self.stretchy = stretchy
         self.secant = secant
         self.dots = dots
+        self.final_tick = final_tick
         self.tittle = tittle
         self.visible_base = visible_base
 
@@ -770,6 +772,7 @@ class Line(Shape):
         stretchy=CLONE_DEFAULT,
         secant=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
+        final_tick=CLONE_DEFAULT,
         tittle=CLONE_DEFAULT,
         visible_base=CLONE_DEFAULT,
     ):
@@ -778,14 +781,20 @@ class Line(Shape):
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
             secant=self.secant if secant is CLONE_DEFAULT else secant,
             dots=self.dots if dots is CLONE_DEFAULT else dots,
+            final_tick=self.final_tick if final_tick is CLONE_DEFAULT else final_tick,
             tittle=self.tittle if tittle is CLONE_DEFAULT else tittle,
             visible_base=self.visible_base if visible_base is CLONE_DEFAULT else visible_base,
         )
 
     def __str__(self):
-        s = str(int(self.angle))
-        if self.dots:
-            s += '.dotted'
+        if self.final_tick:
+            s = 'tick'
+        elif self.dots or not self.stretchy:
+            s = str(int(self.angle))
+            if self.dots:
+                s += '.dotted'
+        else:
+            s = ''
         return s
 
     def group(self):
@@ -794,6 +803,7 @@ class Line(Shape):
             self.stretchy,
             self.secant,
             self.dots,
+            self.final_tick,
             self.tittle,
             self.visible_base,
         )
@@ -805,6 +815,7 @@ class Line(Shape):
         return self.dots or size >= 1 and not self.secant and self.angle % 180 != 0
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        end_y = 0
         if self.visible_base:
             if self.stretchy:
                 length_denominator = abs(math.sin(math.radians(self.angle)))
@@ -821,15 +832,18 @@ class Line(Shape):
                     pen.moveTo((dot_interval * dot_index, 0))
             else:
                 pen.lineTo((length, 0))
+                if self.final_tick:
+                    end_y = 100 if 90 < self.angle <= 270 else -100
+                    pen.lineTo((length, end_y))
         else:
             length = 0
         if anchor:
             length *= self.secant or 0.5
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(length, 0))
-            glyph.addAnchorPoint(anchor, 'mark', *rect(length, 0))
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', length, end_y)
+            glyph.addAnchorPoint(anchor, 'mark', length, end_y)
         elif self.secant:
-            glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, 0)
-            glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, 0)
+            glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, end_y)
+            glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, end_y)
         else:
             anchor_name = mkmk if child else lambda a: a
             base = 'basemark' if child else 'base'
@@ -849,12 +863,12 @@ class Line(Shape):
                     glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', child_interval, 0)
                     glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', child_interval * (max_tree_width + 1), 0)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
-                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, 0)
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', length, end_y)
                     glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', child_interval, 0)
                     if self.can_be_hub(size):
                         glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', 0, 0)
                     else:
-                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', length, 0)
+                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', length, end_y)
                 glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
@@ -885,7 +899,12 @@ class Line(Shape):
         return True
 
     def contextualize(self, context_in, context_out):
-        return self if context_in.angle is None else self.clone(angle=context_in.angle)
+        if self.stretchy:
+            if context_out.clockwise is None and context_out.angle == self.angle:
+                return self.clone(final_tick=True)
+        elif context_in.angle is not None:
+            return self.clone(angle=context_in.angle)
+        return self
 
     def context_in(self):
         return Context(self.angle)
@@ -933,6 +952,9 @@ class LongI(Line):
             _tittle=self.tittle if _tittle is CLONE_DEFAULT else _tittle,
             _visible_base=self.visible_base if _visible_base is CLONE_DEFAULT else _visible_base,
         )
+
+    def __str__(self):
+        return str(int(self.angle))
 
     def contextualize(self, context_in, context_out):
         angle_in = context_in.angle
@@ -3717,6 +3739,7 @@ MARKER_PHASES = [
 ]
 
 SPACE = Space(0)
+MACRON = Line(0, stretchy=False)
 H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -3818,7 +3841,7 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x0304, T, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x0304, MACRON, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
     Schema(0x2000, SPACE, 500, side_bearing=500),
@@ -3836,40 +3859,40 @@ SCHEMAS = [
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
     Schema(0x205F, SPACE, 222, side_bearing=222),
-    Schema(0xEC02, P_REVERSE, 1),
-    Schema(0xEC03, T_REVERSE, 1),
-    Schema(0xEC04, F_REVERSE, 1),
-    Schema(0xEC05, K_REVERSE, 1),
-    Schema(0xEC06, L_REVERSE, 1),
+    Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING),
+    Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING),
+    Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING),
+    Schema(0xEC05, K_REVERSE, 1, Type.ORIENTING),
+    Schema(0xEC06, L_REVERSE, 1, Type.ORIENTING),
     Schema(0xEC19, M_REVERSE, 6),
     Schema(0xEC1A, N_REVERSE, 6),
     Schema(0xEC1B, J_REVERSE, 6),
     Schema(0xEC1C, S_REVERSE, 6),
     Schema(0x1BC00, H, 1),
     Schema(0x1BC01, X, 1, Type.NON_JOINING),
-    Schema(0x1BC02, P, 1),
-    Schema(0x1BC03, T, 1),
-    Schema(0x1BC04, F, 1),
-    Schema(0x1BC05, K, 1),
-    Schema(0x1BC06, L, 1, ss_pernin={'path': L_SHALLOW}),
-    Schema(0x1BC07, P, 2),
-    Schema(0x1BC08, T, 2),
-    Schema(0x1BC09, F, 2),
-    Schema(0x1BC0A, K, 2),
-    Schema(0x1BC0B, L, 2, ss_pernin={'path': L_SHALLOW}),
-    Schema(0x1BC0C, P, 3),
-    Schema(0x1BC0D, T, 3),
-    Schema(0x1BC0E, F, 3),
-    Schema(0x1BC0F, K, 3),
-    Schema(0x1BC10, L, 3, ss_pernin={'path': L_SHALLOW}),
-    Schema(0x1BC11, T, 1, marks=[DOT_1]),
-    Schema(0x1BC12, T, 1, marks=[DOT_2]),
-    Schema(0x1BC13, T, 2, marks=[DOT_1]),
-    Schema(0x1BC14, K, 1, marks=[DOT_2]),
-    Schema(0x1BC15, K, 2, marks=[DOT_1]),
-    Schema(0x1BC16, L, 1, marks=[DOT_1]),
-    Schema(0x1BC17, L, 1, marks=[DOT_2]),
-    Schema(0x1BC18, L, 2, marks=[DOT_1, DOT_2]),
+    Schema(0x1BC02, P, 1, Type.ORIENTING),
+    Schema(0x1BC03, T, 1, Type.ORIENTING),
+    Schema(0x1BC04, F, 1, Type.ORIENTING),
+    Schema(0x1BC05, K, 1, Type.ORIENTING),
+    Schema(0x1BC06, L, 1, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC07, P, 2, Type.ORIENTING),
+    Schema(0x1BC08, T, 2, Type.ORIENTING),
+    Schema(0x1BC09, F, 2, Type.ORIENTING),
+    Schema(0x1BC0A, K, 2, Type.ORIENTING),
+    Schema(0x1BC0B, L, 2, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC0C, P, 3, Type.ORIENTING),
+    Schema(0x1BC0D, T, 3, Type.ORIENTING),
+    Schema(0x1BC0E, F, 3, Type.ORIENTING),
+    Schema(0x1BC0F, K, 3, Type.ORIENTING),
+    Schema(0x1BC10, L, 3, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC11, T, 1, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC12, T, 1, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC13, T, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC14, K, 1, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC15, K, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC16, L, 1, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC17, L, 1, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC18, L, 2, Type.ORIENTING, marks=[DOT_1, DOT_2]),
     Schema(0x1BC19, M, 6),
     Schema(0x1BC1A, N, 6, ss_pernin={'path': N_SHALLOW, 'size': chord_to_radius(6, 50)}),
     Schema(0x1BC1B, J, 6, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
