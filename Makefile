@@ -50,8 +50,8 @@ endif
 		$(MAKE) -C util CPPFLAGS=-DHB_BUFFER_MAX_OPS_FACTOR=256 lib hb-shape; \
 	fi
 
-.PHONY: freeze
-freeze:
+.PHONY: requirements.txt
+requirements.txt:
 	$(eval TMP := $(shell mktemp -d))
 	virtualenv -p python3 $(TMP)
 	. $(TMP)/bin/activate; \
