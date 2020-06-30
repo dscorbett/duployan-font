@@ -1,0 +1,51 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Isolated
+E000 1BC56 E000::[uniE000.bound@0,0|u1BC56.romanian_u.180p0@395,0|dupl.Dot.rel1@395,200|uniE000.bound@615,0|_@690,0]
+
+# Initial
+E000 1BC56 1BC04 E000::[uniE000.bound@0,0|u1BC56.romanian_u.300n120@395,250|dupl.Dot.rel1@568,500|u1BC04.f@568,0|uniE000.bound@976,0|_@1051,0]
+E000 1BC56 1BC05 E000::[uniE000.bound@0,0|u1BC56.romanian_u.240n60@382,500|dupl.Dot.rel1@555,500|u1BC05.k@555,0|uniE000.bound@702,0|_@777,0]
+
+# Final
+E000 1BC04 1BC56 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC56.romanian_u.300p120@483,-100|dupl.Dot.rel1@656,100|uniE000.bound@976,0|_@1051,0]
+E000 1BC05 1BC56 E000::[uniE000.bound@0,0|u1BC05.k@510,0|u1BC56.romanian_u.240p60@222,-300|dupl.Dot.rel1@395,-100|uniE000.bound@702,0|_@777,0]
+
+# Medial
+E000 1BC04 1BC56 1BC04 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC44.o.300p300._1@483,-100|dupl.Dot.rel1@656,100|u1BC04.f@483,-500|uniE000.bound@976,0|_@1051,0]
+E000 1BC03 1BC56 1BC04 E000::[uniE000.bound@0,0|u1BC03.t@195,400|u1BC44.o.0p300@695,400|dupl.Dot.rel1@695,600|u1BC04.f@522,0|uniE000.bound@1015,0|_@1090,0]
+E000 1BC04 1BC56 1BC03 E000::[uniE000.bound@0,0|u1BC04.f@280,0|u1BC44.o.300n0@568,-300|dupl.Dot.rel1@395,-100|u1BC03.t@395,100|uniE000.bound@1015,0|_@1090,0]
+E000 1BC05 1BC56 1BC04 E000::[uniE000.bound@0,0|u1BC05.k@856,0|u1BC44.o.240n300@568,-100|dupl.Dot.rel1@395,100|u1BC04.f@568,-300|uniE000.bound@976,0|_@1051,0]
+E000 1BC04 1BC56 1BC05 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC44.o.300p240@483,-100|dupl.Dot.rel1@656,100|u1BC05.k@483,-300|uniE000.bound@976,0|_@1051,0]
+E000 1BC05 1BC56 1BC05 E000::[uniE000.bound@0,0|u1BC05.k@771,0|u1BC44.o.240p240._1@483,-300|dupl.Dot.rel1@656,-100|u1BC05.k@483,-500|uniE000.bound@976,0|_@1051,0]
+
+# Isolated with DTLS
+E000 1BC56 1BC9D E000::[uniE000.bound@0,0|u1BC56_u1BC9D.ROMANIAN_U.180p0._1@420,0|dupl.Dot.rel1@420,225|uniE000.bound@665,0|_@740,0]
+
+# Initial with DTLS
+E000 1BC56 1BC9D 1BC04 E000::[uniE000.bound@0,0|u1BC56_u1BC9D.ROMANIAN_U.300n120@420,225|dupl.Dot.rel1@593,500|u1BC04.f@593,0|uniE000.bound@1001,0|_@1076,0]
+E000 1BC56 1BC9D 1BC05 E000::[uniE000.bound@0,0|u1BC56_u1BC9D.ROMANIAN_U.240n60@407,475|dupl.Dot.rel1@580,500|u1BC05.k@580,0|uniE000.bound@752,0|_@827,0]
+
+# Final with DTLS
+E000 1BC04 1BC56 1BC9D E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC56_u1BC9D.ROMANIAN_U.300p120@483,-125|dupl.Dot.rel1@656,100|uniE000.bound@1001,0|_@1076,0]
+E000 1BC05 1BC56 1BC9D E000::[uniE000.bound@0,0|u1BC05.k@535,0|u1BC56_u1BC9D.ROMANIAN_U.240p60@247,-325|dupl.Dot.rel1@420,-100|uniE000.bound@752,0|_@827,0]
+
+# Medial with DTLS
+E000 1BC04 1BC56 1BC9D 1BC04 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC44_u1BC9D.O.300p300._1@483,-125|dupl.Dot.rel1@656,100|u1BC04.f@483,-500|uniE000.bound@1001,0|_@1076,0]
+E000 1BC03 1BC56 1BC9D 1BC04 E000::[uniE000.bound@0,0|u1BC03.t@195,400|u1BC44_u1BC9D.O.0p300@695,375|dupl.Dot.rel1@695,600|u1BC04.f@522,0|uniE000.bound@1040,0|_@1115,0]
+E000 1BC04 1BC56 1BC9D 1BC03 E000::[uniE000.bound@0,0|u1BC04.f@305,0|u1BC44_u1BC9D.O.300n0@593,-325|dupl.Dot.rel1@420,-100|u1BC03.t@420,100|uniE000.bound@1040,0|_@1115,0]
+E000 1BC05 1BC56 1BC9D 1BC04 E000::[uniE000.bound@0,0|u1BC05.k@881,0|u1BC44_u1BC9D.O.240n300@593,-125|dupl.Dot.rel1@420,100|u1BC04.f@593,-300|uniE000.bound@1001,0|_@1076,0]
+E000 1BC04 1BC56 1BC9D 1BC05 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC44_u1BC9D.O.300p240@483,-125|dupl.Dot.rel1@656,100|u1BC05.k@483,-300|uniE000.bound@1001,0|_@1076,0]
+E000 1BC05 1BC56 1BC9D 1BC05 E000::[uniE000.bound@0,0|u1BC05.k@771,0|u1BC44_u1BC9D.O.240p240._1@483,-325|dupl.Dot.rel1@656,-100|u1BC05.k@483,-500|uniE000.bound@1001,0|_@1076,0]

@@ -1676,34 +1676,23 @@ class Complex(Shape):
 
 class RomanianU(Complex):
     def draw_to_proxy(self, pen, stroke_width, size, anchor):
-        if len(self.instructions) != 1:
-            return super().draw_to_proxy(pen, stroke_width, size, anchor)
-        scalar, component = self.instructions[0]
-        proxy = Complex.Proxy()
-        component.draw(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
-        entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
-        assert len(entry_list) == 1
-        rel1_list = proxy.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
-        assert len(rel1_list) == 1
-        rel1 = rel1_list[0]
-        exit_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'exit')]
-        assert len(exit_list) == 1
-        proxy.contour.draw(pen)
-        proxy = Complex.Proxy()
-        Dot().draw(proxy, proxy, LIGHT_LINE, scalar * size, None, Type.JOINING, False)
-        proxy.transform(fontTools.misc.transform.Offset(-rel1[0], -rel1[1]))
-        proxy.contour.draw(pen)
+        (
+            first_is_invisible,
+            first_entry,
+            last_exit,
+            last_rel1,
+        ) = super().draw_to_proxy(pen, stroke_width, size, anchor)
         return (
-            False,
-            entry_list[0],
-            exit_list[0],
-            rel1,
+            first_is_invisible,
+            first_entry,
+            last_exit,
+            last_exit,
         )
 
     def contextualize(self, context_in, context_out):
         if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
             return super().contextualize(context_in, context_out)
-        return RomanianU([(1, Circle(0, 0, clockwise=False).contextualize(context_in, context_out))])
+        return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
@@ -3955,7 +3944,7 @@ SCHEMAS = [
     Schema(0x1BC53, S_T, 3, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC54, U_N, 4),
     Schema(0x1BC55, LONG_U, 2),
-    Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING),
+    Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC57, UH, 2, Type.ORIENTING),
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
