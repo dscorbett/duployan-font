@@ -899,6 +899,8 @@ class Line(Shape):
         return True
 
     def contextualize(self, context_in, context_out):
+        if self.secant and context_out.angle is not None:
+            return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
         if self.stretchy:
             if context_out.clockwise is None and context_out.angle == self.angle:
                 return self.clone(final_tick=True)
@@ -912,7 +914,37 @@ class Line(Shape):
     def context_out(self):
         return Context(self.angle)
 
-    def rotate_diacritic(self, angle):
+    def rotate_diacritic(
+        self,
+        angle,
+        *,
+        _curved=False,
+    ):
+        if self.secant:
+            if _curved:
+                return self
+            da = (self.angle % 180) - (angle % 180)
+            if da >= 90:
+                da -= 180
+            elif da < -90:
+                da += 180
+            minimum_da = 20
+            if abs(da) >= minimum_da:
+                return self
+            if da > 0:
+                new_da = minimum_da - da
+            else:
+                new_da = -minimum_da - da
+            ltr = 90 < da
+            rtl = 0 < da < 90
+            new_ltr = 90 < new_da
+            new_rtl = 0 < new_da < 90
+            if ltr != new_ltr and rtl != new_rtl:
+                if da > 0:
+                    new_da = -minimum_da
+                else:
+                    new_da = minimum_da
+            angle = (self.angle + new_da) % 360
         return self.clone(angle=angle)
 
     def calculate_diacritic_angles(self):
@@ -921,6 +953,7 @@ class Line(Shape):
             RELATIVE_1_ANCHOR: angle,
             RELATIVE_2_ANCHOR: angle,
             MIDDLE_ANCHOR: (angle + 90) % 180,
+            SECANT_ANCHOR: angle,
         }
 
     def reversed(self):
@@ -2472,7 +2505,8 @@ def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
-            guideline = Schema(None, Line((schema.path.angle + 90) % 180, dots=7), 1.5)
+            guideline_angle = 90 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
+            guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
             mark_variant = schema.clone(cmap=None, anchor=SECANT_ANCHOR)
             add_rule(lookup, Rule([], [schema], [invalid_continuing_overlap], [zwnj, guideline]))
             add_rule(lookup, Rule([guideline], [invalid_continuing_overlap], [], [mark_variant]))
@@ -3784,14 +3818,14 @@ WA = Complex([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clock
 WO = Complex([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
 WI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
 WEI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
-LEFT_HORIZONTAL_SECANT = Line(0, secant=2 / 3)
-MID_HORIZONTAL_SECANT = Line(0, secant=0.5)
-RIGHT_HORIZONTAL_SECANT = Line(0, secant=1 / 3)
-LOW_VERTICAL_SECANT = Line(90, secant=2 / 3)
-MID_VERTICAL_SECANT = Line(90, secant=0.5)
-HIGH_VERTICAL_SECANT = Line(90, secant=1 / 3)
-RTL_SECANT = Line(240, stretchy=False)
-LTR_SECANT = Line(330, stretchy=False)
+LEFT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=2 / 3)
+MID_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=0.5)
+RIGHT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=1 / 3)
+LOW_VERTICAL_SECANT = Line(90, stretchy=False, secant=2 / 3)
+MID_VERTICAL_SECANT = Line(90, stretchy=False, secant=0.5)
+HIGH_VERTICAL_SECANT = Line(90, stretchy=False, secant=1 / 3)
+RTL_SECANT = Line(240, stretchy=False, secant=0.5)
+LTR_SECANT = Line(330, stretchy=False, secant=0.5)
 TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, clockwise=True))])
@@ -3965,14 +3999,14 @@ SCHEMAS = [
     Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC6A, S_K, 2),
-    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2),
-    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2),
-    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2),
-    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2),
-    Schema(0x1BC74, MID_VERTICAL_SECANT, 2),
-    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2),
-    Schema(0x1BC76, RTL_SECANT, 1, Type.NON_JOINING),
-    Schema(0x1BC77, LTR_SECANT, 1, Type.NON_JOINING),
+    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC74, MID_VERTICAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2, Type.ORIENTING),
+    Schema(0x1BC76, RTL_SECANT, 1, Type.ORIENTING),
+    Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING),
     Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
     Schema(0x1BC79, TAIL, 1),
     Schema(0x1BC7A, UI, 2),
