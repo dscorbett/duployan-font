@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Primary orientation, initial
+# Primary orientation, final
 E000 EC02 1BC46 E000::[uniE000.bound@0,0|uniEC02.reversed_p@395,0|u1BC46.i.90p270@395,500|uniE000.bound@515,0|_@590,0]
 E000 EC04 1BC46 E000::[uniE000.bound@0,0|uniEC04.reversed_f@670,0|u1BC46.i.120p300@382,400|uniE000.bound@790,0|_@865,0]
 E000 EC19 1BC46 E000::[uniE000.bound@0,0|uniEC19.reversed_m@495,0|u1BC46.i.0n180@495,520|uniE000.bound@715,0|_@790,0]
@@ -26,7 +26,7 @@ E000 1BC1A 1BC46 E000::[uniE000.bound@0,0|u1BC1A.n@295,0|u1BC46.i.180n0@295,0|un
 E000 1BC1B 1BC46 E000::[uniE000.bound@0,0|u1BC1B.j@195,0|u1BC46.i.270n90@915,-100|uniE000.bound@1035,0|_@1110,0]
 E000 1BC1C 1BC46 E000::[uniE000.bound@0,0|u1BC1C.s@195,0|u1BC46.i.90p270._1@915,300|uniE000.bound@1035,0|_@1110,0]
 
-# Primary orientation, final
+# Primary orientation, initial
 E000 1BC46 EC02 E000::[uniE000.bound@0,0|u1BC46.i.270n90._1@395,-100|uniEC02.reversed_p@195,0|uniE000.bound@515,0|_@590,0]
 E000 1BC46 EC04 E000::[uniE000.bound@0,0|u1BC46.i.300n120@656,-50|uniEC04.reversed_f@483,0|uniE000.bound@789,0|_@864,0]
 E000 1BC46 EC19 E000::[uniE000.bound@0,0|u1BC46.i.0n180._1@495,0|uniEC19.reversed_m@495,0|uniE000.bound@715,0|_@790,0]
@@ -186,7 +186,7 @@ E000 1BC1C 1BC46 1BC1A E000::[uniE000.bound@0,0|u1BC1C.s@195,0|u1BC46.i.90n270._
 E000 1BC1C 1BC46 1BC1B E000::[uniE000.bound@0,0|u1BC1C.s@195,0|u1BC46.i.90p270._2@915,300|u1BC1B.j@715,300|uniE000.bound@1555,0|_@1630,0]
 E000 1BC1C 1BC46 1BC1C E000::[uniE000.bound@0,0|u1BC1C.s@195,0|u1BC46.i.90n270._1@915,300|u1BC1C.s@1115,0|uniE000.bound@1955,0|_@2030,0]
 
-# Secondary orientation, initial
+# Secondary orientation, final
 E000 EC02 1BC47 E000::[uniE000.bound@0,0|uniEC02.reversed_p@195,0|u1BC47.e.90n270@195,500|uniE000.bound@515,0|_@590,0]
 E000 EC04 1BC47 E000::[uniE000.bound@0,0|uniEC04.reversed_f@496,0|u1BC47.e.120n300@208,500|uniE000.bound@616,0|_@691,0]
 E000 EC19 1BC47 E000::[uniE000.bound@0,0|uniEC19.reversed_m@495,0|u1BC47.e.0p180@495,720|uniE000.bound@715,0|_@790,0]
@@ -200,7 +200,7 @@ E000 1BC1A 1BC47 E000::[uniE000.bound@0,0|u1BC1A.n@295,0|u1BC47.e.180p0@295,-200
 E000 1BC1B 1BC47 E000::[uniE000.bound@0,0|u1BC1B.j@195,0|u1BC47.e.270p90@915,-100|uniE000.bound@1235,0|_@1310,0]
 E000 1BC1C 1BC47 E000::[uniE000.bound@0,0|u1BC1C.s@195,0|u1BC47.e.90n270._1@915,300|uniE000.bound@1235,0|_@1310,0]
 
-# Secondary orientation, final
+# Secondary orientation, initial
 E000 1BC47 EC02 E000::[uniE000.bound@0,0|u1BC46.i.270p90._2@195,-100|uniEC02.reversed_p@395,0|uniE000.bound@515,0|_@590,0]
 E000 1BC47 EC04 E000::[uniE000.bound@0,0|u1BC46.i.300p120._1@310,-150|uniEC04.reversed_f@483,0|uniE000.bound@617,0|_@692,0]
 E000 1BC47 EC19 E000::[uniE000.bound@0,0|u1BC46.i.0p180._2@495,-200|uniEC19.reversed_m@495,0|uniE000.bound@715,0|_@790,0]
