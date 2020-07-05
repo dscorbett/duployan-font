@@ -142,6 +142,12 @@ class Context:
     def __hash__(self):
         return hash(self.angle) ^ hash(self.clockwise)
 
+    def reversed(self):
+        return Context(
+            None if self.angle is None else (self.angle + 180) % 360,
+            None if self.clockwise is None else not self.clockwise,
+        )
+
 NO_CONTEXT = Context()
 
 def rect(r, theta):
@@ -1014,6 +1020,7 @@ class Curve(Shape):
         clockwise,
         stretch=0,
         long=False,
+        hook=False,
         _secondary=None,
     ):
         self.angle_in = angle_in
@@ -1021,6 +1028,7 @@ class Curve(Shape):
         self.clockwise = clockwise
         self.stretch = stretch
         self.long = long
+        self.hook = hook
         self._secondary = clockwise if _secondary is None else _secondary
 
     def clone(
@@ -1031,6 +1039,7 @@ class Curve(Shape):
         clockwise=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
+        hook=CLONE_DEFAULT,
         _secondary=CLONE_DEFAULT,
     ):
         return type(self)(
@@ -1039,6 +1048,7 @@ class Curve(Shape):
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
+            hook=self.hook if hook is CLONE_DEFAULT else hook,
             _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
         )
 
@@ -1167,9 +1177,6 @@ class Curve(Shape):
                 angle_in = (angle_out - da) % 360
         if angle_out is None:
             angle_out = (angle_in + da) % 360
-        candidate_angle_in = angle_in
-        candidate_angle_out = (candidate_angle_in + da) % 360
-        candidate_clockwise = self.clockwise
         def flip():
             nonlocal candidate_clockwise
             nonlocal candidate_angle_in
@@ -1179,25 +1186,45 @@ class Curve(Shape):
                 candidate_angle_in = (2 * candidate_angle_out - candidate_angle_in) % 360
             else:
                 candidate_angle_out = (2 * candidate_angle_in - candidate_angle_out) % 360
-        if candidate_clockwise != (context_in.angle is None):
-            flip()
-        clockwise_from_adjacent_curve = (
-            context_in.clockwise
-                if context_in.angle is not None
-                else context_out.clockwise
-        )
-        if clockwise_from_adjacent_curve not in [None, candidate_clockwise]:
-            flip()
-        if self._secondary:
-            flip()
-        if context_in.angle is None or context_out.angle is None:
-            loop_in_candidate = False
+        if self.hook:
+            candidate_angle_in = self.angle_in
+            candidate_angle_out = self.angle_out
+            candidate_clockwise = self.clockwise
+            if context_in == NO_CONTEXT:
+                if candidate_angle_out == context_out.angle:
+                    candidate_clockwise = not candidate_clockwise
+                    candidate_angle_out = (candidate_angle_out + 180) % 360
+                    candidate_angle_in = (candidate_angle_out - da) % 360
+            else:
+                if candidate_angle_in == context_in.angle:
+                    candidate_clockwise = not candidate_clockwise
+                    candidate_angle_in = (candidate_angle_in + 180) % 360
+                    candidate_angle_out = (candidate_angle_in + da) % 360
         else:
+            candidate_angle_in = angle_in
+            candidate_angle_out = (candidate_angle_in + da) % 360
+            candidate_clockwise = self.clockwise
+            if candidate_clockwise != (context_in.angle is None):
+                flip()
+            clockwise_from_adjacent_curve = (
+                context_in.clockwise
+                    if context_in.angle is not None
+                    else context_out.clockwise
+            )
+            if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
+                flip()
+        if self.hook or (context_in.angle is not None and context_out.angle is not None):
+            final_hook = self.hook and context_in != NO_CONTEXT
+            if final_hook:
+                flip()
+                context_out = context_in.reversed()
+                context_in = NO_CONTEXT
+                angle_in, angle_out = (angle_out + 180) % 360, (angle_in + 180) % 360
             context_clockwises = (context_in.clockwise, context_out.clockwise)
             curve_offset = 0 if context_clockwises in [(None, None), (True, False), (False, True)] else 75
             if False in context_clockwises:
                 curve_offset = -curve_offset
-            loop_in_candidate = (
+            if final_hook != (
                 not self._in_degree_range(
                     (angle_out + 180) % 360,
                     candidate_angle_out,
@@ -1212,9 +1239,8 @@ class Curve(Shape):
                         False,
                     )
                 )
-            )
-        if loop_in_candidate:
-            flip()
+            ):
+                flip()
         return self.clone(
             angle_in=candidate_angle_in,
             angle_out=candidate_angle_out,
@@ -3828,7 +3854,9 @@ RTL_SECANT = Line(240, stretchy=False, secant=0.5)
 LTR_SECANT = Line(330, stretchy=False, secant=0.5)
 TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
-TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), lambda c: Context((c.angle + 180) % 360, None if c.clockwise is None else not c.clockwise), (1, Curve(90, 270, clockwise=True))])
+E_HOOK = Curve(90, 270, clockwise=True, hook=True)
+I_HOOK = Curve(180, 0, clockwise=False, hook=True)
+TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
 HIGH_ACUTE = Complex([(333, Space(90)), (0.5, Line(45, stretchy=False))])
 HIGH_TIGHT_ACUTE = Complex([(82, Space(90)), (0.5, Line(45, stretchy=False))])
 HIGH_GRAVE = Complex([(333, Space(90)), (0.5, Line(135, stretchy=False))])
@@ -4009,8 +4037,8 @@ SCHEMAS = [
     Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING),
     Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
     Schema(0x1BC79, TAIL, 1),
-    Schema(0x1BC7A, UI, 2),
-    Schema(0x1BC7B, IE, 2),
+    Schema(0x1BC7A, E_HOOK, 2, Type.ORIENTING),
+    Schema(0x1BC7B, I_HOOK, 2, Type.ORIENTING),
     Schema(0x1BC7C, TANGENT_HOOK, 2),
     Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
