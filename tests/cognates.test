@@ -1,0 +1,34 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Tick between cognate lines
+E000 EC02 EC02 E000:--script Dupl:[uniE000.bound@0,0|uniEC02.reversed_p.tick@195,0|uniEC02.reversed_p@295,500|uniE000.bound@415,0|_@490,0]
+E000 EC03 EC03 E000:--script Dupl:[uniE000.bound@0,0|uniEC03.reversed_t.tick@1195,0|uniEC03.reversed_t@695,0|uniE000.bound@1315,0|_@1390,0]
+E000 EC04 EC04 E000:--script Dupl:[uniE000.bound@0,0|uniEC04.reversed_f.tick@858,0|uniEC04.reversed_f@483,450|uniE000.bound@978,0|_@1053,0]
+E000 EC05 EC05 E000:--script Dupl:[uniE000.bound@0,0|uniEC05.reversed_k.tick@195,0|uniEC05.reversed_k@570,450|uniE000.bound@978,0|_@1053,0]
+E000 EC06 EC06 E000:--script Dupl:[uniE000.bound@0,0|uniEC06.reversed_l.tick@1124,0|uniEC06.reversed_l@695,-500|uniE000.bound@1244,0|_@1319,0]
+E000 1BC02 1BC07 E000::[uniE000.bound@0,0|u1BC02.p.tick@195,0|u1BC07.b@295,-1000|uniE000.bound@415,0|_@490,0]
+E000 1BC03 1BC08 E000::[uniE000.bound@0,0|u1BC03.t.tick@195,0|u1BC08.d@695,0|uniE000.bound@1815,0|_@1890,0]
+E000 1BC04 1BC09 E000::[uniE000.bound@0,0|u1BC04.f.tick@195,0|u1BC09.v@397,-999|uniE000.bound@1094,0|_@1169,0]
+E000 1BC05 1BC0A E000::[uniE000.bound@0,0|u1BC05.k.tick@974,0|u1BC0A.g@772,-999|uniE000.bound@1094,0|_@1169,0]
+E000 1BC06 1BC0B E000::[uniE000.bound@0,0|u1BC06.l.tick@195,0|u1BC0B.r@766,429|uniE000.bound@1886,0|_@1961,0]
+E000 1BC07 1BC02 E000::[uniE000.bound@0,0|u1BC07.b.tick@195,0|u1BC02.p@295,-500|uniE000.bound@415,0|_@490,0]
+E000 1BC08 1BC03 E000::[uniE000.bound@0,0|u1BC08.d.tick@195,0|u1BC03.t@1195,0|uniE000.bound@1815,0|_@1890,0]
+E000 1BC09 1BC04 E000::[uniE000.bound@0,0|u1BC09.v.tick@195,0|u1BC04.f@685,-500|uniE000.bound@1093,0|_@1168,0]
+E000 1BC0A 1BC05 E000::[uniE000.bound@0,0|u1BC0A.g.tick@973,0|u1BC05.k@483,-500|uniE000.bound@1093,0|_@1168,0]
+E000 1BC0B 1BC06 E000::[uniE000.bound@0,0|u1BC0B.r.tick@195,0|u1BC06.l@1266,929|uniE000.bound@1886,0|_@1961,0]
+
+# No tick
+E000 1BC03 1BC1A E000::[uniE000.bound@0,0|u1BC03.t@195,720|u1BC1A.n@695,0|uniE000.bound@1115,0|_@1190,0]
+E000 1BC19 1BC03 E000::[uniE000.bound@0,0|u1BC19.m@495,0|u1BC03.t@495,0|uniE000.bound@1115,0|_@1190,0]
