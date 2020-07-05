@@ -107,45 +107,64 @@ class Type(enum.Enum):
     NON_JOINING = enum.auto()
 
 class Context:
-    def __init__(self, angle=None, clockwise=None):
+    def __init__(
+        self,
+        angle=None,
+        clockwise=None,
+        minor=False,
+    ):
         self.angle = angle
         self.clockwise = clockwise
+        self.minor = minor
 
     def clone(
         self,
         *,
         angle=CLONE_DEFAULT,
         clockwise=CLONE_DEFAULT,
+        minor=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            self.minor if minor is CLONE_DEFAULT else minor,
         )
 
     def __repr__(self):
-        return 'Context({}, {})'.format(self.angle, self.clockwise)
+        return 'Context({}, {}, {})'.format(self.angle, self.clockwise, self.minor)
 
     def __str__(self):
         if self.angle is None:
             return ''
-        return '{}{}'.format(
-                self.angle,
-                '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
-            )
+        return f'''{
+            self.angle
+        }{
+            '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
+        }{
+            '.minor' if self.minor else ''
+        }'''
 
     def __eq__(self, other):
-        return self.angle == other.angle and self.clockwise == other.clockwise
+        return (
+            self.angle == other.angle
+            and self.clockwise == other.clockwise
+            and self.minor == other.minor
+        )
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash(self.angle) ^ hash(self.clockwise)
+        return (
+            hash(self.angle)
+            ^ hash(self.clockwise)
+            ^ hash(self.minor)
+        )
 
     def reversed(self):
-        return Context(
-            None if self.angle is None else (self.angle + 180) % 360,
-            None if self.clockwise is None else not self.clockwise,
+        return self.clone(
+            angle=None if self.angle is None else (self.angle + 180) % 360,
+            clockwise=None if self.clockwise is None else not self.clockwise,
         )
 
 NO_CONTEXT = Context()
@@ -756,6 +775,7 @@ class Line(Shape):
         self,
         angle,
         *,
+        minor=False,
         stretchy=True,
         secant=None,
         dots=None,
@@ -764,6 +784,7 @@ class Line(Shape):
         visible_base=True,
     ):
         self.angle = angle
+        self.minor = minor
         self.stretchy = stretchy
         self.secant = secant
         self.dots = dots
@@ -775,6 +796,7 @@ class Line(Shape):
         self,
         *,
         angle=CLONE_DEFAULT,
+        minor=CLONE_DEFAULT,
         stretchy=CLONE_DEFAULT,
         secant=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
@@ -784,6 +806,7 @@ class Line(Shape):
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
+            minor=self.minor if minor is CLONE_DEFAULT else minor,
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
             secant=self.secant if secant is CLONE_DEFAULT else secant,
             dots=self.dots if dots is CLONE_DEFAULT else dots,
@@ -910,17 +933,17 @@ class Line(Shape):
                 return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
         else:
             if self.stretchy:
-                if context_out.clockwise is None and context_out.angle == self.angle:
+                if context_out == Context(self.angle):
                     return self.clone(final_tick=True)
             elif context_in.angle is not None:
                 return self.clone(angle=context_in.angle)
         return self
 
     def context_in(self):
-        return Context(self.angle)
+        return Context(self.angle, minor=self.minor)
 
     def context_out(self):
-        return Context(self.angle)
+        return Context(self.angle, minor=self.minor)
 
     def rotate_diacritic(
         self,
@@ -3836,7 +3859,7 @@ SHORT_I = Curve(0, 180, clockwise=True)
 UI = Curve(90, 270, clockwise=False)
 EE = Curve(270, 90, clockwise=True)
 LONG_I = LongI(240)
-YE = Complex([(0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
+YE = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
 U_N = Curve(90, 180, clockwise=True)
 LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
 ROMANIAN_U = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
