@@ -905,13 +905,15 @@ class Line(Shape):
         return True
 
     def contextualize(self, context_in, context_out):
-        if self.secant and context_out.angle is not None and context_in == NO_CONTEXT:
-            return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
-        if self.stretchy:
-            if context_out.clockwise is None and context_out.angle == self.angle:
-                return self.clone(final_tick=True)
-        elif context_in.angle is not None:
-            return self.clone(angle=context_in.angle)
+        if self.secant:
+            if context_out.angle is not None:
+                return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
+        else:
+            if self.stretchy:
+                if context_out.clockwise is None and context_out.angle == self.angle:
+                    return self.clone(final_tick=True)
+            elif context_in.angle is not None:
+                return self.clone(angle=context_in.angle)
         return self
 
     def context_in(self):
