@@ -2346,7 +2346,7 @@ class Lookup:
         for rule in other.rules:
             self.append(rule)
 
-def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups, add_rule):
+def dont_ignore_default_ignorables(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_1 = Lookup('abvs', 'dupl', 'dflt')
     lookup_2 = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
@@ -2355,14 +2355,15 @@ def dont_ignore_default_ignorables(schemas, new_schemas, classes, named_lookups,
             add_rule(lookup_2, Rule([schema, schema], [schema]))
     return [lookup_1, lookup_2]
 
-def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
+def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     first_iteration = 'secant' not in classes
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
-            add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
-            classes['secant'].append(schema)
+            if schema in original_schemas:
+                add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
+                classes['secant'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER and (isinstance(schema.path, Line) or isinstance(schema.path, Curve)):
             classes['base'].append(schema)
     if first_iteration:
@@ -2373,7 +2374,7 @@ def expand_secants(schemas, new_schemas, classes, named_lookups, add_rule):
         ))
     return [lookup]
 
-def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
+def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
     new_classes = {}
     global_max_tree_width = 0
@@ -2419,7 +2420,7 @@ def validate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_
     classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
     return [lookup]
 
-def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule):
+def count_letter_overlaps(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt')
     letter_overlap = next(s for s in new_schemas if isinstance(s.path, ChildEdge))
     for count in range(MAX_TREE_WIDTH, 0, -1):
@@ -2431,7 +2432,7 @@ def count_letter_overlaps(schemas, new_schemas, classes, named_lookups, add_rule
         ))
     return [lookup]
 
-def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
+def add_parent_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
@@ -2441,7 +2442,7 @@ def add_parent_edges(schemas, new_schemas, classes, named_lookups, add_rule):
             if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
                 classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
-        if schema.glyph_class == GlyphClass.JOINER:
+        if schema.glyph_class == GlyphClass.JOINER and schema in original_schemas:
             classes['all'].append(schema)
     add_rule(lookup, Rule(['all'], [root_parent_edge, 'all']))
     return [lookup]
@@ -2476,7 +2477,7 @@ def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None)
                         trees.append(tree)
     return trees
 
-def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, add_rule):
+def invalidate_overlap_controls(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
         'dupl',
@@ -2550,11 +2551,15 @@ def invalidate_overlap_controls(schemas, new_schemas, classes, named_lookups, ad
     add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
     return [lookup]
 
-def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule):
+def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     for schema in new_schemas:
-        if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+        if (isinstance(schema.path, Line)
+            and schema.path.secant
+            and schema.glyph_class == GlyphClass.JOINER
+            and schema in original_schemas
+        ):
             zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
             guideline_angle = 90 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
             guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
@@ -2563,7 +2568,7 @@ def add_secant_guidelines(schemas, new_schemas, classes, named_lookups, add_rule
             add_rule(lookup, Rule([guideline], [invalid_continuing_overlap], [], [mark_variant]))
     return [lookup]
 
-def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
+def categorize_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'blws',
         'dupl',
@@ -2640,7 +2645,7 @@ def categorize_edges(schemas, new_schemas, classes, named_lookups, add_rule):
                         add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
     return [lookup]
 
-def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups, add_rule):
+def make_mark_variants_of_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     children_to_be = []
     for schema in new_schemas:
@@ -2656,24 +2661,27 @@ def make_mark_variants_of_children(schemas, new_schemas, classes, named_lookups,
         add_rule(lookup, Rule('all', [child_to_be], [], [child]))
     return [lookup]
 
-def shade(schemas, new_schemas, classes, named_lookups, add_rule):
+def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rlig', 'dupl', 'dflt')
     dtls = next(s for s in schemas if s.cps == [0x1BC9D])
     for schema in new_schemas:
-        if not schema.anchor and len(schema.cps) == 1 and schema.path.is_shadable():
+        if (not schema.anchor
+            and schema in original_schemas
+            and schema.path.is_shadable()
+        ):
             add_rule(lookup, Rule(
                 [schema, dtls],
                 [schema.clone(cmap=None, cps=[*schema.cps, 0x1BC9D])]))
     return [lookup]
 
-def decompose(schemas, new_schemas, classes, named_lookups, add_rule):
+def decompose(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
     return [lookup]
 
-def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
         'dupl',
@@ -2696,7 +2704,7 @@ def join_with_next_step(schemas, new_schemas, classes, named_lookups, add_rule):
         add_rule(lookup, Rule([], 'i', 'c', 'o'))
     return [lookup]
 
-def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
+def ss_pernin(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('ss01', 'dupl', 'dflt')
     for schema in schemas:
         if schema in new_schemas and schema.ss_pernin:
@@ -2706,7 +2714,7 @@ def ss_pernin(schemas, new_schemas, classes, named_lookups, add_rule):
             ))
     return [lookup]
 
-def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
         'dupl',
@@ -2717,7 +2725,7 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
     contexts_in = OrderedSet()
     new_contexts_in = set()
     old_input_count = len(classes['i'])
-    for schema in schemas:
+    for schema in original_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_in == NO_CONTEXT
@@ -2743,7 +2751,7 @@ def join_with_previous(schemas, new_schemas, classes, named_lookups, add_rule):
             add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
     return [lookup]
 
-def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
         'dupl',
@@ -2753,7 +2761,7 @@ def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
     contexts_out = OrderedSet()
     new_contexts_out = set()
     old_input_count = len(classes['i'])
-    for schema in schemas:
+    for schema in original_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
             if (schema.joining_type == Type.ORIENTING
                     and schema.context_out == NO_CONTEXT
@@ -2779,11 +2787,11 @@ def join_with_next(schemas, new_schemas, classes, named_lookups, add_rule):
             add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
     return [lookup]
 
-def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
+def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     base_contexts = OrderedSet()
     new_base_contexts = set()
-    for schema in schemas:
+    for schema in original_schemas:
         if schema.anchor:
             if (schema.joining_type == Type.ORIENTING
                     and schema.base_angle is None
@@ -2808,14 +2816,14 @@ def rotate_diacritics(schemas, new_schemas, classes, named_lookups, add_rule):
             add_rule(lookup, Rule(f'c_{anchor}_{angle}', f'i_{anchor}', [], output_class_name))
     return [lookup]
 
-def classify_marks_for_trees(schemas, new_schemas, classes, named_lookups, add_rule):
+def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     for schema in schemas:
         for anchor in MARK_ANCHORS:
             if schema.child or schema.anchor == anchor:
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
-def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68
     lookups = [
         Lookup('psts', 'dupl', 'dflt')
@@ -2852,6 +2860,8 @@ def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
             return glyph_class_selectors[glyph_class]
         return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
     for schema in new_schemas:
+        if schema not in original_schemas:
+            continue
         if schema.glyph is None:
             if isinstance(schema.path, MarkAnchorSelector):
                 mark_anchor_selectors[schema.path.index] = schema
@@ -2934,7 +2944,7 @@ def add_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
             ]))
     return lookups
 
-def add_end_markers_for_marks(schemas, new_schemas, classes, named_lookups, add_rule):
+def add_end_markers_for_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
     for schema in new_schemas:
@@ -2945,7 +2955,7 @@ def add_end_markers_for_marks(schemas, new_schemas, classes, named_lookups, add_
             add_rule(lookup, Rule([schema], [schema, end]))
     return [lookup]
 
-def remove_false_end_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def remove_false_end_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2961,7 +2971,7 @@ def remove_false_end_markers(schemas, new_schemas, classes, named_lookups, add_r
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
-def clear_entry_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def clear_entry_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -2998,7 +3008,7 @@ def clear_entry_width_markers(schemas, new_schemas, classes, named_lookups, add_
     ))
     return [lookup]
 
-def sum_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def sum_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3225,7 +3235,7 @@ def sum_width_markers(schemas, new_schemas, classes, named_lookups, add_rule):
                             add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
     return [lookup]
 
-def calculate_bound_extrema(schemas, new_schemas, classes, named_lookups, add_rule):
+def calculate_bound_extrema(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'psts',
         'dupl',
@@ -3295,7 +3305,7 @@ def calculate_bound_extrema(schemas, new_schemas, classes, named_lookups, add_ru
                         [schema_i]))
     return [left_lookup, right_lookup]
 
-def remove_false_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def remove_false_start_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3310,7 +3320,7 @@ def remove_false_start_markers(schemas, new_schemas, classes, named_lookups, add
     add_rule(lookup, Rule([start], [start], [], [dummy]))
     return [lookup]
 
-def mark_hubs_after_initial_secants(schemas, new_schemas, classes, named_lookups, add_rule):
+def mark_hubs_after_initial_secants(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3338,7 +3348,7 @@ def mark_hubs_after_initial_secants(schemas, new_schemas, classes, named_lookups
     ))
     return [lookup]
 
-def find_real_hub(schemas, new_schemas, classes, named_lookups, add_rule):
+def find_real_hub(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3369,7 +3379,7 @@ def find_real_hub(schemas, new_schemas, classes, named_lookups, add_rule):
     add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
     return [lookup]
 
-def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule):
+def expand_start_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('psts', 'dupl', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
@@ -3378,7 +3388,7 @@ def expand_start_markers(schemas, new_schemas, classes, named_lookups, add_rule)
     ]))
     return [lookup]
 
-def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
+def mark_maximum_bounds(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'psts',
         'dupl',
@@ -3430,7 +3440,7 @@ def mark_maximum_bounds(schemas, new_schemas, classes, named_lookups, add_rule):
                 [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
     return [left_lookup, right_lookup, anchor_lookup]
 
-def copy_maximum_left_bound_to_start(schemas, new_schemas, classes, named_lookups, add_rule):
+def copy_maximum_left_bound_to_start(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'psts',
         'dupl',
@@ -3467,7 +3477,7 @@ def copy_maximum_left_bound_to_start(schemas, new_schemas, classes, named_lookup
                 [done]))
     return [lookup]
 
-def dist(schemas, new_schemas, classes, named_lookups, add_rule):
+def dist(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('dist', 'dupl', 'dflt')
     for schema in new_schemas:
         if ((isinstance(schema.path, LeftBoundDigit)
@@ -3605,6 +3615,7 @@ def run_phases(all_input_schemas, phases, all_classes=None):
     for phase in phases:
         all_output_schemas = OrderedSet()
         autochthonous_schemas = OrderedSet()
+        original_input_schemas = OrderedSet(all_input_schemas)
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
         classes = PrefixView(phase, all_classes)
@@ -3612,6 +3623,7 @@ def run_phases(all_input_schemas, phases, all_classes=None):
         lookups = None
         while new_input_schemas:
             output_lookups = phase(
+                original_input_schemas,
                 all_input_schemas,
                 new_input_schemas,
                 classes,
