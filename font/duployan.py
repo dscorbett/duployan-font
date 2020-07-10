@@ -1756,7 +1756,7 @@ class Complex(Shape):
         return next(op for op in self.instructions if not callable(op))[1].context_in()
 
     def context_out(self):
-        return self.instructions[-1][1].context_out()
+        return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
 class RomanianU(Complex):
     def draw_to_proxy(self, pen, stroke_width, size, anchor):
