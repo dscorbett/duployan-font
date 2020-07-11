@@ -113,7 +113,7 @@ class Context:
         clockwise=None,
         minor=False,
     ):
-        self.angle = angle
+        self.angle = float(angle) if angle is not None else None
         self.clockwise = clockwise
         self.minor = minor
 
