@@ -2745,7 +2745,7 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
         new_context = context_in in new_contexts_in
         for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(context_in, NO_CONTEXT)
+                output_schema = target_schema.contextualize(context_in, target_schema.context_out)
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
