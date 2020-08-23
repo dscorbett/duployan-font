@@ -929,13 +929,13 @@ class Line(Shape):
 
     def contextualize(self, context_in, context_out):
         if self.secant:
-            if context_out.angle is not None:
+            if context_out != NO_CONTEXT:
                 return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
         else:
             if self.stretchy:
                 if context_out == Context(self.angle):
                     return self.clone(final_tick=True)
-            elif context_in.angle is not None:
+            elif context_in != NO_CONTEXT:
                 return self.clone(angle=context_in.angle)
         return self
 
@@ -1207,7 +1207,7 @@ class Curve(Shape):
             nonlocal candidate_angle_in
             nonlocal candidate_angle_out
             candidate_clockwise = not candidate_clockwise
-            if context_in.angle is None:
+            if context_in == NO_CONTEXT:
                 candidate_angle_in = (2 * candidate_angle_out - candidate_angle_in) % 360
             else:
                 candidate_angle_out = (2 * candidate_angle_in - candidate_angle_out) % 360
@@ -1229,16 +1229,16 @@ class Curve(Shape):
             candidate_angle_in = angle_in
             candidate_angle_out = (candidate_angle_in + da) % 360
             candidate_clockwise = self.clockwise
-            if candidate_clockwise != (context_in.angle is None):
+            if candidate_clockwise != (context_in == NO_CONTEXT):
                 flip()
             clockwise_from_adjacent_curve = (
                 context_in.clockwise
-                    if context_in.angle is not None
+                    if context_in != NO_CONTEXT
                     else context_out.clockwise
             )
             if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
-        if self.hook or (context_in.angle is not None and context_out.angle is not None):
+        if self.hook or (context_in != NO_CONTEXT != context_out):
             final_hook = self.hook and context_in != NO_CONTEXT
             if final_hook:
                 flip()
@@ -1715,12 +1715,12 @@ class Complex(Shape):
                         component = component.reversed()
                     if forced_context is not None:
                         if isinstance(component, Line):
-                            if forced_context.angle is not None:
+                            if forced_context != NO_CONTEXT:
                                 component = component.clone(angle=forced_context.angle)
                         else:
                             if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
                                 component = component.reversed()
-                            if forced_context.angle is not None and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                            if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
                                 angle_out = component.angle_out
                                 if component.clockwise and angle_out > component.angle_in:
                                     angle_out -= 360
