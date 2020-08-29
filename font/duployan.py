@@ -3734,7 +3734,7 @@ def sift_groups(grouper, rule, target_part, classes):
                             intersection = [x for x in cls if x in intersection_set]
                             grouper.add(intersection)
                     if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
-                        if len(rule.outputs) == 1:
+                        if rule.outputs is not None and len(rule.outputs) == 1:
                             # a single substitution, or a (chaining) contextual substitution that
                             # calls a single substitution
                             output = rule.outputs[0]
@@ -4362,6 +4362,41 @@ class Builder:
         schema.glyph = glyph
         return schema
 
+    def convert_classes(self, classes):
+        class_asts = {}
+        for name, schemas in classes.items():
+            class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
+                name,
+                fontTools.feaLib.ast.GlyphClass([*map(str, schemas)]),
+            )
+            self._fea.statements.append(class_ast)
+            class_asts[name] = class_ast
+        return class_asts
+
+    def convert_named_lookups(self, named_lookups_with_phases, class_asts):
+        named_lookup_asts = {}
+        named_lookups_to_do = [*named_lookups_with_phases.keys()]
+        while named_lookups_to_do:
+            new_named_lookups_to_do = []
+            for name, (lookup, phase) in named_lookups_with_phases.items():
+                if name not in named_lookups_to_do:
+                    continue
+                try:
+                    named_lookup_ast = lookup.to_ast(
+                        PrefixView(phase, class_asts),
+                        PrefixView(phase, named_lookup_asts),
+                        name,
+                    )
+                except KeyError:
+                    new_named_lookups_to_do.append(name)
+                    continue
+                self._fea.statements.append(named_lookup_ast)
+                assert name not in named_lookup_asts.keys(), name
+                named_lookup_asts[name] = named_lookup_ast
+            assert len(new_named_lookups_to_do) < len(named_lookups_to_do)
+            named_lookups_to_do = new_named_lookups_to_do
+        return named_lookup_asts
+
     def augment(self):
         (
             schemas,
@@ -4370,8 +4405,9 @@ class Builder:
             classes,
             named_lookups_with_phases,
         ) = run_phases(self._schemas, self._phases)
-        assert not named_lookups_with_phases, 'Named lookups have not been implemented for pre-merge phases'
         merge_schemas(schemas, lookups_with_phases, classes)
+        class_asts = self.convert_classes(classes)
+        named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
         for schema in schemas:
             self._create_glyph(schema, drawing=schema in output_schemas)
         for schema in schemas:
@@ -4387,36 +4423,11 @@ class Builder:
             more_named_lookups_with_phases,
         ) = run_phases([*map(self._glyph_to_schema, self.font.glyphs())], MARKER_PHASES, classes)
         lookups_with_phases += more_lookups_with_phases
-        classes.update(more_classes)
-        named_lookups_with_phases.update(more_named_lookups_with_phases)
         for schema in schemas:
             if schema.glyph is None:
                 self._create_marker(schema)
-        class_asts = {}
-        named_lookup_asts = {}
-        for name, schemas in classes.items():
-            class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
-                name,
-                fontTools.feaLib.ast.GlyphClass([*map(str, schemas)]),
-            )
-            self._fea.statements.append(class_ast)
-            class_asts[name] = class_ast
-        named_lookups_to_do = [*named_lookups_with_phases.keys()]
-        while named_lookups_to_do:
-            new_named_lookups_to_do = []
-            for name, (lookup, phase) in named_lookups_with_phases.items():
-                if name not in named_lookups_to_do:
-                    continue
-                try:
-                    named_lookup_ast = lookup.to_ast(PrefixView(phase, class_asts), PrefixView(phase, named_lookup_asts), name)
-                except KeyError:
-                    new_named_lookups_to_do.append(name)
-                    continue
-                self._fea.statements.append(named_lookup_ast)
-                assert name not in named_lookup_asts.keys(), name
-                named_lookup_asts[name] = named_lookup_ast
-            assert len(new_named_lookups_to_do) < len(named_lookups_to_do)
-            named_lookups_to_do = new_named_lookups_to_do
+        class_asts.update(self.convert_classes(more_classes))
+        named_lookup_asts.update(self.convert_named_lookups(more_named_lookups_with_phases, class_asts))
         self._fea.statements.extend(
             lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts))
                 for lp in lookups_with_phases)
