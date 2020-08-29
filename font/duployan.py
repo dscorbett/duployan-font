@@ -1957,6 +1957,7 @@ class Schema:
             self.child,
             self.anchor,
             tuple(m.group for m in self.marks or []),
+            self.glyph_class == GlyphClass.MARK,
         )
 
     def canonical_schema(self, canonical_schema):
