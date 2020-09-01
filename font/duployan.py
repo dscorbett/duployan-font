@@ -573,36 +573,6 @@ class InvalidDTLS(SFDGlyphWrapper):
     def context_out(self):
         return NO_CONTEXT
 
-class ChildEdgeCount(Shape):
-    def __init__(self, count):
-        self.count = count
-
-    def clone(
-        self,
-        *,
-        count=CLONE_DEFAULT,
-    ):
-        return type(self)(
-            self.count if count is CLONE_DEFAULT else count,
-        )
-
-    def __str__(self):
-        return f'width.{self.count}'
-
-    @staticmethod
-    def name_implies_type():
-        return True
-
-    def invisible(self):
-        return True
-
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        pass
-
-    @staticmethod
-    def guaranteed_glyph_class():
-        return GlyphClass.MARK
-
 class ChildEdge(Shape):
     def __init__(self, lineage):
         self.lineage = lineage
@@ -2421,18 +2391,6 @@ def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, n
     classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
     return [lookup]
 
-def count_letter_overlaps(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
-    letter_overlap = next(s for s in new_schemas if isinstance(s.path, ChildEdge))
-    for count in range(MAX_TREE_WIDTH, 0, -1):
-        add_rule(lookup, Rule(
-            [],
-            [letter_overlap],
-            [letter_overlap] * (count - 1),
-            [Schema(None, ChildEdgeCount(count), 0, Type.NON_JOINING, side_bearing=0), letter_overlap]
-        ))
-    return [lookup]
-
 def add_parent_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
@@ -3796,7 +3754,6 @@ PHASES = [
     decompose,
     expand_secants,
     validate_overlap_controls,
-    count_letter_overlaps,
     add_parent_edges,
     invalidate_overlap_controls,
     add_secant_guidelines,
