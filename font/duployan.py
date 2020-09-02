@@ -2621,16 +2621,22 @@ def make_mark_variants_of_children(original_schemas, schemas, new_schemas, class
     return [lookup]
 
 def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rlig', 'dupl', 'dflt')
-    dtls = next(s for s in schemas if s.cps == [0x1BC9D])
+    lookup = Lookup(
+        'rlig',
+        'dupl',
+        'dflt',
+        mark_filtering_set='diacritic',
+    )
+    dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
     for schema in new_schemas:
-        if (not schema.anchor
-            and schema in original_schemas
-            and schema.path.is_shadable()
-        ):
+        if schema.anchor:
+            if schema.cmap is not None:
+                classes['diacritic'].append(schema)
+        elif schema in original_schemas and schema.path.is_shadable():
             add_rule(lookup, Rule(
                 [schema, dtls],
-                [schema.clone(cmap=None, cps=[*schema.cps, 0x1BC9D])]))
+                [schema.clone(cmap=None, cps=schema.cps + dtls.cps)],
+            ))
     return [lookup]
 
 def decompose(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3750,8 +3756,8 @@ def chord_to_radius(c, theta):
 
 PHASES = [
     dont_ignore_default_ignorables,
-    shade,
     decompose,
+    shade,
     expand_secants,
     validate_overlap_controls,
     add_parent_edges,
