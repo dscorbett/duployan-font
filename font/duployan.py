@@ -3746,8 +3746,17 @@ def sift_groups(grouper, rule, target_part, classes):
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
+                                    new_intersection = None
+                                    for schema in intersection:
+                                        new_group = new_groups.get(id(schema))
+                                        if new_group and schema in new_group:
+                                            if new_intersection is None:
+                                                new_intersection = new_group
+                                            else:
+                                                new_intersection += new_group
+                                                new_group *= 0
                                     for new_group in new_groups.values():
-                                        if len(new_group) != 1:
+                                        if len(new_group) > 1:
                                             grouper.add(new_group)
                         # Not implemented:
                         # chaining subsitution, general form
