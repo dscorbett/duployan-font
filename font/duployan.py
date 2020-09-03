@@ -2193,13 +2193,43 @@ class Rule:
                     )]
         else:
             assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
-            return [fontTools.feaLib.ast.LigatureSubstStatement(
-                glyphs_to_ast(self.contexts_in),
-                glyphs_to_ast(self.inputs),
-                glyphs_to_ast(self.contexts_out),
-                glyph_to_name(self.outputs[0]),
-                in_contextual_lookup,
-            )]
+            output = self.outputs[0]
+            if isinstance(output, str):
+                # Allow a class in ligature substitution output that is the same length
+                # as the only class in the input by unrolling all uses of the classes in
+                # parallel.
+                input_class = None
+                input_class_index = -1
+                for i, input in enumerate(self.inputs):
+                    if isinstance(input, str):
+                        assert input_class is None, 'A ligature substitution with a glyph class output may only have one glyph class input'
+                        assert len(class_asts[input].glyphs.glyphs) == len(class_asts[output].glyphs.glyphs), (
+                            'Parallel glyph classes must have the same length')
+                        input_class = input
+                        input_class_index = i
+                assert input_class is not None, 'A ligature substitution with a glyph class output must have a glyph class input'
+                asts = []
+                for input_glyph_name, output_glyph_name in zip(class_asts[input_class].glyphs.glyphs, class_asts[output].glyphs.glyphs):
+                    asts.append(fontTools.feaLib.ast.LigatureSubstStatement(
+                        glyphs_to_ast(self.contexts_in),
+                        [
+                            *glyphs_to_ast(self.inputs[:input_class_index]),
+                            fontTools.feaLib.ast.GlyphName(input_glyph_name),
+                            *glyphs_to_ast(self.inputs[input_class_index + 1:]),
+                        ],
+                        glyphs_to_ast(self.contexts_out),
+                        glyph_to_name(fontTools.feaLib.ast.GlyphName(output_glyph_name)),
+                        in_contextual_lookup,
+                    ))
+                return asts
+            else:
+                return [fontTools.feaLib.ast.LigatureSubstStatement(
+                    glyphs_to_ast(self.contexts_in),
+                    glyphs_to_ast(self.inputs),
+                    glyphs_to_ast(self.contexts_out),
+                    glyph_to_name(output),
+                    in_contextual_lookup,
+                )]
 
     def is_contextual(self):
         return bool(self.contexts_in or self.contexts_out)
@@ -2632,15 +2662,15 @@ def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_ru
         mark_filtering_set='diacritic',
     )
     dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
-    for schema in new_schemas:
-        if schema.anchor:
-            if schema.cmap is not None:
-                classes['diacritic'].append(schema)
-        elif schema in original_schemas and schema.path.is_shadable():
-            add_rule(lookup, Rule(
-                [schema, dtls],
-                [schema.clone(cmap=None, cps=schema.cps + dtls.cps)],
-            ))
+    if new_schemas:
+        for schema in new_schemas:
+            if schema.anchor:
+                if schema.cmap is not None:
+                    classes['diacritic'].append(schema)
+            elif schema in original_schemas and schema.path.is_shadable():
+                classes['i'].append(schema)
+                classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
+        add_rule(lookup, Rule(['i', dtls], 'o'))
     return [lookup]
 
 def decompose(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
