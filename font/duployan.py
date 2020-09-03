@@ -2607,17 +2607,21 @@ def categorize_edges(original_schemas, schemas, new_schemas, classes, named_look
 def make_mark_variants_of_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
     children_to_be = []
+    old_child_count = len(classes['child'])
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
             classes['all'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child():
-            children_to_be.append(schema)
-    for child_to_be in children_to_be:
+            classes['child_to_be'].append(schema)
+    for i, child_to_be in enumerate(classes['child_to_be']):
+        if i < old_child_count:
+            continue
         child = child_to_be.clone(cmap=None, child=True)
+        classes['child'].append(child)
         classes[PARENT_EDGE_CLASS].append(child)
         for child_index in range(MAX_TREE_WIDTH):
             classes[CHILD_EDGE_CLASSES[child_index]].append(child)
-        add_rule(lookup, Rule('all', [child_to_be], [], [child]))
+    add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
     return [lookup]
 
 def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
