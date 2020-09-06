@@ -1828,12 +1828,10 @@ class Schema:
             anchor=None,
             marks=None,
             unignored=False,
-            ss_pernin=None,
             context_in=None,
             context_out=None,
             base_angle=None,
             cps=None,
-            ss=None,
             original_shape=None,
     ):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
@@ -1847,12 +1845,10 @@ class Schema:
         self.anchor = anchor
         self.marks = marks or []
         self.unignored = unignored
-        self.ss_pernin = ss_pernin
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
-        self.ss = ss
         self.original_shape = original_shape or type(path)
         self.diacritic_angles = self._calculate_diacritic_angles()
         self.glyph_class = self._calculate_glyph_class()
@@ -1869,7 +1865,6 @@ class Schema:
             cmap_string != unicodedata.normalize('NFD', cmap_string),
             not self.cps,
             len(self.cps),
-            self.ss,
             self.original_shape != type(self.path),
             self.cps,
         )
@@ -1887,12 +1882,10 @@ class Schema:
         anchor=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
-        ss_pernin=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
         base_angle=CLONE_DEFAULT,
         cps=CLONE_DEFAULT,
-        ss=CLONE_DEFAULT,
         original_shape=CLONE_DEFAULT,
     ):
         return type(self)(
@@ -1906,12 +1899,10 @@ class Schema:
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
-            ss_pernin=self.ss_pernin if ss_pernin is CLONE_DEFAULT else ss_pernin,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
             base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
             cps=self.cps if cps is CLONE_DEFAULT else cps,
-            ss=self.ss if ss is CLONE_DEFAULT else ss,
             original_shape=self.original_shape if original_shape is CLONE_DEFAULT else original_shape,
         )
 
@@ -1922,7 +1913,6 @@ class Schema:
             self.size,
             self.side_bearing,
             self.context_in,
-            'ss{:02}'.format(self.ss) if self.ss else '',
             'NJ' if self.joining_type == Type.NON_JOINING else '',
             'mark' if self.anchor else 'base',
             [repr(m) for m in self.marks or []],
@@ -2013,8 +2003,6 @@ class Schema:
             name += '.blws'
         if self.ignored_for_topography:
             name += '.dependent'
-        if self.ss:
-            name += f'.ss{self.ss:02}'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             name = f'_{"." if name and first_component_implies_type else ""}{name}'
         agl_string = fontTools.agl.toUnicode(name)
@@ -2767,16 +2755,6 @@ def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_l
             classes['o'].append(output_schema)
     if new_context:
         add_rule(lookup, Rule([], 'i', 'c', 'o'))
-    return [lookup]
-
-def ss_pernin(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('ss01', 'dupl', 'dflt')
-    for schema in schemas:
-        if schema in new_schemas and schema.ss_pernin:
-            add_rule(lookup, Rule(
-                [schema],
-                [schema.clone(cmap=None, ss_pernin=None, ss=1, **schema.ss_pernin)],
-            ))
     return [lookup]
 
 def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3993,9 +3971,6 @@ def merge_schemas(schemas, lookups_with_phases, classes):
             sift_groups(grouper, rule, rule.inputs, prefix_classes)
     rename_schemas(grouper.groups())
 
-def chord_to_radius(c, theta):
-    return c / math.sin(math.radians(theta) / 2)
-
 PHASES = [
     dont_ignore_default_ignorables,
     decompose,
@@ -4008,7 +3983,6 @@ PHASES = [
     categorize_edges,
     make_mark_variants_of_children,
     join_with_next_step,
-    #ss_pernin,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
     ignore_first_orienting_glyph_in_initial_sequence,
@@ -4173,17 +4147,17 @@ SCHEMAS = [
     Schema(0x1BC03, T, 1, Type.ORIENTING),
     Schema(0x1BC04, F, 1, Type.ORIENTING),
     Schema(0x1BC05, K, 1, Type.ORIENTING),
-    Schema(0x1BC06, L, 1, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC06, L, 1, Type.ORIENTING),
     Schema(0x1BC07, P, 2, Type.ORIENTING),
     Schema(0x1BC08, T, 2, Type.ORIENTING),
     Schema(0x1BC09, F, 2, Type.ORIENTING),
     Schema(0x1BC0A, K, 2, Type.ORIENTING),
-    Schema(0x1BC0B, L, 2, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC0B, L, 2, Type.ORIENTING),
     Schema(0x1BC0C, P, 3, Type.ORIENTING),
     Schema(0x1BC0D, T, 3, Type.ORIENTING),
     Schema(0x1BC0E, F, 3, Type.ORIENTING),
     Schema(0x1BC0F, K, 3, Type.ORIENTING),
-    Schema(0x1BC10, L, 3, Type.ORIENTING, ss_pernin={'path': L_SHALLOW}),
+    Schema(0x1BC10, L, 3, Type.ORIENTING),
     Schema(0x1BC11, T, 1, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC12, T, 1, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC13, T, 2, Type.ORIENTING, marks=[DOT_1]),
@@ -4193,28 +4167,28 @@ SCHEMAS = [
     Schema(0x1BC17, L, 1, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC18, L, 2, Type.ORIENTING, marks=[DOT_1, DOT_2]),
     Schema(0x1BC19, M, 6),
-    Schema(0x1BC1A, N, 6, ss_pernin={'path': N_SHALLOW, 'size': chord_to_radius(6, 50)}),
-    Schema(0x1BC1B, J, 6, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
-    Schema(0x1BC1C, S, 6, ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC1A, N, 6),
+    Schema(0x1BC1B, J, 6),
+    Schema(0x1BC1C, S, 6),
     Schema(0x1BC1D, M, 6, marks=[LINE_MIDDLE]),
     Schema(0x1BC1E, N, 6, marks=[LINE_MIDDLE]),
     Schema(0x1BC1F, J, 6, marks=[LINE_MIDDLE]),
     Schema(0x1BC20, S, 6, marks=[LINE_MIDDLE]),
     Schema(0x1BC21, M, 6, marks=[DOT_1]),
     Schema(0x1BC22, N, 6, marks=[DOT_1]),
-    Schema(0x1BC23, J, 6, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC23, J, 6, marks=[DOT_1]),
     Schema(0x1BC24, J, 6, marks=[DOT_1, DOT_2]),
-    Schema(0x1BC25, S, 6, marks=[DOT_1], ss_pernin={'path': S_SHALLOW, 'size': chord_to_radius(6, 50)}),
+    Schema(0x1BC25, S, 6, marks=[DOT_1]),
     Schema(0x1BC26, S, 6, marks=[DOT_2]),
     Schema(0x1BC27, M_S, 8),
     Schema(0x1BC28, N_S, 8),
-    Schema(0x1BC29, J_S, 8, ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
+    Schema(0x1BC29, J_S, 8),
     Schema(0x1BC2A, S_S, 8),
     Schema(0x1BC2B, M_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2C, N_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2D, J_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2E, S_S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2F, J_S, 8, marks=[DOT_1], ss_pernin={'path': J_SHALLOW, 'size': chord_to_radius(8, 50)}),
+    Schema(0x1BC2F, J_S, 8, marks=[DOT_1]),
     Schema(0x1BC30, J_N, 6),
     Schema(0x1BC31, J_N_S, 2),
     Schema(0x1BC32, S_T, 4),
