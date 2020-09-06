@@ -566,6 +566,21 @@ class Space(Shape):
     def context_out(self):
         return NO_CONTEXT
 
+class ValidDTLS(Shape):
+    def __str__(self):
+        return 'dtls'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    def invisible(self):
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
 class InvalidDTLS(SFDGlyphWrapper):
     def context_in(self):
         return NO_CONTEXT
@@ -1208,6 +1223,10 @@ class Curve(Shape):
             )
             if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
+            if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == candidate_clockwise
+                or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == candidate_clockwise
+            ):
+                flip()
         if self.hook or (context_in != NO_CONTEXT != context_out):
             final_hook = self.hook and context_in != NO_CONTEXT
             if final_hook:
@@ -1805,6 +1824,7 @@ class Schema:
             *,
             side_bearing=DEFAULT_SIDE_BEARING,
             child=False,
+            ignored_for_topography=False,
             anchor=None,
             marks=None,
             unignored=False,
@@ -1814,7 +1834,7 @@ class Schema:
             base_angle=None,
             cps=None,
             ss=None,
-            _original_shape=None,
+            original_shape=None,
     ):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         self.cmap = cmap
@@ -1823,6 +1843,7 @@ class Schema:
         self.joining_type = joining_type
         self.side_bearing = side_bearing
         self.child = child
+        self.ignored_for_topography = ignored_for_topography
         self.anchor = anchor
         self.marks = marks or []
         self.unignored = unignored
@@ -1832,7 +1853,7 @@ class Schema:
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
         self.ss = ss
-        self._original_shape = _original_shape or type(path)
+        self.original_shape = original_shape or type(path)
         self.diacritic_angles = self._calculate_diacritic_angles()
         self.glyph_class = self._calculate_glyph_class()
         self.group = self._calculate_group()
@@ -1849,7 +1870,7 @@ class Schema:
             not self.cps,
             len(self.cps),
             self.ss,
-            self._original_shape != type(self.path),
+            self.original_shape != type(self.path),
             self.cps,
         )
 
@@ -1862,6 +1883,7 @@ class Schema:
         joining_type=CLONE_DEFAULT,
         side_bearing=CLONE_DEFAULT,
         child=CLONE_DEFAULT,
+        ignored_for_topography=CLONE_DEFAULT,
         anchor=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
@@ -1871,7 +1893,7 @@ class Schema:
         base_angle=CLONE_DEFAULT,
         cps=CLONE_DEFAULT,
         ss=CLONE_DEFAULT,
-        _original_shape=CLONE_DEFAULT,
+        original_shape=CLONE_DEFAULT,
     ):
         return type(self)(
             self.cmap if cmap is CLONE_DEFAULT else cmap,
@@ -1880,6 +1902,7 @@ class Schema:
             self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
             side_bearing=self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
             child=self.child if child is CLONE_DEFAULT else child,
+            ignored_for_topography=self.ignored_for_topography if ignored_for_topography is CLONE_DEFAULT else ignored_for_topography,
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
@@ -1889,7 +1912,7 @@ class Schema:
             base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
             cps=self.cps if cps is CLONE_DEFAULT else cps,
             ss=self.ss if ss is CLONE_DEFAULT else ss,
-            _original_shape=self._original_shape if _original_shape is CLONE_DEFAULT else _original_shape,
+            original_shape=self.original_shape if original_shape is CLONE_DEFAULT else original_shape,
         )
 
     def __repr__(self):
@@ -1911,7 +1934,7 @@ class Schema:
     def _calculate_glyph_class(self):
         return self.path.guaranteed_glyph_class() or (
             GlyphClass.MARK
-                if self.anchor or self.child
+                if self.anchor or self.child or self.ignored_for_topography
                 else GlyphClass.BLOCKER
                 if self.joining_type == Type.NON_JOINING
                 else GlyphClass.JOINER
@@ -1988,6 +2011,8 @@ class Schema:
             name += f'.{self.anchor}'
         if self.child:
             name += '.blws'
+        if self.ignored_for_topography:
+            name += '.dependent'
         if self.ss:
             name += f'.ss{self.ss:02}'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
@@ -2021,18 +2046,57 @@ class Schema:
                 self._glyph_name = name
         return self._glyph_name
 
-    def contextualize(self, context_in, context_out):
+    def contextualize(
+        self,
+        context_in,
+        context_out,
+        *,
+        ignore_dependent_schemas=True,
+    ):
         assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep)
-        path = self.path.contextualize(context_in, context_out)
-        if path is self.path:
-            return self
+        ignored_for_topography = (
+            ignore_dependent_schemas
+            and (context_in == NO_CONTEXT or context_out == NO_CONTEXT)
+            and isinstance(self.path, Curve)
+            and not self.path.hook
+            and context_in.minor
+            and context_in.clockwise is not None
+        )
+        if ignored_for_topography:
+            path = self.path
+        else:
+            path = self.path.contextualize(context_in, context_out)
+            if path is self.path:
+                return self
         return self.clone(
             cmap=None,
             path=path,
+            ignored_for_topography=ignored_for_topography,
             anchor=None,
             marks=None,
-            context_in=context_in,
-            context_out=context_out)
+            context_in=None if ignored_for_topography else context_in,
+            context_out=None if ignored_for_topography else context_out,
+        )
+
+    def path_context_in(self):
+        context_in = self.path.context_in()
+        if (self.glyph_class == GlyphClass.JOINER
+            and self.joining_type == Type.ORIENTING
+            and isinstance(self.path, Curve)
+            and not self.path.hook
+        ):
+            return context_in.clone(minor=True)
+        return context_in
+
+    def path_context_out(self):
+        context_out = self.path.context_out()
+        if (self.glyph_class == GlyphClass.JOINER
+            and self.joining_type == Type.ORIENTING
+            and isinstance(self.path, Curve)
+            and not self.path.hook
+        ):
+            return context_out.clone(minor=True)
+        return context_out
 
     def rotate_diacritic(self, angle):
         return self.clone(
@@ -2659,17 +2723,19 @@ def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_ru
         'rlig',
         'dupl',
         'dflt',
-        mark_filtering_set='diacritic',
+        mark_filtering_set='independent_mark',
     )
     dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
     if new_schemas:
         for schema in new_schemas:
             if schema.anchor:
                 if schema.cmap is not None:
-                    classes['diacritic'].append(schema)
-            elif schema in original_schemas and schema.path.is_shadable():
+                    classes['independent_mark'].append(schema)
+            elif schema in original_schemas and not schema.ignored_for_topography and schema.path.is_shadable():
                 classes['i'].append(schema)
                 classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
+                if schema.glyph_class == GlyphClass.MARK:
+                    classes['independent_mark'].append(schema)
         add_rule(lookup, Rule(['i', dtls], 'o'))
     return [lookup]
 
@@ -2731,7 +2797,7 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
                     and schema in new_schemas):
                 classes['i'].append(schema)
             if schema.joining_type != Type.NON_JOINING:
-                context_in = schema.path.context_out()
+                context_in = schema.path_context_out()
                 if context_in != NO_CONTEXT:
                     contexts_in.add(context_in)
                     context_in_class = classes[f'c_{context_in}']
@@ -2750,12 +2816,71 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
             add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
     return [lookup]
 
+def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='i',
+    )
+    if 'check_previous' in named_lookups:
+        return [lookup]
+    for schema in new_schemas:
+        if schema.ignored_for_topography:
+            classes['i'].append(schema)
+            classes['o'].append(schema.clone(ignored_for_topography=False))
+        elif schema.glyph_class == GlyphClass.JOINER and not isinstance(schema.path, Space):
+            if (schema.joining_type == Type.ORIENTING
+                and isinstance(schema.path, Curve)
+                and not schema.path.hook
+            ):
+                classes['first'].append(schema)
+            else:
+                classes['c'].append(schema)
+    named_lookups['check_previous'] = Lookup(
+        None,
+        None,
+        None,
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
+    add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
+    add_rule(named_lookups['check_previous'], Rule('c', 'i', [], lookups=[None]))
+    add_rule(named_lookups['check_previous'], Rule('i', 'o'))
+    add_rule(lookup, Rule([], 'i', 'c', lookups=['check_previous']))
+    return [lookup]
+
+def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
+    )
+    for schema in new_schemas:
+        if (schema.glyph_class == GlyphClass.JOINER
+            and schema.joining_type == Type.ORIENTING
+            and isinstance(schema.path, Curve)
+            and not schema.path.hook
+        ):
+            classes['i'].append(schema)
+            angle_out = schema.path.angle_out - schema.path.angle_in
+            path = schema.path.clone(
+                angle_in=0,
+                angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
+                clockwise=True,
+            )
+            classes['o'].append(schema.clone(cmap=None, path=path, ignored_for_topography=True))
+    add_rule(lookup, Rule([], 'i', 'i', 'o'))
+    return [lookup]
+
 def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
         'dupl',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
     )
     contexts_out = OrderedSet()
     new_contexts_out = set()
@@ -2786,6 +2911,79 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
             add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
     return [lookup]
 
+def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='i',
+    )
+    contexts_in = OrderedSet()
+    new_contexts_in = set()
+    old_input_count = len(classes['i'])
+    for schema in new_schemas:
+        if schema.ignored_for_topography:
+            classes['i'].append(schema)
+        elif (schema.glyph_class == GlyphClass.JOINER
+            and schema.joining_type == Type.ORIENTING
+            and schema.original_shape == Curve
+            and not schema.path.hook
+        ):
+            context_in = schema.path_context_out()
+            contexts_in.add(context_in)
+            context_in_class = classes[f'c_{context_in}']
+            if schema not in context_in_class:
+                if not context_in_class:
+                    new_contexts_in.add(context_in)
+                context_in_class.append(schema)
+    for context_in in contexts_in:
+        output_class_name = f'o_{context_in}'
+        new_context = context_in in new_contexts_in
+        for i, target_schema in enumerate(classes['i']):
+            if new_context or i >= old_input_count:
+                output_schema = target_schema.contextualize(context_in, NO_CONTEXT, ignore_dependent_schemas=False)
+                classes[output_class_name].append(output_schema)
+        if new_context:
+            add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
+    return [lookup]
+
+def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='i',
+        reversed=True,
+    )
+    contexts_out = OrderedSet()
+    new_contexts_out = set()
+    old_input_count = len(classes['i'])
+    for schema in new_schemas:
+        if schema.ignored_for_topography:
+            classes['i'].append(schema)
+        elif (schema.glyph_class == GlyphClass.JOINER
+            and schema.joining_type == Type.ORIENTING
+            and schema.original_shape == Curve
+            and not schema.path.hook
+        ):
+            context_out = schema.path_context_in()
+            contexts_out.add(context_out)
+            context_out_class = classes[f'co_{context_out}']
+            if schema not in context_out_class:
+                if not context_out_class:
+                    new_contexts_out.add(context_out)
+                context_out_class.append(schema)
+    for context_out in contexts_out:
+        output_class_name = f'o_{context_out}'
+        new_context = context_out in new_contexts_out
+        for i, target_schema in enumerate(classes['i']):
+            if new_context or i >= old_input_count:
+                output_schema = target_schema.contextualize(NO_CONTEXT, context_out, ignore_dependent_schemas=False)
+                classes[output_class_name].append(output_schema)
+        if new_context:
+            add_rule(lookup, Rule([], 'i', f'co_{context_out}', output_class_name))
+    return [lookup]
+
 def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
     base_contexts = OrderedSet()
@@ -2796,7 +2994,7 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
                     and schema.base_angle is None
                     and schema in new_schemas):
                 classes[f'i_{schema.anchor}'].append(schema)
-        else:
+        elif not schema.ignored_for_topography:
             for base_context in schema.diacritic_angles.items():
                 base_contexts.add(base_context)
                 base_context_class = classes['c_{}_{}'.format(*base_context)]
@@ -2949,6 +3147,7 @@ def add_end_markers_for_marks(original_schemas, schemas, new_schemas, classes, n
     for schema in new_schemas:
         if (schema.glyph is not None
             and schema.glyph_class == GlyphClass.MARK
+            and not schema.ignored_for_topography
             and not schema.path.invisible()
         ):
             add_rule(lookup, Rule([schema], [schema, end]))
@@ -3811,7 +4010,11 @@ PHASES = [
     join_with_next_step,
     #ss_pernin,
     join_with_previous,
+    unignore_last_orienting_glyph_in_initial_sequence,
+    ignore_first_orienting_glyph_in_initial_sequence,
     join_with_next,
+    unignore_noninitial_orienting_sequences,
+    unignore_initial_orienting_sequences,
     rotate_diacritics,
     classify_marks_for_trees,
 ]
@@ -4248,18 +4451,21 @@ class Builder:
     @staticmethod
     def _draw_glyph(glyph, schema):
         assert not schema.marks
-        pen = glyph.glyphPen()
-        invisible = schema.path.invisible()
-        floating = schema.path.draw(
-            glyph,
-            not invisible and pen,
-            LIGHT_LINE if invisible or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
-            schema.size,
-            schema.anchor,
-            schema.joining_type,
-            schema.child,
-        )
-        if schema.joining_type == Type.NON_JOINING:
+        if schema.ignored_for_topography:
+            floating = True
+        else:
+            pen = glyph.glyphPen()
+            invisible = schema.path.invisible()
+            floating = schema.path.draw(
+                glyph,
+                not invisible and pen,
+                LIGHT_LINE if invisible or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
+                schema.size,
+                schema.anchor,
+                schema.joining_type,
+                schema.child or schema.ignored_for_topography,
+            )
+        if schema.joining_type == Type.NON_JOINING or schema.ignored_for_topography:
             glyph.left_side_bearing = schema.side_bearing
         else:
             entry_x = next(
