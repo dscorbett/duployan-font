@@ -910,7 +910,7 @@ class Line(Shape):
         return 2 if size == 2 else 1
 
     def is_shadable(self):
-        return True
+        return self.visible_base and not self.dots
 
     def contextualize(self, context_in, context_out):
         if self.secant:
@@ -2706,6 +2706,26 @@ def make_mark_variants_of_children(original_schemas, schemas, new_schemas, class
     add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
     return [lookup]
 
+def validate_shading(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='independent_mark',
+        reversed=True,
+    )
+    if len(new_schemas) == len(schemas):
+        invalid_dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
+        valid_dtls = invalid_dtls.clone(cmap=None, path=ValidDTLS())
+        for schema in new_schemas:
+            if schema.anchor:
+                if schema.cmap is not None:
+                    classes['independent_mark'].append(schema)
+            elif schema.path.is_shadable():
+                classes['c'].append(schema)
+        add_rule(lookup, Rule(['c'], [invalid_dtls], [], [valid_dtls]))
+    return [lookup]
+
 def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
@@ -2713,10 +2733,11 @@ def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_ru
         'dflt',
         mark_filtering_set='independent_mark',
     )
-    dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
+    dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
+    classes['independent_mark'].append(dtls)
     if new_schemas:
         for schema in new_schemas:
-            if schema.anchor:
+            if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
                 if schema.cmap is not None:
                     classes['independent_mark'].append(schema)
             elif schema in original_schemas and not schema.ignored_for_topography and schema.path.is_shadable():
@@ -3974,7 +3995,7 @@ def merge_schemas(schemas, lookups_with_phases, classes):
 PHASES = [
     dont_ignore_default_ignorables,
     decompose,
-    shade,
+    validate_shading,
     expand_secants,
     validate_overlap_controls,
     add_parent_edges,
@@ -3990,6 +4011,7 @@ PHASES = [
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
     rotate_diacritics,
+    shade,
     classify_marks_for_trees,
 ]
 
