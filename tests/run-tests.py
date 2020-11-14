@@ -54,7 +54,7 @@ def run_test(line, png_file):
         print()
         print('Actual:   ' + actual_output)
         print('Expected: ' + expected_output)
-        if os.getenv('CONTINUOUS_INTEGRATION') != 'true':
+        if os.getenv('CI') != 'true':
             png_dir = os.path.dirname(png_file)
             if not os.path.exists(png_dir):
                 os.makedirs(png_dir)

@@ -1,0 +1,90 @@
+# Copyright 2019 David Corbett
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Test
+on: push
+env:
+  FONTFORGE_VERSION: 20190801
+  HARFBUZZ_VERSION: 2.5.2
+  PYTHON_VERSION: 3.7
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        requirements:
+          - frozen
+          - oldest
+          - newest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Cache FontForge
+        id: cache-fontforge
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_VERSION }}
+          path: .ff/fontforge-${{ env.FONTFORGE_VERSION }}
+      - name: Install FontForge
+        if: steps.cache-fontforge.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .ff/fontforge-${{ env.FONTFORGE_VERSION }}
+          cd .ff/fontforge-${{ env.FONTFORGE_VERSION }}
+          curl -Lo fontforge "$(
+              curl "$(
+                  curl https://api.github.com/repos/fontforge/fontforge/releases \
+                  | jq -r ".[] | select(.tag_name == \"${{ env.FONTFORGE_VERSION }}\").assets_url"
+              )" \
+              | jq -r '.[] | select(.name | endswith(".AppImage")).browser_download_url'
+          )"
+          chmod +x fontforge
+          pwd >>"$GITHUB_PATH"
+          echo "PYTHONHOME=$(python3 -c 'import sys; print(sys.prefix)')" >>"$GITHUB_ENV"
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}
+          path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
+      - name: Install HarfBuzz
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        run: |
+          make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
+          echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
+      - name: Prepare oldest requirements
+        if: matrix.requirements == 'oldest'
+        run: |
+          pip install packaging
+          ./get-old-requirements.py --input requirements-to-freeze.txt --output requirements.txt
+      - name: Prepare newest requirements
+        if: matrix.requirements == 'newest'
+        run: cp requirements-to-freeze.txt requirements.txt
+      - name: Cache pip
+        id: cache-pip
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: ~/.cache/pip
+      - name: Install requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
+      - name: Build
+        run: make
+      - name: Test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: make check
