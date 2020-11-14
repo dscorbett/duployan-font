@@ -37,23 +37,47 @@ jobs:
         id: cache-fontforge
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_VERSION }}
-          path: .ff/fontforge-${{ env.FONTFORGE_VERSION }}
+          key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_VERSION }}-python-${{ env.PYTHON_VERSION }}
+          path: fontforge-${{ env.FONTFORGE_VERSION }}
       - name: Install FontForge
         if: steps.cache-fontforge.outputs.cache-hit != 'true'
         run: |
-          mkdir -p .ff/fontforge-${{ env.FONTFORGE_VERSION }}
-          cd .ff/fontforge-${{ env.FONTFORGE_VERSION }}
-          curl -Lo fontforge "$(
-              curl "$(
-                  curl https://api.github.com/repos/fontforge/fontforge/releases \
-                  | jq -r ".[] | select(.tag_name == \"${{ env.FONTFORGE_VERSION }}\").assets_url"
-              )" \
-              | jq -r '.[] | select(.name | endswith(".AppImage")).browser_download_url'
-          )"
-          chmod +x fontforge
-          pwd >>"$GITHUB_PATH"
-          echo "PYTHONHOME=$(python3 -c 'import sys; print(sys.prefix)')" >>"$GITHUB_ENV"
+          sudo apt-get -qy --no-install-recommends install \
+            automake \
+            build-essential \
+            packaging-dev \
+            pkg-config \
+            python${{ env.PYTHON_VERSION }}-dev \
+          ;
+          curl -L https://github.com/fontforge/fontforge/releases/download/${{ env.FONTFORGE_VERSION }}/fontforge-${{ env.FONTFORGE_VERSION }}.tar.gz \
+          | tar -xz
+          cd fontforge-${{ env.FONTFORGE_VERSION }}
+          ./bootstrap
+          PYTHON_CFLAGS="$(python3-config --cflags)" \
+          PYTHON_LIBS="$(python3-config --ldflags)" \
+          ./configure \
+            --prefix="$PWD/target" \
+            --disable-dependency-tracking \
+            --disable-maintainer-mode \
+            --disable-native-scripting \
+            --disable-programs \
+            --enable-python-extension \
+            --enable-python-scripting=3 \
+            --without-cairo \
+            --without-giflib \
+            --without-libjpeg \
+            --without-libpng \
+            --without-libreadline \
+            --without-libspiro \
+            --without-libtiff \
+            --without-libuninameslist \
+            --without-libzmq \
+            --without-x \
+          ;
+          sudo make install
+          sudo ldconfig
+      - name: Add site-packages to default search path
+        run: echo "PYTHONPATH=$PWD/fontforge-${{ env.FONTFORGE_VERSION }}/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Cache HarfBuzz
         id: cache-harfbuzz
         uses: actions/cache@v2
@@ -62,9 +86,9 @@ jobs:
           path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
       - name: Install HarfBuzz
         if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
-        run: |
-          make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
-          echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
+        run: make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
+      - name: Add HarfBuzz to path
+        run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
       - name: Prepare oldest requirements
         if: matrix.requirements == 'oldest'
         run: |
@@ -73,18 +97,9 @@ jobs:
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
         run: cp requirements-to-freeze.txt requirements.txt
-      - name: Cache pip
-        id: cache-pip
-        uses: actions/cache@v2
-        with:
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          path: ~/.cache/pip
       - name: Install requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
         run: make
       - name: Test
-        uses: GabrielBB/xvfb-action@v1
-        with:
-          run: make check
+        run: make check

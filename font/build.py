@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
 # Copyright 2018-2019 David Corbett
 # Copyright 2020 Google LLC
@@ -28,7 +30,6 @@ import fonttools_patches
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
-        os.chdir(os.environ.get('OWD', '.'))
         os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
             ['git', 'log', '-1', '--format=%ct'], encoding='utf-8').rstrip()
     font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(
