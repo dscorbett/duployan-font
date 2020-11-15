@@ -16,12 +16,12 @@
 name: Test
 on: push
 env:
-  FONTFORGE_VERSION: 20190801
+  FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
   HARFBUZZ_VERSION: 2.5.2
-  PYTHON_VERSION: 3.7
+  PYTHON_VERSION: 3.9
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         requirements:
@@ -37,47 +37,47 @@ jobs:
         id: cache-fontforge
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_VERSION }}-python-${{ env.PYTHON_VERSION }}
-          path: fontforge-${{ env.FONTFORGE_VERSION }}
+          key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
+          path: fontforge
       - name: Install FontForge
         if: steps.cache-fontforge.outputs.cache-hit != 'true'
         run: |
           sudo apt-get -qy --no-install-recommends install \
-            automake \
             build-essential \
+            cmake \
+            ninja-build \
             packaging-dev \
             pkg-config \
             python${{ env.PYTHON_VERSION }}-dev \
           ;
-          curl -L https://github.com/fontforge/fontforge/releases/download/${{ env.FONTFORGE_VERSION }}/fontforge-${{ env.FONTFORGE_VERSION }}.tar.gz \
-          | tar -xz
-          cd fontforge-${{ env.FONTFORGE_VERSION }}
-          ./bootstrap
-          PYTHON_CFLAGS="$(python3-config --cflags)" \
-          PYTHON_LIBS="$(python3-config --ldflags)" \
-          ./configure \
-            --prefix="$PWD/target" \
-            --disable-dependency-tracking \
-            --disable-maintainer-mode \
-            --disable-native-scripting \
-            --disable-programs \
-            --enable-python-extension \
-            --enable-python-scripting=3 \
-            --without-cairo \
-            --without-giflib \
-            --without-libjpeg \
-            --without-libpng \
-            --without-libreadline \
-            --without-libspiro \
-            --without-libtiff \
-            --without-libuninameslist \
-            --without-libzmq \
-            --without-x \
+          curl -Lo fontforge.zip https://github.com/fontforge/fontforge/archive/${{ env.FONTFORGE_COMMIT }}.zip
+          unzip fontforge.zip
+          mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge
+          cd fontforge
+          curl -O https://patch-diff.githubusercontent.com/raw/fontforge/fontforge/pull/4232.patch
+          patch -p1 <4232.patch
+          mkdir build
+          cd build
+          cmake -G Ninja \
+            -D CMAKE_INSTALL_PREFIX="$PWD/target" \
+            -D ENABLE_DOCS=OFF \
+            -D ENABLE_GUI=OFF \
+            -D ENABLE_LIBGIF=OFF \
+            -D ENABLE_LIBJPEG=OFF \
+            -D ENABLE_LIBPNG=OFF \
+            -D ENABLE_LIBREADLINE=OFF \
+            -D ENABLE_LIBSPIRO=OFF \
+            -D ENABLE_LIBTIFF=OFF \
+            -D ENABLE_LIBUNINAMESLIST=OFF \
+            -D ENABLE_PYTHON_EXTENSION=ON \
+            -D ENABLE_NATIVE_SCRIPTING=OFF \
+            -D ENABLE_WOFF2=OFF \
+            .. \
           ;
-          sudo make install
-          sudo ldconfig
+          ninja
+          sudo ninja install
       - name: Add site-packages to default search path
-        run: echo "PYTHONPATH=$PWD/fontforge-${{ env.FONTFORGE_VERSION }}/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
+        run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Cache HarfBuzz
         id: cache-harfbuzz
         uses: actions/cache@v2
