@@ -17,6 +17,7 @@ __all__ = ['Builder']
 
 import collections
 import enum
+import functools
 import itertools
 import io
 import math
@@ -1850,9 +1851,6 @@ class Schema:
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
         self.original_shape = original_shape or type(path)
-        self.diacritic_angles = self._calculate_diacritic_angles()
-        self.glyph_class = self._calculate_glyph_class()
-        self.group = self._calculate_group()
         self._glyph_name = None
         self._canonical_schema = self
         self.glyph = None
@@ -1862,7 +1860,7 @@ class Schema:
         cmap_string = '' if self.cmap is None else chr(self.cmap)
         return (
             self.cmap is None,
-            cmap_string != unicodedata.normalize('NFD', cmap_string),
+            not unicodedata.is_normalized('NFD', cmap_string),
             not self.cps,
             len(self.cps),
             self.original_shape != type(self.path),
@@ -1918,10 +1916,12 @@ class Schema:
             [repr(m) for m in self.marks or []],
         ])))
 
-    def _calculate_diacritic_angles(self):
+    @functools.cached_property
+    def diacritic_angles(self):
         return self.path.calculate_diacritic_angles()
 
-    def _calculate_glyph_class(self):
+    @functools.cached_property
+    def glyph_class(self):
         return self.path.guaranteed_glyph_class() or (
             GlyphClass.MARK
                 if self.anchor or self.child or self.ignored_for_topography
@@ -1930,7 +1930,8 @@ class Schema:
                 else GlyphClass.JOINER
         )
 
-    def _calculate_group(self):
+    @functools.cached_property
+    def group(self):
         return (
             type(self.path),
             self.path.group(),
@@ -2105,29 +2106,29 @@ class FreezableList:
     def __len__(self):
         return len(self._delegate)
 
-    def append(self, object):
+    def append(self, object, /):
         try:
             self._delegate.append(object)
         except AttributeError:
             raise ValueError('Appending to a frozen list') from None
 
-    def extend(self, object):
+    def extend(self, iterable, /):
         try:
-            self._delegate.extend(object)
+            self._delegate.extend(iterable)
         except AttributeError:
             raise ValueError('Extending a frozen list') from None
 
 class OrderedSet(dict):
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, /):
         super().__init__()
         if iterable:
             for item in iterable:
                 self.add(item)
 
-    def add(self, item):
+    def add(self, item, /):
         self[item] = None
 
-    def remove(self, item):
+    def remove(self, item, /):
         self.pop(item, None)
 
 class Rule:
@@ -2137,6 +2138,7 @@ class Rule:
         a2,
         a3=None,
         a4=None,
+        /,
         *,
         lookups=None,
         x_advances=None,
@@ -3787,13 +3789,13 @@ class PrefixView:
         assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'
         return key if is_global else self.prefix + key
 
-    def __getitem__(self, key):
+    def __getitem__(self, key, /):
         return self._delegate[self._prefixed(key)]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, /):
         self._delegate[self._prefixed(key)] = value
 
-    def __contains__(self, item):
+    def __contains__(self, item, /):
         return self._prefixed(item) in self._delegate
 
     def keys(self):
@@ -3825,13 +3827,12 @@ def run_phases(all_input_schemas, phases, all_classes=None):
                 new_input_schemas,
                 classes,
                 named_lookups,
-                lambda lookup, rule: add_rule(
+                functools.partial(
+                    add_rule,
                     autochthonous_schemas,
                     output_schemas,
                     classes,
                     named_lookups,
-                    lookup,
-                    rule,
                  ),
              )
             if lookups is None:
@@ -3859,9 +3860,9 @@ def run_phases(all_input_schemas, phases, all_classes=None):
                         autochthonous_schemas.add(output_schema)
                         new_input_schemas.add(output_schema)
         all_input_schemas = all_output_schemas
-        all_schemas.update(all_input_schemas)
+        all_schemas |= all_input_schemas
         all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
-        all_named_lookups_with_phases.update((name, (lookup, phase)) for name, lookup in named_lookups.items())
+        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
     return (
         all_schemas,
         all_input_schemas,
@@ -4634,8 +4635,8 @@ class Builder:
         for schema in schemas:
             if schema.glyph is None:
                 self._create_marker(schema)
-        class_asts.update(self.convert_classes(more_classes))
-        named_lookup_asts.update(self.convert_named_lookups(more_named_lookups_with_phases, class_asts))
+        class_asts |= self.convert_classes(more_classes)
+        named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
         self._fea.statements.extend(
             lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts))
                 for lp in lookups_with_phases)
