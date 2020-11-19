@@ -1993,8 +1993,7 @@ class Schema:
                 or isinstance(self.path, Line) and self.path.dots
             )
         ):
-            name_from_path = str(self.path)
-            if name_from_path:
+            if name_from_path := str(self.path):
                 if name:
                     name += '.'
                 name += name_from_path
@@ -2019,8 +2018,7 @@ class Schema:
 
     def __str__(self):
         if self._glyph_name is None:
-            canonical = self._canonical_schema
-            if self is not canonical:
+            if self is not (canonical := self._canonical_schema):
                 self._glyph_name = str(canonical)
             else:
                 name = self._calculate_name()
@@ -2442,8 +2440,7 @@ def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, n
             else:
                 letter_overlap = schema
         elif not schema.anchor:
-            max_tree_width = schema.path.max_tree_width(schema.size)
-            if max_tree_width:
+            if max_tree_width := schema.path.max_tree_width(schema.size):
                 if max_tree_width > global_max_tree_width:
                     global_max_tree_width = max_tree_width
                 classes['base'].append(schema)
@@ -2496,8 +2493,7 @@ def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None)
     trees = []
     if prefix_depth is None:
         subtrees = make_trees(node, edge, maximum_depth - 1)
-        widths = range(MAX_TREE_WIDTH + 1) if top_widths is None else top_widths
-        for width in widths:
+        for width in range(MAX_TREE_WIDTH + 1) if top_widths is None else top_widths:
             for index_set in itertools.product(range(len(subtrees)), repeat=width):
                 tree = [node, *[edge] * width] if top_widths is None else []
                 for i in index_set:
@@ -2508,8 +2504,7 @@ def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None)
     else:
         shallow_subtrees = make_trees(node, edge, maximum_depth - 2)
         deep_subtrees = make_trees(node, edge, maximum_depth - 1, prefix_depth=prefix_depth - 1)
-        widths = range(1, MAX_TREE_WIDTH + 1) if top_widths is None else top_widths
-        for width in widths:
+        for width in range(1, MAX_TREE_WIDTH + 1) if top_widths is None else top_widths:
             for shallow_index_set in itertools.product(range(len(shallow_subtrees)), repeat=width - 1):
                 for deep_subtree in deep_subtrees:
                     for edge_count in [width] if prefix_depth == 2 else range(width, MAX_TREE_WIDTH + 1):
@@ -2798,11 +2793,9 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
                     and schema in new_schemas):
                 classes['i'].append(schema)
             if schema.joining_type != Type.NON_JOINING:
-                context_in = schema.path_context_out()
-                if context_in != NO_CONTEXT:
+                if (context_in := schema.path_context_out()) != NO_CONTEXT:
                     contexts_in.add(context_in)
-                    context_in_class = classes[f'c_{context_in}']
-                    if schema not in context_in_class:
+                    if schema not in (context_in_class := classes[f'c_{context_in}']):
                         if not context_in_class:
                             new_contexts_in.add(context_in)
                         context_in_class.append(schema)
@@ -2893,11 +2886,9 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
                     and schema in new_schemas):
                 classes['i'].append(schema)
             if schema.joining_type != Type.NON_JOINING:
-                context_out = schema.path.context_in()
-                if context_out != NO_CONTEXT:
+                if (context_out := schema.path.context_in()) != NO_CONTEXT:
                     contexts_out.add(context_out)
-                    context_out_class = classes[f'c_{context_out}']
-                    if schema not in context_out_class:
+                    if schema not in (context_out_class := classes[f'c_{context_out}']):
                         if not context_out_class:
                             new_contexts_out.add(context_out)
                         context_out_class.append(schema)
@@ -2932,8 +2923,7 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
         ):
             context_in = schema.path_context_out()
             contexts_in.add(context_in)
-            context_in_class = classes[f'c_{context_in}']
-            if schema not in context_in_class:
+            if schema not in (context_in_class := classes[f'c_{context_in}']):
                 if not context_in_class:
                     new_contexts_in.add(context_in)
                 context_in_class.append(schema)
@@ -2969,8 +2959,7 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
         ):
             context_out = schema.path_context_in()
             contexts_out.add(context_out)
-            context_out_class = classes[f'co_{context_out}']
-            if schema not in context_out_class:
+            if schema not in (context_out_class := classes[f'co_{context_out}']):
                 if not context_out_class:
                     new_contexts_out.add(context_out)
                 context_out_class.append(schema)
@@ -2998,8 +2987,7 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
         elif not schema.ignored_for_topography:
             for base_context in schema.diacritic_angles.items():
                 base_contexts.add(base_context)
-                base_context_class = classes['c_{}_{}'.format(*base_context)]
-                if schema not in base_context_class:
+                if schema not in (base_context_class := classes['c_{}_{}'.format(*base_context)]):
                     if not base_context_class:
                         new_base_contexts.add(base_context)
                     base_context_class.append(schema)
@@ -3843,8 +3831,7 @@ def run_phases(all_input_schemas, phases, all_classes=None):
                     lookup.extend(output_lookups[i])
             if len(output_lookups) == 1:
                 might_have_feedback = False
-                lookup = output_lookups[0]
-                for rule in lookup.rules:
+                for rule in (lookup := output_lookups[0]).rules:
                     if rule.contexts_out if lookup.reversed else rule.contexts_in:
                         might_have_feedback = True
                         break
@@ -3919,8 +3906,7 @@ def sift_groups(grouper, rule, target_part, classes):
             cls_intersection = set(cls).intersection
             for group in grouper.groups():
                 intersection_set = cls_intersection(group)
-                overlap = len(intersection_set)
-                if overlap:
+                if overlap := len(intersection_set):
                     if overlap == len(group):
                         intersection = group
                     else:
@@ -3934,8 +3920,7 @@ def sift_groups(grouper, rule, target_part, classes):
                         if rule.outputs is not None and len(rule.outputs) == 1:
                             # a single substitution, or a (chaining) contextual substitution that
                             # calls a single substitution
-                            output = rule.outputs[0]
-                            if isinstance(output, str):
+                            if isinstance(output := rule.outputs[0], str):
                                 output = classes[output]
                                 if len(output) != 1:
                                     # non-singleton glyph class
@@ -4620,8 +4605,7 @@ class Builder:
         for schema in schemas:
             self._create_glyph(schema, drawing=schema in output_schemas)
         for schema in schemas:
-            name_in_sfd = schema.path.name_in_sfd()
-            if name_in_sfd:
+            if name_in_sfd := schema.path.name_in_sfd():
                 self.font[name_in_sfd].temporary = schema
                 self.font[name_in_sfd].glyphname = str(schema)
         (

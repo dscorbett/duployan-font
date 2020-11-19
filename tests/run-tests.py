@@ -24,8 +24,7 @@ def parse_json(s):
     x = 0
     y = 0
     for glyph in json.loads(s):
-        name = glyph['g']
-        if not name.startswith('_'):
+        if not (name := glyph['g']).startswith('_'):
             yield f'{name}@{x + glyph["dx"]},{y + glyph["dy"]}'
         x += int(glyph['ax'])
         y += int(glyph['ay'])
@@ -55,8 +54,7 @@ def run_test(line, png_file):
         print('Actual:   ' + actual_output)
         print('Expected: ' + expected_output)
         if os.getenv('CI') != 'true':
-            png_dir = os.path.dirname(png_file)
-            if not os.path.exists(png_dir):
+            if not os.path.exists(png_dir := os.path.dirname(png_file)):
                 os.makedirs(png_dir)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
             p = subprocess.Popen(
