@@ -22,6 +22,7 @@ import subprocess
 import tempfile
 
 import fontforge
+import fontTools.otlLib.builder
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
 
@@ -50,30 +51,7 @@ def generate_feature_string(font, lookup):
 
 def patch_fonttools():
     if fontTools.__version__ not in [
-        '4.2.5',
-        '4.3.0',
-        '4.4.0',
-        '4.4.1',
-        '4.4.2.dev0',
-        '4.4.2',
-        '4.4.3',
-        '4.5.0',
-        '4.6.0',
-        '4.7.0',
-        '4.8.0',
-        '4.8.1',
-        '4.9.0',
-        '4.10.1',
-        '4.10.2',
-        '4.11.0',
-        '4.12.0',
-        '4.12.1',
-        '4.13.0',
-        '4.14.0',
-        '4.15.0',
-        '4.16.0',
-        '4.16.1',
-        '4.17.0',
+        '4.18.0',
     ]:
         return
 
@@ -85,6 +63,7 @@ def patch_fonttools():
             getGlyphID_inner(self, glyphName, requireReal)
     fontTools.ttLib.ttFont.TTFont.getGlyphID = getGlyphID
 
+    fontTools.otlLib.builder.ClassDefBuilder.canAdd = fonttools_patches.canAdd
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
     fontTools.ttLib.tables.otBase.CountReference.__len__ = fonttools_patches.CountReference_len
     fontTools.ttLib.tables.otBase.OTTableWriter.__len__ = fonttools_patches.OTTableWriter_len
