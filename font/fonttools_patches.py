@@ -26,23 +26,6 @@ import struct
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.tables.otTables
 
-def canAdd(self, glyphs):
-    if isinstance(glyphs, (set, frozenset)):
-        glyphs = sorted(glyphs)
-    else:
-        glyph_set = set()
-        for glyph in glyphs:
-            if glyph in glyph_set:
-                return False
-            glyph_set.add(glyph)
-    glyphs = tuple(glyphs)
-    if glyphs in self.classes_:
-        return True
-    for glyph in glyphs:
-        if glyph in self.glyphs_:
-            return False
-    return True
-
 def compile(self, font):
     writer = fontTools.ttLib.tables.otBase.OTTableWriter(tableTag=self.tableTag)
     if self.tableTag == 'GSUB':
