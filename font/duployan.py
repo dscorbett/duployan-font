@@ -2975,7 +2975,13 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
     return [lookup]
 
 def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt', reversed=True)
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
+        reversed=True,
+    )
     base_contexts = OrderedSet()
     new_base_contexts = set()
     for schema in original_schemas:
@@ -2983,6 +2989,7 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
             if (schema.joining_type == Type.ORIENTING
                     and schema.base_angle is None
                     and schema in new_schemas):
+                classes['all'].append(schema)
                 classes[f'i_{schema.anchor}'].append(schema)
         elif not schema.ignored_for_topography:
             for base_context in schema.diacritic_angles.items():
@@ -2991,6 +2998,8 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
                     if not base_context_class:
                         new_base_contexts.add(base_context)
                     base_context_class.append(schema)
+                    if schema.glyph_class == GlyphClass.MARK:
+                        classes['all'].append(schema)
     for base_context in base_contexts:
         if base_context in new_base_contexts:
             anchor, angle = base_context
