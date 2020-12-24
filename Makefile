@@ -46,7 +46,7 @@ endif
 		fi && \
 		cd harfbuzz-$$HB_VERSION && \
 		./configure && \
-		$(MAKE) -C util CPPFLAGS=-DHB_BUFFER_MAX_OPS_FACTOR=256 lib hb-shape; \
+		$(MAKE) -C util lib hb-shape; \
 	fi
 
 .PHONY: requirements.txt

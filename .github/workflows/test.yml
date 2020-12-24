@@ -17,7 +17,7 @@ name: Test
 on: push
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: 2.5.2
+  HARFBUZZ_VERSION: 2.7.3
   PYTHON_VERSION: 3.9
 jobs:
   test:
