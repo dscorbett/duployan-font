@@ -54,12 +54,14 @@ MIDDLE_ANCHOR = 'mid'
 ABOVE_ANCHOR = 'abv'
 BELOW_ANCHOR = 'blw'
 SECANT_ANCHOR = 'sec'
-MARK_ANCHORS = [
+MKMK_ANCHORS = [
     RELATIVE_1_ANCHOR,
     RELATIVE_2_ANCHOR,
     MIDDLE_ANCHOR,
     ABOVE_ANCHOR,
     BELOW_ANCHOR,
+]
+MARK_ANCHORS = MKMK_ANCHORS + [
     SECANT_ANCHOR,
 ]
 HUB_1_CONTINUING_OVERLAP_ANCHOR = 'hub1cont'
@@ -884,7 +886,7 @@ class Line(Shape):
                         glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', 0, 0)
                     else:
                         glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', length, end_y)
-                glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
+                    glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
@@ -1133,7 +1135,7 @@ class Curve(Shape):
                     glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 else:
                     glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-            glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
+                glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
@@ -4414,17 +4416,19 @@ class Builder:
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
             mark_filtering_set=class_asts[CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
-        for feature, is_mkmk in [
-            ('mark', False),
-            ('mkmk', True),
-        ]:
-            for anchor in MARK_ANCHORS:
-                self._add_lookup(
-                    feature,
-                    mkmk(anchor) if is_mkmk else anchor,
-                    flags=0,
-                    mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'] if is_mkmk else None,
-                )
+        for anchor in MARK_ANCHORS:
+            self._add_lookup(
+                'mark',
+                anchor,
+                flags=0,
+            )
+        for anchor in MKMK_ANCHORS:
+            self._add_lookup(
+                'mkmk',
+                mkmk(anchor),
+                flags=0,
+                mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'],
+            )
 
     def _add_altuni(self, uni, glyph_name):
         glyph = self.font[glyph_name]
