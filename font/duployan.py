@@ -2434,7 +2434,12 @@ def dont_ignore_default_ignorables(original_schemas, schemas, new_schemas, class
     return [lookup_1, lookup_2]
 
 def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt')
+    lookup = Lookup(
+        'abvs',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     first_iteration = 'secant' not in classes
     for schema in new_schemas:
