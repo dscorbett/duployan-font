@@ -179,3 +179,11 @@ E000 1BC02 1BCA0 1BC3A 1BC72 E000::[uniE000.bound@0,0|u1BC02.p@528,0|u1BC3A.w_r.
 # Not skipping continuing overlaps
 E000 1BC1B 1BCA1 1BC0A 1BC72 E000::[uniE000.bound@0,0|u1BC1B.j@277,0|u1BC0A.g@961,-489|u1BC72.right_horizontal_secant.0._1@195,-240|uniE000.bound@1315,0|_@1390,0]
 E000 1BC02 1BCA1 1BC3A 1BC72 E000::[uniE000.bound@0,0|u1BC02.p@638,0|u1BC3A.w_r@788,-93|u1BC72.right_horizontal_secant.0@195,57|uniE000.bound@1315,0|_@1390,0]
+
+# Final after circle letter
+E000 1BC04 1BC41 1BC70 E000::[uniE000.bound@0,0|u1BC04.f@487,0|u1BC41.a.300p300@775,-50|u1BC70.left_horizontal_secant.0@195,50|uniE000.bound@1315,0|_@1390,0]
+E000 1BC04 1BC57 1BC73 1BC9D E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC57.uh.300p300@483,-215|u1BC73_u1BC9D.LOW_VERTICAL_SECANT.90@570,-642|uniE000.bound@864,0|_@939,0]
+
+# Medial after curve glyph
+E000 1BC03 1BC1A 1BC74 1BC05 E000::[uniE000.bound@0,0|u1BC03.t@195,720|u1BC1A.n@695,0|u1BC74.mid_vertical_secant.90@955,-320|u1BC05.k@695,-500|uniE000.bound@1115,0|_@1190,0]
+E000 1BC04 1BC44 1BC74 1BC05 E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC44.o.300p240@483,-100|u1BC74.mid_vertical_secant.90@656,-400|u1BC05.k@483,-300|uniE000.bound@976,0|_@1051,0]

@@ -195,6 +195,10 @@ class Shape:
     def invisible(self):
         return False
 
+    @staticmethod
+    def can_take_secant():
+        return False
+
     def can_be_hub(self, size):
         return not self.invisible()
 
@@ -828,6 +832,10 @@ class Line(Shape):
     def invisible(self):
         return not self.visible_base
 
+    @staticmethod
+    def can_take_secant():
+        return True
+
     def can_be_hub(self, size):
         return self.dots or size >= 1 and not self.secant and self.angle % 180 != 0
 
@@ -1083,6 +1091,10 @@ class Curve(Shape):
             self.long,
         )
 
+    @staticmethod
+    def can_take_secant():
+        return True
+
     def can_be_hub(self, size):
         return size >= 6
 
@@ -1135,7 +1147,13 @@ class Curve(Shape):
                     glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 else:
                     glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-                glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
+                glyph.addAnchorPoint(
+                    anchor_name(SECANT_ANCHOR),
+                    base,
+                    *rect(0,0)
+                        if abs(da) > 180
+                        else rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
+                )
         glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
@@ -1343,6 +1361,10 @@ class Circle(Shape):
             self.stretch,
         )
 
+    @staticmethod
+    def can_take_secant():
+        return True
+
     def can_be_hub(self, size):
         return size >= 6
 
@@ -1377,6 +1399,7 @@ class Circle(Shape):
                     glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                 else:
                     glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+                glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, 0, 0)
         glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
         scale_x = 1.0 + self.stretch
         if self.stretch:
@@ -2419,7 +2442,7 @@ def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookup
             if schema in original_schemas:
                 add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
                 classes['secant'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and (isinstance(schema.path, Line) or isinstance(schema.path, Curve)):
+        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
             classes['base'].append(schema)
     if first_iteration:
         initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
