@@ -17,15 +17,24 @@
 
 import json
 import os
+import re
 import subprocess
 import sys
+
+DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
 
 def parse_json(s):
     x = 0
     y = 0
     for glyph in json.loads(s):
         if not (name := glyph['g']).startswith('_'):
-            yield f'{name}@{x + glyph["dx"]},{y + glyph["dy"]}'
+            yield f'''{
+                DISAMBIGUATION_SUFFIX_PATTERN.sub('', name)
+            }@{
+                x + glyph["dx"]
+            },{
+                y + glyph["dy"]
+            }'''
         x += int(glyph['ax'])
         y += int(glyph['ay'])
     yield f'_@{x},{y}'

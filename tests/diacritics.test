@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-E000 1BC02 1BC4E E000::[uniE000.bound@0,0|u1BC02.p@395,0|u1BC47.e.270n90._1@395,-100|dupl.Line.0.rel2@207,-240|uniE000.bound@515,0|_@590,0]
-E000 1BC03 1BC4E E000::[uniE000.bound@0,0|u1BC03.t@195,0|u1BC47.e.0n180@695,-200|dupl.Line.90.rel2._1@935,-188|uniE000.bound@1055,0|_@1130,0]
+E000 1BC02 1BC4E E000::[uniE000.bound@0,0|u1BC02.p@395,0|u1BC47.e.270n90@395,-100|dupl.Line.0.rel2@207,-240|uniE000.bound@515,0|_@590,0]
+E000 1BC03 1BC4E E000::[uniE000.bound@0,0|u1BC03.t@195,0|u1BC47.e.0n180@695,-200|dupl.Line.90.rel2@935,-188|uniE000.bound@1055,0|_@1130,0]
 E000 1BC04 1BC4E E000::[uniE000.bound@0,0|u1BC04.f@195,0|u1BC47.e.300n120@483,-150|dupl.Line.30.rel2@440,-302|uniE000.bound@712,0|_@787,0]
 E000 1BC05 1BC4E E000::[uniE000.bound@0,0|u1BC05.k@766,0|u1BC47.e.240n60@478,-50|dupl.Line.150.rel2@347,-202|uniE000.bound@886,0|_@961,0]
 E000 1BC06 1BC4E E000::[uniE000.bound@0,0|u1BC06.l@195,0|u1BC47.e.45n225@695,359|dupl.Line.135.rel2@997,537|uniE000.bound@1117,0|_@1192,0]

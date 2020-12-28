@@ -14,4 +14,4 @@
 # limitations under the License.
 
 E000 1BC02 200C 1BC03 E000::[uniE000.bound@0,0|u1BC02.p@195,0|uni200C.zwnj@315,0|u1BC03.t@435,0|uniE000.bound@1055,0|_@1130,0]
-E000 1BC02 200D 1BC46 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC46.i.270p90._1@195,-100|uniE000.bound@515,0|_@590,0]
+E000 1BC02 200D 1BC46 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC46.i.270p90@195,-100|uniE000.bound@515,0|_@590,0]
