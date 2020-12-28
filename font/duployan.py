@@ -770,6 +770,7 @@ class Line(Shape):
         minor=False,
         stretchy=True,
         secant=None,
+        secant_curvature_offset=45,
         dots=None,
         final_tick=False,
         tittle=None,
@@ -779,6 +780,7 @@ class Line(Shape):
         self.minor = minor
         self.stretchy = stretchy
         self.secant = secant
+        self.secant_curvature_offset = secant_curvature_offset
         self.dots = dots
         self.final_tick = final_tick
         self.tittle = tittle
@@ -791,6 +793,7 @@ class Line(Shape):
         minor=CLONE_DEFAULT,
         stretchy=CLONE_DEFAULT,
         secant=CLONE_DEFAULT,
+        secant_curvature_offset=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
         final_tick=CLONE_DEFAULT,
         tittle=CLONE_DEFAULT,
@@ -801,6 +804,7 @@ class Line(Shape):
             minor=self.minor if minor is CLONE_DEFAULT else minor,
             stretchy=self.stretchy if stretchy is CLONE_DEFAULT else stretchy,
             secant=self.secant if secant is CLONE_DEFAULT else secant,
+            secant_curvature_offset=self.secant_curvature_offset if secant_curvature_offset is CLONE_DEFAULT else secant_curvature_offset,
             dots=self.dots if dots is CLONE_DEFAULT else dots,
             final_tick=self.final_tick if final_tick is CLONE_DEFAULT else final_tick,
             tittle=self.tittle if tittle is CLONE_DEFAULT else tittle,
@@ -823,6 +827,7 @@ class Line(Shape):
             self.angle,
             self.stretchy,
             self.secant,
+            self.secant_curvature_offset,
             self.dots,
             self.final_tick,
             self.tittle,
@@ -926,7 +931,7 @@ class Line(Shape):
     def contextualize(self, context_in, context_out):
         if self.secant:
             if context_out != NO_CONTEXT:
-                return self.rotate_diacritic(context_out.angle, _curved=context_out.clockwise is not None)
+                return self.rotate_diacritic(context_out.angle, _clockwise=context_out.clockwise)
         else:
             if self.stretchy:
                 if context_out == Context(self.angle):
@@ -945,27 +950,31 @@ class Line(Shape):
         self,
         angle,
         *,
-        _curved=False,
+        _clockwise=None,
     ):
         if self.secant:
-            if _curved:
-                return self
+            minimum_da = 45
+            if _clockwise:
+                angle -= self.secant_curvature_offset
+            elif _clockwise is not None:
+                angle += self.secant_curvature_offset
+            else:
+                minimum_da = 30
             da = (self.angle % 180) - (angle % 180)
-            if da >= 90:
+            if da > 90:
                 da -= 180
             elif da < -90:
                 da += 180
-            minimum_da = 20
             if abs(da) >= minimum_da:
                 return self
             if da > 0:
                 new_da = minimum_da - da
             else:
                 new_da = -minimum_da - da
-            ltr = 90 < da
-            rtl = 0 < da < 90
-            new_ltr = 90 < new_da
-            new_rtl = 0 < new_da < 90
+            ltr = 90 < self.angle % 180
+            rtl = self.angle % 180 < 90
+            new_ltr = 90 < (self.angle + new_da) % 180
+            new_rtl = (self.angle + new_da) % 180 < 90
             if ltr != new_ltr and rtl != new_rtl:
                 if da > 0:
                     new_da = -minimum_da
@@ -4114,8 +4123,8 @@ RIGHT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=1 / 3)
 LOW_VERTICAL_SECANT = Line(90, stretchy=False, secant=2 / 3)
 MID_VERTICAL_SECANT = Line(90, stretchy=False, secant=0.5)
 HIGH_VERTICAL_SECANT = Line(90, stretchy=False, secant=1 / 3)
-RTL_SECANT = Line(240, stretchy=False, secant=0.5)
-LTR_SECANT = Line(330, stretchy=False, secant=0.5)
+RTL_SECANT = Line(240, stretchy=False, secant=0.5, secant_curvature_offset=55)
+LTR_SECANT = Line(310, stretchy=False, secant=0.5, secant_curvature_offset=55)
 TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
 TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 E_HOOK = Curve(90, 270, clockwise=True, hook=True)
