@@ -85,9 +85,9 @@ E000 1BC76 1BC09 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant@464,533|u1BC09.v@1
 E000 1BC76 1BC0A 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant.210@917,624|u1BC0A.g@844,0|u1BC76.secant.210@628,124|uniE000.bound@1037,0|_@1112,0]
 E000 1BC76 1BC0B 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant.255@510,8|u1BC0B.r@195,0|u1BC76.secant.255@1010,508|uniE000.bound@1315,0|_@1390,0]
 E000 1BC76 1BC19 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant.195@678,476|u1BC19.m@697,0|u1BC76.secant.240@562,-36|uniE000.bound@817,0|_@892,0]
-E000 1BC76 1BC1A 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant@580,324|u1BC1A.n@195,0|u1BC76.secant.240@580,-36|uniE000.bound@700,0|_@775,0]
+E000 1BC76 1BC1A 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant@580,324|u1BC1A.n@195,0|u1BC76.secant.195@696,116|uniE000.bound@816,0|_@891,0]
 E000 1BC76 1BC1B 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant.260@418,14|u1BC1B.j@195,0|u1BC76.secant.240@860,44|uniE000.bound@1035,0|_@1110,0]
-E000 1BC76 1BC1C 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant@500,-176|u1BC1C.s@195,0|u1BC76.secant.240@860,-176|uniE000.bound@1035,0|_@1110,0]
+E000 1BC76 1BC1C 1BC76 E000::[uniE000.bound@0,0|u1BC76.secant@500,-176|u1BC1C.s@195,0|u1BC76.secant.260@778,-206|uniE000.bound@1035,0|_@1110,0]
 
 # U+1BC77 DUPLOYAN AFFIX ATTACHED LEFT-TO-RIGHT SECANT
 E000 1BC77 1BC07 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@195,559|u1BC07.b@356,0|u1BC77.left_to_right_secant.310@195,59|uniE000.bound@636,0|_@711,0]
@@ -95,7 +95,7 @@ E000 1BC77 1BC08 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@284,
 E000 1BC77 1BC09 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant.330@195,624|u1BC09.v@268,0|u1BC77.left_to_right_secant.330@484,124|uniE000.bound@1037,0|_@1112,0]
 E000 1BC77 1BC0A 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@484,558|u1BC0A.g@789,0|u1BC77.left_to_right_secant.310@195,58|uniE000.bound@925,0|_@1000,0]
 E000 1BC77 1BC0B 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@284,59|u1BC0B.r@195,0|u1BC77.left_to_right_secant.310@784,559|uniE000.bound@1315,0|_@1390,0]
-E000 1BC77 1BC19 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@195,349|u1BC19.m@616,0|u1BC77.left_to_right_secant.310@195,-11|uniE000.bound@736,0|_@811,0]
+E000 1BC77 1BC19 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@280,349|u1BC19.m@701,0|u1BC77.left_to_right_secant.350@195,136|uniE000.bound@821,0|_@896,0]
 E000 1BC77 1BC1A 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant.350@209,496|u1BC1A.n@195,0|u1BC77.left_to_right_secant.310@294,-11|uniE000.bound@821,0|_@896,0]
-E000 1BC77 1BC1B 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@214,69|u1BC1B.j@195,0|u1BC77.left_to_right_secant.310@574,69|uniE000.bound@1035,0|_@1110,0]
+E000 1BC77 1BC1B 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant@214,69|u1BC1B.j@195,0|u1BC77.left_to_right_secant.280@692,14|uniE000.bound@1035,0|_@1110,0]
 E000 1BC77 1BC1C 1BC77 E000::[uniE000.bound@0,0|u1BC77.left_to_right_secant.280@332,-206|u1BC1C.s@195,0|u1BC77.left_to_right_secant.310@574,-151|uniE000.bound@1035,0|_@1110,0]

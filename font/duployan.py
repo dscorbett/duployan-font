@@ -931,7 +931,7 @@ class Line(Shape):
     def contextualize(self, context_in, context_out):
         if self.secant:
             if context_out != NO_CONTEXT:
-                return self.rotate_diacritic(context_out.angle, _clockwise=context_out.clockwise)
+                return self.rotate_diacritic(context_out)
         else:
             if self.stretchy:
                 if context_out == Context(self.angle):
@@ -946,17 +946,14 @@ class Line(Shape):
     def context_out(self):
         return Context(self.angle, minor=self.minor)
 
-    def rotate_diacritic(
-        self,
-        angle,
-        *,
-        _clockwise=None,
-    ):
+    def rotate_diacritic(self, context):
+        angle = context.angle
         if self.secant:
             minimum_da = 45
-            if _clockwise:
+            clockwise = context.clockwise
+            if clockwise:
                 angle -= self.secant_curvature_offset
-            elif _clockwise is not None:
+            elif clockwise is not None:
                 angle += self.secant_curvature_offset
             else:
                 minimum_da = 30
@@ -1303,6 +1300,7 @@ class Curve(Shape):
             RELATIVE_1_ANCHOR: halfway_angle,
             RELATIVE_2_ANCHOR: halfway_angle,
             MIDDLE_ANCHOR: (halfway_angle + 90) % 180,
+            SECANT_ANCHOR: self.angle_out % 180,
         }
 
     def reversed(self):
@@ -2119,11 +2117,12 @@ class Schema:
             return context_out.clone(minor=True)
         return context_out
 
-    def rotate_diacritic(self, angle):
+    def rotate_diacritic(self, context):
         return self.clone(
             cmap=None,
-            path=self.path.rotate_diacritic(angle),
-            base_angle=angle)
+            path=self.path.rotate_diacritic(context),
+            base_angle=context.angle,
+        )
 
 class FreezableList:
     def __init__(self):
@@ -2454,7 +2453,16 @@ def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookup
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             if schema in original_schemas:
-                add_rule(lookup, Rule(['base'], [schema], [], [schema.clone(cmap=None, anchor=SECANT_ANCHOR)]))
+                add_rule(lookup, Rule(
+                    ['base'],
+                    [schema],
+                    [],
+                    [schema.clone(
+                        cmap=None,
+                        path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
+                        anchor=SECANT_ANCHOR,
+                    )],
+                ))
                 classes['secant'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
             classes['base'].append(schema)
@@ -3021,8 +3029,8 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
         mark_filtering_set='all',
         reversed=True,
     )
-    base_contexts = OrderedSet()
-    new_base_contexts = set()
+    base_anchors_and_contexts = OrderedSet()
+    new_base_anchors_and_contexts = set()
     for schema in original_schemas:
         if schema.anchor:
             if (schema.joining_type == Type.ORIENTING
@@ -3031,23 +3039,25 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
                 classes['all'].append(schema)
                 classes[f'i_{schema.anchor}'].append(schema)
         elif not schema.ignored_for_topography:
-            for base_context in schema.diacritic_angles.items():
-                base_contexts.add(base_context)
-                if schema not in (base_context_class := classes['c_{}_{}'.format(*base_context)]):
-                    if not base_context_class:
-                        new_base_contexts.add(base_context)
-                    base_context_class.append(schema)
+            for base_anchor, base_angle in schema.diacritic_angles.items():
+                base_context = Context(base_angle, schema.path.context_out().clockwise)
+                base_anchor_and_context = (base_anchor, base_context)
+                base_anchors_and_contexts.add(base_anchor_and_context)
+                if schema not in (base_anchor_and_context_class := classes[f'c_{base_anchor}_{base_context}']):
+                    if not base_anchor_and_context_class:
+                        new_base_anchors_and_contexts.add(base_anchor_and_context)
+                    base_anchor_and_context_class.append(schema)
                     if schema.glyph_class == GlyphClass.MARK:
                         classes['all'].append(schema)
-    for base_context in base_contexts:
-        if base_context in new_base_contexts:
-            anchor, angle = base_context
-            output_class_name = f'o_{anchor}_{angle}'
+    for base_anchor_and_context in base_anchors_and_contexts:
+        if base_anchor_and_context in new_base_anchors_and_contexts:
+            anchor, context = base_anchor_and_context
+            output_class_name = f'o_{anchor}_{context}'
             for target_schema in classes[f'i_{anchor}']:
                 if anchor == target_schema.anchor:
-                    output_schema = target_schema.rotate_diacritic(angle)
+                    output_schema = target_schema.rotate_diacritic(context)
                     classes[output_class_name].append(output_schema)
-            add_rule(lookup, Rule(f'c_{anchor}_{angle}', f'i_{anchor}', [], output_class_name))
+            add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
     return [lookup]
 
 def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
