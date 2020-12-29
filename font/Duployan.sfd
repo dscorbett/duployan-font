@@ -1,4 +1,4 @@
-SplineFontDB: 3.0
+SplineFontDB: 3.2
 FontName: Duployan
 FullName: Duployan
 FamilyName: Duployan
@@ -20,7 +20,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1523136075
-ModificationTime: 1593722431
+ModificationTime: 1609206602
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -41,22 +41,20 @@ HheadAOffset: 1
 HheadDescent: 0
 HheadDOffset: 1
 OS2Vendor: '    '
-Lookup: 260 0 0 "'mark' absolutely positioned marks" { "'mark' absolutely positioned marks-1"  "'mark' absolutely positioned marks-2"  } ['mark' ('DFLT' <'dflt' > 'dupl' <'dflt' > ) ]
 MarkAttachClasses: 1
 DEI: 91125
 LangName: 1033 "" "" "" "" "" "" "" "" "David Corbett" "David Corbett" "" "" "" "Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).+AAoA-Copyright (c) 2018-2020, Google LLC.+AAoACgAA-This Font Software is licensed under the SIL Open Font License, Version 1.1.+AAoA-This license is copied below, and is also available with a FAQ at:+AAoA-http://scripts.sil.org/OFL+AAoACgAK------------------------------------------------------------+AAoA-SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007+AAoA------------------------------------------------------------+AAoACgAA-PREAMBLE+AAoA-The goals of the Open Font License (OFL) are to stimulate worldwide+AAoA-development of collaborative font projects, to support the font creation+AAoA-efforts of academic and linguistic communities, and to provide a free and+AAoA-open framework in which fonts may be shared and improved in partnership+AAoA-with others.+AAoACgAA-The OFL allows the licensed fonts to be used, studied, modified and+AAoA-redistributed freely as long as they are not sold by themselves. The+AAoA-fonts, including any derivative works, can be bundled, embedded, +AAoA-redistributed and/or sold with any software provided that any reserved+AAoA-names are not used by derivative works. The fonts and derivatives,+AAoA-however, cannot be released under any other type of license. The+AAoA-requirement for fonts to remain under this license does not apply+AAoA-to any document created using the fonts or their derivatives.+AAoACgAA-DEFINITIONS+AAoAIgAA-Font Software+ACIA refers to the set of files released by the Copyright+AAoA-Holder(s) under this license and clearly marked as such. This may+AAoA-include source files, build scripts and documentation.+AAoACgAi-Reserved Font Name+ACIA refers to any names specified as such after the+AAoA-copyright statement(s).+AAoACgAi-Original Version+ACIA refers to the collection of Font Software components as+AAoA-distributed by the Copyright Holder(s).+AAoACgAi-Modified Version+ACIA refers to any derivative made by adding to, deleting,+AAoA-or substituting -- in part or in whole -- any of the components of the+AAoA-Original Version, by changing formats or by porting the Font Software to a+AAoA-new environment.+AAoACgAi-Author+ACIA refers to any designer, engineer, programmer, technical+AAoA-writer or other person who contributed to the Font Software.+AAoACgAA-PERMISSION & CONDITIONS+AAoA-Permission is hereby granted, free of charge, to any person obtaining+AAoA-a copy of the Font Software, to use, study, copy, merge, embed, modify,+AAoA-redistribute, and sell modified and unmodified copies of the Font+AAoA-Software, subject to the following conditions:+AAoACgAA-1) Neither the Font Software nor any of its individual components,+AAoA-in Original or Modified Versions, may be sold by itself.+AAoACgAA-2) Original or Modified Versions of the Font Software may be bundled,+AAoA-redistributed and/or sold with any software, provided that each copy+AAoA-contains the above copyright notice and this license. These can be+AAoA-included either as stand-alone text files, human-readable headers or+AAoA-in the appropriate machine-readable metadata fields within text or+AAoA-binary files as long as those fields can be easily viewed by the user.+AAoACgAA-3) No Modified Version of the Font Software may use the Reserved Font+AAoA-Name(s) unless explicit written permission is granted by the corresponding+AAoA-Copyright Holder. This restriction only applies to the primary font name as+AAoA-presented to the users.+AAoACgAA-4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font+AAoA-Software shall not be used to promote, endorse or advertise any+AAoA-Modified Version, except to acknowledge the contribution(s) of the+AAoA-Copyright Holder(s) and the Author(s) or with their explicit written+AAoA-permission.+AAoACgAA-5) The Font Software, modified or unmodified, in part or in whole,+AAoA-must be distributed entirely under this license, and must not be+AAoA-distributed under any other license. The requirement for fonts to+AAoA-remain under this license does not apply to any document created+AAoA-using the Font Software.+AAoACgAA-TERMINATION+AAoA-This license becomes null and void if any of the above conditions are+AAoA-not met.+AAoACgAA-DISCLAIMER+AAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND,+AAoA-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF+AAoA-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT+AAoA-OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE+AAoA-COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,+AAoA-INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL+AAoA-DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING+AAoA-FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM+AAoA-OTHER DEALINGS IN THE FONT SOFTWARE." "http://scripts.sil.org/OFL"
 Encoding: UnicodeFull
 UnicodeInterp: none
 NameList: AGL For New Fonts
-DisplaySize: -36
+DisplaySize: -48
 AntiAlias: 1
 FitToEm: 0
 WinInfo: 16 16 8
 BeginPrivate: 0
 EndPrivate
 TeXData: 1 0 0 272629 136314 90876 0 1048576 90876 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-AnchorClass2: "above" "'mark' absolutely positioned marks-1" "below" "'mark' absolutely positioned marks-2"
-BeginChars: 1114113 52
+BeginChars: 1114113 43
 
 StartChar: uni0000
 Encoding: 0 0 0
@@ -461,126 +459,10 @@ SplineSet
 EndSplineSet
 EndChar
 
-StartChar: gravecomb
-Encoding: 768 768 18
-Width: 0
-Flags: HW
-AnchorPoint: "above" -363 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
--388 766 m 1
- -366 721 -323 655 -292 618 c 1
- -292 606 l 1
- -351 606 l 1
- -397 642 -470 719 -493 756 c 1
- -493 766 l 1
- -388 766 l 1
-EndSplineSet
-EndChar
-
-StartChar: acutecomb
-Encoding: 769 769 19
-Width: 0
-Flags: HW
-AnchorPoint: "above" -272 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
--124 766 m 1
- -124 756 l 1
- -149 719 -220 642 -267 606 c 1
- -325 606 l 1
- -325 618 l 1
- -296 655 -253 721 -230 766 c 1
- -124 766 l 1
-EndSplineSet
-EndChar
-
-StartChar: uni0324
-Encoding: 804 804 20
-Width: 0
-Flags: HW
-AnchorPoint: "below" -1 0 mark 0
-LayerCount: 2
-Fore
-SplineSet
--141 -125 m 0
- -141 -90 -120 -76 -94 -76 c 0
- -69 -76 -47 -90 -47 -125 c 0
- -47 -159 -69 -175 -94 -175 c 0
- -120 -175 -141 -159 -141 -125 c 0
-47 -125 m 0
- 47 -90 68 -76 93 -76 c 0
- 118 -76 140 -90 140 -125 c 0
- 140 -159 118 -175 93 -175 c 0
- 68 -175 47 -159 47 -125 c 0
-EndSplineSet
-EndChar
-
-StartChar: uni0317
-Encoding: 791 791 21
-Width: 0
-Flags: HW
-AnchorPoint: "below" 1 0 mark 0
-LayerCount: 2
-Fore
-SplineSet
-101 -44 m 1
- 101 -54 l 1
- 76 -91 5 -168 -42 -204 c 1
- -100 -204 l 1
- -100 -192 l 1
- -71 -155 -28 -89 -5 -44 c 1
- 101 -44 l 1
-EndSplineSet
-EndChar
-
-StartChar: uni0316
-Encoding: 790 790 22
-Width: 0
-Flags: HW
-AnchorPoint: "below" 1 0 mark 0
-LayerCount: 2
-Fore
-SplineSet
-5 -44 m 1
- 27 -89 70 -155 101 -192 c 1
- 101 -204 l 1
- 42 -204 l 1
- -4 -168 -77 -91 -100 -54 c 1
- -100 -44 l 1
- 5 -44 l 1
-EndSplineSet
-EndChar
-
-StartChar: uni0308
-Encoding: 776 776 23
-Width: 0
-Flags: HW
-AnchorPoint: "above" -1 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
--141 681 m 0
- -141 716 -120 730 -94 730 c 0
- -69 730 -47 716 -47 681 c 0
- -47 647 -69 631 -94 631 c 0
- -120 631 -141 647 -141 681 c 0
-47 681 m 0
- 47 716 68 730 93 730 c 0
- 118 730 140 716 140 681 c 0
- 140 647 118 631 93 631 c 0
- 68 631 47 647 47 681 c 0
-EndSplineSet
-EndChar
-
 StartChar: uni25CC
-Encoding: 9676 9676 24
+Encoding: 9676 9676 18
 Width: 594
 Flags: HW
-AnchorPoint: "below" 297 42 basechar 0
-AnchorPoint: "above" 297 540 basechar 0
 LayerCount: 2
 Fore
 SplineSet
@@ -668,7 +550,7 @@ EndSplineSet
 EndChar
 
 StartChar: .notdef
-Encoding: 1114112 -1 25
+Encoding: 1114112 -1 19
 Width: 600
 Flags: HW
 LayerCount: 2
@@ -688,7 +570,7 @@ EndSplineSet
 EndChar
 
 StartChar: exclam
-Encoding: 33 33 26
+Encoding: 33 33 20
 Width: 269
 Flags: HW
 LayerCount: 2
@@ -708,7 +590,7 @@ EndSplineSet
 EndChar
 
 StartChar: dollar
-Encoding: 36 36 27
+Encoding: 36 36 21
 Width: 572
 Flags: HW
 LayerCount: 2
@@ -745,7 +627,7 @@ EndSplineSet
 EndChar
 
 StartChar: parenleft
-Encoding: 40 40 28
+Encoding: 40 40 22
 Width: 300
 Flags: HW
 LayerCount: 2
@@ -762,7 +644,7 @@ EndSplineSet
 EndChar
 
 StartChar: parenright
-Encoding: 41 41 29
+Encoding: 41 41 23
 Width: 300
 Flags: HW
 LayerCount: 2
@@ -779,7 +661,7 @@ EndSplineSet
 EndChar
 
 StartChar: asterisk
-Encoding: 42 42 30
+Encoding: 42 42 24
 Width: 551
 Flags: HW
 LayerCount: 2
@@ -805,7 +687,7 @@ EndSplineSet
 EndChar
 
 StartChar: comma
-Encoding: 44 44 31
+Encoding: 44 44 25
 Width: 268
 Flags: HW
 LayerCount: 2
@@ -821,7 +703,7 @@ EndSplineSet
 EndChar
 
 StartChar: slash
-Encoding: 47 47 32
+Encoding: 47 47 26
 Width: 372
 Flags: HW
 LayerCount: 2
@@ -836,7 +718,7 @@ EndSplineSet
 EndChar
 
 StartChar: colon
-Encoding: 58 58 33
+Encoding: 58 58 27
 Width: 268
 Flags: HW
 LayerCount: 2
@@ -856,7 +738,7 @@ EndSplineSet
 EndChar
 
 StartChar: semicolon
-Encoding: 59 59 34
+Encoding: 59 59 28
 Width: 268
 Flags: HW
 LayerCount: 2
@@ -877,7 +759,7 @@ EndSplineSet
 EndChar
 
 StartChar: guillemotleft
-Encoding: 171 171 35
+Encoding: 171 171 29
 Width: 509
 Flags: HW
 LayerCount: 2
@@ -903,7 +785,7 @@ EndSplineSet
 EndChar
 
 StartChar: guillemotright
-Encoding: 187 187 36
+Encoding: 187 187 30
 Width: 509
 Flags: HW
 LayerCount: 2
@@ -928,68 +810,8 @@ SplineSet
 EndSplineSet
 EndChar
 
-StartChar: uni0302
-Encoding: 770 770 37
-Width: 0
-Flags: HW
-AnchorPoint: "above" 2 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
-46 766 m 1
- 70 721 133 655 171 617 c 1
- 171 606 l 1
- 109 606 l 1
- 74 627 36 660 0 696 c 1
- -36 660 -72 628 -107 606 c 1
- -167 606 l 1
- -167 617 l 1
- -130 656 -70 721 -44 766 c 1
- 46 766 l 1
-EndSplineSet
-EndChar
-
-StartChar: uni0306
-Encoding: 774 774 38
-Width: 0
-Flags: HW
-AnchorPoint: "above" 1 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
-156 740 m 1
- 149 660 94 606 -2 606 c 0
- -101 606 -150 658 -155 740 c 1
- -101 740 l 1
- -95 685 -61 677 0 677 c 0
- 52 677 94 688 101 740 c 1
- 156 740 l 1
-EndSplineSet
-EndChar
-
-StartChar: uni030C
-Encoding: 780 780 39
-Width: 0
-Flags: HW
-AnchorPoint: "above" 0 536 mark 0
-LayerCount: 2
-Fore
-SplineSet
--46 606 m 1
- -72 651 -133 715 -169 753 c 1
- -169 766 l 1
- -109 766 l 1
- -74 743 -35 710 -2 674 c 1
- 34 710 72 743 107 766 c 1
- 169 766 l 1
- 169 753 l 1
- 131 715 68 651 44 606 c 1
- -46 606 l 1
-EndSplineSet
-EndChar
-
 StartChar: quotedblleft
-Encoding: 8220 8220 40
+Encoding: 8220 8220 31
 Width: 359
 Flags: HW
 LayerCount: 2
@@ -1011,7 +833,7 @@ EndSplineSet
 EndChar
 
 StartChar: quotedblright
-Encoding: 8221 8221 41
+Encoding: 8221 8221 32
 Width: 359
 Flags: HW
 LayerCount: 2
@@ -1033,7 +855,7 @@ EndSplineSet
 EndChar
 
 StartChar: quotedblbase
-Encoding: 8222 8222 42
+Encoding: 8222 8222 33
 Width: 416
 Flags: HW
 LayerCount: 2
@@ -1055,7 +877,7 @@ EndSplineSet
 EndChar
 
 StartChar: ellipsis
-Encoding: 8230 8230 43
+Encoding: 8230 8230 34
 Width: 791
 Flags: HW
 LayerCount: 2
@@ -1080,7 +902,7 @@ EndSplineSet
 EndChar
 
 StartChar: uni211F
-Encoding: 8479 8479 44
+Encoding: 8479 8479 35
 Width: 596
 Flags: HW
 LayerCount: 2
@@ -1121,7 +943,7 @@ EndSplineSet
 EndChar
 
 StartChar: uni2123
-Encoding: 8483 8483 45
+Encoding: 8483 8483 36
 Width: 606
 Flags: HW
 LayerCount: 2
@@ -1150,7 +972,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA3
-Encoding: 113827 113827 46
+Encoding: 113827 113827 37
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1259,7 +1081,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA2
-Encoding: 113826 113826 47
+Encoding: 113826 113826 38
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1368,7 +1190,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA0
-Encoding: 113824 113824 48
+Encoding: 113824 113824 39
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1489,7 +1311,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA1
-Encoding: 113825 113825 49
+Encoding: 113825 113825 40
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1612,7 +1434,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BC9D
-Encoding: 113821 113821 50
+Encoding: 113821 113821 41
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1751,7 +1573,7 @@ EndSplineSet
 EndChar
 
 StartChar: uniE000
-Encoding: 57344 57344 51
+Encoding: 57344 57344 42
 Width: 75
 Flags: HW
 LayerCount: 2

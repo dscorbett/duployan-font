@@ -1105,7 +1105,6 @@ class Curve(Shape):
         return size >= 6
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
             angle_out -= 360
@@ -1131,36 +1130,41 @@ class Curve(Shape):
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         anchor_name = mkmk if child else lambda a: a
-        base = 'basemark' if child else 'base'
-        if joining_type != Type.NON_JOINING:
-            max_tree_width = self.max_tree_width(size)
-            child_interval = da / (max_tree_width + 2)
-            for child_index in range(max_tree_width):
-                glyph.addAnchorPoint(
-                    CHILD_EDGE_ANCHORS[int(child)][child_index],
-                    base,
-                    *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
-                )
-            if child:
-                glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(a1 + child_interval)))
-            else:
-                glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
-                glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-                glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
-                if self.can_be_hub(size):
-                    glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+        if not anchor:
+            base = 'basemark' if child else 'base'
+            if joining_type != Type.NON_JOINING:
+                max_tree_width = self.max_tree_width(size)
+                child_interval = da / (max_tree_width + 2)
+                for child_index in range(max_tree_width):
+                    glyph.addAnchorPoint(
+                        CHILD_EDGE_ANCHORS[int(child)][child_index],
+                        base,
+                        *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
+                    )
+                if child:
+                    glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(a1 + child_interval)))
                 else:
-                    glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-                glyph.addAnchorPoint(
-                    anchor_name(SECANT_ANCHOR),
-                    base,
-                    *rect(0,0)
-                        if abs(da) > 180
-                        else rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
-                )
-        glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+                    glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
+                    if self.can_be_hub(size):
+                        glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    else:
+                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+                    glyph.addAnchorPoint(
+                        anchor_name(SECANT_ANCHOR),
+                        base,
+                        *rect(0,0)
+                            if abs(da) > 180
+                            else rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
+                    )
+        glyph.addAnchorPoint(
+            anchor_name(anchor or MIDDLE_ANCHOR),
+            'mark' if anchor else base,
+            *rect(r, math.radians(relative_mark_angle),
+        ))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
             glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
@@ -1170,15 +1174,17 @@ class Curve(Shape):
             if self.long:
                 scale_x, scale_y = scale_y, scale_x
             theta = math.radians(self.angle_in % 180)
-            glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
+            if not anchor:
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
             glyph.transform(
                 fontTools.misc.transform.Identity
                     .rotate(theta)
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
-        else:
+            if not anchor:
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
+        elif not anchor:
             glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
                 *(rect(0, 0) if abs(da) > 180 else rect(
                     min(stroke_width, r - (stroke_width + LIGHT_LINE)),
@@ -4076,7 +4082,11 @@ MARKER_PHASES = [
 ]
 
 SPACE = Space(0)
+GRAVE = Line(150, stretchy=False)
+ACUTE = Line(45, stretchy=False)
 MACRON = Line(0, stretchy=False)
+BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
+DIAERESIS = Line(0, stretchy=False, dots=2)
 H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -4176,9 +4186,16 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
+    Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0304, MACRON, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x0306, BREVE, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
+    Schema(0x0308, DIAERESIS, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x0316, GRAVE, 0.2, anchor=BELOW_ANCHOR),
+    Schema(0x0317, ACUTE, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
+    Schema(0x0324, DIAERESIS, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x2007, SPACE, 572, side_bearing=572),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
