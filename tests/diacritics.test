@@ -14,10 +14,12 @@
 
 E000 1BC46 0300 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0300.grave@338,315|uniE000.bound@458,0|_@533,0]
 E000 1BC46 0301 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0301.acute@260,305|uniE000.bound@451,0|_@526,0]
+E000 1BC46 0302 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0302.circumflex@84,340|uniE000.bound@506,0|_@581,0]
 E000 1BC46 0304 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0304.macron@245,340|uniE000.bound@465,0|_@540,0]
 E000 1BC46 0306 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0306.breve@295,340|uniE000.bound@475,0|_@550,0]
 E000 1BC46 0307 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0307.dot_above@295,340|uniE000.bound@415,0|_@490,0]
 E000 1BC46 0308 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0308.diaeresis@245,340|uniE000.bound@465,0|_@540,0]
+E000 1BC46 030C E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni030C.caron@84,340|uniE000.bound@506,0|_@581,0]
 E000 1BC46 0316 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0316.grave_below@338,-165|uniE000.bound@458,0|_@533,0]
 E000 1BC46 0317 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0317.acute_below@260,-175|uniE000.bound@451,0|_@526,0]
 E000 1BC46 0323 E000::[uniE000.bound@0,0|u1BC46.i@295,0|uni0323.dot_below@295,-140|uniE000.bound@415,0|_@490,0]

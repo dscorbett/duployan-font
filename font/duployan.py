@@ -1130,7 +1130,10 @@ class Curve(Shape):
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         anchor_name = mkmk if child else lambda a: a
-        if not anchor:
+        if anchor:
+            glyph.addAnchorPoint(anchor, 'mark', *rect(r, math.radians(relative_mark_angle)))
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(r, math.radians(relative_mark_angle)))
+        else:
             base = 'basemark' if child else 'base'
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
@@ -1160,11 +1163,7 @@ class Curve(Shape):
                             if abs(da) > 180
                             else rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
                     )
-        glyph.addAnchorPoint(
-            anchor_name(anchor or MIDDLE_ANCHOR),
-            'mark' if anchor else base,
-            *rect(r, math.radians(relative_mark_angle),
-        ))
+            glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
         if joining_type == Type.ORIENTING:
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
             glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
@@ -1635,7 +1634,7 @@ class Complex(Shape):
             py = asy + ady * u
             return px, py
 
-    def draw_to_proxy(self, pen, stroke_width, size, anchor):
+    def draw_to_proxy(self, pen, stroke_width, size):
         first_is_invisible = None
         first_entry = None
         last_exit = None
@@ -1646,7 +1645,7 @@ class Complex(Shape):
                 continue
             scalar, component = op
             proxy = Complex.Proxy()
-            component.draw(proxy, proxy, stroke_width, scalar * size, anchor, Type.JOINING, False)
+            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False)
             entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
             assert len(entry_list) == 1
             if first_is_invisible is None:
@@ -1696,7 +1695,7 @@ class Complex(Shape):
             first_entry,
             last_exit,
             last_rel1,
-        ) = self.draw_to_proxy(pen, stroke_width, size, anchor)
+        ) = self.draw_to_proxy(pen, stroke_width, size)
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
         if joining_type != Type.NON_JOINING:
@@ -1706,10 +1705,20 @@ class Complex(Shape):
                 glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *first_entry)
             else:
                 glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *last_exit)
-        glyph.addAnchorPoint(RELATIVE_1_ANCHOR, 'base', *last_rel1)
+        anchor_name = mkmk if anchor or child else lambda a: a
+        base = 'basemark' if anchor or child else 'base'
+        if anchor is None:
+            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, base, *last_rel1)
         x_min, y_min, x_max, y_max = glyph.boundingBox()
-        glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', (x_max + x_min) / 2, y_max + stroke_width + LIGHT_LINE)
-        glyph.addAnchorPoint(BELOW_ANCHOR, 'base', (x_max + x_min) / 2, y_min - stroke_width + LIGHT_LINE)
+        x_center = (x_max + x_min) / 2
+        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_width + LIGHT_LINE)
+        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - stroke_width - LIGHT_LINE)
+        if anchor == ABOVE_ANCHOR:
+            glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_min + stroke_width / 2)
+        elif anchor == BELOW_ANCHOR:
+            glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
         return first_is_invisible
 
     def can_be_child(self):
@@ -1787,13 +1796,13 @@ class Complex(Shape):
         return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
 class RomanianU(Complex):
-    def draw_to_proxy(self, pen, stroke_width, size, anchor):
+    def draw_to_proxy(self, pen, stroke_width, size):
         (
             first_is_invisible,
             first_entry,
             last_exit,
             last_rel1,
-        ) = super().draw_to_proxy(pen, stroke_width, size, anchor)
+        ) = super().draw_to_proxy(pen, stroke_width, size)
         return (
             first_is_invisible,
             first_entry,
@@ -4084,9 +4093,11 @@ MARKER_PHASES = [
 SPACE = Space(0)
 GRAVE = Line(150, stretchy=False)
 ACUTE = Line(45, stretchy=False)
+CIRCUMFLEX = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
 MACRON = Line(0, stretchy=False)
 BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
 DIAERESIS = Line(0, stretchy=False, dots=2)
+CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
 H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -4188,10 +4199,12 @@ SCHEMAS = [
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x0302, CIRCUMFLEX, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
     Schema(0x0304, MACRON, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0306, BREVE, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
     Schema(0x0308, DIAERESIS, 0.2, anchor=ABOVE_ANCHOR),
+    Schema(0x030C, CARON, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
     Schema(0x0316, GRAVE, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x0317, ACUTE, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
