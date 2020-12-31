@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import json
 import os
 import re
@@ -39,13 +40,12 @@ def parse_json(s):
         y += int(glyph['ay'])
     yield f'_@{x},{y}'
 
-def run_test(line, png_file):
-    global FONT
+def run_test(font, line, png_file, view_all):
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         [
             'hb-shape',
-            FONT,
+            font,
             '-u',
             code_points,
             '-O',
@@ -58,19 +58,20 @@ def run_test(line, png_file):
     p.wait()
     print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
     actual_output = f'[{"|".join(parse_json(p.stdout.read().decode("utf-8")))}]'
-    if actual_output != expected_output:
-        print()
-        print('Actual:   ' + actual_output)
-        print('Expected: ' + expected_output)
+    passed = actual_output == expected_output
+    if not passed or view_all:
+        if not passed:
+            print()
+            print('Actual:   ' + actual_output)
+            print('Expected: ' + expected_output)
         if os.getenv('CI') != 'true':
-            if not os.path.exists(png_dir := os.path.dirname(png_file)):
-                os.makedirs(png_dir)
+            os.makedirs(os.path.dirname(png_file), exist_ok=True)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
             p = subprocess.Popen(
                 [
                     'hb-view',
                     '--font-file',
-                    FONT,
+                    font,
                     '--font-size',
                     'upem',
                     '-u',
@@ -88,19 +89,18 @@ def run_test(line, png_file):
                 stdout=subprocess.PIPE)
             p.wait()
             print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    return (actual_output == expected_output,
-        ':'.join([code_points, options, actual_output]))
+    return (passed, ':'.join([code_points, options, actual_output]))
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('Usage: {} font tests...'.format(sys.argv[0]))
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Run shaping tests.')
+    parser.add_argument('--view', action='store_true', help='Render all test cases, not just the failures.')
+    parser.add_argument('font', help='The path to a font.')
+    parser.add_argument('tests', nargs='*', help='The paths to test files.')
+    args = parser.parse_args()
     passed_all = True
     failed_dir = os.path.join(os.path.dirname(sys.argv[0]), 'failed')
-    if not os.path.exists(failed_dir):
-        os.mkdir(failed_dir)
-    FONT = sys.argv[1]
-    for fn in sys.argv[2:]:
+    os.makedirs(failed_dir, exist_ok=True)
+    for fn in args.tests:
         result_lines = []
         passed_file = True
         with open(fn) as f:
@@ -108,10 +108,11 @@ if __name__ == '__main__':
                 line = line.rstrip()
                 if line and line[0] != '#':
                     passed_line, result_line = run_test(
+                        args.font,
                         line,
-                        os.path.join(
-                            os.path.join(failed_dir, 'png', os.path.basename(fn)),
-                            '{:03}'.format(line_number)))
+                        os.path.join(failed_dir, 'png', os.path.basename(fn), '{:03}'.format(line_number)),
+                        args.view,
+                    )
                     passed_file = passed_file and passed_line
                     result_lines.append(result_line + '\n')
                 else:
