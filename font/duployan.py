@@ -78,17 +78,6 @@ CURSIVE_ANCHORS = [
     CURSIVE_ANCHOR,
 ]
 ALL_ANCHORS = MARK_ANCHORS + CURSIVE_ANCHORS
-WIDTH_ANCHORS = [
-    # FIXME: This should be the same as `ALL_ANCHORS`, but that raises a
-    # `fontTools.ttLib.tables.otBase.OTLOffsetOverflowError`. The following
-    # anchors are the most important because their glyphs are the most
-    # likely to affect a stenogram’s width.
-    RELATIVE_2_ANCHOR,
-    MIDDLE_ANCHOR,
-    SECANT_ANCHOR,
-    CONTINUING_OVERLAP_ANCHOR,
-    CURSIVE_ANCHOR,
-]
 CLONE_DEFAULT = object()
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
@@ -3133,8 +3122,6 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             entry_xs = {}
             exit_xs = {}
             for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                if anchor_class_name in MARK_ANCHORS and anchor_class_name not in WIDTH_ANCHORS:
-                    x = 0
                 if type in ['entry', 'mark']:
                     entry_xs[anchor_class_name] = x
                 elif type in ['base', 'basemark', 'exit']:
@@ -3370,7 +3357,7 @@ def sum_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             original_anchor_digit_schemas,
             anchor_digit_schemas,
             AnchorWidthDigit,
-        ) for i, anchor in enumerate(ALL_ANCHORS) if anchor in WIDTH_ANCHORS], (
+        ) for i, anchor in enumerate(ALL_ANCHORS)], (
             False,
             0,
             0,
