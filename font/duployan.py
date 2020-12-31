@@ -1153,32 +1153,33 @@ class Curve(Shape):
                             else rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
                     )
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, *rect(r, math.radians(relative_mark_angle)))
-        if joining_type == Type.ORIENTING:
-            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(90)))
-            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(270)))
-        if self.stretch:
-            scale_x = 1.0
-            scale_y = 1.0 + self.stretch
-            if self.long:
-                scale_x, scale_y = scale_y, scale_x
-            theta = math.radians(self.angle_in % 180)
-            if not anchor:
+        if not anchor:
+            if self.stretch:
+                scale_x = 1.0
+                scale_y = 1.0 + self.stretch
+                if self.long:
+                    scale_x, scale_y = scale_y, scale_x
+                theta = math.radians(self.angle_in % 180)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
-            glyph.transform(
-                fontTools.misc.transform.Identity
-                    .rotate(theta)
-                    .scale(scale_x, scale_y)
-                    .rotate(-theta),
-            )
-            if not anchor:
+                glyph.transform(
+                    fontTools.misc.transform.Identity
+                        .rotate(theta)
+                        .scale(scale_x, scale_y)
+                        .rotate(-theta),
+                )
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
-        elif not anchor:
-            glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
-                *(rect(0, 0) if abs(da) > 180 else rect(
-                    min(stroke_width, r - (stroke_width + LIGHT_LINE)),
-                    math.radians(relative_mark_angle))))
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
+            else:
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
+                    *(rect(0, 0) if abs(da) > 180 else rect(
+                        min(stroke_width, r - (stroke_width + LIGHT_LINE)),
+                        math.radians(relative_mark_angle))))
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
+        if not anchor:
+            x_min, y_min, x_max, y_max = glyph.boundingBox()
+            x_center = (x_max + x_min) / 2
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
 
     def can_be_child(self):
         return True
@@ -1416,6 +1417,10 @@ class Circle(Shape):
         else:
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        x_center = (x_max + x_min) / 2
+        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
+        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
 
     def can_be_child(self):
         return True
@@ -1569,6 +1574,9 @@ class Complex(Shape):
 
         def stroke(self, *args):
             pass
+
+        def boundingBox(self):
+            return self.contour.boundingBox()
 
         def transform(self, matrix, *args):
             for anchor, points in self.anchor_points.items():
