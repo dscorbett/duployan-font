@@ -53,11 +53,12 @@ def run_test(font, line, png_file, view_all):
             '--remove-default-ignorables',
             *options.split(),
         ],
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-    p.wait()
-    print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    actual_output = f'[{"|".join(parse_json(p.stdout.read().decode("utf-8")))}]'
+    )
+    stdout_data, stderr_data = p.communicate()
+    print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
+    actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
     passed = actual_output == expected_output
     if not passed or view_all:
         if not passed:
