@@ -3211,6 +3211,7 @@ def add_end_markers_for_marks(original_schemas, schemas, new_schemas, classes, n
             and schema.glyph_class == GlyphClass.MARK
             and not schema.ignored_for_topography
             and not schema.path.invisible()
+            and not any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
         ):
             add_rule(lookup, Rule([schema], [schema, end]))
     return [lookup]
