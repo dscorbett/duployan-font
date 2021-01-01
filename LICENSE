@@ -11,7 +11,7 @@ License: Apache-2.0
 
 Files: font/Duployan.sfd
 Copyright: Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).
-  Copyright (c) 2018-2020, Google LLC.
+  Copyright (c) 2018-2021, Google LLC.
 License: OFL-1.1
 
 Files: font/fonttools_patches.py
