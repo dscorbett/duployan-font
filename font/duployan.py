@@ -1877,7 +1877,7 @@ class Schema:
             child=False,
             ignored_for_topography=False,
             anchor=None,
-            widthless=False,
+            widthless=None,
             marks=None,
             unignored=False,
             context_in=None,
@@ -2486,6 +2486,7 @@ def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookup
                         cmap=None,
                         path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
                         anchor=SECANT_ANCHOR,
+                        widthless=False,
                     )],
                 ))
                 classes['secant'].append(schema)
@@ -3093,7 +3094,7 @@ def make_widthless_variants_of_marks(original_schemas, schemas, new_schemas, cla
     first_iteration = 'i' not in classes
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.MARK:
-            if schema.anchor and not schema.widthless and not schema.path.invisible():
+            if schema.anchor and schema.widthless is None and not schema.path.invisible():
                 classes['i'].append(schema)
                 widthless_variant = schema.clone(cmap=None, widthless=True)
                 classes['o'].append(widthless_variant)
