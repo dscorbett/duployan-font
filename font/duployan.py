@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2019-2020 Google LLC
+# Copyright 2019-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -2657,6 +2657,9 @@ def invalidate_overlap_controls(original_schemas, schemas, new_schemas, classes,
 def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+    valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
+    dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
+    initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
     for schema in new_schemas:
         if (isinstance(schema.path, Line)
             and schema.path.secant
@@ -2664,11 +2667,11 @@ def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named
             and schema in original_schemas
         ):
             zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
-            guideline_angle = 90 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
+            guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
             guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
-            mark_variant = schema.clone(cmap=None, anchor=SECANT_ANCHOR)
-            add_rule(lookup, Rule([], [schema], [invalid_continuing_overlap], [zwnj, guideline]))
-            add_rule(lookup, Rule([guideline], [invalid_continuing_overlap], [], [mark_variant]))
+            add_rule(lookup, Rule([schema], [zwnj, schema]))
+            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
+            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [valid_continuing_overlap, guideline]))
     return [lookup]
 
 def categorize_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
