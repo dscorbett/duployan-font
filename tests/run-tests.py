@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2018-2019 David Corbett
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ def run_test(font, line, png_file, view_all):
                     '--font-size',
                     'upem',
                     '-u',
-                    code_points,
+                    f'E000 {code_points} E000',
                     '--remove-default-ignorables',
                     '-o',
                     png_file,

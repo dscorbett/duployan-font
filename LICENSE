@@ -1,6 +1,6 @@
 Files: *
 Copyright: Copyright 2018-2019 David Corbett
-  Copyright 2019-2020 Google LLC
+  Copyright 2019-2021 Google LLC
 License: Apache-2.0
 
 Files: font/build.py

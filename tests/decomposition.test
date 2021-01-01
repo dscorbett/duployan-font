@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-E000 1BC5A 1BC18 E000::[uniE000.bound@0,0|u1BC44.o.45p45@536,-59|dupl.Dot.rel1@395,141|u1BC0B.r@536,0|dupl.Dot.rel1@986,351|dupl.Dot.rel2@1184,549|uniE000.bound@1656,0|_@1731,0]
-E000 1BC03 1BC5A 1BC06 E000::[uniE000.bound@0,0|u1BC03.t@195,59|u1BC44.o.0n45@695,-341|dupl.Dot.rel1@695,-141|u1BC06.l@554,0|uniE000.bound@1174,0|_@1249,0]
+1BC5A 1BC18::[u1BC44.o.45p45@461,-59|dupl.Dot.rel1@320,141|u1BC0B.r@461,0|dupl.Dot.rel1@911,351|dupl.Dot.rel2@1109,549|_@1581,0]
+1BC03 1BC5A 1BC06::[u1BC03.t@120,59|u1BC44.o.0n45@620,-341|dupl.Dot.rel1@620,-141|u1BC06.l@479,0|_@1099,0]

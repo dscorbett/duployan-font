@@ -1,5 +1,5 @@
 # Copyright 2019 David Corbett
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-E000 1BCA2 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,-1575|uniE000.bound@315,0|_@390,0]
-E000 1BC02 1BCA2 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BCA2.down_step@315,0|uniE000.bound@1443,0|_@1518,0]
-E000 1BCA2 1BCA2 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,-2615|uniE000.bound@315,0|_@390,0]
-E000 1BC02 1BCA2 1BCA2 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BCA2.down_step@315,0|u1BCA2.down_step@1443,0|uniE000.bound@2571,0|_@2646,0]
+1BCA2 1BC02::[u1BC02.p@120,-1575|_@240,0]
+1BC02 1BCA2::[u1BC02.p@120,0|u1BCA2.down_step@240,0|_@1368,0]
+1BCA2 1BCA2 1BC02::[u1BC02.p@120,-2615|_@240,0]
+1BC02 1BCA2 1BCA2::[u1BC02.p@120,0|u1BCA2.down_step@240,0|u1BCA2.down_step@1368,0|_@2496,0]
 
-E000 1BCA3 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,505|uniE000.bound@315,0|_@390,0]
-E000 1BC02 1BCA3 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BCA3.up_step@315,0|uniE000.bound@1443,0|_@1518,0]
-E000 1BCA3 1BCA3 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,1545|uniE000.bound@315,0|_@390,0]
-E000 1BC02 1BCA3 1BCA3 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BCA3.up_step@315,0|u1BCA3.up_step@1443,0|uniE000.bound@2571,0|_@2646,0]
+1BCA3 1BC02::[u1BC02.p@120,505|_@240,0]
+1BC02 1BCA3::[u1BC02.p@120,0|u1BCA3.up_step@240,0|_@1368,0]
+1BCA3 1BCA3 1BC02::[u1BC02.p@120,1545|_@240,0]
+1BC02 1BCA3 1BCA3::[u1BC02.p@120,0|u1BCA3.up_step@240,0|u1BCA3.up_step@1368,0|_@2496,0]

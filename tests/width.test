@@ -1,5 +1,5 @@
 # Copyright 2019 David Corbett
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-E000 0020 E000::[uniE000.bound@0,0|space@75,0|uniE000.bound@335,0|_@410,0]
-E000 1BC00 1BC02 E000::[uniE000.bound@0,0|u1BC00.h@-45,500|u1BC02.p@435,0|uniE000.bound@555,0|_@630,0]
-E000 1BC02 1BC00 E000::[uniE000.bound@0,0|u1BC02.p@195,0|u1BC00.h@195,0|uniE000.bound@555,0|_@630,0]
-E000 1BC02 2007 1BC02 E000::[uniE000.bound@0,0|u1BC02.p@195,0|uni2007.figure_space@195,35|u1BC02.p@1007,-500|uniE000.bound@1127,0|_@1202,0]
-E000 1BC03 1BC0A EC03 E000::[uniE000.bound@0,0|u1BC03.t@772,999|u1BC0A.g@1272,0|uniEC03.reversed_t@695,0|uniE000.bound@1392,0|_@1467,0]
-E000 1BC03 1BC0A 1BC08 E000::[uniE000.bound@0,0|u1BC03.t@272,999|u1BC0A.g@772,0|u1BC08.d@195,0|uniE000.bound@1315,0|_@1390,0]
-E000 1BC1B E000::[uniE000.bound@0,0|u1BC1B.j@195,0|uniE000.bound@1035,0|_@1110,0]
+0020::[space@0,0|_@260,0]
+1BC00 1BC02::[u1BC00.h@-120,500|u1BC02.p@360,0|_@480,0]
+1BC02 1BC00::[u1BC02.p@120,0|u1BC00.h@120,0|_@480,0]
+1BC02 2007 1BC02::[u1BC02.p@120,0|uni2007.figure_space@120,35|u1BC02.p@932,-500|_@1052,0]
+1BC03 1BC0A EC03::[u1BC03.t@697,999|u1BC0A.g@1197,0|uniEC03.reversed_t@620,0|_@1317,0]
+1BC03 1BC0A 1BC08::[u1BC03.t@197,999|u1BC0A.g@697,0|u1BC08.d@120,0|_@1240,0]
+1BC1B::[u1BC1B.j@120,0|_@960,0]
 
 # U+1BC0D is wide enough that the trees below it have no effect on the
 # total width.
-E000 1BC0D E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|uniE000.bound@1815,0|_@1890,0]
-E000 1BC0D 1BCA0 1BC04 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC04.f.blws@1099,-333|uniE000.bound@1815,0|_@1890,0]
-E000 1BC0D 1BCA0 1BC05 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC05.k.blws@1291,-333|uniE000.bound@1815,0|_@1890,0]
-E000 1BC0D 1BCA1 1BC04 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC04.f@1099,-333|uniE000.bound@1815,0|_@1890,0]
-E000 1BC0D 1BCA1 1BC05 E000::[uniE000.bound@0,0|u1BC0D.d_s@195,0|u1BC05.k@1291,-333|uniE000.bound@1815,0|_@1890,0]
+1BC0D::[u1BC0D.d_s@120,0|_@1740,0]
+1BC0D 1BCA0 1BC04::[u1BC0D.d_s@120,0|u1BC04.f.blws@1024,-333|_@1740,0]
+1BC0D 1BCA0 1BC05::[u1BC0D.d_s@120,0|u1BC05.k.blws@1216,-333|_@1740,0]
+1BC0D 1BCA1 1BC04::[u1BC0D.d_s@120,0|u1BC04.f@1024,-333|_@1740,0]
+1BC0D 1BCA1 1BC05::[u1BC0D.d_s@120,0|u1BC05.k@1216,-333|_@1740,0]
 
 # If HarfBuzz’s `HB_BUFFER_MAX_OPS_FACTOR` is too low, later lookups
 # will not be applied.
-E000 1BC44 1BC03 1BC04 1BC44 1BC05 1BC04 1BC02 E000::[uniE000.bound@0,0|u1BC44.o.180n180@395,500|u1BC03.t@395,500|u1BC04.f@895,0|u1BC44.o.300p240@1183,-100|u1BC05.k@1183,-300|u1BC04.f@895,-800|u1BC02.p@1183,-1300|uniE000.bound@1676,0|_@1751,0]
+1BC44 1BC03 1BC04 1BC44 1BC05 1BC04 1BC02::[u1BC44.o.180n180@320,500|u1BC03.t@320,500|u1BC04.f@820,0|u1BC44.o.300p240@1108,-100|u1BC05.k@1108,-300|u1BC04.f@820,-800|u1BC02.p@1108,-1300|_@1601,0]

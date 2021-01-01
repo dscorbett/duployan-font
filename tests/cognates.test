@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,24 +13,24 @@
 # limitations under the License.
 
 # Tick between cognate lines
-E000 EC02 EC02 E000:--script Dupl:[uniE000.bound@0,0|uniEC02.reversed_p.tick@195,0|uniEC02.reversed_p@295,500|uniE000.bound@415,0|_@490,0]
-E000 EC03 EC03 E000:--script Dupl:[uniE000.bound@0,0|uniEC03.reversed_t.tick@1195,0|uniEC03.reversed_t@695,0|uniE000.bound@1315,0|_@1390,0]
-E000 EC04 EC04 E000:--script Dupl:[uniE000.bound@0,0|uniEC04.reversed_f.tick@858,0|uniEC04.reversed_f@483,450|uniE000.bound@978,0|_@1053,0]
-E000 EC05 EC05 E000:--script Dupl:[uniE000.bound@0,0|uniEC05.reversed_k.tick@195,0|uniEC05.reversed_k@570,450|uniE000.bound@978,0|_@1053,0]
-E000 EC06 EC06 E000:--script Dupl:[uniE000.bound@0,0|uniEC06.reversed_l.tick@1124,0|uniEC06.reversed_l@695,-500|uniE000.bound@1244,0|_@1319,0]
-E000 1BC02 1BC07 E000::[uniE000.bound@0,0|u1BC02.p.tick@195,0|u1BC07.b@295,-1000|uniE000.bound@415,0|_@490,0]
-E000 1BC03 1BC08 E000::[uniE000.bound@0,0|u1BC03.t.tick@195,0|u1BC08.d@695,0|uniE000.bound@1815,0|_@1890,0]
-E000 1BC04 1BC09 E000::[uniE000.bound@0,0|u1BC04.f.tick@195,0|u1BC09.v@397,-999|uniE000.bound@1094,0|_@1169,0]
-E000 1BC05 1BC0A E000::[uniE000.bound@0,0|u1BC05.k.tick@974,0|u1BC0A.g@772,-999|uniE000.bound@1094,0|_@1169,0]
-E000 1BC06 1BC0B E000::[uniE000.bound@0,0|u1BC06.l.tick@195,0|u1BC0B.r@766,429|uniE000.bound@1886,0|_@1961,0]
-E000 1BC07 1BC02 E000::[uniE000.bound@0,0|u1BC07.b.tick@195,0|u1BC02.p@295,-500|uniE000.bound@415,0|_@490,0]
-E000 1BC08 1BC03 E000::[uniE000.bound@0,0|u1BC08.d.tick@195,0|u1BC03.t@1195,0|uniE000.bound@1815,0|_@1890,0]
-E000 1BC09 1BC04 E000::[uniE000.bound@0,0|u1BC09.v.tick@195,0|u1BC04.f@685,-500|uniE000.bound@1093,0|_@1168,0]
-E000 1BC0A 1BC05 E000::[uniE000.bound@0,0|u1BC0A.g.tick@973,0|u1BC05.k@483,-500|uniE000.bound@1093,0|_@1168,0]
-E000 1BC0B 1BC06 E000::[uniE000.bound@0,0|u1BC0B.r.tick@195,0|u1BC06.l@1266,929|uniE000.bound@1886,0|_@1961,0]
+EC02 EC02:--script Dupl:[uniEC02.reversed_p.tick@120,0|uniEC02.reversed_p@220,500|_@340,0]
+EC03 EC03:--script Dupl:[uniEC03.reversed_t.tick@1120,0|uniEC03.reversed_t@620,0|_@1240,0]
+EC04 EC04:--script Dupl:[uniEC04.reversed_f.tick@783,0|uniEC04.reversed_f@408,450|_@903,0]
+EC05 EC05:--script Dupl:[uniEC05.reversed_k.tick@120,0|uniEC05.reversed_k@495,450|_@903,0]
+EC06 EC06:--script Dupl:[uniEC06.reversed_l.tick@1049,0|uniEC06.reversed_l@620,-500|_@1169,0]
+1BC02 1BC07::[u1BC02.p.tick@120,0|u1BC07.b@220,-1000|_@340,0]
+1BC03 1BC08::[u1BC03.t.tick@120,0|u1BC08.d@620,0|_@1740,0]
+1BC04 1BC09::[u1BC04.f.tick@120,0|u1BC09.v@322,-999|_@1019,0]
+1BC05 1BC0A::[u1BC05.k.tick@899,0|u1BC0A.g@697,-999|_@1019,0]
+1BC06 1BC0B::[u1BC06.l.tick@120,0|u1BC0B.r@691,429|_@1811,0]
+1BC07 1BC02::[u1BC07.b.tick@120,0|u1BC02.p@220,-500|_@340,0]
+1BC08 1BC03::[u1BC08.d.tick@120,0|u1BC03.t@1120,0|_@1740,0]
+1BC09 1BC04::[u1BC09.v.tick@120,0|u1BC04.f@610,-500|_@1018,0]
+1BC0A 1BC05::[u1BC0A.g.tick@898,0|u1BC05.k@408,-500|_@1018,0]
+1BC0B 1BC06::[u1BC0B.r.tick@120,0|u1BC06.l@1191,929|_@1811,0]
 
 # No tick
-E000 1BC03 1BC1A E000::[uniE000.bound@0,0|u1BC03.t@195,720|u1BC1A.n@695,0|uniE000.bound@1115,0|_@1190,0]
-E000 1BC19 1BC03 E000::[uniE000.bound@0,0|u1BC19.m@495,0|u1BC03.t@495,0|uniE000.bound@1115,0|_@1190,0]
-E000 1BC03 1BC50 E000::[uniE000.bound@0,0|u1BC03.t@195,0|u1BC50.ye@695,-509|uniE000.bound@1485,0|_@1560,0]
-E000 1BC50 1BC03 E000::[uniE000.bound@0,0|u1BC50.ye@195,0|u1BC03.t@865,0|uniE000.bound@1485,0|_@1560,0]
+1BC03 1BC1A::[u1BC03.t@120,720|u1BC1A.n@620,0|_@1040,0]
+1BC19 1BC03::[u1BC19.m@420,0|u1BC03.t@420,0|_@1040,0]
+1BC03 1BC50::[u1BC03.t@120,0|u1BC50.ye@620,-509|_@1410,0]
+1BC50 1BC03::[u1BC50.ye@120,0|u1BC03.t@790,0|_@1410,0]
