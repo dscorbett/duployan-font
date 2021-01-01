@@ -857,9 +857,15 @@ class Line(Shape):
         else:
             length = 0
         if anchor:
-            length *= self.secant or 0.5
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', length, end_y)
+            if (joining_type == Type.ORIENTING
+                or self.angle % 180 == 0
+                or anchor not in [ABOVE_ANCHOR, BELOW_ANCHOR]
+            ):
+                length *= self.secant or 0.5
+            elif (anchor == ABOVE_ANCHOR) == (self.angle < 180):
+                length = 0
             glyph.addAnchorPoint(anchor, 'mark', length, end_y)
+            glyph.addAnchorPoint(mkmk(anchor), 'mark', length, end_y)
         elif self.secant:
             glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, end_y)
             glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'exit', length * self.secant, end_y)
