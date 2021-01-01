@@ -1877,6 +1877,7 @@ class Schema:
             child=False,
             ignored_for_topography=False,
             anchor=None,
+            widthless=False,
             marks=None,
             unignored=False,
             context_in=None,
@@ -1886,6 +1887,7 @@ class Schema:
             original_shape=None,
     ):
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
+        assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
         self.cmap = cmap
         self.path = path
         self.size = size
@@ -1894,6 +1896,7 @@ class Schema:
         self.child = child
         self.ignored_for_topography = ignored_for_topography
         self.anchor = anchor
+        self.widthless = widthless
         self.marks = marks or []
         self.unignored = unignored
         self.context_in = context_in or NO_CONTEXT
@@ -1928,6 +1931,7 @@ class Schema:
         child=CLONE_DEFAULT,
         ignored_for_topography=CLONE_DEFAULT,
         anchor=CLONE_DEFAULT,
+        widthless=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
@@ -1945,6 +1949,7 @@ class Schema:
             child=self.child if child is CLONE_DEFAULT else child,
             ignored_for_topography=self.ignored_for_topography if ignored_for_topography is CLONE_DEFAULT else ignored_for_topography,
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
+            widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
@@ -2051,6 +2056,8 @@ class Schema:
             name += f'.{self.anchor}'
         if self.child:
             name += '.blws'
+        if self.widthless:
+            name += '.psts'
         if self.ignored_for_topography:
             name += '.dependent'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
@@ -3081,6 +3088,22 @@ def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_loo
             add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
     return [lookup]
 
+def make_widthless_variants_of_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('psts', 'dupl', 'dflt')
+    first_iteration = 'i' not in classes
+    for schema in new_schemas:
+        if schema.glyph_class == GlyphClass.MARK:
+            if schema.anchor and not schema.widthless and not schema.path.invisible():
+                classes['i'].append(schema)
+                widthless_variant = schema.clone(cmap=None, widthless=True)
+                classes['o'].append(widthless_variant)
+                classes['c'].append(widthless_variant)
+        elif schema.joining_type == Type.NON_JOINING:
+            classes['c'].append(schema)
+    if first_iteration:
+        add_rule(lookup, Rule('c', 'i', [], 'o'))
+    return [lookup]
+
 def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     for schema in schemas:
         for anchor in MARK_ANCHORS:
@@ -3133,7 +3156,8 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             elif isinstance(schema.path, GlyphClassSelector):
                 glyph_class_selectors[schema.glyph_class] = schema
             continue
-        if (schema.glyph_class == GlyphClass.JOINER
+        if not schema.widthless and (
+            schema.glyph_class == GlyphClass.JOINER
             or schema.glyph_class == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
         ):
             entry_xs = {}
@@ -4076,6 +4100,7 @@ PHASES = [
     unignore_initial_orienting_sequences,
     rotate_diacritics,
     shade,
+    make_widthless_variants_of_marks,
     classify_marks_for_trees,
 ]
 

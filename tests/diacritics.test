@@ -12,6 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# U+1BC01 DUPLOYAN LETTER X
+1BC01 0300::[u1BC01.x@0,0|uni0300.grave.psts@157,490|_@314,0]
+1BC01 0301::[u1BC01.x@0,0|uni0301.acute.psts@157,490|_@314,0]
+1BC01 0302::[u1BC01.x@0,0|uni0302.circumflex.psts@-54,490|_@314,0]
+1BC01 0304::[u1BC01.x@0,0|uni0304.macron.psts@107,490|_@314,0]
+1BC01 0306::[u1BC01.x@0,0|uni0306.breve.psts@157,490|_@314,0]
+1BC01 0307::[u1BC01.x@0,0|uni0307.dot_above.psts@157,490|_@314,0]
+1BC01 0308::[u1BC01.x@0,0|uni0308.diaeresis.0.dotted.psts@107,490|_@314,0]
+1BC01 030C::[u1BC01.x@0,0|uni030C.caron.psts@-54,490|_@314,0]
+1BC01 0316::[u1BC01.x@0,0|uni0316.grave_below.psts@244,-225|_@314,0]
+1BC01 0317::[u1BC01.x@0,0|uni0317.acute_below.psts@86,-246|_@314,0]
+1BC01 0323::[u1BC01.x@0,0|uni0323.dot_below.psts@157,-175|_@314,0]
+1BC01 0324::[u1BC01.x@0,0|uni0324.diaeresis_below.0.dotted.psts@107,-175|_@314,0]
+
 # U+1BC47 DUPLOYAN LETTER E
 1BC47 0300::[u1BC47.e@320,0|uni0300.grave@220,205|_@440,0]
 1BC47 0301::[u1BC47.e@320,0|uni0301.acute@220,205|_@440,0]
