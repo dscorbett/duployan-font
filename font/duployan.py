@@ -37,6 +37,7 @@ EPSILON = 1e-5
 RADIUS = 50
 LIGHT_LINE = 70
 SHADED_LINE = 120
+MAX_DOUBLE_MARKS = 3
 MAX_TREE_WIDTH = 2
 MAX_TREE_DEPTH = 3
 CONTINUING_OVERLAP_CLASS = 'global..cont'
@@ -1535,6 +1536,7 @@ class Complex(Shape):
         *,
         hook=False,
         _all_circles=None,
+        _final_rotation=0,
     ):
         self.instructions = instructions
         self.hook = hook
@@ -1543,6 +1545,7 @@ class Complex(Shape):
         else:
             self._all_circles = _all_circles
         assert not (self.hook and self._all_circles)
+        self._final_rotation = _final_rotation
 
     def clone(
         self,
@@ -1550,20 +1553,25 @@ class Complex(Shape):
         instructions=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
         _all_circles=CLONE_DEFAULT,
+        _final_rotation=CLONE_DEFAULT,
     ):
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
             _all_circles=self._all_circles if _all_circles is CLONE_DEFAULT else _all_circles,
+            _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
     def __str__(self):
+        if self._final_rotation:
+            return str(int(self._final_rotation))
         return next(str(op[1]) for op in self.instructions if not callable(op))
 
     def group(self):
         return (
             *((op[0], op[1].group()) for op in self.instructions if not callable(op)),
             self._all_circles,
+            self._final_rotation,
         )
 
     def can_be_hub(self, size):
@@ -1639,69 +1647,53 @@ class Complex(Shape):
 
     def draw_to_proxy(self, pen, stroke_width, size):
         first_is_invisible = None
-        first_entry = None
-        last_exit = None
-        last_rel1 = None
-        last_crossing_point = False
+        last_crossing_point = None
+        singular_anchor_points = collections.defaultdict(list)
         for op in self.instructions:
             if callable(op):
                 continue
             scalar, component = op
             proxy = Complex.Proxy()
             component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False)
-            entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
-            assert len(entry_list) == 1
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
-            if self._all_circles and last_crossing_point is not None:
-                this_point = proxy.get_crossing_point(component)
-                if first_entry is None:
-                    first_entry = entry_list[0]
-                else:
-                    proxy.transform(fontTools.misc.transform.Offset(
-                        last_crossing_point[0] - this_point[0],
-                        last_crossing_point[1] - this_point[1],
-                    ))
-            else:
-                this_point = entry_list[0]
-                if first_entry is None:
-                    first_entry = this_point
-                else:
-                    proxy.transform(fontTools.misc.transform.Offset(
-                        last_exit[0] - this_point[0],
-                        last_exit[1] - this_point[1],
-                    ))
-            proxy.contour.draw(pen)
-            rel1_list = proxy.anchor_points[(RELATIVE_1_ANCHOR, 'base')]
-            assert len(rel1_list) <= 1
-            if rel1_list:
-                last_rel1 = rel1_list[0]
-            exit_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'exit')]
-            assert len(exit_list) == 1
             if self._all_circles:
-                last_crossing_point = this_point
-                if last_exit is None:
-                    last_exit = exit_list[0]
+                this_crossing_point = proxy.get_crossing_point(component)
+                if last_crossing_point is not None:
+                    proxy.transform(fontTools.misc.transform.Offset(
+                        last_crossing_point[0] - this_crossing_point[0],
+                        last_crossing_point[1] - this_crossing_point[1],
+                    ))
+                last_crossing_point = this_crossing_point
             else:
-                last_exit = exit_list[0]
-                last_crossing_point = None
+                this_entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
+                assert len(this_entry_list) == 1
+                this_x, this_y = this_entry_list[0]
+                if exit_list := singular_anchor_points.get((CURSIVE_ANCHOR, 'exit')):
+                    last_x, last_y = exit_list[-1]
+                    proxy.transform(fontTools.misc.transform.Offset(
+                        last_x - this_x,
+                        last_y - this_y,
+                    ))
+            for anchor_and_type, points in proxy.anchor_points.items():
+                if len(points) == 1:
+                    singular_anchor_points[anchor_and_type].append(points[0])
+            proxy.contour.draw(pen)
         return (
             first_is_invisible,
-            first_entry,
-            last_exit,
-            last_rel1,
+            singular_anchor_points,
         )
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         (
             first_is_invisible,
-            first_entry,
-            last_exit,
-            last_rel1,
+            singular_anchor_points,
         ) = self.draw_to_proxy(pen, stroke_width, size)
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
-        if joining_type != Type.NON_JOINING:
+        if not (anchor or child or joining_type == Type.NON_JOINING):
+            first_entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][0]
+            last_exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
             if self.can_be_hub(size):
@@ -1711,17 +1703,28 @@ class Complex(Shape):
         anchor_name = mkmk if anchor or child else lambda a: a
         base = 'basemark' if anchor or child else 'base'
         if anchor is None:
-            glyph.addAnchorPoint(RELATIVE_1_ANCHOR, base, *last_rel1)
+            for (singular_anchor, type), points in singular_anchor_points.items():
+                if singular_anchor in MARK_ANCHORS:
+                    glyph.addAnchorPoint(singular_anchor, type, *points[-1])
+        glyph.transform(
+            fontTools.misc.transform.Identity.rotate(math.radians(self._final_rotation)),
+            ('round',),
+        )
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
-        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_width + LIGHT_LINE)
-        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - stroke_width - LIGHT_LINE)
-        if anchor == ABOVE_ANCHOR:
+        if anchor == MIDDLE_ANCHOR:
+            glyph.addAnchorPoint(anchor, 'mark', x_center, (y_max + y_min) / 2)
+        elif anchor == ABOVE_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width + LIGHT_LINE)
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_min + stroke_width / 2)
         elif anchor == BELOW_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - stroke_width - LIGHT_LINE)
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
+        elif anchor is None:
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width + LIGHT_LINE)
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - stroke_width - LIGHT_LINE)
         return first_is_invisible
 
     def can_be_child(self):
@@ -1798,19 +1801,19 @@ class Complex(Shape):
     def context_out(self):
         return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
+    def rotate_diacritic(self, context):
+        return self.clone(_final_rotation=context.angle)
+
 class RomanianU(Complex):
     def draw_to_proxy(self, pen, stroke_width, size):
         (
             first_is_invisible,
-            first_entry,
-            last_exit,
-            last_rel1,
+            singular_anchor_points,
         ) = super().draw_to_proxy(pen, stroke_width, size)
+        singular_anchor_points[(RELATIVE_1_ANCHOR, 'base')] = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')]
         return (
             first_is_invisible,
-            first_entry,
-            last_exit,
-            last_exit,
+            singular_anchor_points,
         )
 
     def contextualize(self, context_in, context_out):
@@ -3050,6 +3053,28 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
             add_rule(lookup, Rule([], 'i', f'co_{context_out}', output_class_name))
     return [lookup]
 
+def join_double_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rlig',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
+    )
+    for schema in new_schemas:
+        if schema.cps == [0x1BC9E]:
+            classes['all'].append(schema)
+            for i in range(2, MAX_DOUBLE_MARKS + 1):
+                add_rule(lookup, Rule([schema] * i, [schema.clone(
+                    cmap=None,
+                    cps=schema.cps * i,
+                    path=Complex([
+                        (1, schema.path),
+                        (500, Space((schema.path.angle + 180) % 360, margins=False)),
+                        (250, Space((schema.path.angle - 90) % 360, margins=False)),
+                    ] * i),
+                )]))
+    return [lookup]
+
 def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
@@ -4099,6 +4124,7 @@ PHASES = [
     join_with_next,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
+    join_double_marks,
     rotate_diacritics,
     shade,
     make_widthless_variants_of_marks,
@@ -4218,7 +4244,7 @@ OVERLAP = InvalidOverlap('u1BCA0', continuing=False)
 CONTINUING_OVERLAP = InvalidOverlap('u1BCA1', continuing=True)
 DOWN_STEP = InvalidStep('u1BCA2', 270)
 UP_STEP = InvalidStep('u1BCA3', 90)
-LINE = Line(90, stretchy=False)
+LINE = Line(0, stretchy=False)
 
 DOT_1 = Schema(None, H, 1, anchor=RELATIVE_1_ANCHOR)
 DOT_2 = Schema(None, H, 1, anchor=RELATIVE_2_ANCHOR)
