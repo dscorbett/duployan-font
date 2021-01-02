@@ -4323,7 +4323,6 @@ SCHEMAS = [
     Schema(0x0324, DIAERESIS, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x2001, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
-    Schema(0x2007, SPACE, 572, side_bearing=572),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
