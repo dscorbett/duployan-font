@@ -1047,6 +1047,9 @@ class LongI(Line):
             return self.clone(angle=angle, _tittle=True, _visible_base=False)
         return self.clone(_tittle=False)
 
+    def is_shadable(self):
+        return False
+
     def max_double_marks(self, size, joining_type, marks):
         return 0
 
