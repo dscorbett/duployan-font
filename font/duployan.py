@@ -202,6 +202,9 @@ class Shape:
     def max_tree_width(self, size):
         return 0
 
+    def max_double_marks(self, size, joining_type, marks):
+        return 0
+
     def is_shadable(self):
         return False
 
@@ -834,16 +837,19 @@ class Line(Shape):
     def can_be_hub(self, size):
         return self.dots or size >= 1 and not self.secant and self.angle % 180 != 0
 
+    def _get_length(self, size):
+        if self.stretchy:
+            length_denominator = abs(math.sin(math.radians(self.angle)))
+            if length_denominator < EPSILON:
+                length_denominator = 1
+        else:
+            length_denominator = 1
+        return int(500 * size / length_denominator)
+
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         end_y = 0
         if self.visible_base:
-            if self.stretchy:
-                length_denominator = abs(math.sin(math.radians(self.angle)))
-                if length_denominator < EPSILON:
-                    length_denominator = 1
-            else:
-                length_denominator = 1
-            length = int(500 * size / length_denominator)
+            length = self._get_length(size)
             pen.moveTo((0, 0))
             if self.dots:
                 dot_interval = length / (self.dots - 1)
@@ -920,6 +926,13 @@ class Line(Shape):
 
     def max_tree_width(self, size):
         return 2 if size == 2 else 1
+
+    def max_double_marks(self, size, joining_type, marks):
+        return (0
+            if self.secant or self.dots or any(
+                m.anchor in [RELATIVE_1_ANCHOR, RELATIVE_2_ANCHOR, MIDDLE_ANCHOR]
+                    for m in marks
+            ) else self._get_length(size) // (250 * 0.45) - 1)
 
     def is_shadable(self):
         return self.visible_base and not self.dots
@@ -1033,6 +1046,9 @@ class LongI(Line):
                 angle = (angle + 180) % 360
             return self.clone(angle=angle, _tittle=True, _visible_base=False)
         return self.clone(_tittle=False)
+
+    def max_double_marks(self, size, joining_type, marks):
+        return 0
 
 class Curve(Shape):
     def __init__(
@@ -1193,6 +1209,15 @@ class Curve(Shape):
 
     def max_tree_width(self, size):
         return 1
+
+    def max_double_marks(self, size, joining_type, marks):
+        return (0
+            if any(m.anchor == MIDDLE_ANCHOR for m in marks)
+            else 1
+            if size < 3 or joining_type == Type.ORIENTING or self.long
+            else 2
+            if size < 5
+            else 3)
 
     def is_shadable(self):
         return True
@@ -2093,6 +2118,11 @@ class Schema:
                 self._glyph_name = name
         return self._glyph_name
 
+    def max_double_marks(self):
+        return (0
+            if self.glyph_class != GlyphClass.JOINER
+            else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
+
     def contextualize(
         self,
         context_in,
@@ -2800,6 +2830,27 @@ def validate_shading(original_schemas, schemas, new_schemas, classes, named_look
             elif schema.path.is_shadable():
                 classes['c'].append(schema)
         add_rule(lookup, Rule(['c'], [invalid_dtls], [], [valid_dtls]))
+    return [lookup]
+
+def validate_double_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='double_mark',
+    )
+    double_mark = next(s for s in original_schemas if s.cps == [0x1BC9E])
+    classes['double_mark'].append(double_mark)
+    new_maximums = set()
+    for schema in new_schemas:
+        maximum = schema.max_double_marks()
+        new_maximums.add(maximum)
+        classes[str(maximum)].append(schema)
+    for maximum in sorted(new_maximums, reverse=True):
+        for i in range(0, maximum):
+            add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], [double_mark]))
+    guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING)
+    add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
     return [lookup]
 
 def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -4110,6 +4161,7 @@ PHASES = [
     dont_ignore_default_ignorables,
     decompose,
     validate_shading,
+    validate_double_marks,
     expand_secants,
     validate_overlap_controls,
     add_parent_edges,
