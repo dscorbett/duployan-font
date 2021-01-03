@@ -34,3 +34,6 @@ EC06 EC06:--script Dupl:[uniEC06.reversed_l.tick@1049,0|uniEC06.reversed_l@620,-
 1BC19 1BC03::[u1BC19.m@420,0|u1BC03.t@420,0|_@1040,0]
 1BC03 1BC50::[u1BC03.t@120,0|u1BC50.ye@620,-509|_@1410,0]
 1BC50 1BC03::[u1BC50.ye@120,0|u1BC03.t@790,0|_@1410,0]
+
+# Multiple ticks
+1BC03 1BC08 1BC08 1BC08 1BC03::[u1BC03.t.tick@120,0|u1BC08.d.tick@620,-100|u1BC08.d.tick@1620,-200|u1BC08.d.tick@2620,-300|u1BC03.t@3620,-300|_@4240,0]

@@ -3012,19 +3012,24 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
     contexts_out = OrderedSet()
     new_contexts_out = set()
     old_input_count = len(classes['i'])
-    for schema in original_schemas:
-        if schema.glyph_class == GlyphClass.JOINER:
-            if (schema.joining_type == Type.ORIENTING
-                    and schema.context_out == NO_CONTEXT
-                    and schema in new_schemas):
+    if old_input_count == 0:
+        for schema in original_schemas:
+            if (schema.glyph_class == GlyphClass.JOINER
+                and schema.joining_type == Type.ORIENTING
+                and schema.context_out == NO_CONTEXT
+            ):
                 classes['i'].append(schema)
-            if schema.joining_type != Type.NON_JOINING:
-                if (context_out := schema.path.context_in()) != NO_CONTEXT:
-                    contexts_out.add(context_out)
-                    if schema not in (context_out_class := classes[f'c_{context_out}']):
-                        if not context_out_class:
-                            new_contexts_out.add(context_out)
-                        context_out_class.append(schema)
+    for schema in new_schemas:
+        if (schema.glyph_class == GlyphClass.JOINER
+            and (old_input_count == 0 or not isinstance(schema.path, (LongI, Curve, Circle, Complex)))
+            and not (isinstance(schema.path, Line) and schema.path.secant)
+            and (context_out := schema.path.context_in()) != NO_CONTEXT
+        ):
+            contexts_out.add(context_out)
+            if schema not in (context_out_class := classes[f'c_{context_out}']):
+                if not context_out_class:
+                    new_contexts_out.add(context_out)
+                context_out_class.append(schema)
     for context_out in contexts_out:
         output_class_name = f'o_{context_out}'
         new_context = context_out in new_contexts_out
