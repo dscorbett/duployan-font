@@ -1,7 +1,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
-# Copyright (c) 2020 Google LLC
+# Copyright (c) 2020-2021 Google LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -65,5 +65,5 @@ def CountReference_len(self):
     return self.size
 
 def OTTableWriter_len(self):
-    return 4 if self.longOffset else 2
+    return self.offsetSize
 

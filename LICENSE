@@ -16,7 +16,7 @@ License: OFL-1.1
 
 Files: font/fonttools_patches.py
 Copyright: Copyright (c) 2017 Just van Rossum
-  Copyright (c) 2020 Google LLC
+  Copyright (c) 2020-2021 Google LLC
 License: MIT
 
 Files: notes/*
