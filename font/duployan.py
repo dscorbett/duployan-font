@@ -1911,6 +1911,7 @@ class Schema:
             widthless=None,
             marks=None,
             unignored=False,
+            shading_allowed=True,
             context_in=None,
             context_out=None,
             base_angle=None,
@@ -1930,6 +1931,7 @@ class Schema:
         self.widthless = widthless
         self.marks = marks or []
         self.unignored = unignored
+        self.shading_allowed = shading_allowed
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
         self.base_angle = base_angle
@@ -1965,6 +1967,7 @@ class Schema:
         widthless=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
+        shading_allowed=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
         base_angle=CLONE_DEFAULT,
@@ -1983,6 +1986,7 @@ class Schema:
             widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
+            shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
             base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
@@ -2830,7 +2834,7 @@ def validate_shading(original_schemas, schemas, new_schemas, classes, named_look
             if schema.anchor:
                 if schema.cmap is not None:
                     classes['independent_mark'].append(schema)
-            elif schema.path.is_shadable():
+            elif schema.shading_allowed and schema.path.is_shadable():
                 classes['c'].append(schema)
         add_rule(lookup, Rule(['c'], [invalid_dtls], [], [valid_dtls]))
     return [lookup]
@@ -2870,7 +2874,11 @@ def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_ru
             if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
                 if schema.cmap is not None:
                     classes['independent_mark'].append(schema)
-            elif schema in original_schemas and not schema.ignored_for_topography and schema.path.is_shadable():
+            elif (schema in original_schemas
+                and not schema.ignored_for_topography
+                and schema.shading_allowed
+                and schema.path.is_shadable()
+            ):
                 classes['i'].append(schema)
                 classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
                 if schema.glyph_class == GlyphClass.MARK:
@@ -4331,17 +4339,17 @@ SCHEMAS = [
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, SPACE, 200, side_bearing=200),
-    Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING),
-    Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING),
-    Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING),
-    Schema(0xEC05, K_REVERSE, 1, Type.ORIENTING),
-    Schema(0xEC06, L_REVERSE, 1, Type.ORIENTING),
-    Schema(0xEC19, M_REVERSE, 6),
-    Schema(0xEC1A, N_REVERSE, 6),
-    Schema(0xEC1B, J_REVERSE, 6),
-    Schema(0xEC1C, S_REVERSE, 6),
-    Schema(0x1BC00, H, 1),
-    Schema(0x1BC01, X, 1, Type.NON_JOINING),
+    Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0xEC05, K_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0xEC06, L_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0xEC19, M_REVERSE, 6, shading_allowed=False),
+    Schema(0xEC1A, N_REVERSE, 6, shading_allowed=False),
+    Schema(0xEC1B, J_REVERSE, 6, shading_allowed=False),
+    Schema(0xEC1C, S_REVERSE, 6, shading_allowed=False),
+    Schema(0x1BC00, H, 1, shading_allowed=False),
+    Schema(0x1BC01, X, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x1BC02, P, 1, Type.ORIENTING),
     Schema(0x1BC03, T, 1, Type.ORIENTING),
     Schema(0x1BC04, F, 1, Type.ORIENTING),
@@ -4388,8 +4396,8 @@ SCHEMAS = [
     Schema(0x1BC2D, J_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2E, S_S, 8, marks=[LINE_MIDDLE]),
     Schema(0x1BC2F, J_S, 8, marks=[DOT_1]),
-    Schema(0x1BC30, J_N, 6),
-    Schema(0x1BC31, J_N_S, 2),
+    Schema(0x1BC30, J_N, 6, shading_allowed=False),
+    Schema(0x1BC31, J_N_S, 2, shading_allowed=False),
     Schema(0x1BC32, S_T, 4),
     Schema(0x1BC33, S_T, 6),
     Schema(0x1BC34, S_P, 4),
@@ -4401,42 +4409,42 @@ SCHEMAS = [
     Schema(0x1BC3A, W, 6),
     Schema(0x1BC3B, S_N, 4),
     Schema(0x1BC3C, S_N, 6),
-    Schema(0x1BC3D, K_R_S, 4),
-    Schema(0x1BC3E, K_R_S, 6),
+    Schema(0x1BC3D, K_R_S, 4, shading_allowed=False),
+    Schema(0x1BC3E, K_R_S, 6, shading_allowed=False),
     Schema(0x1BC3F, S_K, 4),
     Schema(0x1BC40, S_K, 6),
     Schema(0x1BC41, O, 2, Type.ORIENTING),
     Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING),
-    Schema(0x1BC43, O, 3, Type.ORIENTING),
+    Schema(0x1BC43, O, 3, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC44, O, 4, Type.ORIENTING),
-    Schema(0x1BC45, O, 5, Type.ORIENTING),
+    Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC46, IE, 2, Type.ORIENTING),
     Schema(0x1BC47, EE, 2, Type.ORIENTING),
     Schema(0x1BC48, IE, 2),
-    Schema(0x1BC49, SHORT_I, 2),
-    Schema(0x1BC4A, UI, 2),
+    Schema(0x1BC49, SHORT_I, 2, shading_allowed=False),
+    Schema(0x1BC4A, UI, 2, shading_allowed=False),
     Schema(0x1BC4B, EE, 2),
     Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC50, YE, 1),
-    Schema(0x1BC51, S_T, 3, Type.ORIENTING),
-    Schema(0x1BC52, S_P, 3, Type.ORIENTING),
-    Schema(0x1BC53, S_T, 3, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC54, U_N, 4),
-    Schema(0x1BC55, LONG_U, 2),
+    Schema(0x1BC50, YE, 1, shading_allowed=False),
+    Schema(0x1BC51, S_T, 3, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC52, S_P, 3, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC53, S_T, 3, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
+    Schema(0x1BC54, U_N, 4, shading_allowed=False),
+    Schema(0x1BC55, LONG_U, 2, shading_allowed=False),
     Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC57, UH, 2, Type.ORIENTING),
     Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC5B, OU, 1, Type.ORIENTING),
-    Schema(0x1BC5C, WA, 1, Type.ORIENTING),
-    Schema(0x1BC5D, WO, 1, Type.ORIENTING),
-    Schema(0x1BC5E, WI, 1, Type.ORIENTING),
-    Schema(0x1BC5F, WEI, 1, Type.ORIENTING),
-    Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC5B, OU, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC5C, WA, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC5D, WO, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC5E, WI, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC5F, WEI, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
     Schema(0x1BC61, S_T, 2, Type.ORIENTING),
     Schema(0x1BC62, S_N, 2, Type.ORIENTING),
     Schema(0x1BC63, T_S, 2, Type.ORIENTING),
@@ -4447,19 +4455,19 @@ SCHEMAS = [
     Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC6A, S_K, 2),
-    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC74, MID_VERTICAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2, Type.ORIENTING),
-    Schema(0x1BC76, RTL_SECANT, 1, Type.ORIENTING),
-    Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING),
-    Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING),
-    Schema(0x1BC79, TAIL, 1),
-    Schema(0x1BC7A, E_HOOK, 2, Type.ORIENTING),
+    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC74, MID_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC76, RTL_SECANT, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC79, TAIL, 1, shading_allowed=False),
+    Schema(0x1BC7A, E_HOOK, 2, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC7B, I_HOOK, 2, Type.ORIENTING),
-    Schema(0x1BC7C, TANGENT_HOOK, 2),
+    Schema(0x1BC7C, TANGENT_HOOK, 2, shading_allowed=False),
     Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
     Schema(0x1BC82, HIGH_GRAVE, 1, Type.NON_JOINING),
