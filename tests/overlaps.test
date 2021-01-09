@@ -20,8 +20,8 @@
 1BCA1 1BC02::[u1BCA1.continuing_overlap@0,0|u1BC02.p@1248,0|_@1368,0]
 
 # Each letter has a limit on how many controls it can support.
-1BC00 1BCA0 1BC02::[u1BC00.h@-120,0|u1BCA0.letter_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
-1BC00 1BCA1 1BC02::[u1BC00.h@-120,0|u1BCA1.continuing_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
+1BC00 1BCA0 1BC02::[u1BC00.h@120,0|u1BCA0.letter_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
+1BC00 1BCA1 1BC02::[u1BC00.h@120,0|u1BCA1.continuing_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
 1BC02 1BCA0 1BC08::[u1BC02.p@120,0|u1BC08.d.blws@-130,167|_@240,0]
 1BC03 1BCA0 1BCA0 1BC02 1BC04::[u1BC03.t@120,0|u1BCA0.letter_overlap@740,0|u1BCA0.letter_overlap@1868,0|u1BC02.p@3116,0|u1BC04.f@3116,-500|_@3524,0]
 1BC03 1BCA0 1BCA1 1BC02 1BC04::[u1BC03.t@120,0|u1BCA0.letter_overlap@740,0|u1BCA1.continuing_overlap@1868,0|u1BC02.p@3116,0|u1BC04.f@3116,-500|_@3524,0]

@@ -13,14 +13,14 @@
 # limitations under the License.
 
 # Fallback after letter that does not support secants
-1BC00 1BC70::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC70.left_horizontal_secant@360,500|dupl.Line.270.dotted@1027,0|_@1480,0]
-1BC00 1BC71::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC71.mid_horizontal_secant@360,500|dupl.Line.270.dotted@860,0|_@1480,0]
-1BC00 1BC72::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC72.right_horizontal_secant@360,500|dupl.Line.270.dotted@693,0|_@1480,0]
-1BC00 1BC73::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC73.low_vertical_secant@610,-667|dupl.Line.0.dotted@360,0|_@1230,0]
-1BC00 1BC74::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC74.mid_vertical_secant@610,-500|dupl.Line.0.dotted@360,0|_@1230,0]
-1BC00 1BC75::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC75.high_vertical_secant@610,-333|dupl.Line.0.dotted@360,0|_@1230,0]
-1BC00 1BC76::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC76.secant@735,-216|dupl.Line.0.dotted@360,0|_@1230,0]
-1BC00 1BC77::[u1BC00.h@-120,0|uni200D.zwj@240,0|u1BC77.left_to_right_secant@449,-191|dupl.Line.0.dotted@360,0|_@1230,0]
+1BC00 1BC70::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC70.left_horizontal_secant@360,500|dupl.Line.270.dotted@1027,0|_@1480,0]
+1BC00 1BC71::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC71.mid_horizontal_secant@360,500|dupl.Line.270.dotted@860,0|_@1480,0]
+1BC00 1BC72::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC72.right_horizontal_secant@360,500|dupl.Line.270.dotted@693,0|_@1480,0]
+1BC00 1BC73::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC73.low_vertical_secant@610,-667|dupl.Line.0.dotted@360,0|_@1230,0]
+1BC00 1BC74::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC74.mid_vertical_secant@610,-500|dupl.Line.0.dotted@360,0|_@1230,0]
+1BC00 1BC75::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC75.high_vertical_secant@610,-333|dupl.Line.0.dotted@360,0|_@1230,0]
+1BC00 1BC76::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC76.secant@735,-216|dupl.Line.0.dotted@360,0|_@1230,0]
+1BC00 1BC77::[u1BC00.h@120,0|uni200D.zwj@240,0|u1BC77.left_to_right_secant@449,-191|dupl.Line.0.dotted@360,0|_@1230,0]
 
 # Isolated
 1BC70::[uni200D.zwj@0,0|u1BC70.left_horizontal_secant@120,500|dupl.Line.270.dotted@787,0|_@1240,0]

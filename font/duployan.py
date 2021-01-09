@@ -545,7 +545,7 @@ class Space(Shape):
         return True
 
     def can_be_hub(self, size):
-        return True
+        return self.angle % 180 == 90
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         if joining_type != Type.NON_JOINING:
@@ -741,10 +741,9 @@ class Dot(Shape):
             glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(0, 0))
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
         elif joining_type != Type.NON_JOINING:
-            x = 2 * DEFAULT_SIDE_BEARING + stroke_width
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', -x, 0)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x, 0)
-            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', x, 0)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, -(stroke_width / 2))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, -(stroke_width / 2))
+            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', 0, -(stroke_width / 2))
 
     def is_shadable(self):
         return True
@@ -2032,6 +2031,8 @@ class Schema:
             self.anchor,
             tuple(m.group for m in self.marks or []),
             self.glyph_class == GlyphClass.MARK,
+            self.context_in == NO_CONTEXT,
+            self.context_out == NO_CONTEXT,
         )
 
     def canonical_schema(self, canonical_schema):
@@ -2087,6 +2088,12 @@ class Schema:
                 if name:
                     name += '.'
                 name += name_from_path
+        if not cps and isinstance(self.path, Space):
+            name += f'''.{
+                    int(self.size * math.cos(math.radians(self.path.angle)))
+                }.{
+                    int(self.size * math.sin(math.radians(self.path.angle)))
+                }'''.replace('-', 'n')
         if not cps and self.anchor:
             name += f'.{self.anchor}'
         if self.child:
@@ -3204,6 +3211,73 @@ def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, na
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
+def shim_dots(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    marker_lookup = Lookup(
+        'haln',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
+    space_lookup = Lookup(
+        'haln',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
+    )
+    if len(original_schemas) != len(schemas):
+        return [marker_lookup, space_lookup]
+    dot_schemas = {}
+    exit_schemas = []
+    entry_schemas = []
+    for schema in new_schemas:
+        if schema.glyph is None or schema.path.invisible():
+            continue
+        if isinstance(schema.path, Dot) and schema.glyph_class == GlyphClass.JOINER:
+            x_min, _, x_max, _ = schema.glyph.boundingBox()
+            dot_schemas[schema] = (x_max - x_min) / 2
+        if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
+            for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+                if anchor_class_name == CURSIVE_ANCHOR:
+                    if type == 'exit' and schema.context_out == NO_CONTEXT:
+                        exit_schemas.append((schema, x, y))
+                    elif type == 'entry' and schema.context_in == NO_CONTEXT:
+                        entry_schemas.append((schema, x, y))
+    @functools.cache
+    def get_shim(width, height):
+        return Schema(
+            None,
+            Space(width and math.degrees(math.atan(height / width)) % 360, margins=False),
+            math.hypot(width, height),
+            side_bearing=width,
+        )
+    marker = get_shim(0, 0)
+    for dot_i, (dot_schema, dot_half_width) in enumerate(dot_schemas.items()):
+        add_rule(marker_lookup, Rule([dot_schema], [marker, dot_schema, marker]))
+        exit_classes = {}
+        entry_classes = {}
+        for prefix, e_schemas, e_classes, height_sign, get_distance_to_edge in [
+            ('exit', exit_schemas, exit_classes, -1, lambda bounds, x: bounds[1] - x),
+            ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
+        ]:
+            for e_schema, x, y in e_schemas:
+                exit_is_dot = e_classes is exit_classes and e_schema in dot_schemas
+                bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
+                shim_width = round(get_distance_to_edge(bounds, x) + DEFAULT_SIDE_BEARING + dot_half_width)
+                shim_height = 0 if exit_is_dot else round(dot_half_width * height_sign)
+                e_class = f'{prefix}_shim_{shim_width}_{str(shim_height).replace("-", "n")}_{exit_is_dot}'
+                classes[e_class].append(e_schema)
+                if e_class not in e_classes:
+                    e_classes[e_class] = get_shim(shim_width, shim_height)
+        for exit_class, shim in exit_classes.items():
+            if exit_class.endswith('True'):
+                add_rule(space_lookup, Rule(exit_class, [marker], [marker, dot_schema], [shim]))
+            else:
+                add_rule(space_lookup, Rule(exit_class, [marker], [dot_schema], [shim]))
+        for entry_class, shim in entry_classes.items():
+            add_rule(space_lookup, Rule([dot_schema], [marker], entry_class, [shim]))
+    return [marker_lookup, space_lookup]
+
 def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68
     lookups = [
@@ -3248,18 +3322,24 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
                 mark_anchor_selectors[schema.path.index] = schema
             elif isinstance(schema.path, GlyphClassSelector):
                 glyph_class_selectors[schema.glyph_class] = schema
-            continue
+            if not isinstance(schema.path, Space):
+                # Not a schema created in `shim_dots`
+                continue
         if not schema.widthless and (
             schema.glyph_class == GlyphClass.JOINER
             or schema.glyph_class == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
         ):
             entry_xs = {}
             exit_xs = {}
-            for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                if type in ['entry', 'mark']:
-                    entry_xs[anchor_class_name] = x
-                elif type in ['base', 'basemark', 'exit']:
-                    exit_xs[anchor_class_name] = x
+            if schema.glyph is None and isinstance(schema.path, Space):
+                entry_xs[CURSIVE_ANCHOR] = 0
+                exit_xs[CURSIVE_ANCHOR] = schema.size
+            else:
+                for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
+                    if type in ['entry', 'mark']:
+                        entry_xs[anchor_class_name] = x
+                    elif type in ['base', 'basemark', 'exit']:
+                        exit_xs[anchor_class_name] = x
             if not (entry_xs or exit_xs):
                 # This glyph never appears in the final glyph buffer.
                 continue
@@ -3269,7 +3349,10 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
             exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
             start_x = entry_xs[CURSIVE_ANCHOR if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
-            x_min, _, x_max, _ = schema.glyph.boundingBox()
+            if schema.glyph is None:
+                x_min = x_max = 0
+            else:
+                x_min, _, x_max, _ = schema.glyph.boundingBox()
             if x_min == x_max == 0:
                 x_min = entry_xs[CURSIVE_ANCHOR]
                 x_max = exit_xs[CURSIVE_ANCHOR]
@@ -4200,6 +4283,7 @@ PHASES = [
 ]
 
 MARKER_PHASES = [
+    shim_dots,
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
@@ -4223,6 +4307,7 @@ MACRON = Line(0, stretchy=False)
 BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
 DIAERESIS = Line(0, stretchy=False, dots=2)
 CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
+NNBSP = Space(0, margins=False)
 H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -4338,7 +4423,7 @@ SCHEMAS = [
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
-    Schema(0x202F, SPACE, 200, side_bearing=200),
+    Schema(0x202F, NNBSP, 200, side_bearing=200),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
