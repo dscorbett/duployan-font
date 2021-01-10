@@ -3211,7 +3211,7 @@ def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, na
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 
-def shim_dots(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     marker_lookup = Lookup(
         'haln',
         'dupl',
@@ -3227,15 +3227,18 @@ def shim_dots(original_schemas, schemas, new_schemas, classes, named_lookups, ad
     )
     if len(original_schemas) != len(schemas):
         return [marker_lookup, space_lookup]
-    dot_schemas = {}
+    pseudo_cursive_schemas = {}
     exit_schemas = []
     entry_schemas = []
     for schema in new_schemas:
-        if schema.glyph is None or schema.path.invisible():
+        if schema.glyph is None:
             continue
-        if isinstance(schema.path, Dot) and schema.glyph_class == GlyphClass.JOINER:
+        if (isinstance(schema.path, (Dot, Space))
+            and schema.glyph_class == GlyphClass.JOINER
+            and not schema.path.can_be_hub(schema.size)
+        ):
             x_min, _, x_max, _ = schema.glyph.boundingBox()
-            dot_schemas[schema] = (x_max - x_min) / 2
+            pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
         if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
             for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
                 if anchor_class_name == CURSIVE_ANCHOR:
@@ -3252,30 +3255,45 @@ def shim_dots(original_schemas, schemas, new_schemas, classes, named_lookups, ad
             side_bearing=width,
         )
     marker = get_shim(0, 0)
-    for dot_i, (dot_schema, dot_half_width) in enumerate(dot_schemas.items()):
-        add_rule(marker_lookup, Rule([dot_schema], [marker, dot_schema, marker]))
+    for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
+        add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
         exit_classes = {}
+        exit_classes_containing_pseudo_cursive_schemas = set()
+        exit_classes_containing_true_cursive_schemas = set()
         entry_classes = {}
         for prefix, e_schemas, e_classes, height_sign, get_distance_to_edge in [
             ('exit', exit_schemas, exit_classes, -1, lambda bounds, x: bounds[1] - x),
             ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
         ]:
             for e_schema, x, y in e_schemas:
-                exit_is_dot = e_classes is exit_classes and e_schema in dot_schemas
                 bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
-                shim_width = round(get_distance_to_edge(bounds, x) + DEFAULT_SIDE_BEARING + dot_half_width)
-                shim_height = 0 if exit_is_dot else round(dot_half_width * height_sign)
-                e_class = f'{prefix}_shim_{shim_width}_{str(shim_height).replace("-", "n")}_{exit_is_dot}'
+                distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
+                shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
+                shim_height = round(pseudo_cursive_half_width * height_sign)
+                if (e_schemas is exit_schemas
+                    and isinstance(pseudo_cursive_schema.path, Space)
+                    and isinstance(e_schema.path, Space)
+                ):
+                    # Margins do not collapse between spaces.
+                    shim_width += DEFAULT_SIDE_BEARING
+                exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
+                if exit_is_pseudo_cursive:
+                    shim_height += pseudo_cursive_schemas[e_schema]
+                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{str(shim_height).replace("-", "n")}'
                 classes[e_class].append(e_schema)
                 if e_class not in e_classes:
                     e_classes[e_class] = get_shim(shim_width, shim_height)
+                (exit_classes_containing_pseudo_cursive_schemas
+                        if exit_is_pseudo_cursive
+                        else exit_classes_containing_true_cursive_schemas
+                    ).add(e_class)
         for exit_class, shim in exit_classes.items():
-            if exit_class.endswith('True'):
-                add_rule(space_lookup, Rule(exit_class, [marker], [marker, dot_schema], [shim]))
-            else:
-                add_rule(space_lookup, Rule(exit_class, [marker], [dot_schema], [shim]))
+            if exit_class in exit_classes_containing_pseudo_cursive_schemas:
+                add_rule(space_lookup, Rule([exit_class, marker], [marker], [pseudo_cursive_schema], [shim]))
+            if exit_class in exit_classes_containing_true_cursive_schemas:
+                add_rule(space_lookup, Rule(exit_class, [marker], [pseudo_cursive_schema], [shim]))
         for entry_class, shim in entry_classes.items():
-            add_rule(space_lookup, Rule([dot_schema], [marker], entry_class, [shim]))
+            add_rule(space_lookup, Rule([pseudo_cursive_schema], [marker], entry_class, [shim]))
     return [marker_lookup, space_lookup]
 
 def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3323,7 +3341,7 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             elif isinstance(schema.path, GlyphClassSelector):
                 glyph_class_selectors[schema.glyph_class] = schema
             if not isinstance(schema.path, Space):
-                # Not a schema created in `shim_dots`
+                # Not a schema created in `add_shims_for_pseudo_cursive`
                 continue
         if not schema.widthless and (
             schema.glyph_class == GlyphClass.JOINER
@@ -4283,7 +4301,7 @@ PHASES = [
 ]
 
 MARKER_PHASES = [
-    shim_dots,
+    add_shims_for_pseudo_cursive,
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
@@ -4423,7 +4441,7 @@ SCHEMAS = [
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
-    Schema(0x202F, NNBSP, 200, side_bearing=200),
+    Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),

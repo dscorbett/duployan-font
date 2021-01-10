@@ -1,0 +1,49 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Pseudo-cursive characters have built-in minimum side bearings. They
+# are cursive in that they don’t reset the baseline, but non-cursive in
+# that they don’t have strokes that should overlap adjacent glyphs.
+
+# U+1BC00 DUPLOYAN LETTER H
+1BC00::[u1BC00.h@120,0|_@240,0]
+1BC00 1BC00::[u1BC00.h@120,0|u1BC00.h@275,0|_@395,0]
+1BC00 1BC00 1BC00::[u1BC00.h@120,0|u1BC00.h@275,0|u1BC00.h@430,0|_@550,0]
+1BC02 1BC00 1BC05::[u1BC02.p@120,0|u1BC00.h@275,0|u1BC05.k@476,-500|_@596,0]
+1BC05 1BC00 1BC02::[u1BC05.k@408,0|u1BC00.h@321,0|u1BC02.p@476,-500|_@596,0]
+1BC02 1BC00 1BC19::[u1BC02.p@120,0|u1BC00.h@275,0|u1BC19.m@623,-720|_@743,0]
+1BC1A 1BC00 1BC02::[u1BC1A.n@120,0|u1BC00.h@468,0|u1BC02.p@623,-500|_@743,0]
+1BC02 1BC00 1BC5F::[u1BC02.p@120,0|u1BC00.h@275,0|u1BC5F.wei@591,-400|_@911,0]
+1BC5F 1BC00 1BC02::[u1BC5F.wei@320,340|u1BC00.h@675,500|u1BC02.p@830,0|_@950,0]
+
+# U+202F NARROW NO-BREAK SPACE
+202F:--script Dupl:[uni202F.nnbsp@85,0|_@200,0]
+202F 202F:--script Dupl:[uni202F.nnbsp@85,0|uni202F.nnbsp@285,0|_@400,0]
+202F 202F 202F:--script Dupl:[uni202F.nnbsp@85,0|uni202F.nnbsp@285,0|uni202F.nnbsp@485,0|_@600,0]
+1BC02 202F 1BC05::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC05.k@436,-500|_@556,0]
+1BC05 202F 1BC02::[u1BC05.k@408,0|uni202F.nnbsp@286,35|u1BC02.p@436,-500|_@556,0]
+1BC02 202F 1BC19::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC19.m@583,-720|_@703,0]
+1BC1A 202F 1BC02::[u1BC1A.n@120,0|uni202F.nnbsp@433,35|u1BC02.p@583,-500|_@703,0]
+1BC02 202F 1BC5F::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC5F.wei@551,-400|_@871,0]
+1BC5F 202F 1BC02::[u1BC5F.wei@320,340|uni202F.nnbsp@640,535|u1BC02.p@790,0|_@910,0]
+
+# Space next to non-space
+1BC02 202F 1BC00 EC02::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC00.h@390,0|uniEC02.reversed_p@545,0|_@665,0]
+1BC02 1BC00 202F EC02::[u1BC02.p@120,0|u1BC00.h@275,0|uni202F.nnbsp@395,35|uniEC02.reversed_p@545,0|_@665,0]
+1BC02 202F 202F 1BC00 EC02::[u1BC02.p@120,0|uni202F.nnbsp@240,35|uni202F.nnbsp@440,35|u1BC00.h@590,0|uniEC02.reversed_p@745,0|_@865,0]
+1BC02 202F 1BC00 202F EC02::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC00.h@390,0|uni202F.nnbsp@510,35|uniEC02.reversed_p@660,0|_@780,0]
+1BC02 202F 1BC00 1BC00 EC02::[u1BC02.p@120,0|uni202F.nnbsp@240,35|u1BC00.h@390,0|u1BC00.h@545,0|uniEC02.reversed_p@700,0|_@820,0]
+1BC02 1BC00 202F 202F EC02::[u1BC02.p@120,0|u1BC00.h@275,0|uni202F.nnbsp@395,35|uni202F.nnbsp@595,35|uniEC02.reversed_p@745,0|_@865,0]
+1BC02 1BC00 202F 1BC00 EC02::[u1BC02.p@120,0|u1BC00.h@275,0|uni202F.nnbsp@395,35|u1BC00.h@545,0|uniEC02.reversed_p@700,0|_@820,0]
+1BC02 1BC00 1BC00 202F EC02::[u1BC02.p@120,0|u1BC00.h@275,0|u1BC00.h@430,0|uni202F.nnbsp@550,35|uniEC02.reversed_p@700,0|_@820,0]
