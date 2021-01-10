@@ -6,7 +6,7 @@ License: Apache-2.0
 Files: font/build.py
 Copyright: Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
   Copyright 2018-2019 David Corbett
-  Copyright 2020 Google LLC
+  Copyright 2020-2021 Google LLC
 License: Apache-2.0
 
 Files: font/Duployan.sfd

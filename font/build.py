@@ -2,7 +2,7 @@
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
 # Copyright 2018-2019 David Corbett
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ def build_font(options, font):
     font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(
         font.fullname,
         font.version,
-        os.environ['SOURCE_DATE_EPOCH'],
+        subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
     ))
     font.selection.all()
     font.correctReferences()
