@@ -1627,7 +1627,8 @@ class Complex(Shape):
             self.contour.transform(matrix)
 
         def moveTo(self, x_y):
-            self.contour.moveTo(*x_y)
+            if not self.contour:
+                self.contour.moveTo(*x_y)
 
         def lineTo(self, x_y):
             self.contour.lineTo(*x_y)
@@ -1636,6 +1637,9 @@ class Complex(Shape):
             self.contour.cubicTo(cp1, cp2, x_y)
 
         def endPath(self):
+            pass
+
+        def removeOverlap(self):
             pass
 
         def get_crossing_point(self, component):
@@ -4318,6 +4322,9 @@ MARKER_PHASES = [
 ]
 
 SPACE = Space(0)
+LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
+GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
+GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
 GRAVE = Line(150, stretchy=False)
 ACUTE = Line(45, stretchy=False)
 CIRCUMFLEX = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
@@ -4427,6 +4434,8 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
+    Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
@@ -4446,6 +4455,7 @@ SCHEMAS = [
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x2013, EN_DASH, 1, Type.NON_JOINING),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
+    Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
