@@ -4322,6 +4322,13 @@ MARKER_PHASES = [
 ]
 
 SPACE = Space(0)
+H = Dot()
+EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
+COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True))])
+SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
+COLON = Line(90, stretchy=False, dots=2)
+SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
+QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
 LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
 GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
 GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
@@ -4333,10 +4340,13 @@ BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
 DIAERESIS = Line(0, stretchy=False, dots=2)
 CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
 EN_DASH = Complex([(395, Space(90, margins=False)), (1, Line(1, stretchy=False))])
+HIGH_LEFT_QUOTE = Complex([(755, Space(90, margins=False)), (3, Curve(240, 300, clockwise=False)), (0.5, Circle(300, 300, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(120, 120, clockwise=True)), (3, Curve(120, 60, clockwise=True))])
+HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False))])
+LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False))])
+ELLIPSIS = Line(0, dots=3)
 NNBSP = Space(0, margins=False)
 STENOGRAPHIC_PERIOD = Complex([(1, Line(135, stretchy=False)), (0.5, Line(315, stretchy=False)), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
-H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
 P_REVERSE = Line(90)
@@ -4434,8 +4444,15 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
+    Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING),
+    Schema(0x002C, COMMA, 1, Type.NON_JOINING),
+    Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x003A, COLON, 0.856, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x003F, QUESTION, 1, Type.NON_JOINING),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
@@ -4454,6 +4471,10 @@ SCHEMAS = [
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x2013, EN_DASH, 1, Type.NON_JOINING),
+    Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
+    Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
+    Schema(0x201E, LOW_RIGHT_QUOTE, 1, Type.NON_JOINING),
+    Schema(0x2026, ELLIPSIS, 0.592, Type.NON_JOINING, shading_allowed=False),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
