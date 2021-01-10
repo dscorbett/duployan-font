@@ -4326,6 +4326,7 @@ BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
 DIAERESIS = Line(0, stretchy=False, dots=2)
 CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
 NNBSP = Space(0, margins=False)
+STENOGRAPHIC_PERIOD = Complex([(1, Line(135, stretchy=False)), (0.5, Line(315, stretchy=False)), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 H = Dot()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -4442,6 +4443,7 @@ SCHEMAS = [
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
+    Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
