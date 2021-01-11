@@ -56,3 +56,11 @@
 1BC51 0323::[u1BC51.u@120,0|uni0323.dot_below@195,-105|_@390,0]
 1BC51 0324::[u1BC51.u@120,0|uni0324.diaeresis_below@145,-105|_@390,0]
 1BC51 0331::[u1BC51.u@120,0|uni0331.macron_below@145,-105|_@390,0]
+
+# U+20DD COMBINING ENCLOSING CIRCLE
+0021 20DD:--script Dupl:[exclam@0,0|uni20DD.enclosing_circle.psts@120,-175|_@240,0]
+002C 20DD:--script Dupl:[comma@0,0|uni20DD.enclosing_circle.psts@153,-360|_@307,0]
+003A 20DD:--script Dupl:[colon@0,0|uni20DD.enclosing_circle.psts@120,-174|_@240,0]
+003B 20DD:--script Dupl:[semicolon@0,0|uni20DD.enclosing_circle.psts@154,-360|_@307,0]
+003F 20DD:--script Dupl:[question@0,0|uni20DD.enclosing_circle.psts@270,-175|_@540,0]
+2013 20DD:--script Dupl:[uni2013.en_dash@0,0|uni20DD.enclosing_circle.psts@370,47|_@740,0]

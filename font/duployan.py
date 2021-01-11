@@ -1348,12 +1348,14 @@ class Circle(Shape):
         clockwise,
         reversed=False,
         stretch=0,
+        long=False,
     ):
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
         self.reversed = reversed
         self.stretch = stretch
+        self.long = long
 
     def clone(
         self,
@@ -1363,6 +1365,7 @@ class Circle(Shape):
         clockwise=CLONE_DEFAULT,
         reversed=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
+        long=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1370,6 +1373,7 @@ class Circle(Shape):
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
+            long=self.long if long is CLONE_DEFAULT else long,
         )
 
     def __str__(self):
@@ -1395,6 +1399,7 @@ class Circle(Shape):
             angle_out,
             clockwise,
             self.stretch,
+            self.long,
         )
 
     @staticmethod
@@ -1405,7 +1410,6 @@ class Circle(Shape):
         return size >= 6
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
-        assert anchor is None
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
             angle_out -= 360
@@ -1437,9 +1441,13 @@ class Circle(Shape):
                     glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
                 glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, 0, 0)
         glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
-        scale_x = 1.0 + self.stretch
+        if anchor:
+            glyph.addAnchorPoint(MIDDLE_ANCHOR, 'mark', 0, 0)
         if self.stretch:
+            scale_x = 1.0 + self.stretch
             scale_y = 1.0
+            if self.long:
+                scale_x, scale_y = scale_y, scale_x
             theta = math.radians(self.angle_in % 180)
             glyph.transform(
                 fontTools.misc.transform.Identity
@@ -1449,7 +1457,7 @@ class Circle(Shape):
             )
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
         else:
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
@@ -1743,8 +1751,9 @@ class Complex(Shape):
         )
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
+        y_center = (y_max + y_min) / 2
         if anchor == MIDDLE_ANCHOR:
-            glyph.addAnchorPoint(anchor, 'mark', x_center, (y_max + y_min) / 2)
+            glyph.addAnchorPoint(anchor, 'mark', x_center, y_center)
         elif anchor == ABOVE_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width + LIGHT_LINE)
@@ -1754,6 +1763,7 @@ class Complex(Shape):
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - stroke_width - LIGHT_LINE)
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
         elif anchor is None:
+            glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', x_center, y_center)
             glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width + LIGHT_LINE)
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - stroke_width - LIGHT_LINE)
         return first_is_invisible
@@ -1914,6 +1924,7 @@ class Schema:
             widthless=None,
             marks=None,
             unignored=False,
+            encirclable=False,
             shading_allowed=True,
             context_in=None,
             context_out=None,
@@ -1934,6 +1945,7 @@ class Schema:
         self.widthless = widthless
         self.marks = marks or []
         self.unignored = unignored
+        self.encirclable = encirclable
         self.shading_allowed = shading_allowed
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
@@ -1970,6 +1982,7 @@ class Schema:
         widthless=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
         unignored=CLONE_DEFAULT,
+        encirclable=CLONE_DEFAULT,
         shading_allowed=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
@@ -1989,6 +2002,7 @@ class Schema:
             widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
+            encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
@@ -3235,10 +3249,9 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
     exit_schemas = []
     entry_schemas = []
     for schema in new_schemas:
-        if schema.glyph is None:
+        if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
             continue
         if (isinstance(schema.path, (Dot, Space))
-            and schema.glyph_class == GlyphClass.JOINER
             and not schema.path.can_be_hub(schema.size)
         ):
             x_min, _, x_max, _ = schema.glyph.boundingBox()
@@ -3299,6 +3312,45 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
         for entry_class, shim in entry_classes.items():
             add_rule(space_lookup, Rule([pseudo_cursive_schema], [marker], entry_class, [shim]))
     return [marker_lookup, space_lookup]
+
+def shrink_wrap_enclosing_circle(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='i',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    punctuation = {}
+    circle_schema = None
+    for schema in schemas:
+        if not schema.glyph:
+            continue
+        if schema.widthless and schema.cps == [0x20DD]:
+            assert circle_schema is None
+            circle_schema = schema
+            classes['i'].append(circle_schema)
+        elif schema.encirclable:
+            x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
+            dx = x_max - x_min
+            dy = y_max - y_min
+            class_name = f'c_{dx}_{dy}'
+            classes[class_name].append(schema)
+            punctuation[class_name] = (dx, dy)
+    for class_name, (dx, dy) in punctuation.items():
+        dx += 4 * LIGHT_LINE
+        dy += 4 * LIGHT_LINE
+        if dx > dy:
+            dy = max(dy, dx * 0.75)
+        elif dx < dy:
+            dx = max(dx, dy * 0.75)
+        add_rule(lookup, Rule(class_name, [circle_schema], [], [circle_schema.clone(
+            cmap=None,
+            path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
+            size=min(dx, dy) / 100,
+        )]))
+    return [lookup]
 
 def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68
@@ -4306,6 +4358,7 @@ PHASES = [
 
 MARKER_PHASES = [
     add_shims_for_pseudo_cursive,
+    shrink_wrap_enclosing_circle,
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
@@ -4444,15 +4497,15 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING),
-    Schema(0x002C, COMMA, 1, Type.NON_JOINING),
+    Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
+    Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003A, COLON, 0.856, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING),
+    Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
+    Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003F, QUESTION, 1, Type.NON_JOINING),
+    Schema(0x003F, QUESTION, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
@@ -4471,12 +4524,13 @@ SCHEMAS = [
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
     Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
-    Schema(0x2013, EN_DASH, 1, Type.NON_JOINING),
+    Schema(0x2013, EN_DASH, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201E, LOW_RIGHT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x2026, ELLIPSIS, 0.592, Type.NON_JOINING, shading_allowed=False),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
+    Schema(0x20DD, O, 10, anchor=MIDDLE_ANCHOR),
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
@@ -4820,9 +4874,9 @@ class Builder:
         return glyph
 
     def _create_marker(self, schema):
-        assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
-        glyph = self._create_glyph(schema, drawing=True)
-        glyph.width = 0
+        glyph = self._create_glyph(schema, drawing=schema.cmap is None)
+        if schema.cmap is None:
+            glyph.width = 0
 
     def _complete_gpos(self):
         mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
