@@ -25,6 +25,7 @@
 1BC01 0317::[u1BC01.x@0,0|uni0317.acute_below.psts@86,-246|_@314,0]
 1BC01 0323::[u1BC01.x@0,0|uni0323.dot_below.psts@157,-175|_@314,0]
 1BC01 0324::[u1BC01.x@0,0|uni0324.diaeresis_below.0.dotted.psts@107,-175|_@314,0]
+1BC01 0331::[u1BC01.x@0,0|uni0331.macron_below.psts@107,-175|_@314,0]
 
 # U+1BC47 DUPLOYAN LETTER E
 1BC47 0300::[u1BC47.e@320,0|uni0300.grave@220,205|_@440,0]
@@ -39,6 +40,7 @@
 1BC47 0317::[u1BC47.e@320,0|uni0317.acute_below@149,-176|_@440,0]
 1BC47 0323::[u1BC47.e@320,0|uni0323.dot_below@220,-105|_@440,0]
 1BC47 0324::[u1BC47.e@320,0|uni0324.diaeresis_below@170,-105|_@440,0]
+1BC47 0331::[u1BC47.e@320,0|uni0331.macron_below@170,-105|_@440,0]
 
 # U+1BC51 DUPLOYAN LETTER U
 1BC51 0300::[u1BC51.u@132,0|uni0300.grave@207,255|_@402,0]
@@ -53,3 +55,4 @@
 1BC51 0317::[u1BC51.u@120,0|uni0317.acute_below@124,-176|_@390,0]
 1BC51 0323::[u1BC51.u@120,0|uni0323.dot_below@195,-105|_@390,0]
 1BC51 0324::[u1BC51.u@120,0|uni0324.diaeresis_below@145,-105|_@390,0]
+1BC51 0331::[u1BC51.u@120,0|uni0331.macron_below@145,-105|_@390,0]
