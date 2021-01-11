@@ -4874,9 +4874,9 @@ class Builder:
         return glyph
 
     def _create_marker(self, schema):
-        glyph = self._create_glyph(schema, drawing=schema.cmap is None)
-        if schema.cmap is None:
-            glyph.width = 0
+        assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
+        glyph = self._create_glyph(schema, drawing=True)
+        glyph.width = 0
 
     def _complete_gpos(self):
         mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
