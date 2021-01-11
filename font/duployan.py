@@ -1570,11 +1570,13 @@ class Complex(Shape):
         instructions,
         *,
         hook=False,
+        maximum_tree_width=0,
         _all_circles=None,
         _final_rotation=0,
     ):
         self.instructions = instructions
         self.hook = hook
+        self.maximum_tree_width = maximum_tree_width
         if _all_circles is None:
             self._all_circles = all(not callable(op) and isinstance(op[1], Circle) for op in self.instructions)
         else:
@@ -1587,12 +1589,14 @@ class Complex(Shape):
         *,
         instructions=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
+        maximum_tree_width=CLONE_DEFAULT,
         _all_circles=CLONE_DEFAULT,
         _final_rotation=CLONE_DEFAULT,
     ):
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
+            maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             _all_circles=self._all_circles if _all_circles is CLONE_DEFAULT else _all_circles,
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
@@ -1691,7 +1695,7 @@ class Complex(Shape):
         for op in self.instructions:
             if callable(op):
                 continue
-            scalar, component = op
+            scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
             component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False)
             if first_is_invisible is None:
@@ -1717,7 +1721,8 @@ class Complex(Shape):
             for anchor_and_type, points in proxy.anchor_points.items():
                 if len(points) == 1:
                     singular_anchor_points[anchor_and_type].append(points[0])
-            proxy.contour.draw(pen)
+            if not (skip_drawing and skip_drawing[0]):
+                proxy.contour.draw(pen)
         return (
             first_is_invisible,
             singular_anchor_points,
@@ -1743,7 +1748,12 @@ class Complex(Shape):
         base = 'basemark' if anchor or child else 'base'
         if anchor is None:
             for (singular_anchor, type), points in singular_anchor_points.items():
-                if singular_anchor in MARK_ANCHORS:
+                if singular_anchor in MARK_ANCHORS or (
+                    self.maximum_tree_width and (
+                        singular_anchor in CONTINUING_OVERLAP_ANCHOR
+                        or any(map(lambda l: singular_anchor in l, CHILD_EDGE_ANCHORS))
+                    )
+                ):
                     glyph.addAnchorPoint(singular_anchor, type, *points[-1])
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self._final_rotation)),
@@ -1773,8 +1783,7 @@ class Complex(Shape):
         return False
 
     def max_tree_width(self, size):
-        #return min(op[1].max_tree_width(size) for op in self.instructions if not callable(op))
-        return 0
+        return self.maximum_tree_width
 
     def is_shadable(self):
         return all(callable(op) or op[1].is_shadable() for op in self.instructions)
@@ -4383,6 +4392,7 @@ COLON = Line(90, stretchy=False, dots=2)
 SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
 QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
 LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
+EQUAL = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
 GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
 GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
 GRAVE = Line(150, stretchy=False)
@@ -4504,6 +4514,7 @@ SCHEMAS = [
     Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
     Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x003D, EQUAL, 1, Type.NON_JOINING),
     Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003F, QUESTION, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
