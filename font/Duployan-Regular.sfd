@@ -21,7 +21,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1523136075
-ModificationTime: 1610306440
+ModificationTime: 1610372265
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -55,7 +55,7 @@ WinInfo: 16 16 8
 BeginPrivate: 0
 EndPrivate
 TeXData: 1 0 0 272629 136314 90876 0 1048576 90876 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-BeginChars: 1114113 30
+BeginChars: 1114113 28
 
 StartChar: uni0000
 Encoding: 0 0 0
@@ -640,78 +640,8 @@ SplineSet
 EndSplineSet
 EndChar
 
-StartChar: uni211F
-Encoding: 8479 8479 22
-Width: 596
-Flags: HW
-LayerCount: 2
-Fore
-SplineSet
-294 714 m 2
- 325 714 354 712 380 708 c 1
- 394 769 l 1
- 174 821 l 1
- 188 873 l 1
- 459 805 l 1
- 433 694 l 1
- 515 665 554 604 554 511 c 0
- 554 397 483 345 411 320 c 1
- 607 0 l 1
- 502 0 l 1
- 336 284 l 1
- 234 -145 l 1
- 179 -145 l 1
- 283 295 l 1
- 187 295 l 1
- 187 0 l 1
- 97 0 l 1
- 97 714 l 1
- 294 714 l 2
-289 636 m 2
- 187 636 l 1
- 187 371 l 1
- 294 371 l 1
- 294 371 294 371 300 371 c 1
- 361 630 l 1
- 341 634 316 636 289 636 c 2
-461 507 m 0
- 461 557 445 590 413 610 c 1
- 358 377 l 1
- 429 392 461 436 461 507 c 0
-EndSplineSet
-EndChar
-
-StartChar: uni2123
-Encoding: 8483 8483 23
-Width: 606
-Flags: HW
-LayerCount: 2
-Fore
-SplineSet
-351 764 m 1
- 133 822 l 1
- 149 873 l 1
- 417 797 l 1
- 265 228 l 1
- 280 181 292 139 300 100 c 1
- 309 147 324 198 345 258 c 2
- 505 714 l 1
- 600 714 l 1
- 345 0 l 1
- 255 0 l 1
- 226 82 l 1
- 165 -145 l 1
- 110 -145 l 1
- 194 171 l 1
- 0 714 l 1
- 94 714 l 1
- 233 319 l 1
- 351 764 l 1
-EndSplineSet
-EndChar
-
 StartChar: u1BCA3
-Encoding: 113827 113827 24
+Encoding: 113827 113827 22
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -820,7 +750,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA2
-Encoding: 113826 113826 25
+Encoding: 113826 113826 23
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -929,7 +859,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA0
-Encoding: 113824 113824 26
+Encoding: 113824 113824 24
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1050,7 +980,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA1
-Encoding: 113825 113825 27
+Encoding: 113825 113825 25
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1173,7 +1103,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BC9D
-Encoding: 113821 113821 28
+Encoding: 113821 113821 26
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1312,7 +1242,7 @@ EndSplineSet
 EndChar
 
 StartChar: uniE000
-Encoding: 57344 57344 29
+Encoding: 57344 57344 27
 Width: 75
 Flags: HW
 LayerCount: 2
