@@ -77,6 +77,11 @@ def tweak_font(options, builder):
         if 'FFTM' in tt_font:
             del tt_font['FFTM']
 
+        # Keep the various ascenders and descenders consistent. FontForge
+        # unnecessarily forces these two OS/2 fields to sum to the em size.
+        tt_font['OS/2'].sTypoAscender = tt_font['hhea'].ascender
+        tt_font['OS/2'].sTypoDescender = tt_font['hhea'].descender
+
         # Merge all the lookups.
         font = builder.font
         lookups = font.gpos_lookups + font.gsub_lookups
