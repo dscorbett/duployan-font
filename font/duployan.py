@@ -2271,6 +2271,7 @@ class Rule:
         /,
         *,
         lookups=None,
+        x_placements=None,
         x_advances=None,
     ):
         def _l(glyphs):
@@ -2281,20 +2282,24 @@ class Rule:
             a2 = a1
             a1 = []
             a3 = []
-        assert (a4 is not None) + (lookups is not None) + (x_advances is not None) == 1, (
-            'Rule can take exactly one of an output glyph/class list, a lookup list, or an x advance list')
+        assert (a4 is not None) + (lookups is not None) + (x_placements is not None or x_advances is not None) == 1, (
+            'Rule can take exactly one of an output glyph/class list, a lookup list, or a position list')
         self.contexts_in = _l(a1)
         self.inputs = _l(a2)
         self.contexts_out = _l(a3)
         self.outputs = None
         self.lookups = lookups
+        self.x_placements = x_placements
         self.x_advances = x_advances
         if lookups is not None:
             assert len(lookups) == len(self.inputs), f'There must be one lookup (or None) per input glyph ({len(lookups)} != {len(self.inputs)})'
-        elif x_advances is not None:
-            assert len(x_advances) == len(self.inputs), f'There must be one x advance (or None) per input glyph ({len(x_advances)} != {len(self.inputs)})'
-        else:
+        elif a4 is not None:
             self.outputs = _l(a4)
+        else:
+            if x_placements is not None:
+                assert len(x_placements) == len(self.inputs), f'There must be one x placement (or None) per input glyph ({len(x_placements)} != {len(self.inputs)})'
+            if x_advances is not None:
+                assert len(x_advances) == len(self.inputs), f'There must be one x advance (or None) per input glyph ({len(x_advances)} != {len(self.inputs)})'
 
     def to_asts(self, class_asts, named_lookup_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
         def glyph_to_ast(glyph, unrolling_from=None, unrolling_to=None):
@@ -2323,13 +2328,20 @@ class Rule:
                 glyphs_to_ast(self.contexts_out),
                 [None if name is None else named_lookup_asts[name] for name in self.lookups],
             )]
-        elif self.x_advances is not None:
+        elif self.x_placements is not None or self.x_advances is not None:
             assert not in_reverse_lookup, 'There is no reverse positioning lookup type'
             assert len(self.inputs) == 1, 'Only single adjustment positioning has been implemented'
             return [fontTools.feaLib.ast.SinglePosStatement(
                 list(zip(
                     glyphs_to_ast(self.inputs),
-                    [fontTools.feaLib.ast.ValueRecord(xAdvance=x_advance) for x_advance in self.x_advances])),
+                    [
+                        fontTools.feaLib.ast.ValueRecord(x_placement, xAdvance=x_advance)
+                            for x_placement, x_advance in itertools.zip_longest(
+                                self.x_placements or [None] * len(self.inputs),
+                                self.x_advances or [None] * len(self.inputs),
+                            )
+                    ],
+                )),
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.contexts_out),
                 in_contextual_lookup,
@@ -3329,8 +3341,14 @@ def shrink_wrap_enclosing_circle(original_schemas, schemas, new_schemas, classes
         'dflt',
         mark_filtering_set='i',
     )
+    dist_lookup = Lookup(
+        'dist',
+        'dupl',
+        'dflt',
+        mark_filtering_set='o',
+    )
     if len(original_schemas) != len(schemas):
-        return [lookup]
+        return [lookup, dist_lookup]
     punctuation = {}
     circle_schema = None
     for schema in schemas:
@@ -3346,20 +3364,25 @@ def shrink_wrap_enclosing_circle(original_schemas, schemas, new_schemas, classes
             dy = y_max - y_min
             class_name = f'c_{dx}_{dy}'
             classes[class_name].append(schema)
-            punctuation[class_name] = (dx, dy)
-    for class_name, (dx, dy) in punctuation.items():
+            punctuation[class_name] = (dx, dy, schema.glyph.width)
+    for class_name, (dx, dy, width) in punctuation.items():
         dx += 4 * LIGHT_LINE
         dy += 4 * LIGHT_LINE
         if dx > dy:
             dy = max(dy, dx * 0.75)
         elif dx < dy:
             dx = max(dx, dy * 0.75)
-        add_rule(lookup, Rule(class_name, [circle_schema], [], [circle_schema.clone(
+        new_circle_schema = circle_schema.clone(
             cmap=None,
             path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
             size=min(dx, dy) / 100,
-        )]))
-    return [lookup]
+        )
+        add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
+        classes['o'].append(new_circle_schema)
+        side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - width) / 2)
+        add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[side_bearing]))
+        add_rule(dist_lookup, Rule([class_name], [new_circle_schema], [], x_advances=[side_bearing]))
+    return [lookup, dist_lookup]
 
 def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 68

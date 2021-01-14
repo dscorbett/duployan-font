@@ -58,9 +58,9 @@
 1BC51 0331::[u1BC51.u@120,0|uni0331.macron_below@145,-105|_@390,0]
 
 # U+20DD COMBINING ENCLOSING CIRCLE
-0021 20DD:--script Dupl:[exclam@0,0|uni20DD.enclosing_circle.psts@120,-175|_@240,0]
-002C 20DD:--script Dupl:[comma@0,0|uni20DD.enclosing_circle.psts@153,-360|_@307,0]
-003A 20DD:--script Dupl:[colon@0,0|uni20DD.enclosing_circle.psts@120,-174|_@240,0]
-003B 20DD:--script Dupl:[semicolon@0,0|uni20DD.enclosing_circle.psts@154,-360|_@307,0]
-003F 20DD:--script Dupl:[question@0,0|uni20DD.enclosing_circle.psts@270,-175|_@540,0]
-2013 20DD:--script Dupl:[uni2013.en_dash@0,0|uni20DD.enclosing_circle.psts@370,47|_@740,0]
+0021 20DD:--script Dupl:[exclam@366,0|uni20DD.enclosing_circle.psts@486,-175|_@972,0]
+002C 20DD:--script Dupl:[comma@140,0|uni20DD.enclosing_circle.psts@293,-360|_@587,0]
+003A 20DD:--script Dupl:[colon@257,0|uni20DD.enclosing_circle.psts@377,-174|_@754,0]
+003B 20DD:--script Dupl:[semicolon@293,0|uni20DD.enclosing_circle.psts@447,-360|_@893,0]
+003F 20DD:--script Dupl:[question@213,0|uni20DD.enclosing_circle.psts@483,-175|_@966,0]
+2013 20DD:--script Dupl:[uni2013.en_dash@140,0|uni20DD.enclosing_circle.psts@510,47|_@1020,0]
