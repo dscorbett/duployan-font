@@ -2939,6 +2939,24 @@ def decompose(original_schemas, schemas, new_schemas, classes, named_lookups, ad
             add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
     return [lookup]
 
+def reposition_stenographic_period(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if isinstance(schema.path, (InvalidStep, Space)) and schema.joining_type == Type.JOINING:
+            classes['c'].append(schema)
+        elif schema.cmap == 0x2E3C:
+            period = schema
+    zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
+    joining_period = period.clone(cmap=None, joining_type=Type.JOINING)
+    add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
+    return [lookup]
+
 def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
@@ -3304,7 +3322,11 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
             ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
         ]:
             for e_schema, x, y in e_schemas:
-                bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
+                if e_schema.cps == [0x2E3C]:
+                    # FIXME: Avoid a segfault in FontForge.
+                    bounds = e_schema.glyph.boundingBox()[::2]
+                else:
+                    bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                 shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
                 shim_height = round(pseudo_cursive_half_width * height_sign)
@@ -4374,6 +4396,7 @@ PHASES = [
     add_secant_guidelines,
     categorize_edges,
     make_mark_variants_of_children,
+    reposition_stenographic_period,
     join_with_next_step,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
@@ -4431,7 +4454,7 @@ HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(300, 3
 LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False))])
 ELLIPSIS = Line(0, dots=3)
 NNBSP = Space(0, margins=False)
-STENOGRAPHIC_PERIOD = Complex([(1, Line(135, stretchy=False)), (0.5, Line(315, stretchy=False)), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
+STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), (1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False)), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
