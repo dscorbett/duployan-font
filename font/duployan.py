@@ -1728,6 +1728,22 @@ class Complex(Shape):
             singular_anchor_points,
         )
 
+    @staticmethod
+    def _remove_bad_contours(glyph):
+        if not hasattr(glyph, 'foreground'):
+            # This `Complex` is nested within another `Complex`. The outermost one
+            # will remove all the bad contours.
+            return
+        bad_indices = []
+        foreground = glyph.foreground
+        for contour_index, contour in enumerate(foreground):
+            if not contour.closed and len(contour) == 2 and contour[0] == contour[1]:
+                bad_indices.append(contour_index)
+        if bad_indices:
+            for bad_index in reversed(bad_indices):
+                del foreground[bad_index]
+            glyph.foreground = foreground
+
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         (
             first_is_invisible,
@@ -1735,6 +1751,7 @@ class Complex(Shape):
         ) = self.draw_to_proxy(pen, stroke_width, size)
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
+        self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
             first_entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][0]
             last_exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
@@ -3322,11 +3339,7 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
             ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
         ]:
             for e_schema, x, y in e_schemas:
-                if e_schema.cps == [0x2E3C]:
-                    # FIXME: Avoid a segfault in FontForge.
-                    bounds = e_schema.glyph.boundingBox()[::2]
-                else:
-                    bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
+                bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                 shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
                 shim_height = round(pseudo_cursive_half_width * height_sign)
