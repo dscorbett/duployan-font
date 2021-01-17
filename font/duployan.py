@@ -2813,16 +2813,17 @@ def add_placeholders_for_missing_children(original_schemas, schemas, new_schemas
             lookups=[None],
         ))
         for sibling_count in range(max_tree_width - 1, 0, -1):
+            input_1 = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
             add_rule(lookup_1, Rule(
                 [base_class] + [valid_letter_overlap] * (sibling_count - 1),
-                'valid_final_overlap',
+                [input_1],
                 [],
-                ['valid_final_overlap'] + [root_parent_edge, placeholder] * sibling_count,
+                [input_1] + [root_parent_edge, placeholder] * sibling_count,
             ))
             add_rule(lookup_2, Rule(
                 [],
                 [base_class],
-                [valid_letter_overlap] * (sibling_count - 1) + ['valid_final_overlap'],
+                [valid_letter_overlap] * (sibling_count - 1) + [input_1],
                 [base_class] + [valid_letter_overlap] * sibling_count,
             ))
     return [lookup_1, lookup_2]
