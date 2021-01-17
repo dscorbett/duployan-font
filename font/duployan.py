@@ -196,7 +196,7 @@ class Shape:
         if not self.invisible():
             raise NotImplementedError
 
-    def can_be_child(self):
+    def can_be_child(self, size):
         return False
 
     def max_tree_width(self, size):
@@ -560,6 +560,9 @@ class Space(Shape):
                 ('round',),
             )
 
+    def can_be_child(self, size):
+        return size == 0 and self.angle == 0 and not self.margins
+
     def context_in(self):
         return NO_CONTEXT
 
@@ -920,11 +923,11 @@ class Line(Shape):
         )
         glyph.stroke('circular', stroke_width, 'round')
 
-    def can_be_child(self):
+    def can_be_child(self, size):
         return not (self.secant or self.dots)
 
     def max_tree_width(self, size):
-        return 2 if size == 2 else 1
+        return 2 if size == 2 and not self.secant else 1
 
     def max_double_marks(self, size, joining_type, marks):
         return (0
@@ -1206,7 +1209,7 @@ class Curve(Shape):
             glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
             glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
 
-    def can_be_child(self):
+    def can_be_child(self, size):
         return True
 
     def max_tree_width(self, size):
@@ -1464,7 +1467,7 @@ class Circle(Shape):
         glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
         glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
 
-    def can_be_child(self):
+    def can_be_child(self, size):
         return True
 
     def max_tree_width(self, size):
@@ -1795,8 +1798,8 @@ class Complex(Shape):
             glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - stroke_width - LIGHT_LINE)
         return first_is_invisible
 
-    def can_be_child(self):
-        #return not callable(self.instructions[0]) and self.instructions[0][1].can_be_child()
+    def can_be_child(self, size):
+        #return not callable(self.instructions[0]) and self.instructions[0][1].can_be_child(size)
         return False
 
     def max_tree_width(self, size):
@@ -2765,6 +2768,65 @@ def invalidate_overlap_controls(original_schemas, schemas, new_schemas, classes,
     add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
     return [lookup]
 
+def add_placeholders_for_missing_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup_1 = Lookup(
+        'blws',
+        'dupl',
+        'dflt',
+        mark_filtering_set='valid_final_overlap',
+    )
+    lookup_2 = Lookup(
+        'blws',
+        'dupl',
+        'dflt',
+        mark_filtering_set='valid_final_overlap',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup_1, lookup_2]
+    base_classes = {}
+    for schema in new_schemas:
+        if isinstance(schema.path, ChildEdge):
+            valid_letter_overlap = schema
+            classes['valid_final_overlap'].append(schema)
+        elif isinstance(schema.path, ContinuingOverlap):
+            valid_continuing_overlap = schema
+            classes['valid_final_overlap'].append(schema)
+        elif (schema.glyph_class == GlyphClass.JOINER
+            and (max_tree_width := schema.path.max_tree_width(schema.size)) > 1
+        ):
+            new_class = f'base_{max_tree_width}'
+            classes[new_class].append(schema)
+            base_classes[max_tree_width] = new_class
+    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
+    placeholder = Schema(None, NNBSP, 0, Type.JOINING, side_bearing=0)
+    for max_tree_width, base_class in base_classes.items():
+        add_rule(lookup_1, Rule(
+            [base_class],
+            [valid_letter_overlap],
+            [valid_letter_overlap] * (max_tree_width - 2) + ['valid_final_overlap'],
+            lookups=[None],
+        ))
+        add_rule(lookup_2, Rule(
+            [],
+            [base_class],
+            [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap'],
+            lookups=[None],
+        ))
+        for sibling_count in range(max_tree_width - 1, 0, -1):
+            add_rule(lookup_1, Rule(
+                [base_class] + [valid_letter_overlap] * (sibling_count - 1),
+                'valid_final_overlap',
+                [],
+                ['valid_final_overlap'] + [root_parent_edge, placeholder] * sibling_count,
+            ))
+            add_rule(lookup_2, Rule(
+                [],
+                [base_class],
+                [valid_letter_overlap] * (sibling_count - 1) + ['valid_final_overlap'],
+                [base_class] + [valid_letter_overlap] * sibling_count,
+            ))
+    return [lookup_1, lookup_2]
+
 def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
@@ -2869,7 +2931,7 @@ def make_mark_variants_of_children(original_schemas, schemas, new_schemas, class
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
             classes['all'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child():
+        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child(schema.size):
             classes['child_to_be'].append(schema)
     for i, child_to_be in enumerate(classes['child_to_be']):
         if i < old_child_count:
@@ -3308,6 +3370,7 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
         if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
             continue
         if (isinstance(schema.path, (Dot, Space))
+            and schema.size
             and not schema.path.can_be_hub(schema.size)
         ):
             x_min, _, x_max, _ = schema.glyph.boundingBox()
@@ -4407,6 +4470,7 @@ PHASES = [
     add_parent_edges,
     invalidate_overlap_controls,
     add_secant_guidelines,
+    add_placeholders_for_missing_children,
     categorize_edges,
     make_mark_variants_of_children,
     reposition_stenographic_period,
