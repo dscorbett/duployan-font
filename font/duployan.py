@@ -2798,7 +2798,7 @@ def add_placeholders_for_missing_children(original_schemas, schemas, new_schemas
             classes[new_class].append(schema)
             base_classes[max_tree_width] = new_class
     root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
-    placeholder = Schema(None, NNBSP, 0, Type.JOINING, side_bearing=0)
+    placeholder = Schema(None, NNBSP, 0, Type.JOINING, side_bearing=0, child=True)
     for max_tree_width, base_class in base_classes.items():
         add_rule(lookup_1, Rule(
             [base_class],
