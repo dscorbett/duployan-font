@@ -3028,7 +3028,10 @@ def reposition_stenographic_period(original_schemas, schemas, new_schemas, class
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
-        if isinstance(schema.path, (InvalidStep, Space)) and schema.joining_type == Type.JOINING:
+        if (isinstance(schema.path, (InvalidStep, Space))
+            and schema.joining_type == Type.JOINING
+            and schema.glyph_class != GlyphClass.MARK
+        ):
             classes['c'].append(schema)
         elif schema.cmap == 0x2E3C:
             period = schema
