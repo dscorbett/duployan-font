@@ -1791,7 +1791,7 @@ class Complex(Shape):
             for (singular_anchor, type), points in singular_anchor_points.items():
                 if singular_anchor in MARK_ANCHORS or (
                     self.maximum_tree_width and (
-                        singular_anchor in CONTINUING_OVERLAP_ANCHOR
+                        singular_anchor == CONTINUING_OVERLAP_ANCHOR
                         or any(map(lambda l: singular_anchor in l, CHILD_EDGE_ANCHORS))
                     )
                 ):
