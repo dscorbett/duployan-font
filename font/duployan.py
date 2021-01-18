@@ -700,6 +700,21 @@ class ParentEdge(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
+class RootOnlyParentEdge(Shape):
+    def __str__(self):
+        return 'pe'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    def invisible(self):
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
 class InvalidStep(SFDGlyphWrapper):
     def __init__(self, sfd_name, angle):
         super().__init__(sfd_name)
@@ -2659,7 +2674,10 @@ def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, n
 
 def add_parent_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('blws', 'dupl', 'dflt')
+    if len(original_schemas) != len(schemas):
+        return [lookup]
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
+    root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
         if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
             classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
@@ -2667,9 +2685,10 @@ def add_parent_edges(original_schemas, schemas, new_schemas, classes, named_look
             if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
                 classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
-        if schema.glyph_class == GlyphClass.JOINER and schema in original_schemas:
-            classes['all'].append(schema)
-    add_rule(lookup, Rule(['all'], [root_parent_edge, 'all']))
+        if schema.glyph_class == GlyphClass.JOINER:
+            classes['root' if schema.path.can_be_child(schema.size) else 'root_only'].append(schema)
+    add_rule(lookup, Rule(['root'], [root_parent_edge, 'root']))
+    add_rule(lookup, Rule(['root_only'], [root_only_parent_edge, root_parent_edge, 'root_only']))
     return [lookup]
 
 def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
@@ -2712,6 +2731,9 @@ def invalidate_overlap_controls(original_schemas, schemas, new_schemas, classes,
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge):
             node = schema
+            classes['all'].append(schema)
+        elif isinstance(schema.path, RootOnlyParentEdge):
+            root_only_parent_edge = schema
             classes['all'].append(schema)
         elif isinstance(schema.path, ChildEdge):
             valid_letter_overlap = schema
@@ -4573,8 +4595,8 @@ W = Curve(180, 270, clockwise=False)
 S_N = Curve(0, 90, clockwise=False)
 K_R_S = Curve(90, 180, clockwise=False)
 S_K = Curve(90, 0, clockwise=True)
-J_N = Complex([(1, S_K), (1, N)])
-J_N_S = Complex([(3, S_K), (4, N_S)])
+J_N = Complex([(1, S_K), (1, N)], maximum_tree_width=1)
+J_N_S = Complex([(3, S_K), (4, N_S)], maximum_tree_width=1)
 O = Circle(0, 0, clockwise=False)
 O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
 IE = Curve(180, 0, clockwise=False)
