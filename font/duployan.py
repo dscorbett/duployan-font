@@ -3068,6 +3068,26 @@ def reposition_stenographic_period(original_schemas, schemas, new_schemas, class
     add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
     return [lookup]
 
+def disjoin_equals_sign(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    equals_sign = next(s for s in schemas if s.cmap == 0x003D)
+    continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
+    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
+    zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
+    classes['all'].append(continuing_overlap)
+    classes['all'].append(root_parent_edge)
+    add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
+    add_rule(lookup, Rule([equals_sign, continuing_overlap], [root_parent_edge], [], lookups=[None]))
+    add_rule(lookup, Rule([equals_sign], [root_parent_edge], [], [zwnj, root_parent_edge]))
+    return [lookup]
+
 def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
@@ -4506,6 +4526,7 @@ PHASES = [
     categorize_edges,
     make_mark_variants_of_children,
     reposition_stenographic_period,
+    disjoin_equals_sign,
     join_with_next_step,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
@@ -4669,7 +4690,7 @@ SCHEMAS = [
     Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
     Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003D, EQUAL, 1, Type.NON_JOINING),
+    Schema(0x003D, EQUAL, 1),
     Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003F, QUESTION, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
