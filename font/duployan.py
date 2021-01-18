@@ -1380,12 +1380,18 @@ class Circle(Shape):
         )
 
     def __str__(self):
+        angle_in = self.angle_in
+        angle_out = self.angle_out
+        clockwise = self.clockwise
+        if clockwise and angle_in == angle_out:
+            clockwise = False
+            angle_in = angle_out = (angle_in + 180) % 360
         return f'''{
-                int(self.angle_in)
+                int(angle_in)
             }{
-                'n' if self.clockwise else 'p'
+                'n' if clockwise else 'p'
             }{
-                int(self.angle_out)
+                int(angle_out)
             }{
                 '.rev' if self.reversed else ''
             }'''
