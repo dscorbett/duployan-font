@@ -624,9 +624,9 @@ class ChildEdge(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
-class ContinuingOverlap(Shape):
+class ContinuingOverlapS(Shape):
     def clone(self):
-        return ContinuingOverlap()
+        return type(self)()
 
     def __str__(self):
         return ''
@@ -640,6 +640,9 @@ class ContinuingOverlap(Shape):
     @staticmethod
     def guaranteed_glyph_class():
         return GlyphClass.MARK
+
+class ContinuingOverlap(ContinuingOverlapS):
+    pass
 
 class InvalidOverlap(SFDGlyphWrapper):
     def __init__(
@@ -3205,11 +3208,24 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
     return [lookup]
 
 def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    pre_lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+    )
     lookup = Lookup(
         'rclt',
         'dupl',
         'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+        reversed=True,
+    )
+    post_lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='continuing_overlap_after_secant',
         reversed=True,
     )
     contexts_out = OrderedSet()
@@ -3222,6 +3238,13 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
                 and schema.context_out == NO_CONTEXT
             ):
                 classes['i'].append(schema)
+                if isinstance(schema.path, Line) and schema.path.secant:
+                    classes['secant_i'].append(schema)
+                    classes['secant_o'].append(schema)
+        continuing_overlap = next(iter(classes[CONTINUING_OVERLAP_CLASS]))
+        continuing_overlap_after_secant = Schema(None, ContinuingOverlapS(), 0)
+        classes['continuing_overlap_after_secant'].append(continuing_overlap_after_secant)
+        add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
     for schema in new_schemas:
         if (schema.glyph_class == GlyphClass.JOINER
             and (old_input_count == 0 or not isinstance(schema.path, (LongI, Curve, Circle, Complex)))
@@ -3240,9 +3263,15 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
             if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(target_schema.context_in, context_out)
                 classes[output_class_name].append(output_schema)
+                if isinstance(output_schema.path, Line) and output_schema.path.secant:
+                    classes['secant_o'].append(output_schema)
         if new_context:
             add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
-    return [lookup]
+    if old_input_count == 0:
+        # FIXME: This rule shouldn’t need to be contextual, but without the
+        # context, fontTools throws a `KeyError` in `buildCoverage`.
+        add_rule(post_lookup, Rule(['secant_o'], [continuing_overlap_after_secant], [], [continuing_overlap]))
+    return [pre_lookup, lookup, post_lookup]
 
 def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
