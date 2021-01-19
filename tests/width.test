@@ -25,8 +25,8 @@
 # U+1BC0D is wide enough that the trees below it have no effect on the
 # total width.
 1BC0D::[u1BC0D.d_s@120,0|_@1740,0]
-1BC0D 1BCA0 1BC04::[u1BC0D.d_s@120,0|u1BC04.f.blws@1024,-333|_@1740,0]
-1BC0D 1BCA0 1BC05::[u1BC0D.d_s@120,0|u1BC05.k.blws@1216,-333|_@1740,0]
+1BC0D 1BCA0 1BC04::[u1BC0D.d_s@120,0|u1BC04.f@1024,-333|_@1740,0]
+1BC0D 1BCA0 1BC05::[u1BC0D.d_s@120,0|u1BC05.k@1216,-333|_@1740,0]
 1BC0D 1BCA1 1BC04::[u1BC0D.d_s@120,0|u1BC04.f@1024,-333|_@1740,0]
 1BC0D 1BCA1 1BC05::[u1BC0D.d_s@120,0|u1BC05.k@1216,-333|_@1740,0]
 

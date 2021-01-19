@@ -2653,7 +2653,7 @@ def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, n
     assert global_max_tree_width == MAX_TREE_WIDTH
     classes['invalid'].append(letter_overlap)
     classes['invalid'].append(continuing_overlap)
-    valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=[(1, 0)]))
+    valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=((1, 0),)))
     valid_continuing_overlap = continuing_overlap.clone(cmap=None, path=ContinuingOverlap())
     classes['valid'].append(valid_letter_overlap)
     classes['valid'].append(valid_continuing_overlap)
@@ -2954,6 +2954,62 @@ def categorize_edges(original_schemas, schemas, new_schemas, classes, named_look
                         classes[PARENT_EDGE_CLASS].append(new_parent_edge)
                         classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
                         add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
+    return [lookup]
+
+def promote_final_letter_overlap_to_continuing_overlap(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup('rclt', 'dupl', 'dflt')
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if isinstance(schema.path, ChildEdge):
+            classes['overlap'].append(schema)
+            if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
+                classes['final_letter_overlap'].append(schema)
+        elif isinstance(schema.path, ContinuingOverlap):
+            continuing_overlap = schema
+            classes['overlap'].append(schema)
+        elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
+            root_parent_edge = schema
+            classes['secant_or_root_parent_edge'].append(schema)
+        elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.MARK:
+            classes['secant_or_root_parent_edge'].append(schema)
+    add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
+    named_lookups['promote'] = Lookup(None, None, None)
+    add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
+    for overlap in classes['final_letter_overlap']:
+        named_lookups[f'promote_{overlap.path}_and_parent'] = Lookup(
+            None,
+            None,
+            None,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set=str(overlap.path),
+        )
+        classes[str(overlap.path)].append(overlap)
+        for parent_edge in new_schemas:
+            if (isinstance(parent_edge.path, ParentEdge)
+                and parent_edge.path.lineage
+                and overlap.path.lineage[:-1] == parent_edge.path.lineage[:-1]
+                and overlap.path.lineage[-1][0] == parent_edge.path.lineage[-1][0] == parent_edge.path.lineage[-1][1]
+            ):
+                classes[str(overlap.path)].append(parent_edge)
+                classes[f'parent_for_{overlap.path}'].append(parent_edge)
+        add_rule(named_lookups['promote'], Rule(f'parent_for_{overlap.path}', [root_parent_edge]))
+        add_rule(named_lookups[f'promote_{overlap.path}_and_parent'], Rule(
+            [],
+            [overlap, f'parent_for_{overlap.path}'],
+            [],
+            lookups=['promote', 'promote'],
+        ))
+        named_lookups[f'check_and_promote_{overlap.path}'] = Lookup(
+            None,
+            None,
+            None,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='secant_or_root_parent_edge',
+        )
+        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
+        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], [], lookups=[f'promote_{overlap.path}_and_parent']))
+        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap.path}']), track_possible_outputs=False)
     return [lookup]
 
 def make_mark_variants_of_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -4246,7 +4302,7 @@ def dist(original_schemas, schemas, new_schemas, classes, named_lookups, add_rul
                 add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))
     return [lookup]
 
-def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule):
+def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule, track_possible_outputs=True):
     def ignored(schema):
         glyph_class = schema.glyph_class
         return (
@@ -4291,7 +4347,14 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
 
     lookup.append(rule)
 
-    if lookup.required and not rule.contexts_in and not rule.contexts_out and len(rule.inputs) == 1:
+    # FIXME: `track_possible_outputs` is a manual workaround for this function’s
+    # inability to track possible outputs between rules in the same lookup.
+    if (track_possible_outputs
+        and lookup.required
+        and not rule.contexts_in
+        and not rule.contexts_out
+        and len(rule.inputs) == 1
+    ):
         input = rule.inputs[0]
         if isinstance(input, str):
             for i in classes[input]:
@@ -4553,6 +4616,7 @@ PHASES = [
     add_secant_guidelines,
     add_placeholders_for_missing_children,
     categorize_edges,
+    promote_final_letter_overlap_to_continuing_overlap,
     make_mark_variants_of_children,
     reposition_stenographic_period,
     disjoin_equals_sign,
