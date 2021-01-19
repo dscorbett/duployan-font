@@ -4655,6 +4655,7 @@ MARKER_PHASES = [
 SPACE = Space(0)
 H = Dot()
 EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
+ASTERISK = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
 PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
 COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True))])
 SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
@@ -4779,6 +4780,7 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
+    Schema(0x002A, ASTERISK, 1, Type.NON_JOINING),
     Schema(0x002B, PLUS, 1, Type.NON_JOINING),
     Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
