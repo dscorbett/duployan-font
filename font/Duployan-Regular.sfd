@@ -21,7 +21,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1523136075
-ModificationTime: 1610412377
+ModificationTime: 1611094496
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -55,7 +55,7 @@ WinInfo: 16 16 8
 BeginPrivate: 0
 EndPrivate
 TeXData: 1 0 0 272629 136314 90876 0 1048576 90876 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-BeginChars: 1114113 27
+BeginChars: 1114113 26
 
 StartChar: uni0000
 Encoding: 0 0 0
@@ -336,33 +336,8 @@ SplineSet
 EndSplineSet
 EndChar
 
-StartChar: divide
-Encoding: 247 247 12
-Width: 572
-Flags: HW
-LayerCount: 2
-Fore
-SplineSet
-285 462 m 0
- 254 462 229 480 229 523 c 0
- 229 568 254 583 285 583 c 0
- 315 583 340 568 340 523 c 0
- 340 480 315 462 285 462 c 0
-50 317 m 1
- 50 388 l 1
- 521 388 l 1
- 521 317 l 1
- 50 317 l 1
-285 121 m 0
- 254 121 229 139 229 182 c 0
- 229 227 254 242 285 242 c 0
- 315 242 340 227 340 182 c 0
- 340 139 315 121 285 121 c 0
-EndSplineSet
-EndChar
-
 StartChar: uni25CC
-Encoding: 9676 9676 13
+Encoding: 9676 9676 12
 Width: 594
 Flags: HW
 LayerCount: 2
@@ -452,7 +427,7 @@ EndSplineSet
 EndChar
 
 StartChar: .notdef
-Encoding: 1114112 -1 14
+Encoding: 1114112 -1 13
 Width: 600
 Flags: HW
 LayerCount: 2
@@ -472,7 +447,7 @@ EndSplineSet
 EndChar
 
 StartChar: dollar
-Encoding: 36 36 15
+Encoding: 36 36 14
 Width: 572
 Flags: HW
 LayerCount: 2
@@ -509,7 +484,7 @@ EndSplineSet
 EndChar
 
 StartChar: parenleft
-Encoding: 40 40 16
+Encoding: 40 40 15
 Width: 300
 Flags: HW
 LayerCount: 2
@@ -526,7 +501,7 @@ EndSplineSet
 EndChar
 
 StartChar: parenright
-Encoding: 41 41 17
+Encoding: 41 41 16
 Width: 300
 Flags: HW
 LayerCount: 2
@@ -543,7 +518,7 @@ EndSplineSet
 EndChar
 
 StartChar: asterisk
-Encoding: 42 42 18
+Encoding: 42 42 17
 Width: 551
 Flags: HW
 LayerCount: 2
@@ -569,7 +544,7 @@ EndSplineSet
 EndChar
 
 StartChar: guillemotleft
-Encoding: 171 171 19
+Encoding: 171 171 18
 Width: 509
 Flags: HW
 LayerCount: 2
@@ -595,7 +570,7 @@ EndSplineSet
 EndChar
 
 StartChar: guillemotright
-Encoding: 187 187 20
+Encoding: 187 187 19
 Width: 509
 Flags: HW
 LayerCount: 2
@@ -621,7 +596,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA3
-Encoding: 113827 113827 21
+Encoding: 113827 113827 20
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -730,7 +705,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA2
-Encoding: 113826 113826 22
+Encoding: 113826 113826 21
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -839,7 +814,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA0
-Encoding: 113824 113824 23
+Encoding: 113824 113824 22
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -960,7 +935,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA1
-Encoding: 113825 113825 24
+Encoding: 113825 113825 23
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1083,7 +1058,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BC9D
-Encoding: 113821 113821 25
+Encoding: 113821 113821 24
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1222,7 +1197,7 @@ EndSplineSet
 EndChar
 
 StartChar: uniE000
-Encoding: 57344 57344 26
+Encoding: 57344 57344 25
 Width: 75
 Flags: HW
 LayerCount: 2
