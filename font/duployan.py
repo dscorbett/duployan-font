@@ -1641,7 +1641,7 @@ class Complex(Shape):
         )
 
     def can_be_hub(self, size):
-        first_scalar, first_component = next(op for op in self.instructions if not (callable(op) or op[1].invisible()))
+        first_scalar, first_component, *_ = next(op for op in self.instructions if not (callable(op) or op[1].invisible()))
         return first_component.can_be_hub(first_scalar * size)
 
     class Proxy:
@@ -4655,6 +4655,7 @@ MARKER_PHASES = [
 SPACE = Space(0)
 H = Dot()
 EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
+PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
 COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True))])
 SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
 COLON = Line(90, stretchy=False, dots=2)
@@ -4663,6 +4664,7 @@ QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 4
 LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
 EQUAL = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
 GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
+MULTIPLICATION = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
 GRAVE = Line(150, stretchy=False)
 ACUTE = Line(45, stretchy=False)
@@ -4677,7 +4679,7 @@ HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(300, 3
 LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False))])
 ELLIPSIS = Line(0, dots=3)
 NNBSP = Space(0, margins=False)
-STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), (1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False)), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
+STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
@@ -4777,6 +4779,7 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
+    Schema(0x002B, PLUS, 1, Type.NON_JOINING),
     Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
@@ -4787,6 +4790,7 @@ SCHEMAS = [
     Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003F, QUESTION, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
+    Schema(0x00D7, MULTIPLICATION, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0302, CIRCUMFLEX, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
