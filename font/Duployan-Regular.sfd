@@ -21,7 +21,7 @@ OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1523136075
-ModificationTime: 1611195426
+ModificationTime: 1611286265
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -55,7 +55,7 @@ WinInfo: 16 16 8
 BeginPrivate: 0
 EndPrivate
 TeXData: 1 0 0 272629 136314 90876 0 1048576 90876 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-BeginChars: 1114113 22
+BeginChars: 1114113 20
 
 StartChar: uni0000
 Encoding: 0 0 0
@@ -460,60 +460,8 @@ SplineSet
 EndSplineSet
 EndChar
 
-StartChar: guillemotleft
-Encoding: 171 171 14
-Width: 509
-Flags: HW
-LayerCount: 2
-Fore
-SplineSet
-40 270 m 1
- 208 471 l 1
- 271 435 l 1
- 131 264 l 1
- 271 93 l 1
- 208 56 l 1
- 40 257 l 1
- 40 270 l 1
-238 270 m 1
- 408 471 l 1
- 470 435 l 1
- 330 264 l 1
- 470 93 l 1
- 408 56 l 1
- 238 257 l 1
- 238 270 l 1
-EndSplineSet
-EndChar
-
-StartChar: guillemotright
-Encoding: 187 187 15
-Width: 509
-Flags: HW
-LayerCount: 2
-Fore
-SplineSet
-469 257 m 1
- 299 56 l 1
- 237 93 l 1
- 377 264 l 1
- 237 435 l 1
- 299 471 l 1
- 469 270 l 1
- 469 257 l 1
-270 257 m 1
- 101 56 l 1
- 39 93 l 1
- 179 264 l 1
- 39 435 l 1
- 101 471 l 1
- 270 270 l 1
- 270 257 l 1
-EndSplineSet
-EndChar
-
 StartChar: u1BCA3
-Encoding: 113827 113827 16
+Encoding: 113827 113827 14
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -622,7 +570,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA2
-Encoding: 113826 113826 17
+Encoding: 113826 113826 15
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -731,7 +679,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA0
-Encoding: 113824 113824 18
+Encoding: 113824 113824 16
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -852,7 +800,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BCA1
-Encoding: 113825 113825 19
+Encoding: 113825 113825 17
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -975,7 +923,7 @@ EndSplineSet
 EndChar
 
 StartChar: u1BC9D
-Encoding: 113821 113821 20
+Encoding: 113821 113821 18
 Width: 1128
 Flags: HW
 LayerCount: 2
@@ -1114,7 +1062,7 @@ EndSplineSet
 EndChar
 
 StartChar: uniE000
-Encoding: 57344 57344 21
+Encoding: 57344 57344 19
 Width: 75
 Flags: HW
 LayerCount: 2
