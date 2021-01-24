@@ -4684,6 +4684,7 @@ HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(300, 3
 LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(300, 300, clockwise=True)), (3, Curve(300, 240, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(60, 120, clockwise=False)), (0.5, Circle(120, 180, clockwise=False))])
 ELLIPSIS = Line(0, dots=3)
 NNBSP = Space(0, margins=False)
+DOTTED_CIRCLE = Complex([(33, Space(90, margins=False)), (1, H), (446, Space(90, margins=False)), (1, H), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, H), (446, Space(240, margins=False)), (1, H), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, H), (446, Space(210, margins=False)), (1, H), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, H), (446, Space(180, margins=False)), (1, H), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, H), (446, Space(150, margins=False)), (1, H), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, H), (446, Space(120, margins=False)), (1, H)])
 STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
@@ -4825,6 +4826,7 @@ SCHEMAS = [
     Schema(0x2026, ELLIPSIS, 0.592, Type.NON_JOINING, shading_allowed=False),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
     Schema(0x20DD, O, 10, anchor=MIDDLE_ANCHOR),
+    Schema(0x25CC, DOTTED_CIRCLE, 1, Type.NON_JOINING),
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
