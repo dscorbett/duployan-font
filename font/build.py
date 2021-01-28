@@ -51,6 +51,8 @@ def generate_feature_string(font, lookup):
 def patch_fonttools():
     if fontTools.__version__ not in [
         '4.18.2',
+        '4.19.0',
+        '4.19.1',
     ]:
         return
 
