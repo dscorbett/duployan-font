@@ -1139,7 +1139,7 @@ class Curve(Shape):
     def can_be_hub(self, size):
         return size >= 6
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def _get_normalized_angles(self):
         angle_out = self.angle_out
         if self.clockwise and angle_out > self.angle_in:
             angle_out -= 360
@@ -1147,8 +1147,12 @@ class Curve(Shape):
             angle_out += 360
         a1 = (90 if self.clockwise else -90) + self.angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
-        r = int(RADIUS * size)
+        return a1, a2
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        a1, a2 = self._get_normalized_angles()
         da = a2 - a1
+        r = int(RADIUS * size)
         beziers_needed = int(math.ceil(abs(da) / 90))
         bezier_arc = da / beziers_needed
         cp = r * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
@@ -1228,7 +1232,8 @@ class Curve(Shape):
             glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
 
     def can_be_child(self, size):
-        return True
+        a1, a2 = self._get_normalized_angles()
+        return abs(a2 - a1) <= 180
 
     def max_tree_width(self, size):
         return 1
