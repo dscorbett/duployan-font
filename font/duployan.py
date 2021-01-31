@@ -940,6 +940,11 @@ class Line(Shape):
             ('round',)
         )
         glyph.stroke('circular', stroke_width, 'round')
+        if not anchor and not self.secant:
+            x_min, y_min, x_max, y_max = glyph.boundingBox()
+            x_center = (x_max + x_min) / 2
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + 3 * LIGHT_LINE)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - 3 * LIGHT_LINE)
 
     def can_be_child(self, size):
         return not (self.secant or self.dots)
