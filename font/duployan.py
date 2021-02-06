@@ -4550,7 +4550,7 @@ def sift_groups(grouper, rule, target_part, classes):
                         if len(group) == 1:
                             grouper.remove(group)
                         if overlap != 1:
-                            intersection = [x for x in cls if x in intersection_set]
+                            intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
                             grouper.add(intersection)
                     if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
                         if rule.outputs is not None and len(rule.outputs) == 1:
@@ -4577,7 +4577,7 @@ def sift_groups(grouper, rule, target_part, classes):
                                                 new_group *= 0
                                     for new_group in new_groups.values():
                                         if len(new_group) > 1:
-                                            grouper.add(new_group)
+                                            grouper.add([*dict.fromkeys(new_group)])
                         # Not implemented:
                         # chaining subsitution, general form
                         #   substitute $class' lookup $lookup ...;
