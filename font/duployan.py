@@ -1091,6 +1091,7 @@ class Curve(Shape):
         overlap_angle=None,
         _secondary=None,
     ):
+        assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
@@ -1160,17 +1161,37 @@ class Curve(Shape):
         return a1, a2
 
     def _get_angle_to_overlap_point(self, a1, a2, *, is_entry):
-        angle_to_overlap_point = (a2 + a1) / 2
+        angle_to_overlap_point = self.overlap_angle
+        angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90))
+        if (not self._in_degree_range(
+                angle_at_overlap_point % 360,
+                self.angle_in,
+                self.angle_out,
+                self.clockwise,
+            )
+            or is_entry and self._in_degree_range(
+                (angle_at_overlap_point + 180) % 360,
+                self.angle_in,
+                self.angle_out,
+                self.clockwise,
+            ) and self._in_degree_range(
+                (angle_at_overlap_point + 180) % 360,
+                self.angle_in - 90,
+                self.angle_in + 90,
+                False,
+            )
+        ):
+            angle_to_overlap_point += 180
         angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90)) % 180
-        exclusivity_zone = 60
+        exclusivity_zone = 30
         if self._in_degree_range(
-            angle_at_overlap_point,
-            self.overlap_angle - exclusivity_zone,
-            self.overlap_angle + exclusivity_zone,
+            angle_to_overlap_point,
+            ((a1 if is_entry else a2) - exclusivity_zone) % 360,
+            ((a1 if is_entry else a2) + exclusivity_zone) % 360,
             False,
         ):
-            delta = exclusivity_zone - abs(angle_at_overlap_point - self.overlap_angle)
-            if is_entry ^ self.clockwise:
+            delta = abs(angle_to_overlap_point - self.overlap_angle - (180 if is_entry else 0)) - exclusivity_zone
+            if is_entry != self.clockwise:
                 delta = -delta
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
