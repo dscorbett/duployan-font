@@ -1088,6 +1088,7 @@ class Curve(Shape):
         stretch=0,
         long=False,
         hook=False,
+        overlap_angle=None,
         _secondary=None,
     ):
         self.angle_in = angle_in
@@ -1096,6 +1097,7 @@ class Curve(Shape):
         self.stretch = stretch
         self.long = long
         self.hook = hook
+        self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
         self._secondary = clockwise if _secondary is None else _secondary
 
     def clone(
@@ -1107,6 +1109,7 @@ class Curve(Shape):
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
+        overlap_angle=CLONE_DEFAULT,
         _secondary=CLONE_DEFAULT,
     ):
         return type(self)(
@@ -1116,6 +1119,7 @@ class Curve(Shape):
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
+            overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
         )
 
@@ -1135,6 +1139,7 @@ class Curve(Shape):
             self.clockwise,
             self.stretch,
             self.long,
+            self.overlap_angle,
         )
 
     @staticmethod
@@ -1153,6 +1158,22 @@ class Curve(Shape):
         a1 = (90 if self.clockwise else -90) + self.angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
         return a1, a2
+
+    def _get_angle_to_overlap_point(self, a1, a2, *, is_entry):
+        angle_to_overlap_point = (a2 + a1) / 2
+        angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90)) % 180
+        exclusivity_zone = 60
+        if self._in_degree_range(
+            angle_at_overlap_point,
+            self.overlap_angle - exclusivity_zone,
+            self.overlap_angle + exclusivity_zone,
+            False,
+        ):
+            delta = exclusivity_zone - abs(angle_at_overlap_point - self.overlap_angle)
+            if is_entry ^ self.clockwise:
+                delta = -delta
+            angle_to_overlap_point += delta
+        return angle_to_overlap_point % 360
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
         a1, a2 = self._get_normalized_angles()
@@ -1182,20 +1203,34 @@ class Curve(Shape):
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
                 child_interval = da / (max_tree_width + 2)
-                for child_index in range(max_tree_width):
-                    glyph.addAnchorPoint(
-                        CHILD_EDGE_ANCHORS[int(child)][child_index],
-                        base,
-                        *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
-                    )
-                if child:
-                    glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(a1 + child_interval)))
+                if self.overlap_angle is None:
+                    for child_index in range(max_tree_width):
+                        glyph.addAnchorPoint(
+                            CHILD_EDGE_ANCHORS[int(child)][child_index],
+                            base,
+                            *rect(r, math.radians(a1 + child_interval * (child_index + 2))),
+                        )
                 else:
-                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
-                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))))
+                    overlap_exit_angle = self._get_angle_to_overlap_point(a1, a2, is_entry=False)
+                    glyph.addAnchorPoint(
+                        CHILD_EDGE_ANCHORS[int(child)][0],
+                        base,
+                        *rect(r, math.radians(overlap_exit_angle)),
+                    )
+                overlap_entry_angle = (a1 + child_interval
+                    if self.overlap_angle is None
+                    else self._get_angle_to_overlap_point(a1, a2, is_entry=True))
+                if child:
+                    glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', *rect(r, math.radians(overlap_entry_angle)))
+                else:
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(overlap_entry_angle)))
+                    glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'exit', *rect(r, math.radians(
+                        a1 + child_interval * (max_tree_width + 1)
+                            if self.overlap_angle is None
+                            else overlap_exit_angle)))
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
-                    glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(a1 + child_interval)))
+                    glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(overlap_entry_angle)))
                     if self.can_be_hub(size):
                         glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                     else:
@@ -2179,6 +2214,8 @@ class Schema:
             name += f'.{self.anchor}'
         if self.child:
             name += '.blws'
+        if isinstance(self.path, Curve) and self.path.overlap_angle is not None:
+            name += f'.{int(self.path.overlap_angle)}'
         if self.widthless:
             name += '.psts'
         if self.ignored_for_topography:
@@ -3020,6 +3057,76 @@ def promote_final_letter_overlap_to_continuing_overlap(original_schemas, schemas
         add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
         add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], [], lookups=[f'promote_{overlap.path}_and_parent']))
         add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap.path}']), track_possible_outputs=False)
+    return [lookup]
+
+def reposition_chinook_jargon_overlap_points(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    # TODO: This should be a general thing, not limited to specific Chinook
+    # Jargon abbreviations and a few similar patterns.
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
+        reversed=True,
+    )
+    line_classes = {}
+    for schema in schemas:
+        if schema.glyph_class == GlyphClass.MARK:
+            if isinstance(schema.path, ChildEdge):
+                classes['all'].append(schema)
+                classes['overlap'].append(schema)
+                classes['letter_overlap'].append(schema)
+            elif isinstance(schema.path, ContinuingOverlap):
+                classes['all'].append(schema)
+                classes['overlap'].append(schema)
+                classes['continuing_overlap'].append(schema)
+            elif not schema.path.invisible():
+                classes['all'].append(schema)
+        elif schema.glyph_class == GlyphClass.JOINER:
+            if schema.path.max_tree_width(schema.size) == 0:
+                continue
+            if (isinstance(schema.path, Line)
+                and not isinstance(schema.path, LongI)
+                and (schema.size == 1 or schema.cps == [0x1BC07])
+                and not schema.path.secant
+                and not schema.path.dots
+            ):
+                angle = schema.path.angle
+                max_tree_width = schema.path.max_tree_width(schema.size)
+                line_class = f'line_{angle}_{max_tree_width}'
+                classes['line'].append(schema)
+                classes[line_class].append(schema)
+                line_classes[line_class] = (angle, max_tree_width)
+            elif (isinstance(schema.path, Curve)
+                and schema.cps in [[0x1BC1B], [0x1BC1C]]
+                and schema.size == 6
+                and schema.joining_type == Type.JOINING
+                and (schema.path.angle_in, schema.path.angle_out) in [(90, 270), (270, 90)]
+            ):
+                classes['curve'].append(schema)
+    if len(original_schemas) == len(schemas):
+        for width in range(1, MAX_TREE_WIDTH + 1):
+            add_rule(lookup, Rule(['line', *['letter_overlap'] * (width - 1), 'overlap'], 'curve', 'overlap', 'curve'))
+    for curve in classes['curve']:
+        if curve in new_schemas:
+            for line_class, (angle, _) in line_classes.items():
+                for width in range(1, curve.path.max_tree_width(curve.size) + 1):
+                    add_rule(lookup, Rule(
+                        [],
+                        [curve],
+                        [*['overlap'] * width, line_class],
+                        [curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))],
+                    ))
+    for curve_child in classes['curve']:
+        if curve_child in new_schemas:
+            for line_class, (angle, max_tree_width) in line_classes.items():
+                for width in range(1, max_tree_width + 1):
+                    add_rule(lookup, Rule(
+                        [line_class, *['letter_overlap'] * (width - 1), 'overlap'],
+                        [curve_child],
+                        [],
+                        [curve_child.clone(cmap=None, path=curve_child.path.clone(overlap_angle=angle))],
+                    ))
     return [lookup]
 
 def make_mark_variants_of_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -4627,6 +4734,7 @@ PHASES = [
     add_placeholders_for_missing_children,
     categorize_edges,
     promote_final_letter_overlap_to_continuing_overlap,
+    reposition_chinook_jargon_overlap_points,
     make_mark_variants_of_children,
     reposition_stenographic_period,
     disjoin_equals_sign,
