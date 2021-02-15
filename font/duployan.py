@@ -2928,22 +2928,27 @@ def add_placeholders_for_missing_children(original_schemas, schemas, new_schemas
 
 def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup('abvs', 'dupl', 'dflt')
+    if len(original_schemas) != len(schemas):
+        return [lookup]
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
     initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
+    named_lookups['prepend_zwnj'] = Lookup(None, None, None)
     for schema in new_schemas:
         if (isinstance(schema.path, Line)
             and schema.path.secant
             and schema.glyph_class == GlyphClass.JOINER
             and schema in original_schemas
         ):
+            classes['secant'].append(schema)
             zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
             guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
             guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
-            add_rule(lookup, Rule([schema], [zwnj, schema]))
             add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
             add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [valid_continuing_overlap, guideline]))
+    add_rule(named_lookups['prepend_zwnj'], Rule('secant', [zwnj, 'secant']))
+    add_rule(lookup, Rule([], 'secant', [], lookups=['prepend_zwnj']))
     return [lookup]
 
 def categorize_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
