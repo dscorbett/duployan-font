@@ -2671,31 +2671,30 @@ def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookup
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    first_iteration = 'secant' not in classes
+    named_lookups['non_initial_secant'] = Lookup(None, None, None)
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
-            if schema in original_schemas:
-                add_rule(lookup, Rule(
-                    ['base'],
-                    [schema],
-                    [],
-                    [schema.clone(
-                        cmap=None,
-                        path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
-                        anchor=SECANT_ANCHOR,
-                        widthless=False,
-                    )],
-                ))
-                classes['secant'].append(schema)
+            add_rule(named_lookups['non_initial_secant'], Rule(
+                [schema],
+                [schema.clone(
+                    cmap=None,
+                    path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
+                    anchor=SECANT_ANCHOR,
+                    widthless=False,
+                )],
+            ))
+            classes['secant'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
             classes['base'].append(schema)
-    if first_iteration:
-        initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
-        add_rule(lookup, Rule(
-            ['secant'],
-            ['secant', continuing_overlap, initial_secant_marker],
-        ))
+    add_rule(lookup, Rule('base', 'secant', [], lookups=['non_initial_secant']))
+    initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
+    add_rule(lookup, Rule(
+        ['secant'],
+        ['secant', continuing_overlap, initial_secant_marker],
+    ))
     return [lookup]
 
 def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
