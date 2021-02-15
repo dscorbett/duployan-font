@@ -4799,7 +4799,7 @@ ASTERISK = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=F
 PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
 COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
 SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
-COLON = Line(90, stretchy=False, dots=2)
+COLON = Complex([(1, H), (428, Space(90, margins=False)), (1, H)])
 SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
 QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
 LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
@@ -4822,7 +4822,7 @@ EN_DASH = Complex([(395, Space(90, margins=False)), (1, Line(1, stretchy=False))
 HIGH_LEFT_QUOTE = Complex([(755, Space(90, margins=False)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
 HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
 LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-ELLIPSIS = Line(0, dots=3)
+ELLIPSIS = Complex([(1, H), (148, Space(0, margins=False)), (1, H), (148, Space(0, margins=False)), (1, H)])
 NNBSP = Space(0, margins=False)
 DOTTED_CIRCLE = Complex([(33, Space(90, margins=False)), (1, H), (446, Space(90, margins=False)), (1, H), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, H), (446, Space(240, margins=False)), (1, H), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, H), (446, Space(210, margins=False)), (1, H), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, H), (446, Space(180, margins=False)), (1, H), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, H), (446, Space(150, margins=False)), (1, H), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, H), (446, Space(120, margins=False)), (1, H)])
 STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
@@ -4963,7 +4963,7 @@ SCHEMAS = [
     Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201E, LOW_RIGHT_QUOTE, 1, Type.NON_JOINING),
-    Schema(0x2026, ELLIPSIS, 0.592, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x2026, ELLIPSIS, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
     Schema(0x20DD, O, 10, anchor=MIDDLE_ANCHOR),
     Schema(0x25CC, DOTTED_CIRCLE, 1, Type.NON_JOINING),
