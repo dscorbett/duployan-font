@@ -3197,6 +3197,8 @@ def validate_double_marks(original_schemas, schemas, new_schemas, classes, named
         'dflt',
         mark_filtering_set='double_mark',
     )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
     double_mark = next(s for s in original_schemas if s.cps == [0x1BC9E])
     classes['double_mark'].append(double_mark)
     new_maximums = set()
@@ -3206,7 +3208,7 @@ def validate_double_marks(original_schemas, schemas, new_schemas, classes, named
         classes[str(maximum)].append(schema)
     for maximum in sorted(new_maximums, reverse=True):
         for i in range(0, maximum):
-            add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], [double_mark]))
+            add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], lookups=[None]))
     guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING)
     add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
     return [lookup]
