@@ -2622,21 +2622,24 @@ class Lookup:
         else:
             raise ValueError("Unrecognized script tag: '{}'".format(self.script))
 
-    def to_ast(self, class_asts, named_lookup_asts, name=None):
+    def to_ast(self, class_asts, named_lookup_asts, name):
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
-        if name:
-            ast = fontTools.feaLib.ast.LookupBlock(name)
+        if isinstance(name, str):
+            lookup_block = fontTools.feaLib.ast.LookupBlock(name)
+            ast = lookup_block
         else:
+            lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
             ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
             ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-        ast.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
+            ast.statements.append(lookup_block)
+        lookup_block.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
                 if self.mark_filtering_set
                 else None))
-        ast.statements.extend(
+        lookup_block.statements.extend(
             ast
                 for r in self.rules
                 for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed))
@@ -5459,8 +5462,8 @@ class Builder:
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
         self._fea.statements.extend(
-            lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts))
-                for lp in lookups_with_phases)
+            lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i)
+                for i, lp in enumerate(lookups_with_phases))
         self._add_lookups(class_asts)
 
     def merge_features(self, tt_font, old_fea):
