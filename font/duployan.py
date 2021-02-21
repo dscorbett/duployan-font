@@ -2639,10 +2639,11 @@ class Lookup:
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
                 if self.mark_filtering_set
                 else None))
-        lookup_block.statements.extend(
-            ast
-                for r in self.rules
-                for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed))
+        lookup_block.statements.extend({
+                ast.asFea(): ast
+                    for r in self.rules
+                    for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed)
+            }.values())
         return ast
 
     def freeze(self):
