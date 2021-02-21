@@ -250,6 +250,44 @@ class SFDGlyphWrapper(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.BLOCKER
 
+class ContextMarker(Shape):
+    def __init__(
+        self,
+        is_context_in,
+        context,
+    ):
+        self.is_context_in = is_context_in
+        self.context = context
+
+    def clone(
+        self,
+        *,
+        is_context_in=CLONE_DEFAULT,
+        context=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            self.is_context_in if is_context_in is CLONE_DEFAULT else is_context_in,
+            self.context if context is CLONE_DEFAULT else context,
+        )
+
+    def __str__(self):
+        return f'''{
+                'in' if self.is_context_in else 'out'
+            }.{
+                self.context
+            }'''
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    def invisible(self):
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
 class Dummy(Shape):
     def __str__(self):
         return ''
@@ -3330,39 +3368,45 @@ def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_l
     return [lookup]
 
 def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
+    lookup_1 = Lookup(
         'rclt',
         'dupl',
         'dflt',
-        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+    )
+    lookup_2 = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='all',
         reversed=True,
     )
+    if len(original_schemas) != len(schemas):
+        return [lookup_1, lookup_2]
     contexts_in = OrderedSet()
-    new_contexts_in = set()
-    old_input_count = len(classes['i'])
+    @functools.cache
+    def get_context_marker(context):
+        return Schema(None, ContextMarker(False, context), 0)
     for schema in original_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
             if (schema.joining_type == Type.ORIENTING
-                    and schema.context_in == NO_CONTEXT
-                    and schema in new_schemas):
+                and schema.context_in == NO_CONTEXT
+            ):
                 classes['i'].append(schema)
-            if schema.joining_type != Type.NON_JOINING:
-                if (context_in := schema.path_context_out()) != NO_CONTEXT:
-                    contexts_in.add(context_in)
-                    if schema not in (context_in_class := classes[f'c_{context_in}']):
-                        if not context_in_class:
-                            new_contexts_in.add(context_in)
-                        context_in_class.append(schema)
-    for context_in in contexts_in:
-        output_class_name = f'o_{context_in}'
-        new_context = context_in in new_contexts_in
+            if (context_in := schema.path_context_out()) != NO_CONTEXT:
+                context_in = get_context_marker(context_in)
+                classes['all'].append(context_in)
+                classes['i2'].append(schema)
+                classes['o2'].append(context_in)
+                contexts_in.add(context_in)
+                if schema not in (context_in_class := classes[f'c_{context_in}']):
+                    context_in_class.append(schema)
+    classes['all'].extend(classes[CONTINUING_OVERLAP_CLASS])
+    add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
+    for j, context_in in enumerate(contexts_in):
         for i, target_schema in enumerate(classes['i']):
-            if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(context_in, target_schema.context_out)
-                classes[output_class_name].append(output_schema)
-        if new_context:
-            add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
-    return [lookup]
+            classes[f'o_{j}'].append(target_schema.contextualize(context_in.path.context, target_schema.context_out))
+        add_rule(lookup_2, Rule([context_in], 'i', [], f'o_{j}'))
+    return [lookup_1, lookup_2]
 
 def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
