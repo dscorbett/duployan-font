@@ -4808,6 +4808,10 @@ ASTERISK = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=F
 PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
 COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
 SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
+ZERO = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
+ONE = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
+FOUR = Complex([(1.296, Line(90, stretchy=False)), (1.173, Line(235, stretchy=False)), (0.922, Line(0, stretchy=False))])
+SEVEN = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
 COLON = Complex([(1, H), (428, Space(90, margins=False)), (1, H)])
 SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
 QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
@@ -4939,6 +4943,10 @@ SCHEMAS = [
     Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0030, ZERO, 3.882, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0031, ONE, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0034, FOUR, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0037, SEVEN, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
     Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
