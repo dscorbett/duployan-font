@@ -4810,8 +4810,14 @@ COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise
 SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
 ZERO = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
 ONE = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
+TWO = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.7, Line(0, stretchy=False))])
+THREE = Complex([(3, Curve(36, 0, clockwise=True, stretch=0.2, long=True)), (3, Curve(0, 180, clockwise=True, stretch=0.2, long=True)), (0.15, Line(180, stretchy=False)), (0.15, Line(0, stretchy=False)), (3.36, Curve(0, 180, clockwise=True, stretch=0.375, long=True)), (3.42, Curve(180, 155, clockwise=True, stretch=0.937, long=True))])
 FOUR = Complex([(1.296, Line(90, stretchy=False)), (1.173, Line(235, stretchy=False)), (0.922, Line(0, stretchy=False))])
+FIVE = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145, stretchy=False)), (0.572, Line(0, stretchy=False))])
+SIX = Complex([(3.88, Circle(90, 90, clockwise=True)), (19.5, Curve(90, 70, clockwise=True, stretch=0.45)), (4, Curve(65, 355, clockwise=True))])
 SEVEN = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
+EIGHT = Complex([(2.88, Curve(90, 270, clockwise=True, stretch=0.146, long=True)), (2.88, Curve(270, 180, clockwise=True, stretch=0.075, long=True)), (2.95, Curve(180, 270, clockwise=False, stretch=0.075, long=True)), (3.16, Curve(270, 90, clockwise=False, stretch=0.215, long=True)), (2.95, Curve(90, 180, clockwise=False, stretch=0.075, long=True)), (2.88, Curve(180, 90, clockwise=True, stretch=0.075, long=True))])
+NINE = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
 COLON = Complex([(1, H), (428, Space(90, margins=False)), (1, H)])
 SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
 QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
@@ -4945,8 +4951,14 @@ SCHEMAS = [
     Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0030, ZERO, 3.882, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0031, ONE, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0032, TWO, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0033, THREE, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0034, FOUR, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0035, FIVE, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0036, SIX, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0037, SEVEN, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0038, EIGHT, 0.974, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x0039, NINE, 1.021, Type.NON_JOINING, shading_allowed=False),
     Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
     Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
