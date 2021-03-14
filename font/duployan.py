@@ -1087,6 +1087,7 @@ class Curve(Shape):
         clockwise,
         stretch=0,
         long=False,
+        relative_stretch=True,
         hook=False,
         overlap_angle=None,
         _secondary=None,
@@ -1097,6 +1098,7 @@ class Curve(Shape):
         self.clockwise = clockwise
         self.stretch = stretch
         self.long = long
+        self.relative_stretch = relative_stretch
         self.hook = hook
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
         self._secondary = clockwise if _secondary is None else _secondary
@@ -1109,6 +1111,7 @@ class Curve(Shape):
         clockwise=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
+        relative_stretch=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
         overlap_angle=CLONE_DEFAULT,
         _secondary=CLONE_DEFAULT,
@@ -1119,6 +1122,7 @@ class Curve(Shape):
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
+            relative_stretch=self.relative_stretch if relative_stretch is CLONE_DEFAULT else relative_stretch,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
@@ -1140,6 +1144,7 @@ class Curve(Shape):
             self.clockwise,
             self.stretch,
             self.long,
+            self.relative_stretch,
             self.overlap_angle,
         )
 
@@ -1270,7 +1275,7 @@ class Curve(Shape):
                 scale_y = 1.0 + self.stretch
                 if self.long:
                     scale_x, scale_y = scale_y, scale_x
-                theta = math.radians(self.angle_in % 180)
+                theta = self.relative_stretch and math.radians(self.angle_in % 180)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
                 glyph.transform(
                     fontTools.misc.transform.Identity
@@ -4804,6 +4809,7 @@ MARKER_PHASES = [
 SPACE = Space(0)
 H = Dot()
 EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
+DOLLAR = Complex([(2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (0.224, Line(341, stretchy=False)), (2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (129.757, Space(322.906, margins=False)), (1.484, Line(90, stretchy=False)), (140, Space(0, margins=False)), (1.484, Line(270, stretchy=False))])
 ASTERISK = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
 PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
 COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
@@ -4944,6 +4950,7 @@ LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 SCHEMAS = [
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
+    Schema(0x0024, DOLLAR, 7 / 8, Type.NON_JOINING),
     Schema(0x002A, ASTERISK, 1, Type.NON_JOINING),
     Schema(0x002B, PLUS, 1, Type.NON_JOINING),
     Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
