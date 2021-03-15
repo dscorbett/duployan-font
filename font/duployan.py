@@ -718,31 +718,6 @@ class RootOnlyParentEdge(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
-class InvalidStep(SFDGlyphWrapper):
-    def __init__(self, sfd_name, angle):
-        super().__init__(sfd_name)
-        self.angle = angle
-
-    def clone(
-        self,
-        *,
-        sfd_name=CLONE_DEFAULT,
-        angle=CLONE_DEFAULT,
-    ):
-        return type(self)(
-            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
-            self.angle if angle is CLONE_DEFAULT else angle,
-        )
-
-    def contextualize(self, context_in, context_out):
-        return Space(self.angle)
-
-    def context_in(self):
-        return NO_CONTEXT
-
-    def context_out(self):
-        return NO_CONTEXT
-
 class Dot(Shape):
     def __str__(self):
         return ''
@@ -1968,6 +1943,34 @@ class Complex(Shape):
 
     def rotate_diacritic(self, context):
         return self.clone(_final_rotation=context.angle)
+
+class InvalidStep(Complex):
+    def __init__(self, angle, instructions):
+        super().__init__(instructions)
+        self.angle = angle
+
+    def clone(
+        self,
+        *,
+        angle=CLONE_DEFAULT,
+        instructions=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            self.angle if angle is CLONE_DEFAULT else angle,
+            self.instructions if instructions is CLONE_DEFAULT else instructions,
+        )
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+        return super().draw(glyph, pen, stroke_width, size, anchor, joining_type, child)
+
+    def contextualize(self, context_in, context_out):
+        return Space(self.angle)
+
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
 
 class RomanianU(Complex):
     def draw_to_proxy(self, pen, stroke_width, size):
@@ -3268,10 +3271,9 @@ def reposition_stenographic_period(original_schemas, schemas, new_schemas, class
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
-        if (isinstance(schema.path, (InvalidStep, Space))
-            and schema.joining_type == Type.JOINING
-            and schema.glyph_class != GlyphClass.MARK
-        ):
+        if (isinstance(schema.path, InvalidStep)
+            or isinstance(schema.path, Space) and schema.joining_type == Type.JOINING
+        ) and schema.glyph_class != GlyphClass.MARK:
             classes['c'].append(schema)
         elif schema.cmap == 0x2E3C:
             period = schema
@@ -3317,7 +3319,11 @@ def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_l
     new_context = 'o' not in classes
     for i, target_schema in enumerate(classes['i']):
         if new_context or i >= old_input_count:
-            output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT)
+            output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT).clone(
+                size=800,
+                joining_type=Type.JOINING,
+                side_bearing=0,
+            )
             classes['o'].append(output_schema)
     if new_context:
         add_rule(lookup, Rule([], 'i', 'c', 'o'))
@@ -4938,8 +4944,8 @@ DTLS = InvalidDTLS('u1BC9D')
 CHINOOK_PERIOD = Complex([(1, Line(11, stretchy=False)), (179, Space(90, margins=False)), (1, Line(191, stretchy=False))])
 OVERLAP = InvalidOverlap('u1BCA0', continuing=False)
 CONTINUING_OVERLAP = InvalidOverlap('u1BCA1', continuing=True)
-DOWN_STEP = InvalidStep('u1BCA2', 270)
-UP_STEP = InvalidStep('u1BCA3', 90)
+DOWN_STEP = InvalidStep(270, [(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (437, Space(0, margins=False)), (749, Space(90, margins=False)), (1.184, Line(270, stretchy=False)), (0.32, Line(130, stretchy=False)), (0.32, Line(310, stretchy=False), True), (0.32, Line(50, stretchy=False))])
+UP_STEP = InvalidStep(90, [(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (437, Space(0, margins=False)), (157, Space(90, margins=False)), (1.184, Line(90, stretchy=False)), (0.32, Line(230, stretchy=False)), (0.32, Line(50, stretchy=False), True), (0.32, Line(310, stretchy=False))])
 LINE = Line(0, stretchy=False)
 
 DOT_1 = Schema(None, H, 1, anchor=RELATIVE_1_ANCHOR)
@@ -5160,8 +5166,8 @@ SCHEMAS = [
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
     Schema(0x1BCA0, OVERLAP, 0, side_bearing=0, unignored=True),
     Schema(0x1BCA1, CONTINUING_OVERLAP, 0, side_bearing=0, unignored=True),
-    Schema(0x1BCA2, DOWN_STEP, 800, side_bearing=0, unignored=True),
-    Schema(0x1BCA3, UP_STEP, 800, side_bearing=0, unignored=True),
+    Schema(0x1BCA2, DOWN_STEP, 1, Type.NON_JOINING, unignored=True),
+    Schema(0x1BCA3, UP_STEP, 1, Type.NON_JOINING, unignored=True),
 ]
 
 class Builder:
