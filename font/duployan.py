@@ -1433,6 +1433,7 @@ class Circle(Shape):
         reversed=False,
         stretch=0,
         long=False,
+        always_circle=False,
     ):
         self.angle_in = angle_in
         self.angle_out = angle_out
@@ -1440,6 +1441,7 @@ class Circle(Shape):
         self.reversed = reversed
         self.stretch = stretch
         self.long = long
+        self.always_circle = always_circle
 
     def clone(
         self,
@@ -1450,6 +1452,7 @@ class Circle(Shape):
         reversed=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
+        always_circle=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1458,6 +1461,7 @@ class Circle(Shape):
             reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
+            always_circle=self.always_circle if always_circle is CLONE_DEFAULT else always_circle,
         )
 
     def __str__(self):
@@ -1490,6 +1494,7 @@ class Circle(Shape):
             clockwise,
             self.stretch,
             self.long,
+            self.always_circle,
         )
 
     @staticmethod
@@ -1578,12 +1583,18 @@ class Circle(Shape):
                 if context_in.clockwise is not None
                 else context_out.clockwise)
         if angle_in == angle_out:
+            clockwise = (clockwise_from_adjacent_curve != self.reversed
+                if clockwise_from_adjacent_curve is not None
+                else self.clockwise
+            )
+            if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise
+                or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise
+            ):
+                clockwise = not clockwise
             return self.clone(
                 angle_in=angle_in,
                 angle_out=angle_out,
-                clockwise=clockwise_from_adjacent_curve != self.reversed
-                    if clockwise_from_adjacent_curve is not None
-                    else self.clockwise,
+                clockwise=clockwise,
             )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
@@ -1592,7 +1603,17 @@ class Circle(Shape):
                 if clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
-        if clockwise_ignoring_reversal == clockwise_ignoring_curvature:
+        if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise
+            or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise
+        ):
+            clockwise = not clockwise
+        if self.always_circle and not self.reversed:
+            return self.clone(
+                angle_in=angle_in,
+                angle_out=angle_in,
+                clockwise=clockwise,
+            )
+        elif clockwise_ignoring_reversal == clockwise_ignoring_curvature:
             if self.reversed:
                 if da != 180:
                     return Curve(
@@ -2288,6 +2309,8 @@ class Schema:
             name += '.psts'
         if self.ignored_for_topography:
             name += '.dependent'
+        if isinstance(self.path, Circle) and self.path.always_circle:
+            name += '.circle'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             name = f'_{"." if name and first_component_implies_type else ""}{name}'
         agl_string = fontTools.agl.toUnicode(name)
@@ -2323,6 +2346,11 @@ class Schema:
             if self.glyph_class != GlyphClass.JOINER
             else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
 
+    def can_be_ignored_for_topography(self):
+        return (isinstance(self.path, Circle)
+            or isinstance(self.path, Curve) and not self.path.hook
+        )
+
     def contextualize(
         self,
         context_in,
@@ -2334,8 +2362,7 @@ class Schema:
         ignored_for_topography = (
             ignore_dependent_schemas
             and (context_in == NO_CONTEXT or context_out == NO_CONTEXT)
-            and isinstance(self.path, Curve)
-            and not self.path.hook
+            and self.can_be_ignored_for_topography()
             and context_in.minor
             and context_in.clockwise is not None
         )
@@ -2359,8 +2386,7 @@ class Schema:
         context_in = self.path.context_in()
         if (self.glyph_class == GlyphClass.JOINER
             and self.joining_type == Type.ORIENTING
-            and isinstance(self.path, Curve)
-            and not self.path.hook
+            and self.can_be_ignored_for_topography()
         ):
             return context_in.clone(minor=True)
         return context_in
@@ -2369,8 +2395,7 @@ class Schema:
         context_out = self.path.context_out()
         if (self.glyph_class == GlyphClass.JOINER
             and self.joining_type == Type.ORIENTING
-            and isinstance(self.path, Curve)
-            and not self.path.hook
+            and self.can_be_ignored_for_topography()
         ):
             return context_out.clone(minor=True)
         return context_out
@@ -3423,8 +3448,7 @@ def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas,
             classes['o'].append(schema.clone(ignored_for_topography=False))
         elif schema.glyph_class == GlyphClass.JOINER and not isinstance(schema.path, Space):
             if (schema.joining_type == Type.ORIENTING
-                and isinstance(schema.path, Curve)
-                and not schema.path.hook
+                and schema.can_be_ignored_for_topography()
             ):
                 classes['first'].append(schema)
             else:
@@ -3452,8 +3476,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
     for schema in new_schemas:
         if (schema.glyph_class == GlyphClass.JOINER
             and schema.joining_type == Type.ORIENTING
-            and isinstance(schema.path, Curve)
-            and not schema.path.hook
+            and schema.can_be_ignored_for_topography()
         ):
             classes['i'].append(schema)
             angle_out = schema.path.angle_out - schema.path.angle_in
@@ -3464,6 +3487,29 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
             )
             classes['o'].append(schema.clone(cmap=None, path=path, ignored_for_topography=True))
     add_rule(lookup, Rule([], 'i', 'i', 'o'))
+    return [lookup]
+
+def tag_main_glyph_in_orienting_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='dependent',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if schema.ignored_for_topography:
+            classes['dependent'].append(schema)
+        elif (schema.joining_type == Type.ORIENTING
+            and schema.glyph_class == GlyphClass.JOINER
+            and isinstance(schema.path, Circle)
+            and not schema.path.always_circle
+        ):
+            classes['i'].append(schema)
+            classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(always_circle=True)))
+    add_rule(lookup, Rule('dependent', 'i', [], 'o'))
+    add_rule(lookup, Rule([], 'i', 'dependent', 'o'))
     return [lookup]
 
 def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -3547,8 +3593,7 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.joining_type == Type.ORIENTING
-            and schema.original_shape == Curve
-            and not schema.path.hook
+            and schema.can_be_ignored_for_topography()
         ):
             context_in = schema.path_context_out()
             contexts_in.add(context_in)
@@ -3583,8 +3628,7 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.joining_type == Type.ORIENTING
-            and schema.original_shape == Curve
-            and not schema.path.hook
+            and schema.can_be_ignored_for_topography()
         ):
             context_out = schema.path_context_in()
             contexts_out.add(context_out)
@@ -4828,6 +4872,7 @@ PHASES = [
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
     ignore_first_orienting_glyph_in_initial_sequence,
+    tag_main_glyph_in_orienting_sequence,
     join_with_next,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
@@ -5132,8 +5177,8 @@ SCHEMAS = [
     Schema(0x1BC3E, K_R_S, 6, shading_allowed=False),
     Schema(0x1BC3F, S_K, 4),
     Schema(0x1BC40, S_K, 6),
-    Schema(0x1BC41, O, 2, Type.ORIENTING),
-    Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING),
+    Schema(0x1BC41, O, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC43, O, 3, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC44, O, 4, Type.ORIENTING),
     Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
@@ -5154,9 +5199,9 @@ SCHEMAS = [
     Schema(0x1BC54, U_N, 4, shading_allowed=False),
     Schema(0x1BC55, LONG_U, 2, shading_allowed=False),
     Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC57, UH, 2, Type.ORIENTING),
-    Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC57, UH, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
+    Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2], shading_allowed=False),
     Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1]),
     Schema(0x1BC5B, OU, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC5C, WA, 1, Type.ORIENTING, shading_allowed=False),
