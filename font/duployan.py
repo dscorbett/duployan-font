@@ -622,13 +622,6 @@ class ValidDTLS(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
-class InvalidDTLS(SFDGlyphWrapper):
-    def context_in(self):
-        return NO_CONTEXT
-
-    def context_out(self):
-        return NO_CONTEXT
-
 class ChildEdge(Shape):
     def __init__(self, lineage):
         self.lineage = lineage
@@ -1981,6 +1974,17 @@ class Complex(Shape):
 
     def rotate_diacritic(self, context):
         return self.clone(_final_rotation=context.angle)
+
+class InvalidDTLS(Complex):
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.BLOCKER
 
 class InvalidOverlap(Complex):
     def __init__(
@@ -5030,7 +5034,7 @@ LOW_WAVE = Complex([(333, Space(270)), (2, Curve(270, 45, clockwise=False)), (RA
 LOW_VERTICAL = Complex([(333, Space(270)), (0.5, Line(90, stretchy=False))])
 LOW_ARROW = Complex([(333, Space(270)), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
 LIKALISTI = Complex([(5, O), (375, Space(90, margins=False)), (0.5, P), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
-DTLS = InvalidDTLS('u1BC9D')
+DTLS = InvalidDTLS(instructions=[(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (337, Space(0, margins=False)), (172, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
 CHINOOK_PERIOD = Complex([(1, Line(11, stretchy=False)), (179, Space(90, margins=False)), (1, Line(191, stretchy=False))])
 OVERLAP = InvalidOverlap(continuing=False, instructions=[(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (162.5, Space(0, margins=False)), (397, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (1.134, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False)), (170, Space(180, margins=False)), (0.4116, Line(90, stretchy=False))])
 CONTINUING_OVERLAP = InvalidOverlap(continuing=True, instructions=[(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (189, Space(0, margins=False)), (522, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (0.726, Line(0, stretchy=False)), (124, Space(180, margins=False)), (145, Space(90, margins=False)), (0.852, Line(270, stretchy=False)), (0.552, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False))])
@@ -5252,7 +5256,7 @@ SCHEMAS = [
     Schema(0x1BC98, LOW_VERTICAL, 1, Type.NON_JOINING),
     Schema(0x1BC99, LOW_ARROW, 1, Type.NON_JOINING),
     Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
-    Schema(0x1BC9D, DTLS, 0, Type.NON_JOINING),
+    Schema(0x1BC9D, DTLS, 1, Type.NON_JOINING),
     Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
     Schema(0x1BCA0, OVERLAP, 1, Type.NON_JOINING, unignored=True),
@@ -5406,7 +5410,7 @@ class Builder:
             floating = schema.path.draw(
                 glyph,
                 not invisible and pen,
-                LIGHT_LINE if invisible or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
+                LIGHT_LINE if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
                 schema.size,
                 schema.anchor,
                 schema.joining_type,
