@@ -1580,9 +1580,11 @@ class Circle(Shape):
                 if clockwise_from_adjacent_curve is not None
                 else self.clockwise
             )
-            if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise
-                or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise
-            ):
+            if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
+                angle_out = (angle_in + 180) % 360
+                clockwise = not clockwise
+            if context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise:
+                angle_in = (angle_out + 180) % 360
                 clockwise = not clockwise
             return self.clone(
                 angle_in=angle_in,
@@ -1596,9 +1598,11 @@ class Circle(Shape):
                 if clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
-        if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise
-            or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise
-        ):
+        if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
+            angle_out = (angle_in + 180) % 360
+            clockwise = not clockwise
+        if context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise:
+            angle_in = (angle_out + 180) % 360
             clockwise = not clockwise
         if self.always_circle and not self.reversed:
             return self.clone(
