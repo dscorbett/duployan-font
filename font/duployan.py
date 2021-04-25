@@ -2237,7 +2237,7 @@ class Schema:
         return (
             type(self.path),
             self.path.group(),
-            self.path.invisible() or self.cps[-1:] != [0x1BC9D],
+            self.path.invisible() or self.cmap is not None or self.cps[-1:] != [0x1BC9D],
             self.size,
             self.side_bearing,
             self.child,
