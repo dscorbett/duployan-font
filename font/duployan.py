@@ -3493,7 +3493,13 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
                 angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
                 clockwise=True,
             )
-            classes['o'].append(schema.clone(cmap=None, path=path, ignored_for_topography=True))
+            classes['o'].append(schema.clone(
+                cmap=None,
+                path=path,
+                ignored_for_topography=True,
+                context_in=None,
+                context_out=None,
+            ))
     add_rule(lookup, Rule([], 'i', 'i', 'o'))
     return [lookup]
 
