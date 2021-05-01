@@ -4865,9 +4865,9 @@ def merge_schemas(schemas, lookups_with_phases, classes):
 
 PHASES = [
     dont_ignore_default_ignorables,
-    decompose,
     validate_shading,
     validate_double_marks,
+    decompose,
     expand_secants,
     validate_overlap_controls,
     add_parent_edges,
