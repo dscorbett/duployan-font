@@ -1477,14 +1477,12 @@ class Circle(Shape):
     def group(self):
         angle_in = self.angle_in
         angle_out = self.angle_out
-        clockwise = self.clockwise
-        if clockwise and angle_in == angle_out:
-            clockwise = False
-            angle_in = angle_out = (angle_in + 180) % 360
+        if self.clockwise:
+            angle_in = (angle_in + 180) % 360
+            angle_out = (angle_out + 180) % 360
         return (
             angle_in,
             angle_out,
-            clockwise,
             self.stretch,
             self.long,
             self.always_circle,
