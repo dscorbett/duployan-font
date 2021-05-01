@@ -1593,7 +1593,7 @@ class Circle(Shape):
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
         clockwise_ignoring_reversal = (
             clockwise_from_adjacent_curve
-                if clockwise_from_adjacent_curve is not None
+                if clockwise_from_adjacent_curve is not None and (context_in.clockwise == context_out.clockwise or (angle_out - angle_in) % 180 == 0)
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
         if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
