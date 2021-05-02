@@ -4770,6 +4770,8 @@ class Grouper:
     def remove_item(self, group, item):
         group.remove(item)
         del self._inverted[item]
+        if len(group) == 1:
+            self.remove(group)
 
     def remove_items(self, minuend, subtrahend):
         for item in subtrahend:
@@ -4796,8 +4798,6 @@ def sift_groups(grouper, rule, target_part, classes):
                         intersection = group
                     else:
                         grouper.remove_items(group, intersection_set)
-                        if len(group) == 1:
-                            grouper.remove(group)
                         if overlap != 1:
                             intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
                             grouper.add(intersection)
@@ -4839,10 +4839,7 @@ def sift_groups(grouper, rule, target_part, classes):
         else:
             for group in grouper.groups():
                 if s in group:
-                    if len(group) == 2:
-                        grouper.remove(group)
-                    else:
-                        grouper.remove_item(group, s)
+                    grouper.remove_item(group, s)
                     break
 
 def rename_schemas(groups):
