@@ -5274,19 +5274,17 @@ SCHEMAS = [
 ]
 
 class Builder:
-    def __init__(self, font, schemas=SCHEMAS, phases=PHASES):
+    def __init__(self, font):
         self.font = font
-        self._schemas = schemas
-        self._phases = phases
         self._fea = fontTools.feaLib.ast.FeatureFile()
         self._anchors = {}
         code_points = collections.defaultdict(int)
-        for schema in schemas:
+        for schema in SCHEMAS:
             if schema.cmap is not None:
                 code_points[schema.cmap] += 1
         for glyph in font.glyphs():
             if glyph.unicode != -1 and glyph.unicode not in code_points:
-                self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
+                SCHEMAS.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
@@ -5575,7 +5573,7 @@ class Builder:
             lookups_with_phases,
             classes,
             named_lookups_with_phases,
-        ) = run_phases(self._schemas, self._phases)
+        ) = run_phases(SCHEMAS, PHASES)
         merge_schemas(schemas, lookups_with_phases, classes)
         class_asts = self.convert_classes(classes)
         named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
