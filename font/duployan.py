@@ -83,6 +83,7 @@ CLONE_DEFAULT = object()
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
+NO_PHASE_INDEX = -1
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
@@ -2145,6 +2146,7 @@ class Schema:
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
         self.original_shape = original_shape or type(path)
+        self.phase_index = CURRENT_PHASE_INDEX
         self._glyph_name = None
         self._canonical_schema = self
         self.glyph = None
@@ -2153,6 +2155,7 @@ class Schema:
     def sort_key(self):
         cmap_string = '' if self.cmap is None else chr(self.cmap)
         return (
+            self.phase_index,
             self.cmap is None,
             not unicodedata.is_normalized('NFD', cmap_string),
             not self.cps,
@@ -2206,6 +2209,7 @@ class Schema:
 
     def __repr__(self):
         return '<Schema {}>'.format(', '.join(map(str, [
+            self._calculate_name(),
             self.cmap and f'{self.cmap:04X}',
             self.path,
             self.size,
@@ -2247,6 +2251,7 @@ class Schema:
         )
 
     def canonical_schema(self, canonical_schema):
+        assert self._canonical_schema is self
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
@@ -4678,13 +4683,14 @@ class PrefixView:
         return self._delegate.items()
 
 def run_phases(all_input_schemas, phases, all_classes=None):
+    global CURRENT_PHASE_INDEX
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases = []
     if all_classes is None:
         all_classes = collections.defaultdict(FreezableList)
     all_named_lookups_with_phases = {}
-    for phase in phases:
+    for CURRENT_PHASE_INDEX, phase in enumerate(phases):
         all_output_schemas = OrderedSet()
         autochthonous_schemas = OrderedSet()
         original_input_schemas = OrderedSet(all_input_schemas)
@@ -4842,24 +4848,35 @@ def sift_groups(grouper, rule, target_part, classes):
                     grouper.remove_item(group, s)
                     break
 
-def rename_schemas(groups):
-    for group in groups:
+def rename_schemas(grouper, phase_index):
+    for group in grouper.groups():
+        if not any(map(lambda s: s.phase_index >= phase_index, group)):
+            continue
         group.sort(key=Schema.sort_key)
-        group = iter(group)
-        canonical_schema = next(group)
-        for schema in group:
-            schema.canonical_schema(canonical_schema)
+        canonical_schema = next(filter(lambda s: s.phase_index < phase_index, group), None)
+        if canonical_schema is None:
+            canonical_schema = group[0]
+        for schema in list(group):
+            if schema.phase_index >= phase_index:
+                schema.canonical_schema(canonical_schema)
+                if grouper.group_of(schema):
+                    grouper.remove_item(group, schema)
 
 def merge_schemas(schemas, lookups_with_phases, classes):
     grouper = group_schemas(schemas)
+    previous_phase = None
     for lookup, phase in reversed(lookups_with_phases):
+        if phase is not previous_phase is not None:
+            rename_schemas(grouper, PHASES.index(previous_phase))
+        previous_phase = phase
         prefix_classes = PrefixView(phase, classes)
         for rule in lookup.rules:
             sift_groups(grouper, rule, rule.contexts_in, prefix_classes)
             sift_groups(grouper, rule, rule.contexts_out, prefix_classes)
             sift_groups(grouper, rule, rule.inputs, prefix_classes)
-    rename_schemas(grouper.groups())
+    rename_schemas(grouper, NO_PHASE_INDEX)
 
+CURRENT_PHASE_INDEX = NO_PHASE_INDEX
 PHASES = [
     dont_ignore_default_ignorables,
     validate_shading,
