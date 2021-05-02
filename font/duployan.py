@@ -2150,7 +2150,6 @@ class Schema:
         self._glyph_name = None
         self._canonical_schema = self
         self.glyph = None
-        self.without_marks = marks and self.clone(cmap=None, marks=None)
 
     def sort_key(self):
         cmap_string = '' if self.cmap is None else chr(self.cmap)
@@ -2223,6 +2222,10 @@ class Schema:
     @functools.cached_property
     def diacritic_angles(self):
         return self.path.calculate_diacritic_angles()
+
+    @functools.cached_property
+    def without_marks(self):
+        return self.marks and self.clone(cmap=None, marks=None)
 
     @functools.cached_property
     def glyph_class(self):
