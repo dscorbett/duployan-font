@@ -84,6 +84,7 @@ MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
 NO_PHASE_INDEX = -1
+CURVE_OFFSET = 75
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
@@ -160,6 +161,22 @@ class Context:
             angle=None if self.angle is None else (self.angle + 180) % 360,
             clockwise=None if self.clockwise is None else not self.clockwise,
         )
+
+    def has_clockwise_loop_to(self, other):
+        if self.angle is None or other.angle is None:
+            return False
+        angle_in = self.angle
+        angle_out = other.angle
+        if self.clockwise:
+            angle_in += CURVE_OFFSET
+        elif self.clockwise == False:
+            angle_in -= CURVE_OFFSET
+        if other.clockwise:
+            angle_out -= CURVE_OFFSET
+        elif other.clockwise == False:
+            angle_out += CURVE_OFFSET
+        da = abs(angle_out - angle_in)
+        return da % 180 != 0 and (da >= 180) != (angle_out > angle_in)
 
 NO_CONTEXT = Context()
 
@@ -1369,7 +1386,7 @@ class Curve(Shape):
                 context_in = NO_CONTEXT
                 angle_in, angle_out = (angle_out + 180) % 360, (angle_in + 180) % 360
             context_clockwises = (context_in.clockwise, context_out.clockwise)
-            curve_offset = 0 if context_clockwises in [(None, None), (True, False), (False, True)] else 75
+            curve_offset = 0 if context_clockwises in [(None, None), (True, False), (False, True)] else CURVE_OFFSET
             if False in context_clockwises:
                 curve_offset = -curve_offset
             if final_hook != (
@@ -1382,8 +1399,8 @@ class Curve(Shape):
                     context_out.clockwise == context_in.clockwise == candidate_clockwise
                     and self._in_degree_range(
                         angle_out,
-                        (candidate_angle_out - 75) % 360,
-                        (candidate_angle_out + 75) % 360,
+                        (candidate_angle_out - CURVE_OFFSET) % 360,
+                        (candidate_angle_out + CURVE_OFFSET) % 360,
                         False,
                     )
                 )
@@ -1592,9 +1609,10 @@ class Circle(Shape):
             )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
+        forms_loop_next_to_curve = context_in.has_clockwise_loop_to(context_out) == clockwise_from_adjacent_curve
         clockwise_ignoring_reversal = (
             clockwise_from_adjacent_curve
-                if clockwise_from_adjacent_curve is not None and (context_in.clockwise == context_out.clockwise or (angle_out - angle_in) % 180 == 0)
+                if forms_loop_next_to_curve and clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
         if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
@@ -1650,7 +1668,7 @@ class Circle(Shape):
                         clockwise=clockwise,
                     )
             else:
-                if da != 180 and context_in.clockwise != context_out.clockwise:
+                if da != 180 and not forms_loop_next_to_curve:
                     return self.clone(
                         angle_in=angle_in,
                         angle_out=angle_out,
