@@ -943,7 +943,7 @@ class Line(Shape):
             if self.secant or self.dots or any(
                 m.anchor in [RELATIVE_1_ANCHOR, RELATIVE_2_ANCHOR, MIDDLE_ANCHOR]
                     for m in marks
-            ) else self._get_length(size) // (250 * 0.45) - 1)
+            ) else int(self._get_length(size) // (250 * 0.45)) - 1)
 
     def is_shadable(self):
         return self.visible_base and not self.dots
