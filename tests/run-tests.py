@@ -61,18 +61,18 @@ def print_diff(actual_output, expected_output, color):
                 highlighted_actual_output.append(actual_output[i1:i2])
                 highlighted_expected_output.append(expected_output[j1:j2])
             elif tag == 'delete':
-                highlighted_actual_output.append('\x1B[32m')
+                highlighted_actual_output.append('\x1B[1;96m')
                 highlighted_actual_output.append(actual_output[i1:i2])
                 highlighted_actual_output.append('\x1B[0m')
             elif tag == 'insert':
-                highlighted_expected_output.append('\x1B[31m')
+                highlighted_expected_output.append('\x1B[1;93m')
                 highlighted_expected_output.append(expected_output[j1:j2])
                 highlighted_expected_output.append('\x1B[0m')
             elif tag == 'replace':
-                highlighted_actual_output.append('\x1B[32m')
+                highlighted_actual_output.append('\x1B[1;96m')
                 highlighted_actual_output.append(actual_output[i1:i2])
                 highlighted_actual_output.append('\x1B[0m')
-                highlighted_expected_output.append('\x1B[31m')
+                highlighted_expected_output.append('\x1B[1;93m')
                 highlighted_expected_output.append(expected_output[j1:j2])
                 highlighted_expected_output.append('\x1B[0m')
             else:
