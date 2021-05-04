@@ -3886,7 +3886,7 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
                 exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
                 if exit_is_pseudo_cursive:
                     shim_height += pseudo_cursive_schemas[e_schema]
-                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{str(shim_height).replace("-", "n")}'
+                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{str(float(shim_height)).replace("-", "n")}'
                 classes[e_class].append(e_schema)
                 if e_class not in e_classes:
                     e_classes[e_class] = get_shim(shim_width, shim_height)
