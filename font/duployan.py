@@ -5609,7 +5609,7 @@ class Builder:
     @staticmethod
     def _glyph_to_schema(glyph):
         if glyph.temporary is None:
-            schema = Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING)
+            schema = Schema(glyph.unicode if glyph.unicode != -1 else None, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING)
         else:
             schema = glyph.temporary
             glyph.temporary = None
