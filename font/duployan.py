@@ -1434,6 +1434,11 @@ class Curve(Shape):
             clockwise=not self.clockwise,
         )
 
+class CircleRole(enum.Enum):
+    INDEPENDENT = enum.auto()
+    LEADER = enum.auto()
+    DEPENDENT = enum.auto()
+
 class Circle(Shape):
     def __init__(
         self,
@@ -1444,7 +1449,7 @@ class Circle(Shape):
         reversed=False,
         stretch=0,
         long=False,
-        always_circle=False,
+        role=CircleRole.INDEPENDENT,
     ):
         self.angle_in = angle_in
         self.angle_out = angle_out
@@ -1452,7 +1457,7 @@ class Circle(Shape):
         self.reversed = reversed
         self.stretch = stretch
         self.long = long
-        self.always_circle = always_circle
+        self.role = role
 
     def clone(
         self,
@@ -1463,7 +1468,7 @@ class Circle(Shape):
         reversed=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
-        always_circle=CLONE_DEFAULT,
+        role=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1472,7 +1477,7 @@ class Circle(Shape):
             reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
-            always_circle=self.always_circle if always_circle is CLONE_DEFAULT else always_circle,
+            role=self.role if role is CLONE_DEFAULT else role,
         )
 
     def __str__(self):
@@ -1503,7 +1508,6 @@ class Circle(Shape):
             angle_out,
             self.stretch,
             self.long,
-            self.always_circle,
         )
 
     @staticmethod
@@ -1591,17 +1595,22 @@ class Circle(Shape):
             context_in.clockwise
                 if context_in.clockwise is not None
                 else context_out.clockwise)
+        def flop():
+            nonlocal clockwise
+            nonlocal angle_in
+            nonlocal angle_out
+            if context_in.minor and context_in.clockwise == clockwise or context_out.minor and context_out.clockwise == clockwise:
+                clockwise = not clockwise
+            if context_in.minor and context_in.clockwise is not None and context_out == NO_CONTEXT:
+                angle_out = (angle_in + 180) % 360
+            elif context_out.minor and context_out.clockwise is not None and context_in == NO_CONTEXT:
+                angle_in = (angle_out + 180) % 360
         if angle_in == angle_out:
             clockwise = (clockwise_from_adjacent_curve != self.reversed
                 if clockwise_from_adjacent_curve is not None
                 else self.clockwise
             )
-            if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
-                angle_out = (angle_in + 180) % 360
-                clockwise = not clockwise
-            if context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise:
-                angle_in = (angle_out + 180) % 360
-                clockwise = not clockwise
+            flop()
             return self.clone(
                 angle_in=angle_in,
                 angle_out=angle_out,
@@ -1615,16 +1624,11 @@ class Circle(Shape):
                 if forms_loop_next_to_curve and clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
-        if context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == clockwise:
-            angle_out = (angle_in + 180) % 360
-            clockwise = not clockwise
-        if context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == clockwise:
-            angle_in = (angle_out + 180) % 360
-            clockwise = not clockwise
-        if self.always_circle and not self.reversed:
+        flop()
+        if self.role != CircleRole.INDEPENDENT and not self.reversed:
             return self.clone(
                 angle_in=angle_in,
-                angle_out=angle_in,
+                angle_out=angle_in if self.role == CircleRole.LEADER else angle_out,
                 clockwise=clockwise,
             )
         elif clockwise_ignoring_reversal == clockwise_ignoring_curvature:
@@ -2341,7 +2345,7 @@ class Schema:
             name += '.psts'
         if self.ignored_for_topography:
             name += '.dependent'
-        if isinstance(self.path, Circle) and self.path.always_circle:
+        if isinstance(self.path, Circle) and self.path.role != CircleRole.INDEPENDENT:
             name += '.circle'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             name = f'_{"." if name and first_component_implies_type else ""}{name}'
@@ -2399,7 +2403,10 @@ class Schema:
             and context_in.clockwise is not None
         )
         if ignored_for_topography:
-            path = self.path
+            if isinstance(self.path, Circle):
+                path = self.path.clone(role=CircleRole.DEPENDENT)
+            else:
+                path = self.path
         else:
             path = self.path.contextualize(context_in, context_out)
             if path is self.path:
@@ -3516,6 +3523,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
                 angle_in=0,
                 angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
                 clockwise=True,
+                **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})
             )
             classes['o'].append(schema.clone(
                 cmap=None,
@@ -3542,10 +3550,10 @@ def tag_main_glyph_in_orienting_sequence(original_schemas, schemas, new_schemas,
         elif (schema.joining_type == Type.ORIENTING
             and schema.glyph_class == GlyphClass.JOINER
             and isinstance(schema.path, Circle)
-            and not schema.path.always_circle
+            and schema.path.role == CircleRole.INDEPENDENT
         ):
             classes['i'].append(schema)
-            classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(always_circle=True)))
+            classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(role=CircleRole.LEADER)))
     add_rule(lookup, Rule('dependent', 'i', [], 'o'))
     add_rule(lookup, Rule([], 'i', 'dependent', 'o'))
     return [lookup]
@@ -3616,6 +3624,37 @@ def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookup
         add_rule(post_lookup, Rule(['secant_o'], [continuing_overlap_after_secant], [], [continuing_overlap]))
     return [pre_lookup, lookup, post_lookup]
 
+def join_circle_with_adjacent_nonorienting_glyph(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='ignored_for_topography',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    contexts_out = OrderedSet()
+    for schema in new_schemas:
+        if schema.ignored_for_topography:
+            if isinstance(schema.path, Circle):
+                classes['i'].append(schema)
+            classes['ignored_for_topography'].append(schema)
+        elif (schema.glyph_class == GlyphClass.JOINER
+            and (not schema.joining_type == Type.ORIENTING
+                or isinstance(schema.path, Line) and schema.path.visible_base and not schema.path.secant
+            )
+        ):
+            if (context_out := schema.path.context_in()) != NO_CONTEXT:
+                context_out = Context(context_out.angle)
+                contexts_out.add(context_out)
+                classes[f'c_{context_out}'].append(schema)
+    for context_out in contexts_out:
+        output_class_name = f'o_{context_out}'
+        for circle in classes['i']:
+            classes[output_class_name].append(circle.clone(cmap=None, context_out=context_out))
+        add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
+    return [lookup]
+
 def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
@@ -3627,11 +3666,16 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
     new_contexts_in = set()
     old_input_count = len(classes['i'])
     for schema in new_schemas:
-        if schema.ignored_for_topography:
+        if schema.ignored_for_topography and (
+            schema.context_in.angle is None or schema.context_in.minor and schema.context_in.clockwise is not None
+        ):
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.joining_type == Type.ORIENTING
-            and schema.can_be_ignored_for_topography()
+            and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
+                or schema.phase_index < PHASES.index(join_circle_with_adjacent_nonorienting_glyph)
+                if isinstance(schema.path, Circle)
+                else schema.can_be_ignored_for_topography())
         ):
             context_in = schema.path_context_out()
             contexts_in.add(context_in)
@@ -3644,7 +3688,7 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
         new_context = context_in in new_contexts_in
         for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(context_in, NO_CONTEXT, ignore_dependent_schemas=False)
+                output_schema = target_schema.contextualize(context_in, target_schema.context_out, ignore_dependent_schemas=False)
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
@@ -3662,11 +3706,16 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
     new_contexts_out = set()
     old_input_count = len(classes['i'])
     for schema in new_schemas:
-        if schema.ignored_for_topography:
+        if schema.ignored_for_topography and (
+            schema.context_out.angle is None or schema.context_out.minor and schema.context_out.clockwise is not None
+        ):
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.joining_type == Type.ORIENTING
-            and schema.can_be_ignored_for_topography()
+            and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
+                or schema.phase_index < PHASES.index(join_circle_with_adjacent_nonorienting_glyph)
+                if isinstance(schema.path, Circle)
+                else schema.can_be_ignored_for_topography())
         ):
             context_out = schema.path_context_in()
             contexts_out.add(context_out)
@@ -3679,7 +3728,7 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
         new_context = context_out in new_contexts_out
         for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(NO_CONTEXT, context_out, ignore_dependent_schemas=False)
+                output_schema = target_schema.contextualize(target_schema.context_in, context_out, ignore_dependent_schemas=False)
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Rule([], 'i', f'co_{context_out}', output_class_name))
@@ -4921,6 +4970,7 @@ PHASES = [
     ignore_first_orienting_glyph_in_initial_sequence,
     tag_main_glyph_in_orienting_sequence,
     join_with_next,
+    join_circle_with_adjacent_nonorienting_glyph,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
     join_double_marks,
