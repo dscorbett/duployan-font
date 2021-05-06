@@ -5114,7 +5114,7 @@ HIGH_LONG_GRAVE = Complex([(333, Space(90)), (0.75, Line(180, stretchy=False)), 
 HIGH_DOT = Complex([(333, Space(90)), (0.5, O)])
 HIGH_CIRCLE = Complex([(333, Space(90)), (2, O)])
 HIGH_LINE = Complex([(333, Space(90)), (0.5, Line(180, stretchy=False))])
-HIGH_WAVE = Complex([(333, Space(90)), (2, Curve(270, 45, clockwise=False)), (RADIUS * math.sqrt(2) / 500, Line(45, stretchy=False)), (2, Curve(45, 270, clockwise=True))])
+HIGH_WAVE = Complex([(333, Space(90)), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
 HIGH_VERTICAL = Complex([(333, Space(90)), (0.5, Line(90, stretchy=False))])
 LOW_ACUTE = Complex([(333, Space(270))] + HIGH_ACUTE.instructions[1:])
 LOW_TIGHT_ACUTE = Complex([(82, Space(270))] + HIGH_TIGHT_ACUTE.instructions[1:])
