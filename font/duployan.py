@@ -5103,7 +5103,6 @@ HIGH_VERTICAL_SECANT = Line(90, stretchy=False, secant=1 / 3)
 RTL_SECANT = Line(240, stretchy=False, secant=0.5, secant_curvature_offset=55)
 LTR_SECANT = Line(310, stretchy=False, secant=0.5, secant_curvature_offset=55)
 TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
-TAIL = Complex([(0.4, T), (6, N_REVERSE)])
 E_HOOK = Curve(90, 270, clockwise=True, hook=True)
 I_HOOK = Curve(180, 0, clockwise=False, hook=True)
 TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
@@ -5325,7 +5324,7 @@ SCHEMAS = [
     Schema(0x1BC76, RTL_SECANT, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC79, TAIL, 1, shading_allowed=False),
+    Schema(0x1BC79, N_REVERSE, 6, shading_allowed=False),
     Schema(0x1BC7A, E_HOOK, 2, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC7B, I_HOOK, 2, Type.ORIENTING),
     Schema(0x1BC7C, TANGENT_HOOK, 2, shading_allowed=False),
