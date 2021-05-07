@@ -5096,10 +5096,11 @@ J_N = Complex([(1, S_K), (1, N)], maximum_tree_width=1)
 J_N_S = Complex([(3, S_K), (4, N_S)], maximum_tree_width=1)
 O = Circle(0, 0, clockwise=False)
 O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
+E = Curve(270, 90, clockwise=True)
 IE = Curve(180, 0, clockwise=False)
 SHORT_I = Curve(0, 180, clockwise=True)
-UI = Curve(90, 270, clockwise=False)
-EE = Curve(270, 90, clockwise=True)
+UI = Curve(90, 270, clockwise=True)
+EE = Curve(270, 90, clockwise=False)
 LONG_I = LongI(240)
 YE = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
 U_N = Curve(90, 180, clockwise=True)
@@ -5296,14 +5297,14 @@ SCHEMAS = [
     Schema(0x1BC44, O, 4, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC46, IE, 2, Type.ORIENTING),
-    Schema(0x1BC47, EE, 2, Type.ORIENTING),
+    Schema(0x1BC47, E, 2, Type.ORIENTING),
     Schema(0x1BC48, IE, 2),
     Schema(0x1BC49, SHORT_I, 2, shading_allowed=False),
     Schema(0x1BC4A, UI, 2, shading_allowed=False),
     Schema(0x1BC4B, EE, 2),
-    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC4C, E, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4D, E, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC4E, E, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC50, YE, 1, shading_allowed=False),
     Schema(0x1BC51, S_T, 3, Type.ORIENTING, shading_allowed=False),
