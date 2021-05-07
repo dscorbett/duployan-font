@@ -106,11 +106,15 @@ class Context:
         self,
         angle=None,
         clockwise=None,
+        *,
         minor=False,
+        ignorable_for_topography=False,
     ):
+        assert clockwise is not None or not ignorable_for_topography
         self.angle = float(angle) if angle is not None else None
         self.clockwise = clockwise
         self.minor = minor
+        self.ignorable_for_topography = ignorable_for_topography
 
     def clone(
         self,
@@ -118,15 +122,25 @@ class Context:
         angle=CLONE_DEFAULT,
         clockwise=CLONE_DEFAULT,
         minor=CLONE_DEFAULT,
+        ignorable_for_topography=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            self.minor if minor is CLONE_DEFAULT else minor,
+            minor=self.minor if minor is CLONE_DEFAULT else minor,
+            ignorable_for_topography=self.ignorable_for_topography if ignorable_for_topography is CLONE_DEFAULT else ignorable_for_topography,
         )
 
     def __repr__(self):
-        return 'Context({}, {}, {})'.format(self.angle, self.clockwise, self.minor)
+        return f'''Context({
+                self.angle
+            }, {
+                self.clockwise
+            }, minor={
+                self.minor
+            }, ignorable_for_topography={
+                self.ignorable_for_topography
+            }'''
 
     def __str__(self):
         if self.angle is None:
@@ -137,6 +151,8 @@ class Context:
             '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
         }{
             '.minor' if self.minor else ''
+        }{
+            '.ori' if self.ignorable_for_topography else ''
         }'''
 
     def __eq__(self, other):
@@ -144,6 +160,7 @@ class Context:
             self.angle == other.angle
             and self.clockwise == other.clockwise
             and self.minor == other.minor
+            and self.ignorable_for_topography == other.ignorable_for_topography
         )
 
     def __ne__(self, other):
@@ -154,6 +171,7 @@ class Context:
             hash(self.angle)
             ^ hash(self.clockwise)
             ^ hash(self.minor)
+            ^ hash(self.ignorable_for_topography)
         )
 
     def reversed(self):
@@ -1374,8 +1392,8 @@ class Curve(Shape):
             )
             if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
-            if (context_out == NO_CONTEXT and context_in.minor and context_in.clockwise == candidate_clockwise
-                or context_in == NO_CONTEXT and context_out.minor and context_out.clockwise == candidate_clockwise
+            if (context_out == NO_CONTEXT and context_in.ignorable_for_topography and context_in.clockwise == candidate_clockwise
+                or context_in == NO_CONTEXT and context_out.ignorable_for_topography and context_out.clockwise == candidate_clockwise
             ):
                 flip()
         if self.hook or (context_in != NO_CONTEXT != context_out):
@@ -1599,11 +1617,11 @@ class Circle(Shape):
             nonlocal clockwise
             nonlocal angle_in
             nonlocal angle_out
-            if context_in.minor and context_in.clockwise == clockwise or context_out.minor and context_out.clockwise == clockwise:
+            if context_in.ignorable_for_topography and context_in.clockwise == clockwise or context_out.ignorable_for_topography and context_out.clockwise == clockwise:
                 clockwise = not clockwise
-            if context_in.minor and context_in.clockwise is not None and context_out == NO_CONTEXT:
+            if context_in.ignorable_for_topography and context_out == NO_CONTEXT:
                 angle_out = (angle_in + 180) % 360
-            elif context_out.minor and context_out.clockwise is not None and context_in == NO_CONTEXT:
+            elif context_out.ignorable_for_topography and context_in == NO_CONTEXT:
                 angle_in = (angle_out + 180) % 360
         if angle_in == angle_out:
             clockwise = (clockwise_from_adjacent_curve != self.reversed
@@ -2399,8 +2417,7 @@ class Schema:
             ignore_dependent_schemas
             and (context_in == NO_CONTEXT or context_out == NO_CONTEXT)
             and self.can_be_ignored_for_topography()
-            and context_in.minor
-            and context_in.clockwise is not None
+            and context_in.ignorable_for_topography
         )
         if ignored_for_topography:
             if isinstance(self.path, Circle):
@@ -2427,7 +2444,7 @@ class Schema:
             and self.joining_type == Type.ORIENTING
             and self.can_be_ignored_for_topography()
         ):
-            return context_in.clone(minor=True)
+            return context_in.clone(ignorable_for_topography=True)
         return context_in
 
     def path_context_out(self):
@@ -2436,7 +2453,7 @@ class Schema:
             and self.joining_type == Type.ORIENTING
             and self.can_be_ignored_for_topography()
         ):
-            return context_out.clone(minor=True)
+            return context_out.clone(ignorable_for_topography=True)
         return context_out
 
     def rotate_diacritic(self, context):
@@ -3667,7 +3684,7 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
     old_input_count = len(classes['i'])
     for schema in new_schemas:
         if schema.ignored_for_topography and (
-            schema.context_in.angle is None or schema.context_in.minor and schema.context_in.clockwise is not None
+            schema.context_in.angle is None or schema.context_in.ignorable_for_topography
         ):
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
@@ -3707,7 +3724,7 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
     old_input_count = len(classes['i'])
     for schema in new_schemas:
         if schema.ignored_for_topography and (
-            schema.context_out.angle is None or schema.context_out.minor and schema.context_out.clockwise is not None
+            schema.context_out.angle is None or schema.context_out.ignorable_for_topography
         ):
             classes['i'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
