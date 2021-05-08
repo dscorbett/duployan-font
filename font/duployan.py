@@ -3479,8 +3479,6 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
                 classes['i2'].append(schema)
                 classes['o2'].append(context_in)
                 contexts_in.add(context_in)
-                if schema not in (context_in_class := classes[f'c_{context_in}']):
-                    context_in_class.append(schema)
     classes['all'].extend(classes[CONTINUING_OVERLAP_CLASS])
     add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
     for j, context_in in enumerate(contexts_in):
