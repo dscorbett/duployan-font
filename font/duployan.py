@@ -2415,7 +2415,7 @@ class Schema:
         assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep)
         ignored_for_topography = (
             ignore_dependent_schemas
-            and (context_in == NO_CONTEXT or context_out == NO_CONTEXT)
+            and context_out == NO_CONTEXT
             and self.can_be_ignored_for_topography()
             and context_in.ignorable_for_topography
         )
