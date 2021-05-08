@@ -3474,6 +3474,8 @@ def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lo
             ):
                 classes['i'].append(schema)
             if (context_in := schema.path_context_out()) != NO_CONTEXT:
+                if context_in.ignorable_for_topography:
+                    context_in = context_in.clone(angle=0)
                 context_in = get_context_marker(context_in)
                 classes['all'].append(context_in)
                 classes['i2'].append(schema)
