@@ -1110,6 +1110,7 @@ class Curve(Shape):
         long=False,
         relative_stretch=True,
         hook=False,
+        reversed_circle=False,
         overlap_angle=None,
         _secondary=None,
     ):
@@ -1121,6 +1122,7 @@ class Curve(Shape):
         self.long = long
         self.relative_stretch = relative_stretch
         self.hook = hook
+        self.reversed_circle = reversed_circle
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
         self._secondary = clockwise if _secondary is None else _secondary
 
@@ -1134,6 +1136,7 @@ class Curve(Shape):
         long=CLONE_DEFAULT,
         relative_stretch=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
+        reversed_circle=CLONE_DEFAULT,
         overlap_angle=CLONE_DEFAULT,
         _secondary=CLONE_DEFAULT,
     ):
@@ -1145,6 +1148,7 @@ class Curve(Shape):
             long=self.long if long is CLONE_DEFAULT else long,
             relative_stretch=self.relative_stretch if relative_stretch is CLONE_DEFAULT else relative_stretch,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
+            reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
         )
@@ -1166,6 +1170,7 @@ class Curve(Shape):
             self.stretch,
             self.long,
             self.relative_stretch,
+            self.reversed_circle,
             self.overlap_angle,
         )
 
@@ -1239,6 +1244,16 @@ class Curve(Shape):
             p3 = rect(r, theta3)
             p2 = rect(cp_distance, theta3 - cp_angle)
             pen.curveTo(p1, p2, p3)
+        if self.reversed_circle:
+            swash_angle = (360 - abs(da)) / 2
+            swash_length = math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
+            swash_endpoint = rect(abs(swash_length), math.radians(self.angle_out))
+            swash_endpoint = (p3[0] + swash_endpoint[0], p3[1] + swash_endpoint[1])
+            pen.lineTo(*swash_endpoint)
+            exit = rect(min(r, abs(swash_length)), math.radians(self.angle_out))
+            exit = (p3[0] + exit[0], p3[1] + exit[1])
+        else:
+            exit = p3
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         anchor_name = mkmk if child else lambda a: a
@@ -1276,12 +1291,12 @@ class Curve(Shape):
                             if self.overlap_angle is None
                             else overlap_exit_angle)))
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
-                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
                     glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(overlap_entry_angle)))
                     if self.can_be_hub(size):
                         glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
                     else:
-                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', p3[0], p3[1])
+                        glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *exit)
                     glyph.addAnchorPoint(
                         anchor_name(SECANT_ANCHOR),
                         base,
@@ -1658,6 +1673,7 @@ class Circle(Shape):
                         clockwise=clockwise,
                         stretch=self.stretch,
                         long=True,
+                        reversed_circle=True,
                     )
                 else:
                     return self.clone(
@@ -1682,6 +1698,7 @@ class Circle(Shape):
                         clockwise=clockwise,
                         stretch=self.stretch,
                         long=True,
+                        reversed_circle=True,
                     )
                 else:
                     return self.clone(
