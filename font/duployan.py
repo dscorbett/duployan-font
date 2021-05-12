@@ -37,6 +37,7 @@ EPSILON = 1e-5
 RADIUS = 50
 LIGHT_LINE = 70
 SHADED_LINE = 120
+STROKE_GAP = max(70, LIGHT_LINE)
 MAX_DOUBLE_MARKS = 3
 MAX_TREE_WIDTH = 2
 MAX_TREE_DEPTH = 3
@@ -945,8 +946,8 @@ class Line(Shape):
                     glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + 2 * LIGHT_LINE, -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - (LIGHT_LINE + STROKE_GAP), -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + LIGHT_LINE + STROKE_GAP, -(stroke_width + LIGHT_LINE) / 2)
             else:
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
                 if self.tittle:
@@ -964,8 +965,8 @@ class Line(Shape):
         if not anchor and not self.secant:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + 3 * LIGHT_LINE)
-            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - 3 * LIGHT_LINE)
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_width / 2 + 2 * STROKE_GAP + LIGHT_LINE / 2)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - (stroke_width / 2 + 2 * STROKE_GAP + LIGHT_LINE / 2))
 
     def can_be_child(self, size):
         return not (self.secant or self.dots)
@@ -1319,19 +1320,19 @@ class Curve(Shape):
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
                 )
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(self.angle_in)))
             else:
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
                     *(rect(0, 0) if abs(da) > 180 else rect(
-                        min(stroke_width, r - (stroke_width + LIGHT_LINE)),
+                        min(stroke_width, r - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)),
                         math.radians(relative_mark_angle))))
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians(relative_mark_angle)))
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
         if not anchor:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
-            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + STROKE_GAP)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - STROKE_GAP)
 
     def can_be_child(self, size):
         a1, a2 = self._get_normalized_angles()
@@ -1596,14 +1597,14 @@ class Circle(Shape):
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width + LIGHT_LINE, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(self.angle_in)))
         else:
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width + LIGHT_LINE, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
-        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + LIGHT_LINE)
-        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - LIGHT_LINE)
+        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + STROKE_GAP)
+        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - STROKE_GAP)
 
     def can_be_child(self, size):
         return True
@@ -1947,16 +1948,16 @@ class Complex(Shape):
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_center)
         elif anchor == ABOVE_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
-            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width + LIGHT_LINE)
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_min + stroke_width / 2)
         elif anchor == BELOW_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
-            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - stroke_width - LIGHT_LINE)
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2))
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
         elif anchor is None:
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', x_center, y_center)
-            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width + LIGHT_LINE)
-            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - stroke_width - LIGHT_LINE)
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2))
         return first_is_invisible
 
     def can_be_child(self, size):
@@ -3975,8 +3976,8 @@ def shrink_wrap_enclosing_circle(original_schemas, schemas, new_schemas, classes
             classes[class_name].append(schema)
             punctuation[class_name] = (dx, dy, schema.glyph.width)
     for class_name, (dx, dy, width) in punctuation.items():
-        dx += 4 * LIGHT_LINE
-        dy += 4 * LIGHT_LINE
+        dx += 3 * STROKE_GAP + LIGHT_LINE
+        dy += 3 * STROKE_GAP + LIGHT_LINE
         if dx > dy:
             dy = max(dy, dx * 0.75)
         elif dx < dy:
@@ -5148,25 +5149,25 @@ E_HOOK = Curve(90, 270, clockwise=True, hook=True)
 I_HOOK = Curve(180, 0, clockwise=False, hook=True)
 TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
 SEPARATE_AFFIX_GUIDELINE = [(250 - LIGHT_LINE / 2, Space(90, margins=False)), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (1.5, Line(180), True)]
-HIGH_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
-HIGH_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
-HIGH_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
-HIGH_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-HIGH_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, O)])
-HIGH_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (2, O)])
-HIGH_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-HIGH_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-HIGH_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(2.5 * LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, Line(90, stretchy=False))])
-LOW_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.25, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-LOW_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-LOW_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
-LOW_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-LOW_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Circle(180, 180, clockwise=False))])
-LOW_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
-LOW_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-LOW_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-LOW_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Line(270, stretchy=False))])
-LOW_ARROW = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * LIGHT_LINE, Space(270, margins=False)), (0.55, Line(0), True), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
+HIGH_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
+HIGH_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
+HIGH_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
+HIGH_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
+HIGH_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, O)])
+HIGH_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (2, O)])
+HIGH_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
+HIGH_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+HIGH_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, Line(90, stretchy=False))])
+LOW_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.25, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
+LOW_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
+LOW_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
+LOW_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
+LOW_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Circle(180, 180, clockwise=False))])
+LOW_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
+LOW_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
+LOW_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+LOW_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Line(270, stretchy=False))])
+LOW_ARROW = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.55, Line(0), True), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
 LIKALISTI = Complex([(5, O), (375, Space(90, margins=False)), (0.5, P), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
 DTLS = InvalidDTLS(instructions=[(152, Space(270, margins=False)), (0.19, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.124, Line(90, stretchy=False)), (128, Space(90, margins=False)), (0.19, Line(90, stretchy=False)), (0.19, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.124, Line(0, stretchy=False)), (128, Space(0, margins=False)), (0.19, Line(0, stretchy=False)), (0.19, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.124, Line(270, stretchy=False)), (128, Space(270, margins=False)), (0.19, Line(270, stretchy=False)), (0.19, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.124, Line(180, stretchy=False)), (128, Space(180, margins=False)), (0.19, Line(180, stretchy=False)), (337, Space(0, margins=False)), (172, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
 CHINOOK_PERIOD = Complex([(1, Line(11, stretchy=False)), (179, Space(90, margins=False)), (1, Line(191, stretchy=False))])
