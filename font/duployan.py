@@ -766,11 +766,27 @@ class RootOnlyParentEdge(Shape):
         return GlyphClass.MARK
 
 class Dot(Shape):
+    def __init__(
+        self,
+        *,
+        centered=False,
+    ):
+        self.centered = centered
+
+    def clone(
+        self,
+        *,
+        centered=CLONE_DEFAULT,
+    ):
+        return Dot(
+            centered=self.centered if centered is CLONE_DEFAULT else centered,
+        )
+
     def __str__(self):
         return ''
 
-    def clone(self):
-        return Dot()
+    def group(self):
+        return self.centered
 
     def can_be_hub(self, size):
         return False
@@ -784,9 +800,9 @@ class Dot(Shape):
             glyph.addAnchorPoint(mkmk(anchor), 'mark', *rect(0, 0))
             glyph.addAnchorPoint(anchor, 'mark', *rect(0, 0))
         elif joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, -(stroke_width / 2))
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, -(stroke_width / 2))
-            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', 0, -(stroke_width / 2))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
+            glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
 
     def is_shadable(self):
         return True
@@ -5153,7 +5169,7 @@ HIGH_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE,
 HIGH_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
 HIGH_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
 HIGH_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-HIGH_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, O)])
+HIGH_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
 HIGH_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (2, O)])
 HIGH_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
 HIGH_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
@@ -5162,7 +5178,7 @@ LOW_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, ma
 LOW_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
 LOW_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
 LOW_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-LOW_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Circle(180, 180, clockwise=False))])
+LOW_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
 LOW_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
 LOW_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
 LOW_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
