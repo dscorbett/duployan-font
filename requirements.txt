@@ -21,7 +21,7 @@
 --extra-index-url http://pip.basistech.net:8090
 --trusted-host pip.basistech.net
 
-fonttools==4.23.0 \
-    --hash=sha256:55f5a6474683ca96c50b71ff103d9766a9bcd8a0e90cd7272bd8e9c5aaaffdd7 \
-    --hash=sha256:c3f01e8fda6fcf0c74a1e320f501fc8904b1c2726481c0257bd1a9437f688a41
+fonttools==4.23.1 \
+    --hash=sha256:393223ffbd3cefdddeb38a68d9ff008295fa47403d9e0611187430ef27a9ea7e \
+    --hash=sha256:cc10e3d129aab606d2a85ea7e6b74baa91ecdd4f315cd4f2c39481beeb9040c3
     # via -r requirements.in
