@@ -93,10 +93,10 @@ jobs:
         if: matrix.requirements == 'oldest'
         run: |
           pip install packaging
-          ./get-old-requirements.py --input requirements-to-freeze.txt --output requirements.txt
+          ./get-old-requirements.py --input requirements.in --output requirements.txt
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
-        run: cp requirements-to-freeze.txt requirements.txt
+        run: cp requirements.in requirements.txt
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build

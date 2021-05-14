@@ -51,13 +51,6 @@ endif
 
 .PHONY: requirements.txt
 requirements.txt:
-	$(eval TMP := $(shell mktemp -d))
-	virtualenv -p python3 $(TMP)
-	. $(TMP)/bin/activate; \
-	pip install -U pip; \
-	pip install -r requirements-to-freeze.txt; \
-	sed -n '1,/^$$/p' requirements-to-freeze.txt >requirements.txt; \
-	pip freeze >>requirements.txt; \
-	deactivate
-	$(RM) -r $(TMP)
+	pip-compile --allow-unsafe --generate-hashes --quiet --upgrade requirements.in
+	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' requirements.in)" "$$(cat requirements.txt)" >requirements.txt
 	git diff requirements.txt
