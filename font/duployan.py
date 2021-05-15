@@ -3547,6 +3547,8 @@ def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas,
                 classes['first'].append(schema)
             else:
                 classes['c'].append(schema)
+                if schema.can_lead_orienting_sequence and not isinstance(schema.path, Line):
+                    classes['fixed_form'].append(schema)
     named_lookups['check_previous'] = Lookup(
         None,
         None,
@@ -3555,6 +3557,7 @@ def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas,
     )
     add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
     add_rule(named_lookups['check_previous'], Rule('c', 'i', [], lookups=[None]))
+    add_rule(named_lookups['check_previous'], Rule([], 'i', 'fixed_form', lookups=[None]))
     add_rule(named_lookups['check_previous'], Rule('i', 'o'))
     add_rule(lookup, Rule([], 'i', 'c', lookups=['check_previous']))
     return [lookup]
@@ -3568,8 +3571,10 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
         reversed=True,
     )
     for schema in new_schemas:
-        if (schema.glyph_class == GlyphClass.JOINER
-            and schema.can_lead_orienting_sequence
+        if schema.glyph_class != GlyphClass.JOINER:
+            continue
+        classes['joiner'].append(schema)
+        if (schema.can_lead_orienting_sequence
             and schema.can_be_ignored_for_topography()
         ):
             classes['c'].append(schema)
@@ -3589,6 +3594,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, 
                     context_in=None,
                     context_out=None,
                 ))
+    add_rule(lookup, Rule('joiner', 'i', [], 'i'))
     add_rule(lookup, Rule([], 'i', 'c', 'o'))
     return [lookup]
 
