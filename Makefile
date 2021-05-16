@@ -51,6 +51,6 @@ endif
 
 .PHONY: requirements.txt
 requirements.txt:
-	pip-compile --allow-unsafe --generate-hashes --quiet --upgrade requirements.in
+	pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --no-emit-trusted-host --quiet --upgrade requirements.in
 	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' requirements.in)" "$$(cat requirements.txt)" >requirements.txt
 	git diff requirements.txt
