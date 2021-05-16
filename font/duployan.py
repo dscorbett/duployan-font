@@ -2401,7 +2401,10 @@ class Schema:
             name += '.psts'
         if self.ignored_for_topography:
             name += '.dependent'
-        if isinstance(self.path, Circle) and self.path.role != CircleRole.INDEPENDENT:
+        if (isinstance(self.path, Circle)
+            and self.path.role != CircleRole.INDEPENDENT
+            and self.path.angle_in != self.path.angle_out
+        ):
             name += '.circle'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             name = f'_{"." if name and first_component_implies_type else ""}{name}'
