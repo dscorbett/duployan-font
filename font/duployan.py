@@ -1177,6 +1177,8 @@ class Curve(Shape):
                 'n' if self.clockwise else 'p'
             }{
                 int(self.angle_out)
+            }{
+                'r' if self.reversed_circle else ''
             }'''
 
     def group(self):
@@ -1531,20 +1533,14 @@ class Circle(Shape):
         )
 
     def __str__(self):
-        angle_in = self.angle_in
-        angle_out = self.angle_out
-        clockwise = self.clockwise
-        if clockwise and angle_in == angle_out:
-            clockwise = False
-            angle_in = angle_out = (angle_in + 180) % 360
         return f'''{
-                int(angle_in)
+                int(self.angle_in)
             }{
-                'n' if clockwise else 'p'
+                'n' if self.clockwise else 'p'
             }{
-                int(angle_out)
+                int(self.angle_out)
             }{
-                '.rev' if self.reversed else ''
+                'r' if self.reversed else ''
             }'''
 
     def group(self):
