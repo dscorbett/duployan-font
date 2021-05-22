@@ -2313,6 +2313,8 @@ class Schema:
 
     @functools.cached_property
     def group(self):
+        if self.ignored_for_topography:
+            return self.side_bearing
         return (
             type(self.path),
             self.path.group(),
