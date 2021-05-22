@@ -4939,14 +4939,10 @@ def sift_groups(grouper, rule, target_part, classes):
                         if overlap != 1:
                             intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
                             grouper.add(intersection)
-                    if overlap != 1 and target_part is rule.inputs and len(target_part) == 1:
-                        if rule.outputs is not None and len(rule.outputs) == 1:
-                            # a single substitution, or a (chaining) contextual substitution that
-                            # calls a single substitution
-                            if isinstance(output := rule.outputs[0], str):
-                                output = classes[output]
-                                if len(output) != 1:
-                                    # non-singleton glyph class
+                    if overlap != 1 and target_part is rule.inputs:
+                        if rule.outputs is not None:
+                            for output in rule.outputs:
+                                if isinstance(output, str) and len(output := classes[output]) != 1:
                                     grouper.remove(intersection)
                                     new_groups = collections.defaultdict(list)
                                     for input_schema, output_schema in zip(cls, output):
@@ -4965,15 +4961,10 @@ def sift_groups(grouper, rule, target_part, classes):
                                     for new_group in new_groups.values():
                                         if len(new_group) > 1:
                                             grouper.add([*dict.fromkeys(new_group)])
-                        # Not implemented:
-                        # chaining subsitution, general form
-                        #   substitute $class' lookup $lookup ...;
-                        # reverse chaining subsitution, general form
-                        #   reversesub $class' lookup $lookup ...;
-                        # reverse chaining substitution, inline form, singleton glyph class
-                        #   reversesub $backtrack $class' $lookahead by $singleton;
-                        # reverse chaining substitution, inline form, non-singleton glyph class
-                        #   reversesub $backtrack $class' $lookahead by $class;
+                        elif rule.lookups is not None and not all(lookup is None for lookup in rule.lookups):
+                            # TODO: Optimization: Check named lookups instead of assuming the group
+                            # must be removed.
+                            grouper.remove(intersection)
         else:
             for group in grouper.groups():
                 if s in group:
