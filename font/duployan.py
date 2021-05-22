@@ -110,12 +110,16 @@ class Context:
         *,
         minor=False,
         ignorable_for_topography=False,
+        diphthong_start=False,
+        diphthong_end=False,
     ):
         assert clockwise is not None or not ignorable_for_topography
         self.angle = float(angle) if angle is not None else None
         self.clockwise = clockwise
         self.minor = minor
         self.ignorable_for_topography = ignorable_for_topography
+        self.diphthong_start = diphthong_start
+        self.diphthong_end = diphthong_end
 
     def clone(
         self,
@@ -124,12 +128,16 @@ class Context:
         clockwise=CLONE_DEFAULT,
         minor=CLONE_DEFAULT,
         ignorable_for_topography=CLONE_DEFAULT,
+        diphthong_start=CLONE_DEFAULT,
+        diphthong_end=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             minor=self.minor if minor is CLONE_DEFAULT else minor,
             ignorable_for_topography=self.ignorable_for_topography if ignorable_for_topography is CLONE_DEFAULT else ignorable_for_topography,
+            diphthong_start=self.diphthong_start if diphthong_start is CLONE_DEFAULT else diphthong_start,
+            diphthong_end=self.diphthong_end if diphthong_end is CLONE_DEFAULT else diphthong_end,
         )
 
     def __repr__(self):
@@ -141,6 +149,10 @@ class Context:
                 self.minor
             }, ignorable_for_topography={
                 self.ignorable_for_topography
+            }, diphthong_start={
+                self.diphthong_start
+            }, diphthong_end={
+                self.diphthong_end
             })'''
 
     def __str__(self):
@@ -154,6 +166,12 @@ class Context:
             '.minor' if self.minor else ''
         }{
             '.ori' if self.ignorable_for_topography else ''
+        }{
+            '.diph' if self.diphthong_start or self.diphthong_end else ''
+        }{
+            '1' if self.diphthong_start else ''
+        }{
+            '2' if self.diphthong_end else ''
         }'''
 
     def __eq__(self, other):
@@ -162,6 +180,8 @@ class Context:
             and self.clockwise == other.clockwise
             and self.minor == other.minor
             and self.ignorable_for_topography == other.ignorable_for_topography
+            and self.diphthong_start == other.diphthong_start
+            and self.diphthong_end == other.diphthong_end
         )
 
     def __ne__(self, other):
@@ -173,6 +193,8 @@ class Context:
             ^ hash(self.clockwise)
             ^ hash(self.minor)
             ^ hash(self.ignorable_for_topography)
+            ^ hash(self.diphthong_start)
+            ^ hash(self.diphthong_end)
         )
 
     def reversed(self):
@@ -229,7 +251,7 @@ class Shape:
     def can_be_hub(self, size):
         return not self.invisible()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         if not self.invisible():
             raise NotImplementedError
 
@@ -382,7 +404,7 @@ class Hub(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         if self.initial_secant:
             glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'exit', 0, 0)
@@ -405,7 +427,7 @@ class End(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     @staticmethod
@@ -622,7 +644,7 @@ class Space(Shape):
     def can_be_hub(self, size):
         return self.angle % 180 == 90
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -682,7 +704,7 @@ class ChildEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
@@ -702,7 +724,7 @@ class ContinuingOverlapS(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         pass
 
     @staticmethod
@@ -739,7 +761,7 @@ class ParentEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
@@ -791,7 +813,7 @@ class Dot(Shape):
     def can_be_hub(self, size):
         return False
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -904,7 +926,7 @@ class Line(Shape):
             length_denominator = 1
         return int(500 * size / length_denominator)
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         end_y = 0
         if self.visible_base:
             length = self._get_length(size)
@@ -1246,7 +1268,7 @@ class Curve(Shape):
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         a1, a2 = self._get_normalized_angles()
         da = a2 - a1
         r = int(RADIUS * size)
@@ -1426,8 +1448,12 @@ class Curve(Shape):
             )
             if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
-            if (context_out == NO_CONTEXT and context_in.ignorable_for_topography and context_in.clockwise == candidate_clockwise
-                or context_in == NO_CONTEXT and context_out.ignorable_for_topography and context_out.clockwise == candidate_clockwise
+            if (context_out == NO_CONTEXT
+                and context_in.ignorable_for_topography
+                and (context_in.clockwise == candidate_clockwise) != context_in.diphthong_start
+                or context_in == NO_CONTEXT
+                and context_out.ignorable_for_topography
+                and (context_out.clockwise == candidate_clockwise) != context_out.diphthong_end
             ):
                 flip()
         if self.hook or (context_in != NO_CONTEXT != context_out):
@@ -1458,6 +1484,9 @@ class Curve(Shape):
                 )
             ):
                 flip()
+        if context_in.diphthong_start or context_out.diphthong_end:
+            candidate_angle_in = (candidate_angle_in - 180) % 360
+            candidate_angle_out = (candidate_angle_out - 180) % 360
         return self.clone(
             angle_in=candidate_angle_in,
             angle_out=candidate_angle_out,
@@ -1563,7 +1592,7 @@ class Circle(Shape):
     def can_be_hub(self, size):
         return size >= 6
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         angle_out = self.angle_out
         if self.clockwise and self.angle_out > self.angle_in:
             angle_out -= 360
@@ -1645,12 +1674,21 @@ class Circle(Shape):
             nonlocal clockwise
             nonlocal angle_in
             nonlocal angle_out
-            if context_in.ignorable_for_topography and context_in.clockwise == clockwise or context_out.ignorable_for_topography and context_out.clockwise == clockwise:
+            if (context_in.ignorable_for_topography and (context_in.clockwise == clockwise) != context_in.diphthong_start
+                or context_out.ignorable_for_topography and (context_out.clockwise == clockwise) != context_out.diphthong_end
+            ):
                 clockwise = not clockwise
             if context_in.ignorable_for_topography and context_out == NO_CONTEXT:
-                angle_out = (angle_in + 180) % 360
+                angle_out = angle_in if context_in.diphthong_start else (angle_in + 180) % 360
             elif context_out.ignorable_for_topography and context_in == NO_CONTEXT:
-                angle_in = (angle_out + 180) % 360
+                angle_in = angle_out if context_out.diphthong_end else (angle_out + 180) % 360
+            if context_in.diphthong_start:
+                angle_in = (angle_in - 180) % 360
+                if context_out == NO_CONTEXT:
+                    angle_out = (angle_out - 180) % 360
+            elif context_out.diphthong_end:
+                angle_in = (angle_in - 180) % 360
+                angle_out = (angle_out - 180) % 360
         if angle_in == angle_out:
             clockwise = (clockwise_from_adjacent_curve != self.reversed
                 if clockwise_from_adjacent_curve is not None
@@ -1671,6 +1709,16 @@ class Circle(Shape):
                 else clockwise_ignoring_curvature)
         clockwise = clockwise_ignoring_reversal != self.reversed
         flop()
+        if angle_in == angle_out:
+            clockwise = (clockwise_from_adjacent_curve != self.reversed
+                if clockwise_from_adjacent_curve is not None
+                else self.clockwise
+            )
+            return self.clone(
+                angle_in=angle_in,
+                angle_out=angle_out,
+                clockwise=clockwise,
+            )
         if self.role != CircleRole.INDEPENDENT and not self.reversed:
             return self.clone(
                 angle_in=angle_in,
@@ -1874,7 +1922,7 @@ class Complex(Shape):
                 continue
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
-            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False)
+            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False)
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
             if self._all_circles:
@@ -1921,7 +1969,7 @@ class Complex(Shape):
                 del foreground[bad_index]
             glyph.foreground = foreground
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
         (
             first_is_invisible,
             singular_anchor_points,
@@ -2193,6 +2241,8 @@ class Schema:
             shading_allowed=True,
             context_in=None,
             context_out=None,
+            diphthong_1=False,
+            diphthong_2=False,
             base_angle=None,
             cps=None,
             original_shape=None,
@@ -2215,6 +2265,8 @@ class Schema:
         self.shading_allowed = shading_allowed
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
+        self.diphthong_1 = diphthong_1
+        self.diphthong_2 = diphthong_2
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
         self.original_shape = original_shape or type(path)
@@ -2254,6 +2306,8 @@ class Schema:
         shading_allowed=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
+        diphthong_1=CLONE_DEFAULT,
+        diphthong_2=CLONE_DEFAULT,
         base_angle=CLONE_DEFAULT,
         cps=CLONE_DEFAULT,
         original_shape=CLONE_DEFAULT,
@@ -2275,6 +2329,8 @@ class Schema:
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
+            diphthong_1=self.diphthong_1 if diphthong_1 is CLONE_DEFAULT else diphthong_1,
+            diphthong_2=self.diphthong_2 if diphthong_2 is CLONE_DEFAULT else diphthong_2,
             base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
             cps=self.cps if cps is CLONE_DEFAULT else cps,
             original_shape=self.original_shape if original_shape is CLONE_DEFAULT else original_shape,
@@ -2327,6 +2383,8 @@ class Schema:
             self.glyph_class == GlyphClass.MARK,
             self.context_in == NO_CONTEXT,
             self.context_out == NO_CONTEXT,
+            self.diphthong_1,
+            self.diphthong_2,
         )
 
     def canonical_schema(self, canonical_schema):
@@ -2391,6 +2449,12 @@ class Schema:
                 }'''.replace('-', 'n')
         if not cps and self.anchor:
             name += f'.{self.anchor}'
+        if self.diphthong_1 or self.diphthong_2:
+            name += '.diph'
+            if self.diphthong_1:
+                name += '1'
+            if self.diphthong_2:
+                name += '2'
         if self.child:
             name += '.blws'
         if isinstance(self.path, Curve) and self.path.overlap_angle is not None:
@@ -2464,6 +2528,9 @@ class Schema:
             else:
                 path = self.path
         else:
+            if not ignore_dependent_schemas and (self.diphthong_1 or self.diphthong_2):
+                context_in = context_in.clone(diphthong_start=self.diphthong_2)
+                context_out = context_out.clone(diphthong_end=self.diphthong_1)
             path = self.path.contextualize(context_in, context_out)
             if path is self.path:
                 return self
@@ -2479,21 +2546,29 @@ class Schema:
 
     def path_context_in(self):
         context_in = self.path.context_in()
-        if (self.glyph_class == GlyphClass.JOINER
-            and self.can_lead_orienting_sequence
-            and self.can_be_ignored_for_topography()
-        ):
-            return context_in.clone(ignorable_for_topography=True)
-        return context_in
+        ignorable_for_topography = (
+                self.glyph_class == GlyphClass.JOINER
+                and self.can_lead_orienting_sequence
+                and self.can_be_ignored_for_topography()
+            ) or CLONE_DEFAULT
+        return context_in.clone(
+            ignorable_for_topography=ignorable_for_topography,
+            diphthong_start=self.diphthong_1,
+            diphthong_end=self.diphthong_2,
+        )
 
     def path_context_out(self):
         context_out = self.path.context_out()
-        if (self.glyph_class == GlyphClass.JOINER
-            and self.can_lead_orienting_sequence
-            and self.can_be_ignored_for_topography()
-        ):
-            return context_out.clone(ignorable_for_topography=True)
-        return context_out
+        ignorable_for_topography = (
+            self.glyph_class == GlyphClass.JOINER
+                and self.can_lead_orienting_sequence
+                and self.can_be_ignored_for_topography()
+            ) or CLONE_DEFAULT
+        return context_out.clone(
+            ignorable_for_topography=ignorable_for_topography,
+            diphthong_start=self.diphthong_1,
+            diphthong_end=self.diphthong_2,
+        )
 
     def rotate_diacritic(self, context):
         return self.clone(
@@ -3719,6 +3794,52 @@ def join_circle_with_adjacent_nonorienting_glyph(original_schemas, schemas, new_
         add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
     return [lookup]
 
+def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rlig',
+        'dupl',
+        'dflt',
+        mark_filtering_set='ignored_for_topography',
+        reversed=True,
+    )
+    diphthong_classes = OrderedSet()
+    for schema in new_schemas:
+        if (schema.diphthong_1
+            or schema.diphthong_2
+            or (schema.glyph_class != GlyphClass.JOINER and not schema.ignored_for_topography)
+            or schema.joining_type != Type.ORIENTING
+            or not schema.can_be_ignored_for_topography()
+            or isinstance(schema.path, Circle) and schema.path.reversed
+            or isinstance(schema.path, Curve) and (schema.path.hook or schema.path._secondary or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
+            # TODO: Remove the following restrictions.
+            or schema.size > 4
+            or schema.path.stretch
+        ):
+            continue
+        is_circle = isinstance(schema.path, Circle)
+        is_ignored = schema.ignored_for_topography
+        input_class_name = f'i_{is_circle}_{is_ignored}'
+        classes[input_class_name].append(schema)
+        output_class_name_1 = f'o1_{is_circle}_{is_ignored}'
+        output_schema_1 = schema.clone(cmap=None, diphthong_1=True)
+        classes[output_class_name_1].append(output_schema_1)
+        output_class_name_2 = f'o2_{is_circle}_{is_ignored}'
+        output_schema_2 = schema.clone(cmap=None, diphthong_2=True)
+        classes[output_class_name_2].append(output_schema_2)
+        diphthong_classes.add((input_class_name, is_circle, is_ignored, schema.context_out != NO_CONTEXT, output_class_name_1, output_class_name_2))
+        if schema.ignored_for_topography:
+            classes['ignored_for_topography'].append(schema)
+            classes['ignored_for_topography'].append(output_schema_1)
+            classes['ignored_for_topography'].append(output_schema_2)
+    for input_1, is_circle_1, is_ignored_1, has_context_out_1, output_1, _ in diphthong_classes.keys():
+        if has_context_out_1:
+            continue
+        for input_2, is_circle_2, is_ignored_2, _, _, output_2 in diphthong_classes.keys():
+            if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
+                add_rule(lookup, Rule(input_1, input_2, [], output_2))
+                add_rule(lookup, Rule([], input_1, output_2, output_1))
+    return [lookup]
+
 def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
@@ -3741,7 +3862,7 @@ def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schem
                 if isinstance(schema.path, Circle)
                 else schema.can_be_ignored_for_topography())
         ):
-            context_in = schema.path_context_out()
+            context_in = schema.path_context_out().clone(diphthong_start=False, diphthong_end=False)
             contexts_in.add(context_in)
             if schema not in (context_in_class := classes[f'c_{context_in}']):
                 if not context_in_class:
@@ -3781,7 +3902,7 @@ def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas,
                 if isinstance(schema.path, Circle)
                 else schema.can_be_ignored_for_topography())
         ):
-            context_out = schema.path_context_in()
+            context_out = schema.path_context_in().clone(diphthong_start=False, diphthong_end=False)
             contexts_out.add(context_out)
             if schema not in (context_out_class := classes[f'c_{context_out}']):
                 if not context_out_class:
@@ -3913,9 +4034,9 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
         if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
             for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
                 if anchor_class_name == CURSIVE_ANCHOR:
-                    if type == 'exit' and schema.context_out == NO_CONTEXT:
+                    if type == 'exit' and schema.context_out == NO_CONTEXT and not schema.diphthong_1:
                         exit_schemas.append((schema, x, y))
-                    elif type == 'entry' and schema.context_in == NO_CONTEXT:
+                    elif type == 'entry' and schema.context_in == NO_CONTEXT and not schema.diphthong_2:
                         entry_schemas.append((schema, x, y))
     @functools.cache
     def get_shim(width, height):
@@ -5026,6 +5147,7 @@ PHASES = [
     tag_main_glyph_in_orienting_sequence,
     join_with_next,
     join_circle_with_adjacent_nonorienting_glyph,
+    ligate_diphthongs,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
     join_double_marks,
@@ -5563,6 +5685,8 @@ class Builder:
                 schema.anchor,
                 schema.joining_type,
                 schema.child or schema.ignored_for_topography,
+                schema.diphthong_1,
+                schema.diphthong_2,
             )
         if schema.joining_type == Type.NON_JOINING or schema.ignored_for_topography:
             glyph.left_side_bearing = schema.side_bearing
