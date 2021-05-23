@@ -1,0 +1,119 @@
+# Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).
+# Copyright (c) 2018-2021, Google LLC.
+#
+# This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+table OS/2 {
+    Panose 1 1 1 1 1 1 1 1 1 1;
+    TypoLineGap 0;
+    winAscent 2030;
+    winDescent 192;
+    Vendor "    ";
+} OS/2;
+
+table head {
+    FontRevision 1.000;
+} head;
+
+table name {
+    nameid 0 "Copyright 2018-2019 David Corbett.\000A
+Copyright 2019-2021 Google LLC. All Rights Reserved.";
+    nameid 8 "David Corbett";
+    nameid 9 "David Corbett";
+    nameid 13 "Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).\000A
+Copyright (c) 2019-2021, Google LLC.\000A
+\000A
+This Font Software is licensed under the SIL Open Font License, Version 1.1.\000A
+This license is copied below, and is also available with a FAQ at:\000A
+http://scripts.sil.org/OFL\000A
+\000A
+\000A
+-----------------------------------------------------------\000A
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\000A
+-----------------------------------------------------------\000A
+\000A
+PREAMBLE\000A
+The goals of the Open Font License (OFL) are to stimulate worldwide\000A
+development of collaborative font projects, to support the font creation\000A
+efforts of academic and linguistic communities, and to provide a free and\000A
+open framework in which fonts may be shared and improved in partnership\000A
+with others.\000A
+\000A
+The OFL allows the licensed fonts to be used, studied, modified and\000A
+redistributed freely as long as they are not sold by themselves. The\000A
+fonts, including any derivative works, can be bundled, embedded, \000A
+redistributed and/or sold with any software provided that any reserved\000A
+names are not used by derivative works. The fonts and derivatives,\000A
+however, cannot be released under any other type of license. The\000A
+requirement for fonts to remain under this license does not apply\000A
+to any document created using the fonts or their derivatives.\000A
+\000A
+DEFINITIONS\000A
+\0022Font Software\0022 refers to the set of files released by the Copyright\000A
+Holder(s) under this license and clearly marked as such. This may\000A
+include source files, build scripts and documentation.\000A
+\000A
+\0022Reserved Font Name\0022 refers to any names specified as such after the\000A
+copyright statement(s).\000A
+\000A
+\0022Original Version\0022 refers to the collection of Font Software components as\000A
+distributed by the Copyright Holder(s).\000A
+\000A
+\0022Modified Version\0022 refers to any derivative made by adding to, deleting,\000A
+or substituting -- in part or in whole -- any of the components of the\000A
+Original Version, by changing formats or by porting the Font Software to a\000A
+new environment.\000A
+\000A
+\0022Author\0022 refers to any designer, engineer, programmer, technical\000A
+writer or other person who contributed to the Font Software.\000A
+\000A
+PERMISSION & CONDITIONS\000A
+Permission is hereby granted, free of charge, to any person obtaining\000A
+a copy of the Font Software, to use, study, copy, merge, embed, modify,\000A
+redistribute, and sell modified and unmodified copies of the Font\000A
+Software, subject to the following conditions:\000A
+\000A
+1) Neither the Font Software nor any of its individual components,\000A
+in Original or Modified Versions, may be sold by itself.\000A
+\000A
+2) Original or Modified Versions of the Font Software may be bundled,\000A
+redistributed and/or sold with any software, provided that each copy\000A
+contains the above copyright notice and this license. These can be\000A
+included either as stand-alone text files, human-readable headers or\000A
+in the appropriate machine-readable metadata fields within text or\000A
+binary files as long as those fields can be easily viewed by the user.\000A
+\000A
+3) No Modified Version of the Font Software may use the Reserved Font\000A
+Name(s) unless explicit written permission is granted by the corresponding\000A
+Copyright Holder. This restriction only applies to the primary font name as\000A
+presented to the users.\000A
+\000A
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\000A
+Software shall not be used to promote, endorse or advertise any\000A
+Modified Version, except to acknowledge the contribution(s) of the\000A
+Copyright Holder(s) and the Author(s) or with their explicit written\000A
+permission.\000A
+\000A
+5) The Font Software, modified or unmodified, in part or in whole,\000A
+must be distributed entirely under this license, and must not be\000A
+distributed under any other license. The requirement for fonts to\000A
+remain under this license does not apply to any document created\000A
+using the Font Software.\000A
+\000A
+TERMINATION\000A
+This license becomes null and void if any of the above conditions are\000A
+not met.\000A
+\000A
+DISCLAIMER\000A
+THE FONT SOFTWARE IS PROVIDED \0022AS IS\0022, WITHOUT WARRANTY OF ANY KIND,\000A
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\000A
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\000A
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\000A
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\000A
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\000A
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\000A
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\000A
+OTHER DEALINGS IN THE FONT SOFTWARE.";
+    nameid 14 "http://scripts.sil.org/OFL";
+} name;
+

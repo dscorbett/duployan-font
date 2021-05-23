@@ -9,7 +9,7 @@ Copyright: Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
   Copyright 2020-2021 Google LLC
 License: Apache-2.0
 
-Files: font/Duployan.sfd
+Files: font/*.fea
 Copyright: Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).
   Copyright (c) 2018-2021, Google LLC.
 License: OFL-1.1

@@ -18,8 +18,8 @@ FONT = font/Duployan-Regular.otf
 .PHONY: all
 all: $(FONT)
 
-%.otf: %.sfd font/*.py
-	font/build.py --input $< --output $@
+%.otf: %.fea font/*.py
+	font/build.py --fea $< --output $@
 
 .PHONY: clean
 clean:

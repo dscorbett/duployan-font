@@ -18,25 +18,24 @@
 
 import argparse
 import os
+import re
 import subprocess
 import tempfile
 
 import fontforge
+import fontTools.misc.timeTools
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
 
 import duployan
 import fonttools_patches
 
+LEADING_ZEROS = re.compile('(?<= )0+')
+
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
             ['git', 'log', '-1', '--format=%ct'], encoding='utf-8').rstrip()
-    font.appendSFNTName('English (US)', 'UniqueID', '{};{};{}'.format(
-        font.fullname,
-        font.version,
-        subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-    ))
     font.selection.all()
     font.correctReferences()
     font.selection.none()
@@ -84,16 +83,32 @@ def patch_fonttools():
     fontTools.ttLib.tables.otBase.OTTableWriter.writeUInt8 = fonttools_patches.writeUInt8
     fontTools.ttLib.tables.otBase.OTTableWriter.writeUShort = fonttools_patches.writeUShort
 
+def filter_map_name(name):
+    if name.platformID != 3 or name.platEncID != 1:
+        return None
+    if isinstance(name.string, bytes):
+        name.string = name.string.decode('utf-16be')
+    if name.nameID == 5:
+        name.string = LEADING_ZEROS.sub('', name.string)
+    name.string = name.string.strip()
+    return name
+
+def set_unique_id(names):
+    for name in names:
+        if name.nameID == 3:
+            unique_id_record = name
+        elif name.nameID == 4:
+            full_name = name.string
+        elif name.nameID == 5:
+            version = name.string.removeprefix('Version ')
+    git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
+    unique_id_record.string = ';'.join([full_name, version, git_hash])
+
 def tweak_font(options, builder):
     with fontTools.ttLib.ttFont.TTFont(options.output, recalcBBoxes=False) as tt_font:
         # Remove the FontForge timestamp table.
         if 'FFTM' in tt_font:
             del tt_font['FFTM']
-
-        # Keep the various ascenders and descenders consistent. FontForge
-        # unnecessarily forces these two OS/2 fields to sum to the em size.
-        tt_font['OS/2'].sTypoAscender = tt_font['hhea'].ascender
-        tt_font['OS/2'].sTypoDescender = tt_font['hhea'].descender
 
         # Merge all the lookups.
         font = builder.font
@@ -103,10 +118,28 @@ def tweak_font(options, builder):
             font.removeLookup(lookup)
         builder.merge_features(tt_font, old_fea)
 
+        fontTools.feaLib.builder.addOpenTypeFeatures(
+            tt_font,
+            options.fea,
+            tables=['OS/2', 'head', 'name'],
+        )
+        tt_font['OS/2'].fsSelection += 0x40
+        tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
+        tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
+        tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
+        tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
+        tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
+        tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
+        tt_font['name'].names = [*filter(None, map(filter_map_name, tt_font['name'].names))]
+        set_unique_id(tt_font['name'].names)
+
         tt_font.save(options.output)
 
 def make_font(options):
-    font = fontforge.open(options.input)
+    font = fontforge.font()
+    font.familyname = 'Duployan'
+    font.fontname = font.familyname
+    font.fullname = font.familyname
     font.encoding = 'UnicodeFull'
     builder = duployan.Builder(font)
     builder.augment()
@@ -116,7 +149,7 @@ def make_font(options):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
-    parser.add_argument('--input', metavar='FILE', required=True, help='input font')
+    parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
     args = parser.parse_args()
     make_font(args)
