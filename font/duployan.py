@@ -608,6 +608,34 @@ class InitialSecantMarker(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
+class Notdef(Shape):
+    def clone(self):
+        return self
+
+    def __str__(self):
+        return 'notdef'
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    def group(self):
+        return ()
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+        stroke_width = 51
+        pen.moveTo((stroke_width / 2, stroke_width / 2))
+        pen.lineTo(stroke_width / 2, 663 + stroke_width / 2)
+        pen.lineTo(360 + stroke_width / 2, 663 + stroke_width / 2)
+        pen.lineTo(360 + stroke_width / 2, stroke_width / 2)
+        pen.lineTo(stroke_width / 2, stroke_width / 2)
+        pen.endPath()
+        glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.BLOCKER
+
 class Space(Shape):
     def __init__(
         self,
@@ -2491,7 +2519,10 @@ class Schema:
         ):
             name += '.circle'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
-            name = f'_{"." if name and first_component_implies_type else ""}{name}'
+            if name and first_component_implies_type:
+                name = f'.{name}'
+            if not isinstance(self.path, Notdef):
+                name = f'_{name}'
         agl_string = fontTools.agl.toUnicode(name)
         agl_cps = [*map(ord, agl_string)]
         assert cps == agl_cps, f'''The glyph name "{
@@ -5197,6 +5228,7 @@ MARKER_PHASES = [
     dist,
 ]
 
+NOTDEF = Notdef()
 SPACE = Space(0)
 H = Dot()
 EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
@@ -5343,6 +5375,7 @@ LINE_2 = Schema(None, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
 LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
 SCHEMAS = [
+    Schema(None, NOTDEF, 1, Type.NON_JOINING, side_bearing=95),
     Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x0024, DOLLAR, 7 / 8, Type.NON_JOINING),
@@ -5402,7 +5435,7 @@ SCHEMAS = [
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
-    Schema(0xE000, BOUND, 1, side_bearing=0),
+    Schema(0xE000, BOUND, 1, Type.NON_JOINING, side_bearing=0),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
