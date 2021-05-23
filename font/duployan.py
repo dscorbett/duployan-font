@@ -666,6 +666,28 @@ class Space(Shape):
     def context_out(self):
         return NO_CONTEXT
 
+class Bound(Shape):
+    def clone(self):
+        return self
+
+    def __str__(self):
+        return ''
+
+    def group(self):
+        return ()
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+        stroke_width = 75
+        pen.moveTo((stroke_width / 2, stroke_width / 2))
+        pen.endPath()
+        pen.moveTo((stroke_width / 2, 639 + stroke_width / 2))
+        pen.endPath()
+        glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.BLOCKER
+
 class ValidDTLS(Shape):
     def __str__(self):
         return 'dtls'
@@ -5222,6 +5244,7 @@ NNBSP = Space(0, margins=False)
 DOTTED_CIRCLE = Complex([(33, Space(90, margins=False)), (1, H), (446, Space(90, margins=False)), (1, H), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, H), (446, Space(240, margins=False)), (1, H), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, H), (446, Space(210, margins=False)), (1, H), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, H), (446, Space(180, margins=False)), (1, H), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, H), (446, Space(150, margins=False)), (1, H), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, H), (446, Space(120, margins=False)), (1, H)])
 STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
+BOUND = Bound()
 X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
 P = Line(270)
 P_REVERSE = Line(90)
@@ -5379,6 +5402,7 @@ SCHEMAS = [
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
     Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
     Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
+    Schema(0xE000, BOUND, 1, side_bearing=0),
     Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
