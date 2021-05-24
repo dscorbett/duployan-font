@@ -2224,6 +2224,11 @@ class RomanianU(Complex):
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
+class Ignorability(enum.Enum):
+    DEFAULT_NO = enum.auto()
+    DEFAULT_YES = enum.auto()
+    OVERRIDDEN_NO = enum.auto()
+
 class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         # Custom PUA names
@@ -2286,7 +2291,7 @@ class Schema:
             anchor=None,
             widthless=None,
             marks=None,
-            unignored=False,
+            ignorability=Ignorability.DEFAULT_NO,
             encirclable=False,
             shading_allowed=True,
             context_in=None,
@@ -2310,7 +2315,7 @@ class Schema:
         self.anchor = anchor
         self.widthless = widthless
         self.marks = marks or []
-        self.unignored = unignored
+        self.ignorability = ignorability
         self.encirclable = encirclable
         self.shading_allowed = shading_allowed
         self.context_in = context_in or NO_CONTEXT
@@ -2351,7 +2356,7 @@ class Schema:
         anchor=CLONE_DEFAULT,
         widthless=CLONE_DEFAULT,
         marks=CLONE_DEFAULT,
-        unignored=CLONE_DEFAULT,
+        ignorability=CLONE_DEFAULT,
         encirclable=CLONE_DEFAULT,
         shading_allowed=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
@@ -2374,7 +2379,7 @@ class Schema:
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
-            unignored=self.unignored if unignored is CLONE_DEFAULT else unignored,
+            ignorability=self.ignorability if ignorability is CLONE_DEFAULT else ignorability,
             encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
@@ -2420,27 +2425,42 @@ class Schema:
     @functools.cached_property
     def group(self):
         if self.ignored_for_topography:
-            return self.side_bearing
+            return (
+                self.ignorability == Ignorability.DEFAULT_YES,
+                self.side_bearing,
+            )
         return (
+            self.ignorability,
             type(self.path),
             self.path.group(),
             self.path.invisible() or self.cmap is not None or self.cps[-1:] != [0x1BC9D],
             self.size,
+            self.joining_type,
             self.side_bearing,
             self.child,
             self.anchor,
+            self.widthless,
             tuple(m.group for m in self.marks or []),
-            self.glyph_class == GlyphClass.MARK,
+            self.glyph_class,
             self.context_in == NO_CONTEXT,
             self.context_out == NO_CONTEXT,
             self.diphthong_1,
             self.diphthong_2,
         )
 
+    @property
+    def canonical_schema(self):
+        return self._canonical_schema
+
+    @canonical_schema.setter
     def canonical_schema(self, canonical_schema):
         assert self._canonical_schema is self
         self._canonical_schema = canonical_schema
         self._glyph_name = None
+
+    @canonical_schema.deleter
+    def canonical_schema(self):
+        del self._canonical_schema
 
     @staticmethod
     def _agl_name(cp):
@@ -2667,6 +2687,9 @@ class OrderedSet(dict):
 
     def remove(self, item, /):
         self.pop(item, None)
+
+    def sorted(self, /, *, key=None, reverse=False):
+        return sorted(self.keys(), key=key, reverse=reverse)
 
 class Rule:
     def __init__(
@@ -2958,7 +2981,7 @@ def dont_ignore_default_ignorables(original_schemas, schemas, new_schemas, class
     lookup_1 = Lookup('abvs', 'dupl', 'dflt')
     lookup_2 = Lookup('abvs', 'dupl', 'dflt')
     for schema in schemas:
-        if schema.unignored:
+        if schema.ignorability == Ignorability.OVERRIDDEN_NO:
             add_rule(lookup_1, Rule([schema], [schema, schema]))
             add_rule(lookup_2, Rule([schema, schema], [schema]))
     return [lookup_1, lookup_2]
@@ -4055,6 +4078,21 @@ def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, na
             if schema.child or schema.anchor == anchor:
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
+
+def merge_lookalikes(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+    )
+    grouper = group_schemas(new_schemas)
+    for group in grouper.groups():
+        group.sort(key=Schema.sort_key)
+        group = iter(group)
+        canonical_schema = next(group)
+        for schema in group:
+            add_rule(lookup, Rule([schema], [canonical_schema]))
+    return [lookup]
 
 def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     marker_lookup = Lookup(
@@ -5157,7 +5195,7 @@ def rename_schemas(grouper, phase_index):
             canonical_schema = group[0]
         for schema in list(group):
             if schema.phase_index >= phase_index:
-                schema.canonical_schema(canonical_schema)
+                schema.canonical_schema = canonical_schema
                 if grouper.group_of(schema):
                     grouper.remove_item(group, schema)
 
@@ -5208,6 +5246,10 @@ PHASES = [
     shade,
     make_widthless_variants_of_marks,
     classify_marks_for_trees,
+]
+
+MIDDLE_PHASES = [
+    merge_lookalikes,
 ]
 
 MARKER_PHASES = [
@@ -5422,8 +5464,8 @@ SCHEMAS = [
     Schema(0x0331, MACRON, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x2001, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
-    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, unignored=True),
-    Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0),
+    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
+    Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.DEFAULT_YES),
     Schema(0x2013, EN_DASH, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
@@ -5588,10 +5630,10 @@ SCHEMAS = [
     Schema(0x1BC9D, DTLS, 1, Type.NON_JOINING),
     Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
     Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
-    Schema(0x1BCA0, OVERLAP, 1, Type.NON_JOINING, unignored=True),
-    Schema(0x1BCA1, CONTINUING_OVERLAP, 1, Type.NON_JOINING, unignored=True),
-    Schema(0x1BCA2, DOWN_STEP, 1, Type.NON_JOINING, unignored=True),
-    Schema(0x1BCA3, UP_STEP, 1, Type.NON_JOINING, unignored=True),
+    Schema(0x1BCA0, OVERLAP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+    Schema(0x1BCA1, CONTINUING_OVERLAP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+    Schema(0x1BCA2, DOWN_STEP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+    Schema(0x1BCA3, UP_STEP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
 ]
 
 class Builder:
@@ -5900,8 +5942,18 @@ class Builder:
         merge_schemas(schemas, lookups_with_phases, classes)
         class_asts = self.convert_classes(classes)
         named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
-        for schema in schemas:
-            self._create_glyph(schema, drawing=schema in output_schemas)
+        (
+            _,
+            more_output_schemas,
+            more_lookups_with_phases,
+            more_classes,
+            more_named_lookups_with_phases,
+        ) = run_phases([schema for schema in output_schemas if schema.canonical_schema is schema], MIDDLE_PHASES, classes)
+        lookups_with_phases += more_lookups_with_phases
+        class_asts |= self.convert_classes(more_classes)
+        named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
+        for schema in schemas.sorted(key=lambda schema: not (schema in output_schemas and schema in more_output_schemas)):
+            self._create_glyph(schema, drawing=schema in output_schemas and schema in more_output_schemas)
         for schema in schemas:
             if name_in_sfd := schema.path.name_in_sfd():
                 self.font[name_in_sfd].temporary = schema

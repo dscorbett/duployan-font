@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 1BC4E::[u1BC02.p@320,0|u1BC47.e.270n90@320,-100|dupl.Line.0.rel2@132,-240|_@440,0]
-1BC03 1BC4E::[u1BC03.t@120,0|u1BC47.e.0n180@620,-200|dupl.Line.90.rel2@860,-188|_@980,0]
+1BC02 1BC4E::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|dupl.Line.0.rel2@132,-240|_@440,0]
+1BC03 1BC4E::[u1BC03.t@120,0|u1BC46.i.0n180@620,-200|dupl.Line.90.rel2@860,-188|_@980,0]
 1BC04 1BC4E::[u1BC04.f@120,0|u1BC47.e.300n120@408,-150|dupl.Line.30.rel2@365,-302|_@637,0]
 1BC05 1BC4E::[u1BC05.k@691,0|u1BC47.e.240n60@403,-50|dupl.Line.150.rel2@272,-202|_@811,0]
 1BC06 1BC4E::[u1BC06.l@120,0|u1BC47.e.45n225@620,359|dupl.Line.135.rel2@922,537|_@1042,0]
 
-1BC1D::[u1BC19.m@532,0|u1BC9E.double.0@120,360|_@652,0]
-1BC1E::[u1BC1A.n@120,0|u1BC9E.double.0@308,360|_@653,0]
-1BC1F::[u1BC1F.j_m@120,0|u1BC9E.double.90@480,188|_@960,0]
-1BC20::[u1BC20.s_j@120,0|u1BC9E.double.90@480,-112|_@960,0]
-1BC2B::[u1BC27.m_s@632,0|u1BC9E.double.0@120,720|_@752,0]
-1BC2C::[u1BC28.n_s@120,0|u1BC9E.double.0@408,720|_@753,0]
+1BC1D::[u1BC19.m@532,0|u1BC9E.double@120,360|_@652,0]
+1BC1E::[u1BC1A.n@120,0|u1BC9E.double@308,360|_@653,0]
+1BC1F::[u1BC1B.j@120,0|u1BC9E.double.90@480,188|_@960,0]
+1BC20::[u1BC1C.s@120,0|u1BC9E.double.90@480,-112|_@960,0]
+1BC2B::[u1BC27.m_s@632,0|u1BC9E.double@120,720|_@752,0]
+1BC2C::[u1BC28.n_s@120,0|u1BC9E.double@408,720|_@753,0]
 1BC2D::[u1BC29.j_s@120,0|u1BC9E.double.90@840,288|_@1680,0]
 1BC2E::[u1BC2A.s_s@120,0|u1BC9E.double.90@840,-112|_@1680,0]

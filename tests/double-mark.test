@@ -13,14 +13,14 @@
 # limitations under the License.
 
 # One double mark
-1BC02 1BC9E::[u1BC02.p@232,0|u1BC9E.double.0@120,250|_@465,0]
+1BC02 1BC9E::[u1BC02.p@232,0|u1BC9E.double@120,250|_@465,0]
 1BC03 1BC9E::[u1BC03.t@120,0|u1BC9E.double.90@370,-112|_@740,0]
 1BC04 1BC9E::[u1BC04.f@120,0|u1BC9E.double.30@167,194|_@528,0]
 1BC05 1BC9E::[u1BC05.k@408,0|u1BC9E.double.150@361,194|_@528,0]
 1BC06 1BC9E::[u1BC06.l@120,0|u1BC9E.double.135@450,170|_@740,0]
-1BC07 1BC9E::[u1BC07.b@232,0|u1BC9E.double.0@120,500|_@465,0]
-1BC19 1BC9E::[u1BC19.m@532,0|u1BC9E.double.0@120,360|_@652,0]
-1BC1A 1BC9E::[u1BC1A.n@120,0|u1BC9E.double.0@308,360|_@653,0]
+1BC07 1BC9E::[u1BC07.b@232,0|u1BC9E.double@120,500|_@465,0]
+1BC19 1BC9E::[u1BC19.m@532,0|u1BC9E.double@120,360|_@652,0]
+1BC1A 1BC9E::[u1BC1A.n@120,0|u1BC9E.double@308,360|_@653,0]
 1BC1B 1BC9E::[u1BC1B.j@120,0|u1BC9E.double.90@480,188|_@960,0]
 1BC1C 1BC9E::[u1BC1C.s@120,0|u1BC9E.double.90@480,-112|_@960,0]
 
@@ -63,8 +63,8 @@
 1BC9E::[uni25CC.dotted_circle@0,0|dupl.Line.0.dotted@686,0|u1BC9E.double.90.psts@1181,-112|_@1676,0]
 1BC00 1BC9E::[u1BC00.h@120,0|dupl.Line.0.dotted@240,0|u1BC9E.double.90.psts@735,-112|_@1230,0]
 1BC11 1BC9E::[u1BC03.t@120,0|dupl.Dot.rel1@370,70|dupl.Line.0.dotted@740,0|u1BC9E.double.90.psts@1235,-112|_@1730,0]
-1BC1D 1BC9E::[u1BC19.m@532,0|u1BC9E.double.0@120,360|dupl.Line.0.dotted@652,0|u1BC9E.double.90.psts@1147,-112|_@1642,0]
+1BC1D 1BC9E::[u1BC19.m@532,0|u1BC9E.double@120,360|dupl.Line.0.dotted@652,0|u1BC9E.double.90.psts@1147,-112|_@1642,0]
 1BC4F 1BC9E::[u1BC4F.long_i.240@264,0|dupl.Dot.rel2@334,370|dupl.Line.0.dotted@454,0|u1BC9E.double.90.psts@949,-112|_@1444,0]
 1BC5B 1BC9E::[u1BC5B.ou@320,0|dupl.Line.0.dotted@640,0|u1BC9E.double.90.psts@1135,-112|_@1630,0]
-1BC73 1BC9E::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@370,-667|dupl.Line.0.dotted@120,0|dupl.Line.0.dotted@990,0|u1BC9E.double.90.psts@1485,-112|_@1980,0]
+1BC73 1BC9E::[u1BC73.low_vertical_secant@370,-667|dupl.Line.0.dotted@120,0|dupl.Line.0.dotted@990,0|u1BC9E.double.90.psts@1485,-112|_@1980,0]
 1BC02 1BC9D 1BC9D 1BC9E::[u1BC02_u1BC9D.P@145,0|u1BC9D.dtls@290,0|dupl.Line.0.dotted@1418,0|u1BC9E.double.90.psts@1913,-112|_@2408,0]
