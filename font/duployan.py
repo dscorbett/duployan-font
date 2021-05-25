@@ -1201,7 +1201,7 @@ class Curve(Shape):
         hook=False,
         reversed_circle=False,
         overlap_angle=None,
-        _secondary=None,
+        secondary=None,
     ):
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         self.angle_in = angle_in
@@ -1213,7 +1213,7 @@ class Curve(Shape):
         self.hook = hook
         self.reversed_circle = reversed_circle
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
-        self._secondary = clockwise if _secondary is None else _secondary
+        self.secondary = clockwise if secondary is None else secondary
 
     def clone(
         self,
@@ -1227,7 +1227,7 @@ class Curve(Shape):
         hook=CLONE_DEFAULT,
         reversed_circle=CLONE_DEFAULT,
         overlap_angle=CLONE_DEFAULT,
-        _secondary=CLONE_DEFAULT,
+        secondary=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1239,7 +1239,7 @@ class Curve(Shape):
             hook=self.hook if hook is CLONE_DEFAULT else hook,
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
-            _secondary=self._secondary if _secondary is CLONE_DEFAULT else _secondary,
+            secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
         )
 
     def __str__(self):
@@ -1496,7 +1496,7 @@ class Curve(Shape):
                     if context_in != NO_CONTEXT
                     else context_out.clockwise
             )
-            if self._secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
+            if self.secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
             if (context_out == NO_CONTEXT
                 and context_in.ignorable_for_topography
@@ -3886,7 +3886,7 @@ def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_loo
             or schema.joining_type != Type.ORIENTING
             or not schema.can_be_ignored_for_topography()
             or isinstance(schema.path, Circle) and schema.path.reversed
-            or isinstance(schema.path, Curve) and (schema.path.hook or schema.path._secondary or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
+            or isinstance(schema.path, Curve) and (schema.path.hook or schema.path.secondary or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
             # TODO: Remove the following restrictions.
             or schema.size > 4
             or schema.path.stretch
@@ -5353,11 +5353,10 @@ J_N = Complex([(1, S_K), (1, N)], maximum_tree_width=1)
 J_N_S = Complex([(3, S_K), (4, N_S)], maximum_tree_width=1)
 O = Circle(0, 0, clockwise=False)
 O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
-E = Curve(270, 90, clockwise=True)
 IE = Curve(180, 0, clockwise=False)
 SHORT_I = Curve(0, 180, clockwise=True)
 UI = Curve(90, 270, clockwise=True)
-EE = Curve(270, 90, clockwise=False)
+EE = Curve(270, 90, clockwise=False, secondary=True)
 LONG_I = LongI(240)
 YE = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
 U_N = Curve(90, 180, clockwise=True)
@@ -5557,14 +5556,14 @@ SCHEMAS = [
     Schema(0x1BC44, O, 4, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC46, IE, 2, Type.ORIENTING),
-    Schema(0x1BC47, E, 2, Type.ORIENTING),
+    Schema(0x1BC47, EE, 2, Type.ORIENTING),
     Schema(0x1BC48, IE, 2, can_lead_orienting_sequence=True),
     Schema(0x1BC49, SHORT_I, 2, can_lead_orienting_sequence=True, shading_allowed=False),
     Schema(0x1BC4A, UI, 2, can_lead_orienting_sequence=True, shading_allowed=False),
     Schema(0x1BC4B, EE, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC4C, E, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC4D, E, 2, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC4E, E, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
+    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
     Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC50, YE, 1, shading_allowed=False),
     Schema(0x1BC51, S_T, 3, Type.ORIENTING, shading_allowed=False),
