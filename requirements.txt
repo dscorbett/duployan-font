@@ -18,7 +18,7 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --no-emit-trusted-host requirements.in
 #
-fonttools==4.24.3 \
-    --hash=sha256:04949bff10a5be4350ce78db314c8b8fad837c3fe6af385574ac34cf5fbf7872 \
-    --hash=sha256:a3eacf0ceaf50c4324adac25e175aff44a2dd6b4e2fd2179333901275a791beb
+fonttools==4.24.4 \
+    --hash=sha256:1a3938882505445e4cb9f47d0ec13b6401f003017c657d85f5b791d764714f16 \
+    --hash=sha256:df7fab667b039cd2a00a1fffcba73a32b2c630ef2a12ab7069ef6df5333f20c3
     # via -r requirements.in
