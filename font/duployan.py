@@ -2430,7 +2430,7 @@ class Schema:
                 self.side_bearing,
             )
         return (
-            self.ignorability,
+            self.ignorability == Ignorability.DEFAULT_YES,
             type(self.path),
             self.path.group(),
             self.path.invisible() or self.cmap is not None or self.cps[-1:] != [0x1BC9D],
@@ -5465,7 +5465,6 @@ SCHEMAS = [
     Schema(0x2001, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
-    Schema(0x200D, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.DEFAULT_YES),
     Schema(0x2013, EN_DASH, 1, Type.NON_JOINING, encirclable=True),
     Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
