@@ -5779,23 +5779,20 @@ class Builder:
     @staticmethod
     def _draw_glyph(glyph, schema):
         assert not schema.marks
-        if schema.ignored_for_topography:
-            floating = True
-        else:
-            pen = glyph.glyphPen()
-            invisible = schema.path.invisible()
-            floating = schema.path.draw(
-                glyph,
-                not invisible and pen,
-                LIGHT_LINE if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
-                schema.size,
-                schema.anchor,
-                schema.joining_type,
-                schema.child or schema.ignored_for_topography,
-                schema.diphthong_1,
-                schema.diphthong_2,
-            )
-        if schema.joining_type == Type.NON_JOINING or schema.ignored_for_topography:
+        pen = glyph.glyphPen()
+        invisible = schema.path.invisible()
+        floating = schema.path.draw(
+            glyph,
+            not invisible and pen,
+            LIGHT_LINE if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
+            schema.size,
+            schema.anchor,
+            schema.joining_type,
+            schema.child,
+            schema.diphthong_1,
+            schema.diphthong_2,
+        )
+        if schema.joining_type == Type.NON_JOINING:
             glyph.left_side_bearing = schema.side_bearing
         else:
             entry_x = next(
@@ -5961,7 +5958,10 @@ class Builder:
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
         for schema in schemas.sorted(key=lambda schema: not (schema in output_schemas and schema in more_output_schemas)):
-            self._create_glyph(schema, drawing=schema in output_schemas and schema in more_output_schemas)
+            self._create_glyph(
+                schema,
+                drawing=schema in output_schemas and schema in more_output_schemas and not schema.ignored_for_topography,
+            )
         for schema in schemas:
             if name_in_sfd := schema.path.name_in_sfd():
                 self.font[name_in_sfd].temporary = schema
