@@ -2423,6 +2423,15 @@ class Schema:
         )
 
     @functools.cached_property
+    def might_need_width_markers(self):
+        return not (
+                self.ignored_for_topography or self.widthless
+            ) and (
+                self.glyph_class == GlyphClass.JOINER
+                or self.glyph_class == GlyphClass.MARK
+            )
+
+    @functools.cached_property
     def group(self):
         if self.ignored_for_topography:
             return (
@@ -4090,6 +4099,8 @@ def merge_lookalikes(original_schemas, schemas, new_schemas, classes, named_look
         group.sort(key=Schema.sort_key)
         group = iter(group)
         canonical_schema = next(group)
+        if not canonical_schema.might_need_width_markers:
+            continue
         for schema in group:
             add_rule(lookup, Rule([schema], [canonical_schema]))
     return [lookup]
@@ -4276,9 +4287,8 @@ def add_width_markers(original_schemas, schemas, new_schemas, classes, named_loo
             if not isinstance(schema.path, Space):
                 # Not a schema created in `add_shims_for_pseudo_cursive`
                 continue
-        if not schema.widthless and (
-            schema.glyph_class == GlyphClass.JOINER
-            or schema.glyph_class == GlyphClass.MARK and any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
+        if schema.might_need_width_markers and (
+            schema.glyph_class != GlyphClass.MARK or any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
         ):
             entry_xs = {}
             exit_xs = {}
