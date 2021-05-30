@@ -251,7 +251,7 @@ class Shape:
     def can_be_hub(self, size):
         return not self.invisible()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         if not self.invisible():
             raise NotImplementedError
 
@@ -404,7 +404,7 @@ class Hub(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         if self.initial_secant:
             glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'exit', 0, 0)
@@ -427,7 +427,7 @@ class End(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     @staticmethod
@@ -622,7 +622,7 @@ class Notdef(Shape):
     def group(self):
         return ()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.lineTo(stroke_width / 2, 663 + stroke_width / 2)
@@ -672,7 +672,7 @@ class Space(Shape):
     def can_be_hub(self, size):
         return self.angle % 180 == 90
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -704,7 +704,7 @@ class Bound(Shape):
     def group(self):
         return ()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         stroke_width = 75
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
@@ -754,7 +754,7 @@ class ChildEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
@@ -774,7 +774,7 @@ class ContinuingOverlapS(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         pass
 
     @staticmethod
@@ -811,7 +811,7 @@ class ParentEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
@@ -863,7 +863,7 @@ class Dot(Shape):
     def can_be_hub(self, size):
         return False
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -976,7 +976,7 @@ class Line(Shape):
             length_denominator = 1
         return int(500 * size / length_denominator)
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         end_y = 0
         if self.visible_base:
             length = self._get_length(size)
@@ -1272,13 +1272,18 @@ class Curve(Shape):
     def can_be_hub(self, size):
         return size >= 6
 
-    def _get_normalized_angles(self):
+    def _get_normalized_angles(self, diphthong_1=False, diphthong_2=False):
+        angle_in = self.angle_in
         angle_out = self.angle_out
-        if self.clockwise and angle_out > self.angle_in:
+        if diphthong_1:
+            angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
+        if diphthong_2:
+            angle_in = (angle_in - 90 * (1 if self.clockwise else -1)) % 360
+        if self.clockwise and angle_out > angle_in:
             angle_out -= 360
-        elif not self.clockwise and angle_out < self.angle_in:
+        elif not self.clockwise and angle_out < angle_in:
             angle_out += 360
-        a1 = (90 if self.clockwise else -90) + self.angle_in
+        a1 = (90 if self.clockwise else -90) + angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
         return a1, a2
 
@@ -1318,16 +1323,28 @@ class Curve(Shape):
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
-        a1, a2 = self._get_normalized_angles()
-        da = a2 - a1
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+        a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
+        if final_circle_diphthong:
+            a2 = a1
+        elif initial_circle_diphthong:
+            a1 = a2
+        da = a2 - a1 or 360
         r = int(RADIUS * size)
         beziers_needed = int(math.ceil(abs(da) / 90))
         bezier_arc = da / beziers_needed
         cp = r * (4 / 3) * math.tan(math.pi / (2 * beziers_needed * 360 / da))
         cp_distance = math.hypot(cp, r)
         cp_angle = math.asin(cp / cp_distance)
-        pen.moveTo(rect(r, math.radians(a1)))
+        p0 = rect(r, math.radians(a1))
+        if diphthong_2:
+            entry = rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
+            entry = (p0[0] + entry[0], p0[1] + entry[1])
+            pen.moveTo(entry)
+            pen.lineTo(*p0)
+        else:
+            entry = p0
+            pen.moveTo(entry)
         for i in range(1, beziers_needed + 1):
             theta0 = math.radians(a1 + (i - 1) * bezier_arc)
             p1 = rect(cp_distance, theta0 + cp_angle)
@@ -1345,6 +1362,10 @@ class Curve(Shape):
             exit = (p3[0] + exit[0], p3[1] + exit[1])
         else:
             exit = p3
+        if diphthong_1:
+            exit_delta = rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
+            exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
+            pen.lineTo(*exit)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         anchor_name = mkmk if child else lambda a: a
@@ -1381,7 +1402,7 @@ class Curve(Shape):
                         a1 + child_interval * (max_tree_width + 1)
                             if self.overlap_angle is None
                             else overlap_exit_angle)))
-                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *entry)
                     glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
                     glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', *rect(r, math.radians(overlap_entry_angle)))
                     if self.can_be_hub(size):
@@ -1642,22 +1663,51 @@ class Circle(Shape):
     def can_be_hub(self, size):
         return size >= 6
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+        angle_in = self.angle_in
         angle_out = self.angle_out
-        if self.clockwise and self.angle_out > self.angle_in:
+        if (diphthong_1 or diphthong_2) and angle_in == angle_out:
+            Curve(
+                    angle_in,
+                    angle_out,
+                    clockwise=self.clockwise,
+                    stretch=self.stretch,
+                    long=True,
+                    reversed_circle=self.reversed,
+                ).draw(glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2)
+            return
+        if diphthong_1:
+            angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
+        if diphthong_2:
+            angle_in = (angle_in - 90 * (1 if self.clockwise else -1)) % 360
+        if self.clockwise and angle_out > angle_in:
             angle_out -= 360
-        elif not self.clockwise and self.angle_out < self.angle_in:
+        elif not self.clockwise and angle_out < angle_in:
             angle_out += 360
-        a1 = (90 if self.clockwise else -90) + self.angle_in
+        a1 = (90 if self.clockwise else -90) + angle_in
         a2 = (90 if self.clockwise else -90) + angle_out
         r = int(RADIUS * size)
         cp = r * (4 / 3) * math.tan(math.pi / 8)
+        entry = rect(r, math.radians(a1))
+        if diphthong_2:
+            pen.moveTo(entry)
+            entry_delta = rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
+            entry = (entry[0] + entry_delta[0], entry[1] + entry_delta[1])
+            pen.lineTo(*entry)
+            pen.endPath()
         pen.moveTo((0, r))
         pen.curveTo((cp, r), (r, cp), (r, 0))
         pen.curveTo((r, -cp), (cp, -r), (0, -r))
         pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
         pen.curveTo((-r, cp), (-cp, r), (0, r))
         pen.endPath()
+        exit = rect(r, math.radians(a2))
+        if diphthong_1:
+            pen.moveTo(exit)
+            exit_delta = rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
+            exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
+            pen.lineTo(*exit)
+            pen.endPath()
         anchor_name = mkmk if child else lambda a: a
         base = 'basemark' if child else 'base'
         if joining_type != Type.NON_JOINING:
@@ -1665,13 +1715,13 @@ class Circle(Shape):
                 glyph.addAnchorPoint(PARENT_EDGE_ANCHOR, 'mark', 0, 0)
             else:
                 glyph.addAnchorPoint(CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
-                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *entry)
+                glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
                 glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
                 if self.can_be_hub(size):
-                    glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *rect(r, math.radians(a1)))
+                    glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *entry)
                 else:
-                    glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *rect(r, math.radians(a2)))
+                    glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *exit)
                 glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, 0, 0)
         glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, *rect(0, 0))
         if anchor:
@@ -1681,17 +1731,19 @@ class Circle(Shape):
             scale_y = 1.0
             if self.long:
                 scale_x, scale_y = scale_y, scale_x
-            theta = math.radians(self.angle_in % 180)
+            theta = math.radians(angle_in % 180)
             glyph.transform(
                 fontTools.misc.transform.Identity
                     .rotate(theta)
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(angle_in)))
         else:
             glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
+        if diphthong_1 or diphthong_2:
+            glyph.removeOverlap()
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
         glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + STROKE_GAP)
@@ -1972,7 +2024,7 @@ class Complex(Shape):
                 continue
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
-            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False)
+            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False, False, False)
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
             if self._all_circles:
@@ -2019,7 +2071,7 @@ class Complex(Shape):
                 del foreground[bad_index]
             glyph.foreground = foreground
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, diphthong_1, diphthong_2):
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         (
             first_is_invisible,
             singular_anchor_points,
@@ -2438,10 +2490,20 @@ class Schema:
                 self.ignorability == Ignorability.DEFAULT_YES,
                 self.side_bearing,
             )
+        if isinstance(self.path, Circle) and (self.diphthong_1 or self.diphthong_2):
+            path_group = (
+                self.path.angle_in,
+                self.path.angle_out,
+                self.path.clockwise,
+                self.path.stretch,
+                self.path.long,
+            )
+        else:
+            path_group = self.path.group()
         return (
             self.ignorability == Ignorability.DEFAULT_YES,
             type(self.path),
-            self.path.group(),
+            path_group,
             self.path.invisible() or self.cmap is not None or self.cps[-1:] != [0x1BC9D],
             self.size,
             self.joining_type,
@@ -2451,8 +2513,8 @@ class Schema:
             self.widthless,
             tuple(m.group for m in self.marks or []),
             self.glyph_class,
-            self.context_in == NO_CONTEXT,
-            self.context_out == NO_CONTEXT,
+            self.context_in == NO_CONTEXT and self.diphthong_1 and isinstance(self.path, Circle),
+            self.context_out == NO_CONTEXT and self.diphthong_2 and isinstance(self.path, Circle),
             self.diphthong_1,
             self.diphthong_2,
         )
@@ -5565,15 +5627,15 @@ SCHEMAS = [
     Schema(0x1BC43, O, 3, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC44, O, 4, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC46, IE, 2, Type.ORIENTING),
-    Schema(0x1BC47, EE, 2, Type.ORIENTING),
-    Schema(0x1BC48, IE, 2, can_lead_orienting_sequence=True),
+    Schema(0x1BC46, IE, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC47, EE, 2, Type.ORIENTING, shading_allowed=False),
+    Schema(0x1BC48, IE, 2, can_lead_orienting_sequence=True, shading_allowed=False),
     Schema(0x1BC49, SHORT_I, 2, can_lead_orienting_sequence=True, shading_allowed=False),
     Schema(0x1BC4A, UI, 2, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC4B, EE, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2]),
+    Schema(0x1BC4B, EE, 2, can_lead_orienting_sequence=True, shading_allowed=False),
+    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
+    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2], shading_allowed=False),
+    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2], shading_allowed=False),
     Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
     Schema(0x1BC50, YE, 1, shading_allowed=False),
     Schema(0x1BC51, S_T, 3, Type.ORIENTING, shading_allowed=False),
@@ -5789,6 +5851,8 @@ class Builder:
             schema.anchor,
             schema.joining_type,
             schema.child,
+            schema.context_in == NO_CONTEXT and schema.diphthong_1 and isinstance(schema.path, Circle),
+            schema.context_out == NO_CONTEXT and schema.diphthong_2 and isinstance(schema.path, Circle),
             schema.diphthong_1,
             schema.diphthong_2,
         )
