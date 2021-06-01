@@ -5369,9 +5369,17 @@ EQUAL = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), 
 GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
 LEFT_BRACKET = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(0, stretchy=False), False), (0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
 RIGHT_BRACKET = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(180, stretchy=False), False), (0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
-LEFT_GUILLEMET = Complex([(75, Space(90, margins=False)), (0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False)), (200, Space(0, margins=False)), (0.524, Line(230.11, stretchy=False)), (0.524, Line(309.89, stretchy=False))])
+GUILLEMET_VERTICAL_SPACE = (75, Space(90, margins=False))
+GUILLEMET_HORIZONTAL_SPACE = (200, Space(0, margins=False))
+LEFT_GUILLEMET = [(0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False))]
+RIGHT_GUILLEMET = [*reversed(LEFT_GUILLEMET)]
+LEFT_GUILLEMET += [(op[0], op[1].reversed(), True) for op in LEFT_GUILLEMET]
+RIGHT_GUILLEMET += [(op[0], op[1].reversed(), True) for op in RIGHT_GUILLEMET]
+LEFT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET, GUILLEMET_HORIZONTAL_SPACE, *LEFT_GUILLEMET])
+RIGHT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET, GUILLEMET_HORIZONTAL_SPACE, *RIGHT_GUILLEMET])
+LEFT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET])
+RIGHT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET])
 MASCULINE_ORDINAL_INDICATOR = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
-RIGHT_GUILLEMET = Complex([(75, Space(90, margins=False)), (0.524, Line(50.11, stretchy=False)), (0.524, Line(129.89, stretchy=False)), (200, Space(0, margins=False)), (0.524, Line(309.89, stretchy=False)), (0.524, Line(230.11, stretchy=False))])
 MULTIPLICATION = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
 GRAVE = Line(150, stretchy=False)
@@ -5516,9 +5524,9 @@ SCHEMAS = [
     Schema(0x005B, LEFT_BRACKET, 1, Type.NON_JOINING),
     Schema(0x005D, RIGHT_BRACKET, 1, Type.NON_JOINING),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x00AB, LEFT_GUILLEMET, 1, Type.NON_JOINING),
+    Schema(0x00AB, LEFT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
     Schema(0x00BA, MASCULINE_ORDINAL_INDICATOR, 1, Type.NON_JOINING),
-    Schema(0x00BB, RIGHT_GUILLEMET, 1, Type.NON_JOINING),
+    Schema(0x00BB, RIGHT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
     Schema(0x00D7, MULTIPLICATION, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
     Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
@@ -5542,6 +5550,8 @@ SCHEMAS = [
     Schema(0x201E, LOW_RIGHT_QUOTE, 1, Type.NON_JOINING),
     Schema(0x2026, ELLIPSIS, 1, Type.NON_JOINING, shading_allowed=False),
     Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
+    Schema(0x2039, LEFT_SINGLE_GUILLEMET, 1, Type.NON_JOINING),
+    Schema(0x203A, RIGHT_SINGLE_GUILLEMET, 1, Type.NON_JOINING),
     Schema(0x20DD, O, 10, anchor=MIDDLE_ANCHOR),
     Schema(0x25CC, DOTTED_CIRCLE, 1, Type.NON_JOINING),
     Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
