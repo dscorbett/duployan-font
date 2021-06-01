@@ -5389,6 +5389,7 @@ MACRON = Line(0, stretchy=False)
 BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
 DIAERESIS = Line(0, stretchy=False, dots=2)
 CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
+INVERTED_BREVE = Curve(90, 270, clockwise=False, stretch=0.2)
 EN_DASH = Complex([(395, Space(90, margins=False)), (1, Line(0, stretchy=False))])
 HIGH_LEFT_QUOTE = Complex([(755, Space(90, margins=False)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
 HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
@@ -5540,6 +5541,7 @@ SCHEMAS = [
     Schema(0x0317, ACUTE, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
     Schema(0x0324, DIAERESIS, 0.2, anchor=BELOW_ANCHOR),
+    Schema(0x032F, INVERTED_BREVE, 1, anchor=BELOW_ANCHOR),
     Schema(0x0331, MACRON, 0.2, anchor=BELOW_ANCHOR),
     Schema(0x2001, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
     Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
