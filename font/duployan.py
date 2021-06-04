@@ -2276,6 +2276,31 @@ class RomanianU(Complex):
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
+class XShape(Complex):
+    def can_be_hub(self, size):
+        return False
+
+    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+        super().draw(glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2)
+        for anchor_class_name, type, x, y in glyph.anchorPoints:
+            if anchor_class_name == CURSIVE_ANCHOR:
+                if type == 'entry':
+                    entry = x, y
+                elif type == 'exit':
+                    exit = x, y
+        glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != CURSIVE_ANCHOR]
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        x_avg = (x_min + x_max) / 2
+        y_avg = (y_min + y_max) / 2
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x_avg, y_avg)
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x_avg, y_avg)
+
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
+
 class Ignorability(enum.Enum):
     DEFAULT_NO = enum.auto()
     DEFAULT_YES = enum.auto()
@@ -4189,7 +4214,7 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
     for schema in new_schemas:
         if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
             continue
-        if (isinstance(schema.path, (Dot, Space))
+        if (isinstance(schema.path, (Dot, Space, XShape))
             and schema.size
             and not schema.path.can_be_hub(schema.size)
         ):
@@ -4211,6 +4236,7 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
             side_bearing=width,
         )
     marker = get_shim(0, 0)
+    rounding_base = 4
     for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
         add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
         exit_classes = {}
@@ -4235,7 +4261,9 @@ def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes
                 exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
                 if exit_is_pseudo_cursive:
                     shim_height += pseudo_cursive_schemas[e_schema]
-                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{str(float(shim_height)).replace("-", "n")}'
+                shim_height = rounding_base * round(shim_height / rounding_base)
+                shim_width = rounding_base * round(shim_width / rounding_base)
+                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
                 classes[e_class].append(e_schema)
                 if e_class not in e_classes:
                     e_classes[e_class] = get_shim(shim_width, shim_height)
@@ -5400,7 +5428,7 @@ DOTTED_CIRCLE = Complex([(33, Space(90, margins=False)), (1, H), (446, Space(90,
 STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
 DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
 BOUND = Bound()
-X = Complex([(0.288, Line(73, stretchy=False)), (0.168, Line(152, stretchy=False)), (0.288, Line(73, stretchy=False))])
+X = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
 P = Line(270)
 P_REVERSE = Line(90)
 T = Line(0)
@@ -5570,7 +5598,7 @@ SCHEMAS = [
     Schema(0xEC1B, J_REVERSE, 6, shading_allowed=False),
     Schema(0xEC1C, S_REVERSE, 6, shading_allowed=False),
     Schema(0x1BC00, H, 1, shading_allowed=False),
-    Schema(0x1BC01, X, 1, Type.NON_JOINING, shading_allowed=False),
+    Schema(0x1BC01, X, 0.75, shading_allowed=False),
     Schema(0x1BC02, P, 1, Type.ORIENTING),
     Schema(0x1BC03, T, 1, Type.ORIENTING),
     Schema(0x1BC04, F, 1, Type.ORIENTING),
