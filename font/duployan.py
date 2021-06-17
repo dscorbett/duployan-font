@@ -1541,7 +1541,7 @@ class Curve(Shape):
             if final_hook != (
                 not self._in_degree_range(
                     (angle_out + 180) % 360,
-                    candidate_angle_out,
+                    (candidate_angle_out + 45 * (0 if curve_offset else 1 if candidate_clockwise else -1)) % 360,
                     (candidate_angle_in + curve_offset) % 360,
                     candidate_clockwise,
                 ) or (
