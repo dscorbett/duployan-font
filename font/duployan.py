@@ -1538,12 +1538,17 @@ class Curve(Shape):
             curve_offset = 0 if context_clockwises in [(None, None), (True, False), (False, True)] else CURVE_OFFSET
             if False in context_clockwises:
                 curve_offset = -curve_offset
+            a1, a2 = self._get_normalized_angles()
+            slight_overlap_offset = abs(a1 - a2) / 4 * (1 if candidate_clockwise else -1)
             if final_hook != (
-                not self._in_degree_range(
-                    (angle_out + 180) % 360,
-                    (candidate_angle_out + 45 * (0 if curve_offset else 1 if candidate_clockwise else -1)) % 360,
-                    (candidate_angle_in + curve_offset) % 360,
-                    candidate_clockwise,
+                not ((abs(slight_overlap_offset) + abs(curve_offset) >= abs(a1 - a2)
+                        and math.copysign(1, slight_overlap_offset) != math.copysign(1, curve_offset))
+                    or self._in_degree_range(
+                        (angle_out + 180) % 360,
+                        (candidate_angle_out + slight_overlap_offset) % 360,
+                        (candidate_angle_in + curve_offset) % 360,
+                        candidate_clockwise,
+                    )
                 ) or (
                     context_out.clockwise == context_in.clockwise == candidate_clockwise
                     and self._in_degree_range(
