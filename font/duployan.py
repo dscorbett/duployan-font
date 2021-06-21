@@ -1776,6 +1776,8 @@ class Circle(Shape):
         clockwise_from_adjacent_curve = (
             context_in.clockwise
                 if context_in.clockwise is not None
+                else None
+                if context_in.angle == context_out.angle
                 else context_out.clockwise)
         def flop():
             nonlocal clockwise
