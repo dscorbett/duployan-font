@@ -1352,7 +1352,7 @@ class Curve(Shape):
             p3 = rect(r, theta3)
             p2 = rect(cp_distance, theta3 - cp_angle)
             pen.curveTo(p1, p2, p3)
-        if self.reversed_circle:
+        if self.reversed_circle and not diphthong_1 and not diphthong_2:
             swash_angle = (360 - abs(da)) / 2
             swash_length = math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
             swash_endpoint = rect(abs(swash_length), math.radians(self.angle_out))
@@ -3981,15 +3981,15 @@ def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_loo
         mark_filtering_set='ignored_for_topography',
         reversed=True,
     )
-    diphthong_classes = OrderedSet()
+    diphthong_1_classes = OrderedSet()
+    diphthong_2_classes = OrderedSet()
     for schema in new_schemas:
         if (schema.diphthong_1
             or schema.diphthong_2
             or (schema.glyph_class != GlyphClass.JOINER and not schema.ignored_for_topography)
             or schema.joining_type != Type.ORIENTING
             or not schema.can_be_ignored_for_topography()
-            or isinstance(schema.path, Circle) and schema.path.reversed
-            or isinstance(schema.path, Curve) and (schema.path.hook or schema.path.secondary or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
+            or isinstance(schema.path, Curve) and (schema.path.hook or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
             # TODO: Remove the following restrictions.
             or schema.size > 4
             or schema.path.stretch
@@ -3997,23 +3997,38 @@ def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_loo
             continue
         is_circle = isinstance(schema.path, Circle)
         is_ignored = schema.ignored_for_topography
-        input_class_name = f'i_{is_circle}_{is_ignored}'
+        is_primary = not (schema.path.reversed if is_circle else schema.path.secondary)
+        if is_ignored and not is_primary:
+            continue
+        input_class_name = f'i1_{is_circle}_{is_ignored}'
         classes[input_class_name].append(schema)
-        output_class_name_1 = f'o1_{is_circle}_{is_ignored}'
-        output_schema_1 = schema.clone(cmap=None, diphthong_1=True)
-        classes[output_class_name_1].append(output_schema_1)
-        output_class_name_2 = f'o2_{is_circle}_{is_ignored}'
-        output_schema_2 = schema.clone(cmap=None, diphthong_2=True)
-        classes[output_class_name_2].append(output_schema_2)
-        diphthong_classes.add((input_class_name, is_circle, is_ignored, schema.context_out != NO_CONTEXT, output_class_name_1, output_class_name_2))
+        output_class_name = f'o1_{is_circle}_{is_ignored}'
+        output_schema = schema.clone(cmap=None, diphthong_1=True)
+        classes[output_class_name].append(output_schema)
+        diphthong_1_classes.add((
+            input_class_name,
+            is_circle,
+            is_ignored,
+            output_class_name,
+        ))
+        if schema.ignored_for_topography:
+            classes['ignored_for_topography'].append(output_schema)
+        input_class_name = f'i2_{is_circle}_{is_ignored}'
+        classes[input_class_name].append(schema)
+        output_class_name = f'o2_{is_circle}_{is_ignored}'
+        output_schema = schema.clone(cmap=None, diphthong_2=True)
+        classes[output_class_name].append(output_schema)
+        diphthong_2_classes.add((
+            input_class_name,
+            is_circle,
+            is_ignored,
+            output_class_name,
+        ))
         if schema.ignored_for_topography:
             classes['ignored_for_topography'].append(schema)
-            classes['ignored_for_topography'].append(output_schema_1)
-            classes['ignored_for_topography'].append(output_schema_2)
-    for input_1, is_circle_1, is_ignored_1, has_context_out_1, output_1, _ in diphthong_classes.keys():
-        if has_context_out_1:
-            continue
-        for input_2, is_circle_2, is_ignored_2, _, _, output_2 in diphthong_classes.keys():
+            classes['ignored_for_topography'].append(output_schema)
+    for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes.keys():
+        for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes.keys():
             if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
                 add_rule(lookup, Rule(input_1, input_2, [], output_2))
                 add_rule(lookup, Rule([], input_1, output_2, output_1))
