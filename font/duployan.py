@@ -5414,6 +5414,7 @@ LEFT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET, GUIL
 RIGHT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET, GUILLEMET_HORIZONTAL_SPACE, *RIGHT_GUILLEMET])
 LEFT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET])
 RIGHT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET])
+DEGREE = Complex([(683, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False))])
 MASCULINE_ORDINAL_INDICATOR = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
 MULTIPLICATION = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
 GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
@@ -5561,6 +5562,7 @@ SCHEMAS = [
     Schema(0x005D, RIGHT_BRACKET, 1, Type.NON_JOINING),
     Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
     Schema(0x00AB, LEFT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
+    Schema(0x00B0, DEGREE, 1, Type.NON_JOINING),
     Schema(0x00BA, MASCULINE_ORDINAL_INDICATOR, 1, Type.NON_JOINING),
     Schema(0x00BB, RIGHT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
     Schema(0x00D7, MULTIPLICATION, 1, Type.NON_JOINING, shading_allowed=False),
