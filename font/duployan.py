@@ -1604,6 +1604,7 @@ class Circle(Shape):
         *,
         clockwise,
         reversed=False,
+        pinned=False,
         stretch=0,
         long=False,
         role=CircleRole.INDEPENDENT,
@@ -1612,6 +1613,7 @@ class Circle(Shape):
         self.angle_out = angle_out
         self.clockwise = clockwise
         self.reversed = reversed
+        self.pinned = pinned
         self.stretch = stretch
         self.long = long
         self.role = role
@@ -1623,6 +1625,7 @@ class Circle(Shape):
         angle_out=CLONE_DEFAULT,
         clockwise=CLONE_DEFAULT,
         reversed=CLONE_DEFAULT,
+        pinned=CLONE_DEFAULT,
         stretch=CLONE_DEFAULT,
         long=CLONE_DEFAULT,
         role=CLONE_DEFAULT,
@@ -1632,6 +1635,7 @@ class Circle(Shape):
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
+            pinned=self.pinned if pinned is CLONE_DEFAULT else pinned,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
             role=self.role if role is CLONE_DEFAULT else role,
@@ -1828,7 +1832,7 @@ class Circle(Shape):
                 angle_out=angle_out,
                 clockwise=clockwise,
             )
-        if self.role != CircleRole.INDEPENDENT and not self.reversed:
+        if self.role != CircleRole.INDEPENDENT and (self.pinned or not self.reversed):
             return self.clone(
                 angle_in=angle_in,
                 angle_out=angle_in if self.role == CircleRole.LEADER else angle_out,
@@ -2678,6 +2682,23 @@ class Schema:
         return (0
             if self.glyph_class != GlyphClass.JOINER
             else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
+
+    @functools.cached_property
+    def is_primary(self):
+        return not (self.path.reversed if isinstance(self.path, Circle) else self.path.secondary or self.path.reversed_circle)
+
+    @functools.cached_property
+    def can_become_part_of_diphthong(self):
+        return not (self.diphthong_1
+            or self.diphthong_2
+            or (self.glyph_class != GlyphClass.JOINER and not self.ignored_for_topography)
+            or self.joining_type != Type.ORIENTING
+            or not self.can_be_ignored_for_topography()
+            or isinstance(self.path, Curve) and not self.path.reversed_circle and (self.path.hook or (self.path.angle_out - self.path.angle_in) % 180 != 0)
+            # TODO: Remove the following restrictions.
+            or self.size > 4
+            or self.path.stretch
+        )
 
     def can_be_ignored_for_topography(self):
         return (isinstance(self.path, Circle)
@@ -3741,6 +3762,28 @@ def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_l
         add_rule(lookup, Rule([], 'i', 'c', 'o'))
     return [lookup]
 
+def prepare_for_secondary_diphthong_ligature(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if not schema.can_become_part_of_diphthong:
+            continue
+        if isinstance(schema.path, Curve):
+            if schema.is_primary:
+                classes['primary_semicircle'].append(schema)
+        elif schema.path.reversed:
+            classes['reversed_circle'].append(schema)
+            classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
+    add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
+    return [lookup]
+
 def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_1 = Lookup(
         'rclt',
@@ -3984,43 +4027,34 @@ def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_loo
     diphthong_1_classes = OrderedSet()
     diphthong_2_classes = OrderedSet()
     for schema in new_schemas:
-        if (schema.diphthong_1
-            or schema.diphthong_2
-            or (schema.glyph_class != GlyphClass.JOINER and not schema.ignored_for_topography)
-            or schema.joining_type != Type.ORIENTING
-            or not schema.can_be_ignored_for_topography()
-            or isinstance(schema.path, Curve) and (schema.path.hook or (schema.path.angle_out - schema.path.angle_in) % 180 != 0)
-            # TODO: Remove the following restrictions.
-            or schema.size > 4
-            or schema.path.stretch
-        ):
+        if not schema.can_become_part_of_diphthong:
             continue
-        is_circle = isinstance(schema.path, Circle)
+        is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
         is_ignored = schema.ignored_for_topography
-        is_primary = not (schema.path.reversed if is_circle else schema.path.secondary)
+        is_primary = schema.is_primary
         if is_ignored and not is_primary:
             continue
-        input_class_name = f'i1_{is_circle}_{is_ignored}'
+        input_class_name = f'i1_{is_circle_letter}_{is_ignored}'
         classes[input_class_name].append(schema)
-        output_class_name = f'o1_{is_circle}_{is_ignored}'
+        output_class_name = f'o1_{is_circle_letter}_{is_ignored}'
         output_schema = schema.clone(cmap=None, diphthong_1=True)
         classes[output_class_name].append(output_schema)
         diphthong_1_classes.add((
             input_class_name,
-            is_circle,
+            is_circle_letter,
             is_ignored,
             output_class_name,
         ))
         if schema.ignored_for_topography:
             classes['ignored_for_topography'].append(output_schema)
-        input_class_name = f'i2_{is_circle}_{is_ignored}'
+        input_class_name = f'i2_{is_circle_letter}_{is_ignored}'
         classes[input_class_name].append(schema)
-        output_class_name = f'o2_{is_circle}_{is_ignored}'
+        output_class_name = f'o2_{is_circle_letter}_{is_ignored}'
         output_schema = schema.clone(cmap=None, diphthong_2=True)
         classes[output_class_name].append(output_schema)
         diphthong_2_classes.add((
             input_class_name,
-            is_circle,
+            is_circle_letter,
             is_ignored,
             output_class_name,
         ))
@@ -5354,6 +5388,7 @@ PHASES = [
     reposition_stenographic_period,
     disjoin_equals_sign,
     join_with_next_step,
+    prepare_for_secondary_diphthong_ligature,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
     ignore_first_orienting_glyph_in_initial_sequence,
