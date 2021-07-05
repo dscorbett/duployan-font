@@ -125,8 +125,14 @@ def tweak_font(options, builder):
             tables=['OS/2', 'head', 'name'],
         )
         tt_font['OS/2'].fsSelection += 0x40
+        tt_font['OS/2'].usWinAscent = max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax)
+        tt_font['OS/2'].usWinDescent = max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin)
         tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
         tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
+        tt_font['OS/2'].yStrikeoutPosition = duployan.STRIKEOUT_POSITION
+        tt_font['OS/2'].yStrikeoutSize = duployan.LIGHT_LINE
+        tt_font['post'].underlinePosition = tt_font['OS/2'].sTypoDescender
+        tt_font['post'].underlineThickness = duployan.LIGHT_LINE
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender

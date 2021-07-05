@@ -6,8 +6,8 @@
 table OS/2 {
     Panose 1 1 1 1 1 1 1 1 1 1;
     TypoLineGap 0;
-    winAscent 2030;
-    winDescent 192;
+    winAscent 1139;
+    winDescent 1340;
     Vendor "    ";
 } OS/2;
 
