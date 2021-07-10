@@ -1,0 +1,35 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Initial wi
+1BC5E 1BC02::[u1BC5E.wi@320,299|u1BC02.p@320,0|_@640,0]
+1BC5E 1BC03::[u1BC5E.wi.0n0@320,0|u1BC03.t@320,201|_@940,0]
+1BC5E 1BC04::[u1BC5E.wi@320,299|u1BC04.f@320,0|_@728,0]
+1BC5E 1BC05::[u1BC5E.wi@408,299|u1BC05.k@408,0|_@728,0]
+1BC5E 1BC06::[u1BC5E.wi.0n0@320,-201|u1BC06.l@320,0|_@940,0]
+1BC5E 1BC19::[u1BC5E.wi@420,519|u1BC19.m@420,0|_@740,0]
+1BC5E 1BC1A::[u1BC5E.wi.0n0@320,519|u1BC1A.n@320,0|_@740,0]
+1BC5E 1BC1B::[u1BC5E.wi.0n0@320,-201|u1BC1B.j@320,0|_@1160,0]
+1BC5E 1BC1C::[u1BC5E.wi@320,99|u1BC1C.s@320,0|_@1160,0]
+
+# Initial wei
+1BC5F 1BC02::[u1BC5F.wei@320,340|u1BC02.p@320,0|_@640,0]
+1BC5F 1BC03::[u1BC5F.wei@320,0|u1BC03.t@320,160|_@940,0]
+1BC5F 1BC04::[u1BC5F.wei@320,340|u1BC04.f@320,0|_@728,0]
+1BC5F 1BC05::[u1BC5F.wei@408,340|u1BC05.k@408,0|_@728,0]
+1BC5F 1BC06::[u1BC5F.wei.0n0@320,-160|u1BC06.l@320,0|_@940,0]
+1BC5F 1BC19::[u1BC5F.wei.0n0@420,560|u1BC19.m@420,0|_@740,0]
+1BC5F 1BC1A::[u1BC5F.wei@320,560|u1BC1A.n@320,0|_@740,0]
+1BC5F 1BC1B::[u1BC5F.wei.0n0@320,-160|u1BC1B.j@320,0|_@1160,0]
+1BC5F 1BC1C::[u1BC5F.wei@320,140|u1BC1C.s@320,0|_@1160,0]

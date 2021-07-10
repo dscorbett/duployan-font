@@ -1291,18 +1291,18 @@ class Curve(Shape):
     def _get_angle_to_overlap_point(self, a1, a2, *, is_entry):
         angle_to_overlap_point = self.overlap_angle
         angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90))
-        if (not self._in_degree_range(
+        if (not self.in_degree_range(
                 angle_at_overlap_point % 360,
                 self.angle_in,
                 self.angle_out,
                 self.clockwise,
             )
-            or is_entry and self._in_degree_range(
+            or is_entry and self.in_degree_range(
                 (angle_at_overlap_point + 180) % 360,
                 self.angle_in,
                 self.angle_out,
                 self.clockwise,
-            ) and self._in_degree_range(
+            ) and self.in_degree_range(
                 (angle_at_overlap_point + 180) % 360,
                 self.angle_in - 90,
                 self.angle_in + 90,
@@ -1312,7 +1312,7 @@ class Curve(Shape):
             angle_to_overlap_point += 180
         angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90)) % 180
         exclusivity_zone = 30
-        if self._in_degree_range(
+        if self.in_degree_range(
             angle_to_overlap_point,
             ((a1 if is_entry else a2) - exclusivity_zone) % 360,
             ((a1 if is_entry else a2) + exclusivity_zone) % 360,
@@ -1466,7 +1466,7 @@ class Curve(Shape):
         return True
 
     @staticmethod
-    def _in_degree_range(key, start, stop, clockwise):
+    def in_degree_range(key, start, stop, clockwise):
         if clockwise:
             start, stop = stop, start
         if start <= stop:
@@ -1544,7 +1544,7 @@ class Curve(Shape):
             if final_hook != (
                 not ((abs(slight_overlap_offset) + abs(curve_offset) >= abs(a1 - a2)
                         and math.copysign(1, slight_overlap_offset) != math.copysign(1, curve_offset))
-                    or self._in_degree_range(
+                    or self.in_degree_range(
                         (angle_out + 180) % 360,
                         (candidate_angle_out + slight_overlap_offset) % 360,
                         (candidate_angle_in + curve_offset) % 360,
@@ -1552,7 +1552,7 @@ class Curve(Shape):
                     )
                 ) or (
                     context_out.clockwise == context_in.clockwise == candidate_clockwise
-                    and self._in_degree_range(
+                    and self.in_degree_range(
                         angle_out,
                         (candidate_angle_out - CURVE_OFFSET) % 360,
                         (candidate_angle_out + CURVE_OFFSET) % 360,
@@ -2287,6 +2287,34 @@ class RomanianU(Complex):
         if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
+
+class Wi(Complex):
+    def contextualize(self, context_in, context_out):
+        if context_in != NO_CONTEXT or context_out == NO_CONTEXT:
+            return super().contextualize(context_in, context_out)
+        if Curve.in_degree_range(
+            context_out.angle,
+            self.instructions[-1][1].angle_out,
+            (self.instructions[-1][1].angle_out + 180 - EPSILON * (-1 if self.instructions[-1][1].clockwise else 1)) % 360,
+            self.instructions[-1][1].clockwise,
+        ):
+            return self.clone(
+                instructions=[
+                    op
+                        if callable(op)
+                        else (
+                            op[0],
+                            op[1].clone(
+                                    angle_in=(op[1].angle_in + 180) % 360,
+                                    angle_out=(op[1].angle_out + 180) % 360,
+                                    clockwise=not op[1].clockwise,
+                                ) if isinstance(op[1], (Circle, Curve))
+                                else op[1]
+                            *op[2:],
+                        ) for op in self.instructions
+                ],
+            )
+        return self
 
 class XShape(Complex):
     def can_be_hub(self, size):
@@ -5534,8 +5562,8 @@ UH = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
 OU = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
 WA = Complex([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
 WO = Complex([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
-WI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
-WEI = Complex([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
+WI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
+WEI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
 LEFT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=2 / 3)
 MID_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=0.5)
 RIGHT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=1 / 3)
