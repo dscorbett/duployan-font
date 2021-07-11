@@ -2291,7 +2291,12 @@ class RomanianU(Complex):
 class Wi(Complex):
     def contextualize(self, context_in, context_out):
         if context_in != NO_CONTEXT or context_out == NO_CONTEXT:
-            return super().contextualize(context_in, context_out)
+            curve_index = next(i for i, op in enumerate(self.instructions) if not callable(op) and not isinstance(op[1], Circle))
+            if curve_index == 0:
+                return super().contextualize(context_in, context_out)
+            curve_path = self.clone(instructions=self.instructions[curve_index:]).contextualize(context_in, context_out)
+            circle_path = self.instructions[0][1].contextualize(context_in, NO_CONTEXT).clone(clockwise=curve_path.instructions[0][1].clockwise)
+            return self.clone(instructions=[(self.instructions[0][0], circle_path), *curve_path.instructions])
         if Curve.in_degree_range(
             context_out.angle,
             self.instructions[-1][1].angle_out,
