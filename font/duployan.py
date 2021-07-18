@@ -2295,7 +2295,11 @@ class Wi(Complex):
             if curve_index == 0:
                 return super().contextualize(context_in, context_out)
             curve_path = self.clone(instructions=self.instructions[curve_index:]).contextualize(context_in, context_out)
-            circle_path = self.instructions[0][1].contextualize(context_in, NO_CONTEXT).clone(clockwise=curve_path.instructions[0][1].clockwise)
+            circle_path = self.instructions[0][1].clone(
+                angle_in=curve_path.instructions[0][1].angle_in,
+                angle_out=curve_path.instructions[0][1].angle_in,
+                clockwise=curve_path.instructions[0][1].clockwise,
+            )
             return self.clone(instructions=[(self.instructions[0][0], circle_path), *curve_path.instructions])
         if Curve.in_degree_range(
             context_out.angle,
