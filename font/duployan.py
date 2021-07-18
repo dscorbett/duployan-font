@@ -2092,14 +2092,14 @@ class Complex(Shape):
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
-            first_entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][0]
-            last_exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *first_entry)
-            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *last_exit)
+            entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][-1 if self._all_circles else 0]
+            exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *entry)
+            glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
             if self.can_be_hub(size):
-                glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *first_entry)
+                glyph.addAnchorPoint(HUB_2_CURSIVE_ANCHOR, 'entry', *entry)
             else:
-                glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *last_exit)
+                glyph.addAnchorPoint(HUB_1_CURSIVE_ANCHOR, 'exit', *exit)
         anchor_name = mkmk if anchor or child else lambda a: a
         base = 'basemark' if anchor or child else 'base'
         if anchor is None:
