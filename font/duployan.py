@@ -1910,17 +1910,11 @@ class Complex(Shape):
         *,
         hook=False,
         maximum_tree_width=0,
-        _all_circles=None,
         _final_rotation=0,
     ):
         self.instructions = instructions
         self.hook = hook
         self.maximum_tree_width = maximum_tree_width
-        if _all_circles is None:
-            self._all_circles = all(not callable(op) and isinstance(op[1], Circle) for op in self.instructions)
-        else:
-            self._all_circles = _all_circles
-        assert not (self.hook and self._all_circles)
         self._final_rotation = _final_rotation
 
     def clone(
@@ -1929,14 +1923,12 @@ class Complex(Shape):
         instructions=CLONE_DEFAULT,
         hook=CLONE_DEFAULT,
         maximum_tree_width=CLONE_DEFAULT,
-        _all_circles=CLONE_DEFAULT,
         _final_rotation=CLONE_DEFAULT,
     ):
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
             maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
-            _all_circles=self._all_circles if _all_circles is CLONE_DEFAULT else _all_circles,
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
@@ -1952,7 +1944,6 @@ class Complex(Shape):
     def group(self):
         return (
             *((op[0], op[1].group()) for op in self.instructions if not callable(op)),
-            self._all_circles,
             self._final_rotation,
         )
 
@@ -2033,7 +2024,6 @@ class Complex(Shape):
 
     def draw_to_proxy(self, pen, stroke_width, size):
         first_is_invisible = None
-        last_crossing_point = None
         singular_anchor_points = collections.defaultdict(list)
         for op in self.instructions:
             if callable(op):
@@ -2043,24 +2033,15 @@ class Complex(Shape):
             component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False, False, False)
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
-            if self._all_circles:
-                this_crossing_point = proxy.get_crossing_point(component)
-                if last_crossing_point is not None:
-                    proxy.transform(fontTools.misc.transform.Offset(
-                        last_crossing_point[0] - this_crossing_point[0],
-                        last_crossing_point[1] - this_crossing_point[1],
-                    ))
-                last_crossing_point = this_crossing_point
-            else:
-                this_entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
-                assert len(this_entry_list) == 1
-                this_x, this_y = this_entry_list[0]
-                if exit_list := singular_anchor_points.get((CURSIVE_ANCHOR, 'exit')):
-                    last_x, last_y = exit_list[-1]
-                    proxy.transform(fontTools.misc.transform.Offset(
-                        last_x - this_x,
-                        last_y - this_y,
-                    ))
+            this_entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
+            assert len(this_entry_list) == 1
+            this_x, this_y = this_entry_list[0]
+            if exit_list := singular_anchor_points.get((CURSIVE_ANCHOR, 'exit')):
+                last_x, last_y = exit_list[-1]
+                proxy.transform(fontTools.misc.transform.Offset(
+                    last_x - this_x,
+                    last_y - this_y,
+                ))
             for anchor_and_type, points in proxy.anchor_points.items():
                 if len(points) == 1:
                     singular_anchor_points[anchor_and_type].append(points[0])
@@ -2087,6 +2068,9 @@ class Complex(Shape):
                 del foreground[bad_index]
             glyph.foreground = foreground
 
+    def get_entry_instruction_index(self):
+        return 0
+
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         (
             first_is_invisible,
@@ -2096,7 +2080,7 @@ class Complex(Shape):
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
-            entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][-1 if self._all_circles else 0]
+            entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][self.get_entry_instruction_index()]
             exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *entry)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
@@ -2151,58 +2135,53 @@ class Complex(Shape):
     def contextualize(self, context_in, context_out):
         instructions = []
         initial_hook = context_in == NO_CONTEXT and self.hook
-        if self._all_circles:
-            for scalar, component in self.instructions:
+        forced_context = None
+        for i, op in enumerate(self.instructions):
+            if callable(op):
+                forced_context = op(forced_context or (context_out if initial_hook else context_in))
+                instructions.append(op)
+            else:
+                scalar, component = op
                 component = component.contextualize(context_in, context_out)
-                instructions.append((scalar, component))
-        else:
-            forced_context = None
-            for i, op in enumerate(self.instructions):
-                if callable(op):
-                    forced_context = op(forced_context or (context_out if initial_hook else context_in))
-                    instructions.append(op)
-                else:
-                    scalar, component = op
-                    component = component.contextualize(context_in, context_out)
-                    if i and initial_hook:
-                        component = component.reversed()
-                    if forced_context is not None:
-                        if isinstance(component, Line):
-                            if forced_context != NO_CONTEXT:
-                                component = component.clone(angle=forced_context.angle)
-                        else:
-                            if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
-                                component = component.reversed()
-                            if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
-                                angle_out = component.angle_out
-                                if component.clockwise and angle_out > component.angle_in:
-                                    angle_out -= 360
-                                elif not component.clockwise and angle_out < component.angle_in:
-                                    angle_out += 360
-                                da = angle_out - component.angle_in
-                                if initial_hook:
-                                    component = component.clone(
-                                        angle_in=(forced_context.angle - da) % 360,
-                                        angle_out=forced_context.angle,
-                                    )
-                                else:
-                                    component = component.clone(
-                                        angle_in=forced_context.angle,
-                                        angle_out=(forced_context.angle + da) % 360,
-                                    )
-                    instructions.append((scalar, component))
-                    if initial_hook:
-                        context_out = component.context_in()
+                if i and initial_hook:
+                    component = component.reversed()
+                if forced_context is not None:
+                    if isinstance(component, Line):
+                        if forced_context != NO_CONTEXT:
+                            component = component.clone(angle=forced_context.angle)
                     else:
-                        context_in = component.context_out()
-                    if forced_context is not None:
-                        if initial_hook:
-                            assert component.context_out() == forced_context, f'{component.context_out()} != {forced_context}'
-                        else:
-                            assert component.context_in() == forced_context, f'{component.context_in()} != {forced_context}'
-                        forced_context = None
-            if initial_hook:
-                instructions.reverse()
+                        if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
+                            component = component.reversed()
+                        if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                            angle_out = component.angle_out
+                            if component.clockwise and angle_out > component.angle_in:
+                                angle_out -= 360
+                            elif not component.clockwise and angle_out < component.angle_in:
+                                angle_out += 360
+                            da = angle_out - component.angle_in
+                            if initial_hook:
+                                component = component.clone(
+                                    angle_in=(forced_context.angle - da) % 360,
+                                    angle_out=forced_context.angle,
+                                )
+                            else:
+                                component = component.clone(
+                                    angle_in=forced_context.angle,
+                                    angle_out=(forced_context.angle + da) % 360,
+                                )
+                instructions.append((scalar, component))
+                if initial_hook:
+                    context_out = component.context_in()
+                else:
+                    context_in = component.context_out()
+                if forced_context is not None:
+                    if initial_hook:
+                        assert component.context_out() == forced_context, f'{component.context_out()} != {forced_context}'
+                    else:
+                        assert component.context_in() == forced_context, f'{component.context_in()} != {forced_context}'
+                    forced_context = None
+        if initial_hook:
+            instructions.reverse()
         return self.clone(instructions=instructions)
 
     def context_in(self):
@@ -2291,6 +2270,76 @@ class RomanianU(Complex):
         if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
+
+class Wa(Complex):
+    def __init__(
+        self,
+        instructions,
+    ):
+        super().__init__(instructions)
+
+    def clone(
+        self,
+        *,
+        instructions=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            self.instructions if instructions is CLONE_DEFAULT else instructions,
+        )
+
+    def draw_to_proxy(self, pen, stroke_width, size):
+        first_is_invisible = None
+        last_crossing_point = None
+        singular_anchor_points = collections.defaultdict(list)
+        for op in self.instructions:
+            scalar, component, *skip_drawing = op
+            proxy = Complex.Proxy()
+            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False, False, False)
+            if first_is_invisible is None:
+                first_is_invisible = component.invisible()
+            this_crossing_point = proxy.get_crossing_point(component)
+            if last_crossing_point is not None:
+                proxy.transform(fontTools.misc.transform.Offset(
+                    last_crossing_point[0] - this_crossing_point[0],
+                    last_crossing_point[1] - this_crossing_point[1],
+                ))
+            last_crossing_point = this_crossing_point
+            for anchor_and_type, points in proxy.anchor_points.items():
+                if len(points) == 1:
+                    singular_anchor_points[anchor_and_type].append(points[0])
+            if not (skip_drawing and skip_drawing[0]):
+                proxy.contour.draw(pen)
+        return (
+            first_is_invisible,
+            singular_anchor_points,
+        )
+
+    def get_entry_instruction_index(self):
+        return -1
+
+    def contextualize(self, context_in, context_out):
+        instructions = []
+        for scalar, component in self.instructions:
+            component = component.contextualize(context_in, context_out)
+            instructions.append((scalar, component))
+        outer_circle_path = instructions[0][1]
+        if isinstance(outer_circle_path, Curve):
+            assert context_in != NO_CONTEXT and context_out != NO_CONTEXT
+            a1, a2 = outer_circle_path._get_normalized_angles()
+            if abs(a2 - a1) < 180:
+                return Complex(instructions=[
+                    (
+                        instructions[0][0],
+                        self.instructions[0][1].clone(
+                            angle_in=instructions[-1][1].angle_in,
+                            angle_out=instructions[-1][1].angle_in,
+                            clockwise=instructions[-1][1].clockwise,
+                        ),
+                        *instructions[0][2:]
+                    ),
+                    *instructions[1:],
+                ])
+        return self.clone(instructions=instructions)
 
 class Wi(Complex):
     def contextualize(self, context_in, context_out):
@@ -5573,8 +5622,8 @@ LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
 ROMANIAN_U = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
 UH = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
 OU = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
-WA = Complex([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
-WO = Complex([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
+WA = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
+WO = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
 WI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
 WEI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
 LEFT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=2 / 3)
