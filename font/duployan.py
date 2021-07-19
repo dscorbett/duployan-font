@@ -2757,6 +2757,8 @@ class Schema:
             if name and first_component_implies_type:
                 name = f'.{name}'
             if not isinstance(self.path, Notdef):
+                if name.startswith('dupl.'):
+                    name = name.removeprefix('dupl')
                 name = f'_{name}'
         agl_string = fontTools.agl.toUnicode(name)
         agl_cps = [*map(ord, agl_string)]
