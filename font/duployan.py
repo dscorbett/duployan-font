@@ -2068,8 +2068,8 @@ class Complex(Shape):
                 del foreground[bad_index]
             glyph.foreground = foreground
 
-    def get_entry_instruction_index(self):
-        return 0
+    def enter_on_first_path(self):
+        return True
 
     def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
         (
@@ -2080,7 +2080,7 @@ class Complex(Shape):
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
-            entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][self.get_entry_instruction_index()]
+            entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][0 if self.enter_on_first_path() else -1]
             exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', *entry)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', *exit)
@@ -2309,13 +2309,30 @@ class Wa(Complex):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not (skip_drawing and skip_drawing[0]):
                 proxy.contour.draw(pen)
+        first_entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][0]
+        last_entry = singular_anchor_points[(CURSIVE_ANCHOR, 'entry')][-1]
+        if math.hypot(first_entry[0] - last_entry[0], first_entry[1] - last_entry[1]) >= 10:
+            proxy = Complex.Proxy()
+            # FIXME: Using the anchor points unmodified, FontForge gets stuck in
+            # `font.generate`. If some but not all the points are offset by 0.01,
+            # the stroking code produces buggy results for some glyphs.
+            proxy.moveTo((first_entry[0], first_entry[1] + 0.01))
+            proxy.lineTo((last_entry[0], last_entry[1] + 0.01))
+            proxy.contour.draw(pen)
+        first_exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][0]
+        last_exit = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')][-1]
+        if math.hypot(first_exit[0] - last_exit[0], first_exit[1] - last_exit[1]) >= 10:
+            proxy = Complex.Proxy()
+            proxy.moveTo((first_exit[0], first_exit[1] + 0.01))
+            proxy.lineTo((last_exit[0], last_exit[1] + 0.01))
+            proxy.contour.draw(pen)
         return (
             first_is_invisible,
             singular_anchor_points,
         )
 
-    def get_entry_instruction_index(self):
-        return -1
+    def enter_on_first_path(self):
+        return False
 
     def contextualize(self, context_in, context_out):
         instructions = []
