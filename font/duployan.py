@@ -1943,7 +1943,11 @@ class Complex(Shape):
     def __str__(self):
         if self._final_rotation:
             return str(int(self._final_rotation))
-        return next(str(op[1]) for op in self.instructions if not callable(op))
+        non_callables = filter(lambda op: not callable(op), self.instructions)
+        op = next(non_callables)
+        if isinstance(op[1], Circle):
+            op = next(non_callables)
+        return str(op[1])
 
     def group(self):
         return (
