@@ -6077,7 +6077,10 @@ class Builder:
         if not floating:
             _, y_min, _, _ = glyph.boundingBox()
             glyph.transform(fontTools.misc.transform.Offset(0, -y_min))
-        glyph.right_side_bearing = schema.side_bearing
+        if schema.glyph_class == GlyphClass.MARK:
+            glyph.width = 0
+        else:
+            glyph.right_side_bearing = schema.side_bearing
 
     def _create_glyph(self, schema, *, drawing):
         if schema.path.name_in_sfd():
