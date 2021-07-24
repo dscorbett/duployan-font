@@ -5623,9 +5623,9 @@ S_T = Curve(270, 0, clockwise=False)
 S_P = Curve(270, 180, clockwise=True)
 T_S = Curve(0, 270, clockwise=True)
 W = Curve(180, 270, clockwise=False)
-S_N = Curve(0, 90, clockwise=False)
+S_N = Curve(0, 90, clockwise=False, secondary=True)
 K_R_S = Curve(90, 180, clockwise=False)
-S_K = Curve(90, 0, clockwise=True)
+S_K = Curve(90, 0, clockwise=True, secondary=False)
 J_N = Complex([(1, S_K), (1, N)], maximum_tree_width=1)
 J_N_S = Complex([(3, S_K), (4, N_S)], maximum_tree_width=1)
 O = Circle(0, 0, clockwise=False)
@@ -5863,15 +5863,15 @@ SCHEMAS = [
     Schema(0x1BC5E, WI, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC5F, WEI, 1, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC61, S_T, 2, Type.ORIENTING),
+    Schema(0x1BC61, S_T, 2, can_lead_orienting_sequence=True),
     Schema(0x1BC62, S_N, 2, Type.ORIENTING),
-    Schema(0x1BC63, T_S, 2, Type.ORIENTING),
+    Schema(0x1BC63, T_S, 2, can_lead_orienting_sequence=True),
     Schema(0x1BC64, S_K, 2, Type.ORIENTING),
-    Schema(0x1BC65, S_P, 2, Type.ORIENTING),
-    Schema(0x1BC66, W, 2, Type.ORIENTING),
-    Schema(0x1BC67, S_T, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC68, S_T, 2, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC69, S_K, 2, Type.ORIENTING, marks=[DOT_2]),
+    Schema(0x1BC65, S_P, 2, can_lead_orienting_sequence=True),
+    Schema(0x1BC66, W, 2, can_lead_orienting_sequence=True),
+    Schema(0x1BC67, S_T, 2, can_lead_orienting_sequence=True, marks=[DOT_1]),
+    Schema(0x1BC68, S_T, 2, can_lead_orienting_sequence=True, marks=[DOT_2]),
+    Schema(0x1BC69, S_K, 2, can_lead_orienting_sequence=True, marks=[DOT_2]),
     Schema(0x1BC6A, S_K, 2, can_lead_orienting_sequence=True),
     Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
     Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
