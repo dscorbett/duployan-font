@@ -96,6 +96,23 @@ def filter_map_name(name):
     name.string = name.string.strip()
     return name
 
+def set_subfamily_name(names, bold):
+    for name in names:
+        if name.nameID == 1:
+            family_name = name.string
+        elif name.nameID == 2:
+            subfamily_name_record = name
+            subfamily_name_record.string = 'Bold' if bold else 'Regular'
+        elif name.nameID == 4:
+            full_name_record = name
+        elif name.nameID == 6:
+            postscript_name_record = name
+    full_name_record.string = family_name
+    postscript_name_record.string = re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', family_name)
+    if bold:
+        full_name_record.string += f' {subfamily_name_record.string}'
+        postscript_name_record.string += f'-{subfamily_name_record.string}'
+
 def set_unique_id(names):
     for name in names:
         if name.nameID == 3:
@@ -126,20 +143,35 @@ def tweak_font(options, builder):
             options.fea,
             tables=['OS/2', 'head', 'name'],
         )
-        tt_font['OS/2'].fsSelection += 0x40
+
+        if options.bold:
+            tt_font['OS/2'].usWeightClass = 700
+            tt_font['OS/2'].fsSelection |= 1 << 5
+            tt_font['OS/2'].fsSelection &= ~(1 << 0 | 1 << 6)
+            tt_font['head'].macStyle |= 1 << 0
+            for name in tt_font['name'].names:
+                if name.nameID == 2:
+                    subfamily_name_record = name
+                    break
+            subfamily_name_record.string = 'Bold'
+        else:
+            tt_font['OS/2'].fsSelection |= 1 << 6
+            tt_font['OS/2'].fsSelection &= ~(1 << 0 | 1 << 5)
+
         tt_font['OS/2'].usWinAscent = max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax)
         tt_font['OS/2'].usWinDescent = max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin)
         tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
         tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
         tt_font['OS/2'].yStrikeoutPosition = duployan.STRIKEOUT_POSITION
-        tt_font['OS/2'].yStrikeoutSize = duployan.LIGHT_LINE
+        tt_font['OS/2'].yStrikeoutSize = builder.light_line
         tt_font['post'].underlinePosition = tt_font['OS/2'].sTypoDescender
-        tt_font['post'].underlineThickness = duployan.LIGHT_LINE
+        tt_font['post'].underlineThickness = builder.light_line
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         tt_font['name'].names = [*filter(None, map(filter_map_name, tt_font['name'].names))]
+        set_subfamily_name(tt_font['name'].names, options.bold)
         set_unique_id(tt_font['name'].names)
 
         tt_font.save(options.output)
@@ -150,7 +182,7 @@ def make_font(options):
     font.fontname = font.familyname
     font.fullname = font.familyname
     font.encoding = 'UnicodeFull'
-    builder = duployan.Builder(font)
+    builder = duployan.Builder(font, options.bold)
     builder.augment()
     build_font(options, builder.font)
     patch_fonttools()
@@ -158,6 +190,7 @@ def make_font(options):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
+    parser.add_argument('--bold', action='store_true', help='Make a bold font.')
     parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
     args = parser.parse_args()

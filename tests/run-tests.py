@@ -25,6 +25,7 @@ import sys
 
 CI = os.getenv('CI') == 'true'
 DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
+GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
 
 def parse_color(color):
     if color == 'auto':
@@ -102,6 +103,9 @@ def run_test(font, line, png_file, color, view_all):
     stdout_data, stderr_data = p.communicate()
     print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
     actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
+    if not font.endswith('-Regular.otf'):
+        actual_output = GLYPH_POSITION_PATTERN.sub('', actual_output)
+        expected_output = GLYPH_POSITION_PATTERN.sub('', expected_output)
     passed = actual_output == expected_output
     if not passed or view_all:
         if not passed:
@@ -142,7 +146,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     color = parse_color(args.color.lower())
     passed_all = True
-    failed_dir = os.path.join(os.path.dirname(sys.argv[0]), 'failed')
+    failed_dir = os.path.join(os.path.dirname(sys.argv[0]), 'failed', os.path.basename(args.font))
     os.makedirs(failed_dir, exist_ok=True)
     for fn in args.tests:
         result_lines = []

@@ -13,22 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FONT = font/Duployan-Regular.otf
+STYLES = Regular Bold
+FONT_PREFIX = font/Duployan-
+FONT_SUFFIX = .otf
+FONTS = $(addprefix $(FONT_PREFIX),$(addsuffix $(FONT_SUFFIX),$(STYLES)))
 
 .PHONY: all
-all: $(FONT)
+all: $(FONTS)
 
-%.otf: %.fea font/*.py
+%-Regular.otf: %.fea font/*.py
 	font/build.py --fea $< --output $@
+
+%-Bold.otf: %.fea font/*.py
+	font/build.py --bold --fea $< --output $@
 
 .PHONY: clean
 clean:
-	find font -name '*.otf' -type f -delete
-	$(RM) -r tests/failed
+	$(RM) -r $(FONTS) tests/failed
+
+.PHONY: $(addprefix check-,$(STYLES))
+$(addprefix check-,$(STYLES)): check-%: $(FONT_PREFIX)%$(FONT_SUFFIX)
+	tests/run-tests.py $< tests/*.test
 
 .PHONY: check
-check: $(FONT)
-	tests/run-tests.py $< tests/*.test
+check: $(addprefix check-,$(STYLES))
 
 .PHONY: hb-shape
 hb-shape:

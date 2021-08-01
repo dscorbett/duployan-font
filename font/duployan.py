@@ -35,9 +35,8 @@ import fontTools.otlLib.builder
 DEFAULT_SIDE_BEARING = 85
 EPSILON = 1e-5
 RADIUS = 50
-LIGHT_LINE = 70
-SHADED_LINE = 120
-STROKE_GAP = max(70, LIGHT_LINE)
+SHADING_FACTOR = 12 / 7
+MINIMUM_STROKE_GAP = 70
 STRIKEOUT_POSITION = 258
 MAX_DOUBLE_MARKS = 3
 MAX_TREE_WIDTH = 2
@@ -252,7 +251,22 @@ class Shape:
     def can_be_hub(self, size):
         return not self.invisible()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         if not self.invisible():
             raise NotImplementedError
 
@@ -405,7 +419,22 @@ class Hub(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         if self.initial_secant:
             glyph.addAnchorPoint(HUB_1_CONTINUING_OVERLAP_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(HUB_2_CONTINUING_OVERLAP_ANCHOR, 'exit', 0, 0)
@@ -428,7 +457,22 @@ class End(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
 
     @staticmethod
@@ -623,7 +667,22 @@ class Notdef(Shape):
     def group(self):
         return ()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.lineTo(stroke_width / 2, 663 + stroke_width / 2)
@@ -673,7 +732,22 @@ class Space(Shape):
     def can_be_hub(self, size):
         return self.angle % 180 == 90
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0)
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -705,7 +779,22 @@ class Bound(Shape):
     def group(self):
         return ()
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         stroke_width = 75
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
@@ -755,7 +844,22 @@ class ChildEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(CHILD_EDGE_ANCHORS[min(1, layer_index)][child_index], 'mark', 0, 0)
@@ -775,7 +879,22 @@ class ContinuingOverlapS(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         pass
 
     @staticmethod
@@ -812,7 +931,22 @@ class ParentEdge(Shape):
     def invisible(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
@@ -864,7 +998,22 @@ class Dot(Shape):
     def can_be_hub(self, size):
         return False
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -977,7 +1126,22 @@ class Line(Shape):
             length_denominator = 1
         return int(500 * size / length_denominator)
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         end_y = 0
         if self.visible_base:
             length = self._get_length(size)
@@ -1035,16 +1199,16 @@ class Line(Shape):
                     glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and self.angle == 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - (LIGHT_LINE + STROKE_GAP), -(stroke_width + LIGHT_LINE) / 2)
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + LIGHT_LINE + STROKE_GAP, -(stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - (light_line + stroke_gap), -(stroke_width + light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + light_line + stroke_gap, -(stroke_width + light_line) / 2)
             else:
-                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + LIGHT_LINE) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + light_line) / 2)
                 if self.tittle:
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, -(stroke_width + LIGHT_LINE), 0)
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, -(stroke_width + light_line), 0)
                 elif isinstance(self, LongI):
                     glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, 0, 0)
                 else:
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + LIGHT_LINE) / 2)
+                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + light_line) / 2)
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -1054,8 +1218,8 @@ class Line(Shape):
         if not anchor and not self.secant:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_width / 2 + 2 * STROKE_GAP + LIGHT_LINE / 2)
-            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - (stroke_width / 2 + 2 * STROKE_GAP + LIGHT_LINE / 2))
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
 
     def can_be_child(self, size):
         return not (self.secant or self.dots)
@@ -1324,7 +1488,22 @@ class Curve(Shape):
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
         if final_circle_diphthong:
             a2 = a1
@@ -1432,19 +1611,19 @@ class Curve(Shape):
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
                 )
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(self.angle_in)))
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(self.angle_in)))
             else:
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base,
                     *(rect(0, 0) if abs(da) > 180 else rect(
-                        min(stroke_width, r - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)),
+                        min(stroke_width, r - (stroke_width / 2 + stroke_gap + light_line / 2)),
                         math.radians(relative_mark_angle))))
-                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(relative_mark_angle)))
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
         if not anchor:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + STROKE_GAP)
-            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - STROKE_GAP)
+            glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_gap)
+            glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - stroke_gap)
 
     def can_be_child(self, size):
         a1, a2 = self._get_normalized_angles()
@@ -1673,7 +1852,22 @@ class Circle(Shape):
     def can_be_hub(self, size):
         return size >= 6
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         angle_in = self.angle_in
         angle_out = self.angle_out
         if (diphthong_1 or diphthong_2) and angle_in == angle_out:
@@ -1684,7 +1878,21 @@ class Circle(Shape):
                     stretch=self.stretch,
                     long=True,
                     reversed_circle=self.reversed,
-                ).draw(glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2)
+                ).draw(
+                    glyph,
+                    pen,
+                    stroke_width,
+                    light_line,
+                    stroke_gap,
+                    size,
+                    anchor,
+                    joining_type,
+                    child,
+                    initial_circle_diphthong,
+                    final_circle_diphthong,
+                    diphthong_1,
+                    diphthong_2,
+                )
             return
         if diphthong_1:
             angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
@@ -1748,16 +1956,16 @@ class Circle(Shape):
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians(angle_in)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(scale_x * r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(angle_in)))
         else:
-            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, *rect(r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         if diphthong_1 or diphthong_2:
             glyph.removeOverlap()
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
-        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + STROKE_GAP)
-        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - STROKE_GAP)
+        glyph.addAnchorPoint(anchor_name(ABOVE_ANCHOR), base, x_center, y_max + stroke_gap)
+        glyph.addAnchorPoint(anchor_name(BELOW_ANCHOR), base, x_center, y_min - stroke_gap)
 
     def can_be_child(self, size):
         return True
@@ -2022,7 +2230,7 @@ class Complex(Shape):
             py = asy + ady * u
             return px, py
 
-    def draw_to_proxy(self, pen, stroke_width, size):
+    def draw_to_proxy(self, pen, stroke_width, light_line, stroke_gap, size):
         first_is_invisible = None
         singular_anchor_points = collections.defaultdict(list)
         for op in self.instructions:
@@ -2030,7 +2238,21 @@ class Complex(Shape):
                 continue
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
-            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False, False, False)
+            component.draw(
+                proxy,
+                proxy,
+                stroke_width,
+                light_line,
+                stroke_gap,
+                scalar * size,
+                None,
+                Type.JOINING,
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
             this_entry_list = proxy.anchor_points[(CURSIVE_ANCHOR, 'entry')]
@@ -2071,11 +2293,26 @@ class Complex(Shape):
     def enter_on_first_path(self):
         return True
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
         (
             first_is_invisible,
             singular_anchor_points,
-        ) = self.draw_to_proxy(pen, stroke_width, size)
+        ) = self.draw_to_proxy(pen, stroke_width, light_line, stroke_gap, size)
         glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
@@ -2110,16 +2347,16 @@ class Complex(Shape):
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_center)
         elif anchor == ABOVE_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
-            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width / 2 + stroke_gap + light_line / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_min + stroke_width / 2)
         elif anchor == BELOW_ANCHOR:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
-            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2))
+            glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
         elif anchor is None:
             glyph.addAnchorPoint(MIDDLE_ANCHOR, 'base', x_center, y_center)
-            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2)
-            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - (stroke_width / 2 + STROKE_GAP + LIGHT_LINE / 2))
+            glyph.addAnchorPoint(ABOVE_ANCHOR, 'base', x_center, y_max + stroke_width / 2 + stroke_gap + light_line / 2)
+            glyph.addAnchorPoint(BELOW_ANCHOR, 'base', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
         return first_is_invisible
 
     def can_be_child(self, size):
@@ -2255,11 +2492,11 @@ class InvalidStep(Complex):
         return NO_CONTEXT
 
 class RomanianU(Complex):
-    def draw_to_proxy(self, pen, stroke_width, size):
+    def draw_to_proxy(self, pen, stroke_width, light_line, stroke_gap, size):
         (
             first_is_invisible,
             singular_anchor_points,
-        ) = super().draw_to_proxy(pen, stroke_width, size)
+        ) = super().draw_to_proxy(pen, stroke_width, light_line, stroke_gap, size)
         singular_anchor_points[(RELATIVE_1_ANCHOR, 'base')] = singular_anchor_points[(CURSIVE_ANCHOR, 'exit')]
         return (
             first_is_invisible,
@@ -2287,14 +2524,30 @@ class Wa(Complex):
             self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
-    def draw_to_proxy(self, pen, stroke_width, size):
+    def draw_to_proxy(self, pen, stroke_width, light_line, stroke_gap, size):
         first_is_invisible = None
         last_crossing_point = None
         singular_anchor_points = collections.defaultdict(list)
         for op in self.instructions:
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
-            component.draw(proxy, proxy, stroke_width, scalar * size, None, Type.JOINING, False, False, False, False, False)
+            component.draw(
+                proxy,
+                proxy,
+                stroke_width,
+                light_line,
+                stroke_gap,
+                scalar
+                *
+                size,
+                None,
+                Type.JOINING,
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
             if first_is_invisible is None:
                 first_is_invisible = component.invisible()
             this_crossing_point = proxy.get_crossing_point(component)
@@ -2399,8 +2652,37 @@ class XShape(Complex):
     def can_be_hub(self, size):
         return False
 
-    def draw(self, glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2):
-        super().draw(glyph, pen, stroke_width, size, anchor, joining_type, child, initial_circle_diphthong, final_circle_diphthong, diphthong_1, diphthong_2)
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
+        super().draw(
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+        )
         for anchor_class_name, type, x, y in glyph.anchorPoints:
             if anchor_class_name == CURSIVE_ANCHOR:
                 if type == 'entry':
@@ -3211,112 +3493,6 @@ class Lookup:
         for rule in other.rules:
             self.append(rule)
 
-def dont_ignore_default_ignorables(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_1 = Lookup('abvs', 'dupl', 'dflt')
-    lookup_2 = Lookup('abvs', 'dupl', 'dflt')
-    for schema in schemas:
-        if schema.ignorability == Ignorability.OVERRIDDEN_NO:
-            add_rule(lookup_1, Rule([schema], [schema, schema]))
-            add_rule(lookup_2, Rule([schema, schema], [schema]))
-    return [lookup_1, lookup_2]
-
-def expand_secants(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'abvs',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    named_lookups['non_initial_secant'] = Lookup(None, None, None)
-    for schema in new_schemas:
-        if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
-            add_rule(named_lookups['non_initial_secant'], Rule(
-                [schema],
-                [schema.clone(
-                    cmap=None,
-                    path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
-                    anchor=SECANT_ANCHOR,
-                    widthless=False,
-                )],
-            ))
-            classes['secant'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
-            classes['base'].append(schema)
-    add_rule(lookup, Rule('base', 'secant', [], lookups=['non_initial_secant']))
-    initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
-    add_rule(lookup, Rule(
-        ['secant'],
-        ['secant', continuing_overlap, initial_secant_marker],
-    ))
-    return [lookup]
-
-def validate_overlap_controls(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
-    new_classes = {}
-    global_max_tree_width = 0
-    for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            return [lookup]
-        if isinstance(schema.path, InvalidOverlap):
-            if schema.path.continuing:
-                continuing_overlap = schema
-            else:
-                letter_overlap = schema
-        elif not schema.anchor:
-            if max_tree_width := schema.path.max_tree_width(schema.size):
-                if max_tree_width > global_max_tree_width:
-                    global_max_tree_width = max_tree_width
-                classes['base'].append(schema)
-                new_class = f'base_{max_tree_width}'
-                classes[new_class].append(schema)
-                new_classes[max_tree_width] = new_class
-    assert global_max_tree_width == MAX_TREE_WIDTH
-    classes['invalid'].append(letter_overlap)
-    classes['invalid'].append(continuing_overlap)
-    valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=((1, 0),)), side_bearing=0)
-    valid_continuing_overlap = continuing_overlap.clone(cmap=None, path=ContinuingOverlap(), side_bearing=0)
-    classes['valid'].append(valid_letter_overlap)
-    classes['valid'].append(valid_continuing_overlap)
-    add_rule(lookup, Rule('invalid', 'invalid', [], lookups=[None]))
-    add_rule(lookup, Rule('valid', 'invalid', [], 'valid'))
-    for i in range(global_max_tree_width - 2):
-        add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'invalid'], lookups=[None]))
-    if global_max_tree_width > 1:
-        add_rule(lookup, Rule([], [continuing_overlap], 'invalid', lookups=[None]))
-    for max_tree_width, new_class in new_classes.items():
-        add_rule(lookup, Rule([new_class], 'invalid', ['invalid'] * max_tree_width, lookups=[None]))
-    add_rule(lookup, Rule(['base'], [letter_overlap], [], [valid_letter_overlap]))
-    classes['base'].append(valid_letter_overlap)
-    add_rule(lookup, Rule(['base'], [continuing_overlap], [], [valid_continuing_overlap]))
-    classes['base'].append(valid_continuing_overlap)
-    classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
-    classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
-    classes[CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
-    classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
-    return [lookup]
-
-def add_parent_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blws', 'dupl', 'dflt')
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
-    root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
-    for child_index in range(MAX_TREE_WIDTH):
-        if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
-            classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
-        for layer_index in range(MAX_TREE_DEPTH):
-            if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
-                classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
-    for schema in new_schemas:
-        if schema.glyph_class == GlyphClass.JOINER:
-            classes['root' if schema.path.can_be_child(schema.size) else 'root_only'].append(schema)
-    add_rule(lookup, Rule(['root'], [root_parent_edge, 'root']))
-    add_rule(lookup, Rule(['root_only'], [root_only_parent_edge, root_parent_edge, 'root_only']))
-    return [lookup]
-
 def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
     if maximum_depth <= 0:
         return []
@@ -3344,1839 +3520,6 @@ def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None)
                         tree.extend(deep_subtree)
                         trees.append(tree)
     return trees
-
-def invalidate_overlap_controls(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    for schema in new_schemas:
-        if isinstance(schema.path, ParentEdge):
-            node = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, RootOnlyParentEdge):
-            root_only_parent_edge = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ChildEdge):
-            valid_letter_overlap = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            valid_continuing_overlap = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, InvalidOverlap):
-            if schema.path.continuing:
-                invalid_continuing_overlap = schema
-            else:
-                invalid_letter_overlap = schema
-    classes['valid'].append(valid_letter_overlap)
-    classes['valid'].append(valid_continuing_overlap)
-    classes['invalid'].append(invalid_letter_overlap)
-    classes['invalid'].append(invalid_continuing_overlap)
-    add_rule(lookup, Rule([], 'valid', 'invalid', 'invalid'))
-    for older_sibling_count in range(MAX_TREE_WIDTH - 1, -1, -1):
-        # A continuing overlap not at the top level must be licensed by an
-        # ancestral continuing overlap.
-        # TODO: Optimization: All but the youngest child can use
-        # `valid_letter_overlap` instead of `'valid'`.
-        for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
-            for older_sibling_count_of_continuing_overlap in range(MAX_TREE_WIDTH):
-                add_rule(lookup, Rule(
-                    [valid_letter_overlap] * older_sibling_count,
-                    [valid_letter_overlap],
-                    [*subtrees, node, *[valid_letter_overlap] * older_sibling_count_of_continuing_overlap, valid_continuing_overlap],
-                    [invalid_letter_overlap]
-                ))
-        # Trees have a maximum depth of `MAX_TREE_DEPTH` letters.
-        # TODO: Optimization: Why use a nested `for` loop? Can a combination of
-        # `top_width` and `prefix_depth` work?
-        for subtrees in make_trees(node, valid_letter_overlap, MAX_TREE_DEPTH, top_widths=range(older_sibling_count + 1)):
-            for deep_subtree in make_trees(node, 'valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
-                add_rule(lookup, Rule(
-                    [valid_letter_overlap] * older_sibling_count,
-                    'valid',
-                    [*subtrees, *deep_subtree],
-                    'invalid',
-                ))
-        # Anything valid needs to be explicitly kept valid, since there might
-        # not be enough context to tell that an invalid overlap is invalid.
-        # TODO: Optimization: The last subtree can just be one node instead of
-        # the full subtree.
-        for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
-            add_rule(lookup, Rule(
-                [valid_letter_overlap] * older_sibling_count if older_sibling_count else [node],
-                'valid',
-                subtrees,
-                'valid',
-            ))
-    # If an overlap gets here without being kept valid, it is invalid.
-    # FIXME: This should be just one rule, without context, but `add_rule`
-    # is broken: it does not take into account what rules precede it in the
-    # lookup when determining the possible output schemas.
-    add_rule(lookup, Rule([], 'valid', 'valid', 'valid'))
-    add_rule(lookup, Rule([node], 'valid', [], 'invalid'))
-    add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
-    return [lookup]
-
-def add_placeholders_for_missing_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_1 = Lookup(
-        'blws',
-        'dupl',
-        'dflt',
-        mark_filtering_set='valid_final_overlap',
-    )
-    lookup_2 = Lookup(
-        'blws',
-        'dupl',
-        'dflt',
-        mark_filtering_set='valid_final_overlap',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup_1, lookup_2]
-    base_classes = {}
-    for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            valid_letter_overlap = schema
-            classes['valid_final_overlap'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            valid_continuing_overlap = schema
-            classes['valid_final_overlap'].append(schema)
-        elif (schema.glyph_class == GlyphClass.JOINER
-            and (max_tree_width := schema.path.max_tree_width(schema.size)) > 1
-        ):
-            new_class = f'base_{max_tree_width}'
-            classes[new_class].append(schema)
-            base_classes[max_tree_width] = new_class
-    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
-    placeholder = Schema(None, NNBSP, 0, Type.JOINING, side_bearing=0, child=True)
-    for max_tree_width, base_class in base_classes.items():
-        add_rule(lookup_1, Rule(
-            [base_class],
-            [valid_letter_overlap],
-            [valid_letter_overlap] * (max_tree_width - 2) + ['valid_final_overlap'],
-            lookups=[None],
-        ))
-        add_rule(lookup_2, Rule(
-            [],
-            [base_class],
-            [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap'],
-            lookups=[None],
-        ))
-        for sibling_count in range(max_tree_width - 1, 0, -1):
-            input_1 = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
-            add_rule(lookup_1, Rule(
-                [base_class] + [valid_letter_overlap] * (sibling_count - 1),
-                [input_1],
-                [],
-                [input_1] + [root_parent_edge, placeholder] * sibling_count,
-            ))
-            add_rule(lookup_2, Rule(
-                [],
-                [base_class],
-                [valid_letter_overlap] * (sibling_count - 1) + [input_1],
-                [base_class] + [valid_letter_overlap] * sibling_count,
-            ))
-    return [lookup_1, lookup_2]
-
-def add_secant_guidelines(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt')
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
-    dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
-    initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
-    named_lookups['prepend_zwnj'] = Lookup(None, None, None)
-    for schema in new_schemas:
-        if (isinstance(schema.path, Line)
-            and schema.path.secant
-            and schema.glyph_class == GlyphClass.JOINER
-            and schema in original_schemas
-        ):
-            classes['secant'].append(schema)
-            zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
-            guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
-            guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
-            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
-            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [valid_continuing_overlap, guideline]))
-    add_rule(named_lookups['prepend_zwnj'], Rule('secant', [zwnj, 'secant']))
-    add_rule(lookup, Rule([], 'secant', [], lookups=['prepend_zwnj']))
-    return [lookup]
-
-def categorize_edges(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'blws',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-    )
-    old_groups = [s.path.group() for s in classes['all']]
-    child_edges = {}
-    parent_edges = {}
-    def get_child_edge(lineage):
-        lineage = tuple(lineage)
-        child_edge = child_edges.get(lineage)
-        if child_edge is None:
-            child_edge = default_child_edge.clone(cmap=None, path=default_child_edge.path.clone(lineage=lineage))
-            child_edges[lineage] = child_edge
-        return child_edge
-    def get_parent_edge(lineage):
-        lineage = tuple(lineage)
-        parent_edge = parent_edges.get(lineage)
-        if parent_edge is None:
-            parent_edge = default_parent_edge.clone(cmap=None, path=default_parent_edge.path.clone(lineage=lineage))
-            parent_edges[lineage] = parent_edge
-        return parent_edge
-    for schema in schemas:
-        if isinstance(schema.path, ChildEdge):
-            child_edges[tuple(schema.path.lineage)] = schema
-            if (len(schema.path.lineage) == 1
-                and schema.path.lineage[0][0] == 1
-            ):
-                default_child_edge = schema
-        elif isinstance(schema.path, ParentEdge):
-            parent_edges[tuple(schema.path.lineage)] = schema
-            if not schema.path.lineage:
-                default_parent_edge = schema
-    for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ParentEdge):
-            classes['all'].append(schema)
-    for edge in new_schemas:
-        if edge.path.group() not in old_groups:
-            if isinstance(edge.path, ChildEdge):
-                lineage = list(edge.path.lineage)
-                lineage[-1] = (lineage[-1][0] + 1, 0)
-                if lineage[-1][0] <= MAX_TREE_WIDTH:
-                    new_child_edge = get_child_edge(lineage)
-                    classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
-                    classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
-                    add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
-                lineage = list(edge.path.lineage)
-                lineage[-1] = (1, lineage[-1][0])
-                new_parent_edge = get_parent_edge(lineage)
-                classes[PARENT_EDGE_CLASS].append(new_parent_edge)
-                classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
-                add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
-            elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
-                lineage = list(edge.path.lineage)
-                if len(lineage) < MAX_TREE_DEPTH:
-                    lineage.append((1, lineage[-1][0]))
-                    new_child_edge = get_child_edge(lineage)
-                    classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
-                    classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
-                    add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
-                lineage = list(edge.path.lineage)
-                while lineage and lineage[-1][0] == lineage[-1][1]:
-                    lineage.pop()
-                if lineage:
-                    lineage[-1] = (lineage[-1][0] + 1, lineage[-1][1])
-                    if lineage[-1][0] <= MAX_TREE_WIDTH:
-                        new_parent_edge = get_parent_edge(lineage)
-                        classes[PARENT_EDGE_CLASS].append(new_parent_edge)
-                        classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
-                        add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
-    return [lookup]
-
-def promote_final_letter_overlap_to_continuing_overlap(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', 'dupl', 'dflt')
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            classes['overlap'].append(schema)
-            if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
-                classes['final_letter_overlap'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            continuing_overlap = schema
-            classes['overlap'].append(schema)
-        elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
-            root_parent_edge = schema
-            classes['secant_or_root_parent_edge'].append(schema)
-        elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.MARK:
-            classes['secant_or_root_parent_edge'].append(schema)
-    add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
-    named_lookups['promote'] = Lookup(None, None, None)
-    add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
-    for overlap in classes['final_letter_overlap']:
-        named_lookups[f'promote_{overlap.path}_and_parent'] = Lookup(
-            None,
-            None,
-            None,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-            mark_filtering_set=str(overlap.path),
-        )
-        classes[str(overlap.path)].append(overlap)
-        for parent_edge in new_schemas:
-            if (isinstance(parent_edge.path, ParentEdge)
-                and parent_edge.path.lineage
-                and overlap.path.lineage[:-1] == parent_edge.path.lineage[:-1]
-                and overlap.path.lineage[-1][0] == parent_edge.path.lineage[-1][0] == parent_edge.path.lineage[-1][1]
-            ):
-                classes[str(overlap.path)].append(parent_edge)
-                classes[f'parent_for_{overlap.path}'].append(parent_edge)
-        add_rule(named_lookups['promote'], Rule(f'parent_for_{overlap.path}', [root_parent_edge]))
-        add_rule(named_lookups[f'promote_{overlap.path}_and_parent'], Rule(
-            [],
-            [overlap, f'parent_for_{overlap.path}'],
-            [],
-            lookups=['promote', 'promote'],
-        ))
-        named_lookups[f'check_and_promote_{overlap.path}'] = Lookup(
-            None,
-            None,
-            None,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-            mark_filtering_set='secant_or_root_parent_edge',
-        )
-        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
-        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], [], lookups=[f'promote_{overlap.path}_and_parent']))
-        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap.path}']), track_possible_outputs=False)
-    return [lookup]
-
-def reposition_chinook_jargon_overlap_points(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    # TODO: This should be a general thing, not limited to specific Chinook
-    # Jargon abbreviations and a few similar patterns.
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    line_classes = {}
-    for schema in schemas:
-        if schema.glyph_class == GlyphClass.MARK:
-            if isinstance(schema.path, ChildEdge):
-                classes['all'].append(schema)
-                classes['overlap'].append(schema)
-                classes['letter_overlap'].append(schema)
-            elif isinstance(schema.path, ContinuingOverlap):
-                classes['all'].append(schema)
-                classes['overlap'].append(schema)
-                classes['continuing_overlap'].append(schema)
-            elif not schema.path.invisible():
-                classes['all'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER:
-            if schema.path.max_tree_width(schema.size) == 0:
-                continue
-            if (isinstance(schema.path, Line)
-                and not isinstance(schema.path, LongI)
-                and (schema.size == 1 or schema.cps == [0x1BC07])
-                and not schema.path.secant
-                and not schema.path.dots
-            ):
-                angle = schema.path.angle
-                max_tree_width = schema.path.max_tree_width(schema.size)
-                line_class = f'line_{angle}_{max_tree_width}'
-                classes['line'].append(schema)
-                classes[line_class].append(schema)
-                line_classes[line_class] = (angle, max_tree_width)
-            elif (isinstance(schema.path, Curve)
-                and schema.cps in [[0x1BC1B], [0x1BC1C]]
-                and schema.size == 6
-                and schema.joining_type == Type.JOINING
-                and (schema.path.angle_in, schema.path.angle_out) in [(90, 270), (270, 90)]
-            ):
-                classes['curve'].append(schema)
-    if len(original_schemas) == len(schemas):
-        for width in range(1, MAX_TREE_WIDTH + 1):
-            add_rule(lookup, Rule(['line', *['letter_overlap'] * (width - 1), 'overlap'], 'curve', 'overlap', 'curve'))
-    for curve in classes['curve']:
-        if curve in new_schemas:
-            for line_class, (angle, _) in line_classes.items():
-                for width in range(1, curve.path.max_tree_width(curve.size) + 1):
-                    add_rule(lookup, Rule(
-                        [],
-                        [curve],
-                        [*['overlap'] * width, line_class],
-                        [curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))],
-                    ))
-    for curve_child in classes['curve']:
-        if curve_child in new_schemas:
-            for line_class, (angle, max_tree_width) in line_classes.items():
-                for width in range(1, max_tree_width + 1):
-                    add_rule(lookup, Rule(
-                        [line_class, *['letter_overlap'] * (width - 1), 'overlap'],
-                        [curve_child],
-                        [],
-                        [curve_child.clone(cmap=None, path=curve_child.path.clone(overlap_angle=angle))],
-                    ))
-    return [lookup]
-
-def make_mark_variants_of_children(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blws', 'dupl', 'dflt')
-    children_to_be = []
-    old_child_count = len(classes['child'])
-    for schema in new_schemas:
-        if isinstance(schema.path, ParentEdge) and schema.path.lineage:
-            classes['all'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child(schema.size):
-            classes['child_to_be'].append(schema)
-    for i, child_to_be in enumerate(classes['child_to_be']):
-        if i < old_child_count:
-            continue
-        child = child_to_be.clone(cmap=None, child=True)
-        classes['child'].append(child)
-        classes[PARENT_EDGE_CLASS].append(child)
-        for child_index in range(MAX_TREE_WIDTH):
-            classes[CHILD_EDGE_CLASSES[child_index]].append(child)
-    add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
-    return [lookup]
-
-def validate_shading(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='independent_mark',
-        reversed=True,
-    )
-    if len(new_schemas) == len(schemas):
-        invalid_dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
-        valid_dtls = invalid_dtls.clone(cmap=None, path=ValidDTLS())
-        for schema in new_schemas:
-            if schema.anchor:
-                if schema.cmap is not None:
-                    classes['independent_mark'].append(schema)
-            elif schema.shading_allowed and schema.path.is_shadable():
-                classes['c'].append(schema)
-        add_rule(lookup, Rule(['c'], [invalid_dtls], [], [valid_dtls]))
-    return [lookup]
-
-def validate_double_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='double_mark',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    double_mark = next(s for s in original_schemas if s.cps == [0x1BC9E])
-    classes['double_mark'].append(double_mark)
-    new_maximums = set()
-    for schema in new_schemas:
-        maximum = schema.max_double_marks()
-        new_maximums.add(maximum)
-        classes[str(maximum)].append(schema)
-    for maximum in sorted(new_maximums, reverse=True):
-        for i in range(0, maximum):
-            add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], lookups=[None]))
-    guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING)
-    add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
-    return [lookup]
-
-def shade(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rlig',
-        'dupl',
-        'dflt',
-        mark_filtering_set='independent_mark',
-    )
-    dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
-    classes['independent_mark'].append(dtls)
-    if new_schemas:
-        for schema in new_schemas:
-            if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
-                if schema.cmap is not None:
-                    classes['independent_mark'].append(schema)
-            elif (schema in original_schemas
-                and not schema.ignored_for_topography
-                and schema.shading_allowed
-                and schema.path.is_shadable()
-            ):
-                classes['i'].append(schema)
-                classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
-                if schema.glyph_class == GlyphClass.MARK:
-                    classes['independent_mark'].append(schema)
-        add_rule(lookup, Rule(['i', dtls], 'o'))
-    return [lookup]
-
-def decompose(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt')
-    for schema in schemas:
-        if schema.marks and schema in new_schemas:
-            add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
-    return [lookup]
-
-def reposition_stenographic_period(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    for schema in new_schemas:
-        if (isinstance(schema.path, InvalidStep)
-            or isinstance(schema.path, Space) and schema.joining_type == Type.JOINING
-        ) and schema.glyph_class != GlyphClass.MARK:
-            classes['c'].append(schema)
-        elif schema.cmap == 0x2E3C:
-            period = schema
-    zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
-    joining_period = period.clone(cmap=None, joining_type=Type.JOINING)
-    add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
-    return [lookup]
-
-def disjoin_equals_sign(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    equals_sign = next(s for s in schemas if s.cmap == 0x003D)
-    continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
-    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
-    zwnj = Schema(None, SPACE, 0, Type.NON_JOINING, side_bearing=0)
-    classes['all'].append(continuing_overlap)
-    classes['all'].append(root_parent_edge)
-    add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
-    add_rule(lookup, Rule([equals_sign, continuing_overlap], [root_parent_edge], [], lookups=[None]))
-    add_rule(lookup, Rule([equals_sign], [root_parent_edge], [], [zwnj, root_parent_edge]))
-    return [lookup]
-
-def join_with_next_step(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
-    )
-    old_input_count = len(classes['i'])
-    for schema in new_schemas:
-        if isinstance(schema.path, InvalidStep):
-            classes['i'].append(schema)
-        if schema.glyph_class == GlyphClass.JOINER:
-            classes['c'].append(schema)
-    new_context = 'o' not in classes
-    for i, target_schema in enumerate(classes['i']):
-        if new_context or i >= old_input_count:
-            output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT).clone(
-                size=800,
-                joining_type=Type.JOINING,
-                side_bearing=0,
-            )
-            classes['o'].append(output_schema)
-    if new_context:
-        add_rule(lookup, Rule([], 'i', 'c', 'o'))
-    return [lookup]
-
-def prepare_for_secondary_diphthong_ligature(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    for schema in new_schemas:
-        if not schema.can_become_part_of_diphthong:
-            continue
-        if isinstance(schema.path, Curve):
-            if schema.is_primary:
-                classes['primary_semicircle'].append(schema)
-        elif schema.path.reversed:
-            classes['reversed_circle'].append(schema)
-            classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
-    add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
-    return [lookup]
-
-def join_with_previous(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_1 = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-    )
-    lookup_2 = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup_1, lookup_2]
-    contexts_in = OrderedSet()
-    @functools.cache
-    def get_context_marker(context):
-        return Schema(None, ContextMarker(False, context), 0)
-    for schema in original_schemas:
-        if schema.glyph_class == GlyphClass.JOINER:
-            if (schema.joining_type == Type.ORIENTING
-                and schema.context_in == NO_CONTEXT
-            ):
-                classes['i'].append(schema)
-            if (context_in := schema.path_context_out()) != NO_CONTEXT:
-                if context_in.ignorable_for_topography:
-                    context_in = context_in.clone(angle=0)
-                context_in = get_context_marker(context_in)
-                classes['all'].append(context_in)
-                classes['i2'].append(schema)
-                classes['o2'].append(context_in)
-                contexts_in.add(context_in)
-    classes['all'].extend(classes[CONTINUING_OVERLAP_CLASS])
-    add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
-    for j, context_in in enumerate(contexts_in):
-        for i, target_schema in enumerate(classes['i']):
-            classes[f'o_{j}'].append(target_schema.contextualize(context_in.path.context, target_schema.context_out))
-        add_rule(lookup_2, Rule([context_in], 'i', [], f'o_{j}'))
-    return [lookup_1, lookup_2]
-
-def unignore_last_orienting_glyph_in_initial_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='i',
-    )
-    if 'check_previous' in named_lookups:
-        return [lookup]
-    for schema in new_schemas:
-        if schema.ignored_for_topography:
-            classes['i'].append(schema)
-            classes['o'].append(schema.clone(ignored_for_topography=False))
-        elif schema.glyph_class == GlyphClass.JOINER and not isinstance(schema.path, Space):
-            if (schema.joining_type == Type.ORIENTING
-                and schema.can_be_ignored_for_topography()
-            ):
-                classes['first'].append(schema)
-            else:
-                classes['c'].append(schema)
-                if schema.can_lead_orienting_sequence and not isinstance(schema.path, Line):
-                    classes['fixed_form'].append(schema)
-    named_lookups['check_previous'] = Lookup(
-        None,
-        None,
-        None,
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
-    add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
-    add_rule(named_lookups['check_previous'], Rule('c', 'i', [], lookups=[None]))
-    add_rule(named_lookups['check_previous'], Rule([], 'i', 'fixed_form', lookups=[None]))
-    add_rule(named_lookups['check_previous'], Rule('i', 'o'))
-    add_rule(lookup, Rule([], 'i', 'c', lookups=['check_previous']))
-    return [lookup]
-
-def ignore_first_orienting_glyph_in_initial_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
-    )
-    for schema in new_schemas:
-        if schema.glyph_class != GlyphClass.JOINER:
-            continue
-        classes['joiner'].append(schema)
-        if (schema.can_lead_orienting_sequence
-            and schema.can_be_ignored_for_topography()
-        ):
-            classes['c'].append(schema)
-            if schema.joining_type == Type.ORIENTING:
-                classes['i'].append(schema)
-                angle_out = schema.path.angle_out - schema.path.angle_in
-                path = schema.path.clone(
-                    angle_in=0,
-                    angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
-                    clockwise=True,
-                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})
-                )
-                classes['o'].append(schema.clone(
-                    cmap=None,
-                    path=path,
-                    ignored_for_topography=True,
-                    context_in=None,
-                    context_out=None,
-                ))
-    add_rule(lookup, Rule('joiner', 'i', [], 'i'))
-    add_rule(lookup, Rule([], 'i', 'c', 'o'))
-    return [lookup]
-
-def tag_main_glyph_in_orienting_sequence(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='dependent',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    for schema in new_schemas:
-        if schema.ignored_for_topography:
-            classes['dependent'].append(schema)
-        elif (schema.joining_type == Type.ORIENTING
-            and schema.glyph_class == GlyphClass.JOINER
-            and isinstance(schema.path, Circle)
-            and schema.path.role == CircleRole.INDEPENDENT
-        ):
-            classes['i'].append(schema)
-            classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(role=CircleRole.LEADER)))
-    add_rule(lookup, Rule('dependent', 'i', [], 'o'))
-    add_rule(lookup, Rule([], 'i', 'dependent', 'o'))
-    return [lookup]
-
-def join_with_next(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    pre_lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
-    )
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set=CONTINUING_OVERLAP_CLASS,
-        reversed=True,
-    )
-    post_lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='continuing_overlap_after_secant',
-        reversed=True,
-    )
-    contexts_out = OrderedSet()
-    new_contexts_out = set()
-    old_input_count = len(classes['i'])
-    if old_input_count == 0:
-        for schema in original_schemas:
-            if (schema.glyph_class == GlyphClass.JOINER
-                and schema.joining_type == Type.ORIENTING
-                and schema.context_out == NO_CONTEXT
-            ):
-                classes['i'].append(schema)
-                if isinstance(schema.path, Line) and schema.path.secant:
-                    classes['secant_i'].append(schema)
-                    classes['secant_o'].append(schema)
-        continuing_overlap = next(iter(classes[CONTINUING_OVERLAP_CLASS]))
-        continuing_overlap_after_secant = Schema(None, ContinuingOverlapS(), 0)
-        classes['continuing_overlap_after_secant'].append(continuing_overlap_after_secant)
-        add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
-    for schema in new_schemas:
-        if (schema.glyph_class == GlyphClass.JOINER
-            and (old_input_count == 0 or not isinstance(schema.path, (LongI, Curve, Circle, Complex)))
-            and not (isinstance(schema.path, Line) and schema.path.secant)
-            and (context_out := schema.path.context_in()) != NO_CONTEXT
-        ):
-            contexts_out.add(context_out)
-            if schema not in (context_out_class := classes[f'c_{context_out}']):
-                if not context_out_class:
-                    new_contexts_out.add(context_out)
-                context_out_class.append(schema)
-    for context_out in contexts_out:
-        output_class_name = f'o_{context_out}'
-        new_context = context_out in new_contexts_out
-        for i, target_schema in enumerate(classes['i']):
-            if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(target_schema.context_in, context_out)
-                classes[output_class_name].append(output_schema)
-                if isinstance(output_schema.path, Line) and output_schema.path.secant:
-                    classes['secant_o'].append(output_schema)
-        if new_context:
-            add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
-    if old_input_count == 0:
-        # FIXME: This rule shouldn’t need to be contextual, but without the
-        # context, fontTools throws a `KeyError` in `buildCoverage`.
-        add_rule(post_lookup, Rule(['secant_o'], [continuing_overlap_after_secant], [], [continuing_overlap]))
-    return [pre_lookup, lookup, post_lookup]
-
-def join_circle_with_adjacent_nonorienting_glyph(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='ignored_for_topography',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
-    contexts_out = OrderedSet()
-    for schema in new_schemas:
-        if schema.ignored_for_topography:
-            if isinstance(schema.path, Circle):
-                classes['i'].append(schema)
-            classes['ignored_for_topography'].append(schema)
-        elif (schema.glyph_class == GlyphClass.JOINER
-            and (not schema.can_lead_orienting_sequence
-                or isinstance(schema.path, Line) and schema.path.visible_base and not schema.path.secant
-            )
-        ):
-            if (context_out := schema.path.context_in()) != NO_CONTEXT:
-                context_out = Context(context_out.angle)
-                contexts_out.add(context_out)
-                classes[f'c_{context_out}'].append(schema)
-    for context_out in contexts_out:
-        output_class_name = f'o_{context_out}'
-        for circle in classes['i']:
-            classes[output_class_name].append(circle.clone(cmap=None, context_out=context_out))
-        add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
-    return [lookup]
-
-def ligate_diphthongs(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rlig',
-        'dupl',
-        'dflt',
-        mark_filtering_set='ignored_for_topography',
-        reversed=True,
-    )
-    diphthong_1_classes = OrderedSet()
-    diphthong_2_classes = OrderedSet()
-    for schema in new_schemas:
-        if not schema.can_become_part_of_diphthong:
-            continue
-        is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
-        is_ignored = schema.ignored_for_topography
-        is_primary = schema.is_primary
-        if is_ignored and not is_primary:
-            continue
-        input_class_name = f'i1_{is_circle_letter}_{is_ignored}'
-        classes[input_class_name].append(schema)
-        output_class_name = f'o1_{is_circle_letter}_{is_ignored}'
-        output_schema = schema.clone(cmap=None, diphthong_1=True)
-        classes[output_class_name].append(output_schema)
-        diphthong_1_classes.add((
-            input_class_name,
-            is_circle_letter,
-            is_ignored,
-            output_class_name,
-        ))
-        if schema.ignored_for_topography:
-            classes['ignored_for_topography'].append(output_schema)
-        input_class_name = f'i2_{is_circle_letter}_{is_ignored}'
-        classes[input_class_name].append(schema)
-        output_class_name = f'o2_{is_circle_letter}_{is_ignored}'
-        output_schema = schema.clone(cmap=None, diphthong_2=True)
-        classes[output_class_name].append(output_schema)
-        diphthong_2_classes.add((
-            input_class_name,
-            is_circle_letter,
-            is_ignored,
-            output_class_name,
-        ))
-        if schema.ignored_for_topography:
-            classes['ignored_for_topography'].append(schema)
-            classes['ignored_for_topography'].append(output_schema)
-    for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes.keys():
-        for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes.keys():
-            if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
-                add_rule(lookup, Rule(input_1, input_2, [], output_2))
-                add_rule(lookup, Rule([], input_1, output_2, output_1))
-    return [lookup]
-
-def unignore_noninitial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='i',
-    )
-    contexts_in = OrderedSet()
-    new_contexts_in = set()
-    old_input_count = len(classes['i'])
-    for schema in new_schemas:
-        if schema.ignored_for_topography and (
-            schema.context_in.angle is None or schema.context_in.ignorable_for_topography
-        ):
-            classes['i'].append(schema)
-        elif (schema.glyph_class == GlyphClass.JOINER
-            and schema.can_lead_orienting_sequence
-            and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
-                or schema.phase_index < PHASES.index(join_circle_with_adjacent_nonorienting_glyph)
-                if isinstance(schema.path, Circle)
-                else schema.can_be_ignored_for_topography())
-        ):
-            context_in = schema.path_context_out().clone(diphthong_start=False, diphthong_end=False)
-            contexts_in.add(context_in)
-            if schema not in (context_in_class := classes[f'c_{context_in}']):
-                if not context_in_class:
-                    new_contexts_in.add(context_in)
-                context_in_class.append(schema)
-    for context_in in contexts_in:
-        output_class_name = f'o_{context_in}'
-        new_context = context_in in new_contexts_in
-        for i, target_schema in enumerate(classes['i']):
-            if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(context_in, target_schema.context_out, ignore_dependent_schemas=False)
-                classes[output_class_name].append(output_schema)
-        if new_context:
-            add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
-    return [lookup]
-
-def unignore_initial_orienting_sequences(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='i',
-        reversed=True,
-    )
-    contexts_out = OrderedSet()
-    new_contexts_out = set()
-    old_input_count = len(classes['i'])
-    for schema in new_schemas:
-        if schema.ignored_for_topography and (
-            schema.context_out.angle is None or schema.context_out.ignorable_for_topography
-        ):
-            classes['i'].append(schema)
-        elif (schema.glyph_class == GlyphClass.JOINER
-            and schema.can_lead_orienting_sequence
-            and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
-                or schema.phase_index < PHASES.index(join_circle_with_adjacent_nonorienting_glyph)
-                if isinstance(schema.path, Circle)
-                else schema.can_be_ignored_for_topography())
-        ):
-            context_out = schema.path_context_in().clone(diphthong_start=False, diphthong_end=False)
-            contexts_out.add(context_out)
-            if schema not in (context_out_class := classes[f'c_{context_out}']):
-                if not context_out_class:
-                    new_contexts_out.add(context_out)
-                context_out_class.append(schema)
-    for context_out in contexts_out:
-        output_class_name = f'o_{context_out}'
-        new_context = context_out in new_contexts_out
-        for i, target_schema in enumerate(classes['i']):
-            if new_context or i >= old_input_count:
-                output_schema = target_schema.contextualize(target_schema.context_in, context_out, ignore_dependent_schemas=False)
-                classes[output_class_name].append(output_schema)
-        if new_context:
-            add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
-    return [lookup]
-
-def join_double_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rlig',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-    )
-    for schema in new_schemas:
-        if schema.cps == [0x1BC9E]:
-            classes['all'].append(schema)
-            for i in range(2, MAX_DOUBLE_MARKS + 1):
-                add_rule(lookup, Rule([schema] * i, [schema.clone(
-                    cmap=None,
-                    cps=schema.cps * i,
-                    path=Complex([
-                        (1, schema.path),
-                        (500, Space((schema.path.angle + 180) % 360, margins=False)),
-                        (250, Space((schema.path.angle - 90) % 360, margins=False)),
-                    ] * i),
-                )]))
-    return [lookup]
-
-def rotate_diacritics(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    base_anchors_and_contexts = OrderedSet()
-    new_base_anchors_and_contexts = set()
-    for schema in original_schemas:
-        if schema.anchor:
-            if (schema.joining_type == Type.ORIENTING
-                    and schema.base_angle is None
-                    and schema in new_schemas):
-                classes['all'].append(schema)
-                classes[f'i_{schema.anchor}'].append(schema)
-        elif not schema.ignored_for_topography:
-            for base_anchor, base_angle in schema.diacritic_angles.items():
-                base_context = Context(base_angle, schema.path.context_out().clockwise)
-                base_anchor_and_context = (base_anchor, base_context)
-                base_anchors_and_contexts.add(base_anchor_and_context)
-                if schema not in (base_anchor_and_context_class := classes[f'c_{base_anchor}_{base_context}']):
-                    if not base_anchor_and_context_class:
-                        new_base_anchors_and_contexts.add(base_anchor_and_context)
-                    base_anchor_and_context_class.append(schema)
-                    if schema.glyph_class == GlyphClass.MARK:
-                        classes['all'].append(schema)
-    for base_anchor_and_context in base_anchors_and_contexts:
-        if base_anchor_and_context in new_base_anchors_and_contexts:
-            anchor, context = base_anchor_and_context
-            output_class_name = f'o_{anchor}_{context}'
-            for target_schema in classes[f'i_{anchor}']:
-                if anchor == target_schema.anchor:
-                    output_schema = target_schema.rotate_diacritic(context)
-                    classes[output_class_name].append(output_schema)
-            add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
-    return [lookup]
-
-def make_widthless_variants_of_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt')
-    first_iteration = 'i' not in classes
-    for schema in new_schemas:
-        if schema.glyph_class == GlyphClass.MARK:
-            if schema.anchor and schema.widthless is None and not schema.path.invisible():
-                classes['i'].append(schema)
-                widthless_variant = schema.clone(cmap=None, widthless=True)
-                classes['o'].append(widthless_variant)
-                classes['c'].append(widthless_variant)
-        elif schema.joining_type == Type.NON_JOINING:
-            classes['c'].append(schema)
-    if first_iteration:
-        add_rule(lookup, Rule('c', 'i', [], 'o'))
-    return [lookup]
-
-def classify_marks_for_trees(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    for schema in schemas:
-        for anchor in MARK_ANCHORS:
-            if schema.child or schema.anchor == anchor:
-                classes[f'global..{mkmk(anchor)}'].append(schema)
-    return []
-
-def merge_lookalikes(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-    )
-    grouper = group_schemas(new_schemas)
-    for group in grouper.groups():
-        group.sort(key=Schema.sort_key)
-        group = iter(group)
-        canonical_schema = next(group)
-        if not canonical_schema.might_need_width_markers:
-            continue
-        for schema in group:
-            add_rule(lookup, Rule([schema], [canonical_schema]))
-    return [lookup]
-
-def add_shims_for_pseudo_cursive(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    marker_lookup = Lookup(
-        'haln',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
-    space_lookup = Lookup(
-        'haln',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
-    )
-    if len(original_schemas) != len(schemas):
-        return [marker_lookup, space_lookup]
-    pseudo_cursive_schemas = {}
-    exit_schemas = []
-    entry_schemas = []
-    for schema in new_schemas:
-        if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
-            continue
-        if (isinstance(schema.path, (Dot, Space, XShape))
-            and schema.size
-            and not schema.path.can_be_hub(schema.size)
-        ):
-            x_min, _, x_max, _ = schema.glyph.boundingBox()
-            pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
-        if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
-            for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
-                if anchor_class_name == CURSIVE_ANCHOR:
-                    if type == 'exit' and schema.context_out == NO_CONTEXT and not schema.diphthong_1:
-                        exit_schemas.append((schema, x, y))
-                    elif type == 'entry' and schema.context_in == NO_CONTEXT and not schema.diphthong_2:
-                        entry_schemas.append((schema, x, y))
-    @functools.cache
-    def get_shim(width, height):
-        return Schema(
-            None,
-            Space(width and math.degrees(math.atan(height / width)) % 360, margins=False),
-            math.hypot(width, height),
-            side_bearing=width,
-        )
-    marker = get_shim(0, 0)
-    rounding_base = 4
-    for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
-        add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
-        exit_classes = {}
-        exit_classes_containing_pseudo_cursive_schemas = set()
-        exit_classes_containing_true_cursive_schemas = set()
-        entry_classes = {}
-        for prefix, e_schemas, e_classes, height_sign, get_distance_to_edge in [
-            ('exit', exit_schemas, exit_classes, -1, lambda bounds, x: bounds[1] - x),
-            ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
-        ]:
-            for e_schema, x, y in e_schemas:
-                bounds = e_schema.glyph.foreground.xBoundsAtY(y - LIGHT_LINE, y + LIGHT_LINE)
-                distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
-                shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
-                shim_height = round(pseudo_cursive_half_width * height_sign)
-                if (e_schemas is exit_schemas
-                    and isinstance(pseudo_cursive_schema.path, Space)
-                    and isinstance(e_schema.path, Space)
-                ):
-                    # Margins do not collapse between spaces.
-                    shim_width += DEFAULT_SIDE_BEARING
-                exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
-                if exit_is_pseudo_cursive:
-                    shim_height += pseudo_cursive_schemas[e_schema]
-                shim_height = rounding_base * round(shim_height / rounding_base)
-                shim_width = rounding_base * round(shim_width / rounding_base)
-                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
-                classes[e_class].append(e_schema)
-                if e_class not in e_classes:
-                    e_classes[e_class] = get_shim(shim_width, shim_height)
-                (exit_classes_containing_pseudo_cursive_schemas
-                        if exit_is_pseudo_cursive
-                        else exit_classes_containing_true_cursive_schemas
-                    ).add(e_class)
-        for exit_class, shim in exit_classes.items():
-            if exit_class in exit_classes_containing_pseudo_cursive_schemas:
-                add_rule(space_lookup, Rule([exit_class, marker], [marker], [pseudo_cursive_schema], [shim]))
-            if exit_class in exit_classes_containing_true_cursive_schemas:
-                add_rule(space_lookup, Rule(exit_class, [marker], [pseudo_cursive_schema], [shim]))
-        for entry_class, shim in entry_classes.items():
-            add_rule(space_lookup, Rule([pseudo_cursive_schema], [marker], entry_class, [shim]))
-    return [marker_lookup, space_lookup]
-
-def shrink_wrap_enclosing_circle(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'rclt',
-        'dupl',
-        'dflt',
-        mark_filtering_set='i',
-    )
-    dist_lookup = Lookup(
-        'dist',
-        'dupl',
-        'dflt',
-        mark_filtering_set='o',
-    )
-    if len(original_schemas) != len(schemas):
-        return [lookup, dist_lookup]
-    punctuation = {}
-    circle_schema = None
-    for schema in schemas:
-        if not schema.glyph:
-            continue
-        if schema.widthless and schema.cps == [0x20DD]:
-            assert circle_schema is None
-            circle_schema = schema
-            classes['i'].append(circle_schema)
-        elif schema.encirclable:
-            x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
-            dx = x_max - x_min
-            dy = y_max - y_min
-            class_name = f'c_{dx}_{dy}'
-            classes[class_name].append(schema)
-            punctuation[class_name] = (dx, dy, schema.glyph.width)
-    for class_name, (dx, dy, width) in punctuation.items():
-        dx += 3 * STROKE_GAP + LIGHT_LINE
-        dy += 3 * STROKE_GAP + LIGHT_LINE
-        if dx > dy:
-            dy = max(dy, dx * 0.75)
-        elif dx < dy:
-            dx = max(dx, dy * 0.75)
-        new_circle_schema = circle_schema.clone(
-            cmap=None,
-            path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
-            size=min(dx, dy) / 100,
-        )
-        add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
-        classes['o'].append(new_circle_schema)
-        side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - width) / 2)
-        add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[side_bearing]))
-        add_rule(dist_lookup, Rule([class_name], [new_circle_schema], [], x_advances=[side_bearing]))
-    return [lookup, dist_lookup]
-
-def add_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookups_per_position = 68
-    lookups = [
-        Lookup('psts', 'dupl', 'dflt')
-        for _ in range(lookups_per_position)
-    ]
-    rule_count = 0
-    carry_0_schema = Schema(None, Carry(0), 0)
-    entry_width_markers = {}
-    left_bound_markers = {}
-    right_bound_markers = {}
-    anchor_width_markers = {}
-    start = Schema(None, Start(), 0)
-    hub = next((s for s in schemas if isinstance(s.path, Hub)), None)
-    if hub is None:
-        hub = Schema(None, Hub(), 0)
-        classes[HUB_CLASS].append(hub)
-        classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
-    end = Schema(None, End(), 0)
-    mark_anchor_selectors = {}
-    def get_mark_anchor_selector(schema):
-        only_anchor_class_name = None
-        for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
-            if type == 'mark' and anchor_class_name in MARK_ANCHORS:
-                assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
-                only_anchor_class_name = anchor_class_name
-        index = MARK_ANCHORS.index(only_anchor_class_name)
-        if index in mark_anchor_selectors:
-            return mark_anchor_selectors[index]
-        return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
-    glyph_class_selectors = {}
-    def get_glyph_class_selector(schema):
-        glyph_class = schema.glyph_class
-        if glyph_class in glyph_class_selectors:
-            return glyph_class_selectors[glyph_class]
-        return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
-    for schema in new_schemas:
-        if schema not in original_schemas:
-            continue
-        if schema.glyph is None:
-            if isinstance(schema.path, MarkAnchorSelector):
-                mark_anchor_selectors[schema.path.index] = schema
-            elif isinstance(schema.path, GlyphClassSelector):
-                glyph_class_selectors[schema.glyph_class] = schema
-            if not isinstance(schema.path, Space):
-                # Not a schema created in `add_shims_for_pseudo_cursive`
-                continue
-        if schema.might_need_width_markers and (
-            schema.glyph_class != GlyphClass.MARK or any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
-        ):
-            entry_xs = {}
-            exit_xs = {}
-            if schema.glyph is None and isinstance(schema.path, Space):
-                entry_xs[CURSIVE_ANCHOR] = 0
-                exit_xs[CURSIVE_ANCHOR] = schema.size
-            else:
-                for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                    if type in ['entry', 'mark']:
-                        entry_xs[anchor_class_name] = x
-                    elif type in ['base', 'basemark', 'exit']:
-                        exit_xs[anchor_class_name] = x
-            if not (entry_xs or exit_xs):
-                # This glyph never appears in the final glyph buffer.
-                continue
-            entry_xs.setdefault(CURSIVE_ANCHOR, 0)
-            if CURSIVE_ANCHOR not in exit_xs:
-                exit_xs[CURSIVE_ANCHOR] = exit_xs.get(CONTINUING_OVERLAP_ANCHOR, 0)
-            entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
-            exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
-            start_x = entry_xs[CURSIVE_ANCHOR if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
-            if schema.glyph is None:
-                x_min = x_max = 0
-            else:
-                x_min, _, x_max, _ = schema.glyph.boundingBox()
-            if x_min == x_max == 0:
-                x_min = entry_xs[CURSIVE_ANCHOR]
-                x_max = exit_xs[CURSIVE_ANCHOR]
-            if schema.glyph_class == GlyphClass.MARK:
-                mark_anchor_selector = [get_mark_anchor_selector(schema)]
-            else:
-                mark_anchor_selector = []
-            glyph_class_selector = get_glyph_class_selector(schema)
-            digits = []
-            for width, digit_path, width_markers in [
-                (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
-                (x_min - start_x, LeftBoundDigit, left_bound_markers),
-                (x_max - start_x, RightBoundDigit, right_bound_markers),
-                *[
-                    (
-                        exit_xs[anchor] - start_x if anchor in exit_xs else 0,
-                        AnchorWidthDigit,
-                        anchor_width_markers,
-                    ) for anchor in MARK_ANCHORS
-                ],
-                *[
-                    (
-                        exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
-                        AnchorWidthDigit,
-                        anchor_width_markers)
-                    for anchor in CURSIVE_ANCHORS
-                ],
-            ]:
-                assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    if width >= 0
-                    else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    ), f'Glyph {schema} is too wide: {width} units'
-                digits_base = len(digits)
-                digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
-                quotient = round(width)
-                for i in range(WIDTH_MARKER_PLACES):
-                    quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-                    args = (i, remainder)
-                    if args not in width_markers:
-                        width_markers[args] = Schema(None, digit_path(*args), 0)
-                    digits[digits_base + i * 2 + 1] = width_markers[args]
-            lookup = lookups[rule_count % lookups_per_position]
-            rule_count += 1
-            add_rule(lookup, Rule([schema], [
-                start,
-                glyph_class_selector,
-                *mark_anchor_selector,
-                *([hub] if schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_hub(schema.size) else []),
-                schema,
-                *digits,
-                end,
-            ]))
-    return lookups
-
-def add_end_markers_for_marks(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt')
-    end = next(s for s in new_schemas if isinstance(s.path, End))
-    for schema in new_schemas:
-        if (schema.glyph is not None
-            and schema.glyph_class == GlyphClass.MARK
-            and not schema.ignored_for_topography
-            and not schema.path.invisible()
-            and not any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
-        ):
-            add_rule(lookup, Rule([schema], [schema, end]))
-    return [lookup]
-
-def remove_false_end_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-    )
-    if 'all' in classes:
-        return [lookup]
-    dummy = Schema(None, Dummy(), 0)
-    end = next(s for s in new_schemas if isinstance(s.path, End))
-    classes['all'].append(end)
-    add_rule(lookup, Rule([], [end], [end], [dummy]))
-    return [lookup]
-
-def clear_entry_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-    )
-    zeros = [None] * WIDTH_MARKER_PLACES
-    if 'zero' not in named_lookups:
-        named_lookups['zero'] = Lookup(None, None, None)
-    for schema in schemas:
-        if isinstance(schema.path, EntryWidthDigit):
-            classes['all'].append(schema)
-            classes[str(schema.path.place)].append(schema)
-            if schema.path.digit == 0:
-                zeros[schema.path.place] = schema
-        elif isinstance(schema.path, ContinuingOverlap):
-            classes['all'].append(schema)
-            continuing_overlap = schema
-    for schema in new_schemas:
-        if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
-            add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
-    add_rule(lookup, Rule(
-        [continuing_overlap],
-        [*map(str, range(WIDTH_MARKER_PLACES))],
-        [],
-        lookups=[None] * WIDTH_MARKER_PLACES,
-    ))
-    add_rule(lookup, Rule(
-        [],
-        [*map(str, range(WIDTH_MARKER_PLACES))],
-        [],
-        lookups=['zero'] * WIDTH_MARKER_PLACES,
-    ))
-    return [lookup]
-
-def sum_width_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-    )
-    carry_schemas = {}
-    dummied_carry_schemas = set()
-    original_carry_schemas = []
-    entry_digit_schemas = {}
-    original_entry_digit_schemas = []
-    left_digit_schemas = {}
-    original_left_digit_schemas = []
-    right_digit_schemas = {}
-    original_right_digit_schemas = []
-    anchor_digit_schemas = {}
-    original_anchor_digit_schemas = []
-    mark_anchor_selectors = {}
-    def get_mark_anchor_selector(index, class_name):
-        if index in mark_anchor_selectors:
-            rv = mark_anchor_selectors[index]
-            classes[class_name].append(rv)
-            return rv
-        rv = Schema(
-            None,
-            MarkAnchorSelector(index - len(CURSIVE_ANCHORS)),
-            0,
-        )
-        classes['all'].append(rv)
-        classes[class_name].append(rv)
-        return mark_anchor_selectors.setdefault(index, rv)
-    glyph_class_selectors = {}
-    def get_glyph_class_selector(glyph_class, class_name):
-        if glyph_class in glyph_class_selectors:
-            rv = glyph_class_selectors[glyph_class]
-            classes[class_name].append(rv)
-            return rv
-        rv = Schema(
-            None,
-            GlyphClassSelector(glyph_class),
-            0,
-        )
-        classes['all'].append(rv)
-        classes[class_name].append(rv)
-        return glyph_class_selectors.setdefault(glyph_class, rv)
-    for schema in schemas:
-        if isinstance(schema.path, ContinuingOverlap):
-            classes['all'].append(schema)
-            continuing_overlap = schema
-        elif isinstance(schema.path, Carry):
-            carry_schemas[schema.path.value] = schema
-            original_carry_schemas.append(schema)
-            if schema in new_schemas:
-                classes['all'].append(schema)
-                classes['c'].append(schema)
-        elif isinstance(schema.path, EntryWidthDigit):
-            entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_entry_digit_schemas.append(schema)
-            if schema in new_schemas:
-                classes['all'].append(schema)
-                classes[f'idx_{schema.path.place}'].append(schema)
-        elif isinstance(schema.path, LeftBoundDigit):
-            left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_left_digit_schemas.append(schema)
-            if schema in new_schemas:
-                classes['all'].append(schema)
-                classes[f'ldx_{schema.path.place}'].append(schema)
-        elif isinstance(schema.path, RightBoundDigit):
-            right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_right_digit_schemas.append(schema)
-            if schema in new_schemas:
-                classes['all'].append(schema)
-                classes[f'rdx_{schema.path.place}'].append(schema)
-        elif isinstance(schema.path, AnchorWidthDigit):
-            anchor_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            original_anchor_digit_schemas.append(schema)
-            if schema in new_schemas:
-                classes['all'].append(schema)
-                classes[f'adx_{schema.path.place}'].append(schema)
-        elif isinstance(schema.path, Dummy):
-            dummy = schema
-        elif isinstance(schema.path, MarkAnchorSelector):
-            mark_anchor_selectors[schema.path.index] = schema
-        elif isinstance(schema.path, GlyphClassSelector):
-            glyph_class_selectors[schema.path.glyph_class] = schema
-    for (
-        original_augend_schemas,
-        augend_letter,
-        inner_iterable,
-    ) in [(
-        original_entry_digit_schemas,
-        'i',
-        [*[(
-            False,
-            0,
-            i,
-            'a',
-            original_anchor_digit_schemas,
-            anchor_digit_schemas,
-            AnchorWidthDigit,
-        ) for i, anchor in enumerate(ALL_ANCHORS)], (
-            False,
-            0,
-            0,
-            'l',
-            original_left_digit_schemas,
-            left_digit_schemas,
-            LeftBoundDigit,
-        ), (
-            False,
-            0,
-            0,
-            'r',
-            original_right_digit_schemas,
-            right_digit_schemas,
-            RightBoundDigit,
-        )],
-    ), (
-        original_anchor_digit_schemas,
-        'a',
-        [*[(
-            True,
-            i,
-            0,
-            'i',
-            original_entry_digit_schemas,
-            entry_digit_schemas,
-            EntryWidthDigit,
-        ) for i in range(len(ALL_ANCHORS) - 1, -1, -1)], *[(
-            False,
-            i,
-            len(ALL_ANCHORS) - 1 - i,
-            'a',
-            original_anchor_digit_schemas,
-            anchor_digit_schemas,
-            AnchorWidthDigit,
-        ) for i in range(len(ALL_ANCHORS))]],
-    )]:
-        for augend_schema in original_augend_schemas:
-            augend_is_new = augend_schema in new_schemas
-            place = augend_schema.path.place
-            augend = augend_schema.path.digit
-            for (
-                continuing_overlap_is_relevant,
-                augend_skip_backtrack,
-                addend_skip_backtrack,
-                addend_letter,
-                original_addend_schemas,
-                addend_schemas,
-                addend_path,
-            ) in inner_iterable:
-                for carry_in_schema in original_carry_schemas:
-                    carry_in = carry_in_schema.path.value
-                    carry_in_is_new = carry_in_schema in new_schemas
-                    if carry_in_is_new and carry_in_schema.path.value not in dummied_carry_schemas:
-                        dummied_carry_schemas.add(carry_in_schema.path.value)
-                        add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
-                    for addend_schema in original_addend_schemas:
-                        if place != addend_schema.path.place:
-                            continue
-                        if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
-                            continue
-                        addend = addend_schema.path.digit
-                        carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
-                        context_in_lookup_name = f'e{place}_c{carry_in}_{addend_letter}{addend}'
-                        if continuing_overlap_is_relevant:
-                            classes[context_in_lookup_name].append(continuing_overlap)
-                        classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{augend_schema.path.place}'])
-                        if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
-                            if carry_out in carry_schemas:
-                                carry_out_schema = carry_schemas[carry_out]
-                            else:
-                                carry_out_schema = Schema(None, Carry(carry_out), 0)
-                                carry_schemas[carry_out] = carry_out_schema
-                            sum_index = place * WIDTH_MARKER_RADIX + sum_digit
-                            if sum_index in addend_schemas:
-                                sum_digit_schema = addend_schemas[sum_index]
-                            else:
-                                sum_digit_schema = Schema(None, addend_path(place, sum_digit), 0)
-                                addend_schemas[sum_index] = sum_digit_schema
-                                classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'].append(sum_digit_schema)
-                                classes['all'].append(sum_digit_schema)
-                            outputs = ([sum_digit_schema]
-                                if place == WIDTH_MARKER_PLACES - 1
-                                else [sum_digit_schema, carry_out_schema])
-                            sum_lookup_name = str(sum_digit)
-                            if sum_lookup_name not in named_lookups:
-                                named_lookups[sum_lookup_name] = Lookup(None, None, None)
-                            if context_in_lookup_name not in named_lookups:
-                                classes[context_in_lookup_name].append(addend_schema)
-                                named_lookups[context_in_lookup_name] = Lookup(
-                                    None,
-                                    None,
-                                    None,
-                                    flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-                                    mark_filtering_set=context_in_lookup_name,
-                                )
-                            add_rule(lookup, Rule([carry_in_schema], [addend_schema], [], lookups=[context_in_lookup_name]))
-                            classes[context_in_lookup_name].extend(classes[f'idx_{augend_schema.path.place}'])
-                            if addend_skip_backtrack != 0:
-                                classes[context_in_lookup_name].extend(classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'])
-                            context_in_lookup_context_in = []
-                            if augend_letter == 'i' and addend_letter == 'a':
-                                context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.JOINER, context_in_lookup_name))
-                            context_in_lookup_context_in.append(augend_schema)
-                            context_in_lookup_context_in.extend([f'{augend_letter}dx_{augend_schema.path.place}'] * augend_skip_backtrack)
-                            if augend_letter == 'a' and addend_letter == 'a':
-                                context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
-                                context_in_lookup_context_in.append(f'idx_{augend_schema.path.place}')
-                            elif augend_skip_backtrack == 1:
-                                context_in_lookup_context_in.append(continuing_overlap)
-                            elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
-                                context_in_lookup_context_in.append(get_mark_anchor_selector(
-                                    len(ALL_ANCHORS) - augend_skip_backtrack - 1,
-                                    context_in_lookup_name,
-                                ))
-                            context_in_lookup_context_in.extend([f'{addend_letter}dx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)
-                            add_rule(named_lookups[context_in_lookup_name], Rule(
-                                context_in_lookup_context_in,
-                                [addend_schema],
-                                [],
-                                lookups=[sum_lookup_name],
-                            ))
-                            add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
-    return [lookup]
-
-def calculate_bound_extrema(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    left_lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='ldx',
-    )
-    named_lookups['ldx_copy'] = Lookup(
-        None,
-        None,
-        None,
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='ldx',
-    )
-    left_digit_schemas = {}
-    right_lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='rdx',
-    )
-    named_lookups['rdx_copy'] = Lookup(
-        None,
-        None,
-        None,
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='rdx',
-    )
-    right_digit_schemas = {}
-    for schema in schemas:
-        if isinstance(schema.path, LeftBoundDigit):
-            left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            if schema in new_schemas:
-                classes['ldx'].append(schema)
-        elif isinstance(schema.path, RightBoundDigit):
-            right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
-            if schema in new_schemas:
-                classes['rdx'].append(schema)
-    for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
-        for i in range(0, WIDTH_MARKER_RADIX):
-            left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
-            right_schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
-            i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
-            if left_schema_i is None and right_schema_i is None:
-                continue
-            for j in range(0, WIDTH_MARKER_RADIX):
-                if i == j:
-                    continue
-                j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX
-                for schema_i, digit_schemas, lookup, marker_class, copy_lookup_name, compare in [
-                    (left_schema_i, left_digit_schemas, left_lookup, 'ldx', 'ldx_copy', int.__gt__),
-                    (right_schema_i, right_digit_schemas, right_lookup, 'rdx', 'rdx_copy', int.__lt__),
-                ]:
-                    schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
-                    if schema_j is None:
-                        continue
-                    add_rule(lookup, Rule(
-                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
-                        [*[marker_class] * schema_j.path.place, schema_j],
-                        [],
-                        lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (schema_j.path.place + 1)))
-                    add_rule(named_lookups[copy_lookup_name], Rule(
-                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - 1)],
-                        [schema_j],
-                        [],
-                        [schema_i]))
-    return [left_lookup, right_lookup]
-
-def remove_false_start_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
-    start = next(s for s in new_schemas if isinstance(s.path, Start))
-    classes['all'].append(start)
-    add_rule(lookup, Rule([start], [start], [], [dummy]))
-    return [lookup]
-
-def mark_hubs_after_initial_secants(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        mark_filtering_set='all',
-        reversed=True,
-    )
-    hub = None
-    for schema in schemas:
-        if isinstance(schema.path, Hub):
-            if hub:
-                return [lookup]
-            hub = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
-            classes['secant'].append(schema)
-    initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))
-    classes[HUB_CLASS].append(initial_secant_hub)
-    classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
-    add_rule(lookup, Rule(
-        ['secant'],
-        [hub],
-        [],
-        [initial_secant_hub],
-    ))
-    return [lookup]
-
-def find_real_hub(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-    )
-    for schema in new_schemas:
-        if isinstance(schema.path, Dummy):
-            dummy = schema
-        elif isinstance(schema.path, Hub):
-            if schema.path.initial_secant:
-                initial_secant_hub = schema
-            else:
-                hub = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, InitialSecantMarker):
-            initial_secant_marker = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            continuing_overlap = schema
-            classes['all'].append(schema)
-    add_rule(lookup, Rule([], [initial_secant_marker], [hub], [initial_secant_marker]))
-    add_rule(lookup, Rule([], [initial_secant_marker], [initial_secant_hub], [dummy]))
-    add_rule(lookup, Rule([], [initial_secant_marker], [], [initial_secant_hub]))
-    add_rule(lookup, Rule([hub], [hub], [], [dummy]))
-    add_rule(lookup, Rule([initial_secant_hub], [hub], [], [dummy]))
-    add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
-    return [lookup]
-
-def expand_start_markers(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('psts', 'dupl', 'dflt')
-    start = next(s for s in new_schemas if isinstance(s.path, Start))
-    add_rule(lookup, Rule([start], [
-        start,
-        *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
-    ]))
-    return [lookup]
-
-def mark_maximum_bounds(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    left_lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        mark_filtering_set='ldx',
-        reversed=True,
-    )
-    right_lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        mark_filtering_set='rdx',
-        reversed=True,
-    )
-    anchor_lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        mark_filtering_set='adx',
-        reversed=True,
-    )
-    new_left_bounds = []
-    new_right_bounds = []
-    new_anchor_widths = []
-    end = next(s for s in schemas if isinstance(s.path, End))
-    for schema in new_schemas:
-        if isinstance(schema.path, LeftBoundDigit):
-            classes['ldx'].append(schema)
-            new_left_bounds.append(schema)
-        elif isinstance(schema.path, RightBoundDigit):
-            classes['rdx'].append(schema)
-            new_right_bounds.append(schema)
-        elif isinstance(schema.path, AnchorWidthDigit):
-            classes['adx'].append(schema)
-            new_anchor_widths.append(schema)
-    for new_digits, lookup, class_name, digit_path, status in [
-        (new_left_bounds, left_lookup, 'ldx', LeftBoundDigit, DigitStatus.ALMOST_DONE),
-        (new_right_bounds, right_lookup, 'rdx', RightBoundDigit, DigitStatus.DONE),
-        (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
-    ]:
-        for schema in new_digits:
-            if schema.path.status != DigitStatus.NORMAL:
-                continue
-            skipped_schemas = [class_name] * schema.path.place
-            add_rule(lookup, Rule(
-                [],
-                [schema],
-                [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
-                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
-    return [left_lookup, right_lookup, anchor_lookup]
-
-def copy_maximum_left_bound_to_start(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup(
-        'psts',
-        'dupl',
-        'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
-    )
-    new_left_totals = []
-    new_left_start_totals = [None] * WIDTH_MARKER_PLACES
-    start = next(s for s in schemas if isinstance(s.path, Start))
-    if start not in classes['all']:
-        classes['all'].append(start)
-    for schema in new_schemas:
-        if isinstance(schema.path, LeftBoundDigit):
-            if schema.path.status == DigitStatus.ALMOST_DONE:
-                new_left_totals.append(schema)
-            elif schema.path.status == DigitStatus.DONE and schema.path.digit == 0:
-                new_left_start_totals[schema.path.place] = schema
-    for total in new_left_totals:
-        classes['all'].append(total)
-        if total.path.digit == 0:
-            done = new_left_start_totals[total.path.place]
-        else:
-            done = Schema(None, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
-        classes['all'].append(done)
-        if total.path.digit != 0:
-            input = new_left_start_totals[total.path.place]
-            if input not in classes['all']:
-                classes['all'].append(input)
-            add_rule(lookup, Rule(
-                [start, *['all'] * total.path.place],
-                [input],
-                [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
-                [done]))
-    return [lookup]
-
-def dist(original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', 'dupl', 'dflt')
-    for schema in new_schemas:
-        if ((isinstance(schema.path, LeftBoundDigit)
-                or isinstance(schema.path, RightBoundDigit)
-                or isinstance(schema.path, AnchorWidthDigit))
-                and schema.path.status == DigitStatus.DONE):
-            digit = schema.path.digit
-            if schema.path.place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
-                digit -= WIDTH_MARKER_RADIX
-            x_advance = digit * WIDTH_MARKER_RADIX ** schema.path.place
-            if not isinstance(schema.path, RightBoundDigit):
-                x_advance = -x_advance
-            if schema.path.place == 0 and not isinstance(schema.path, AnchorWidthDigit):
-                x_advance += DEFAULT_SIDE_BEARING
-            if x_advance:
-                add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))
-    return [lookup]
 
 def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule, track_possible_outputs=True):
     def ignored(schema):
@@ -5294,73 +3637,6 @@ class PrefixView:
     def items(self):
         return self._delegate.items()
 
-def run_phases(all_input_schemas, phases, all_classes=None):
-    global CURRENT_PHASE_INDEX
-    all_schemas = OrderedSet(all_input_schemas)
-    all_input_schemas = OrderedSet(all_input_schemas)
-    all_lookups_with_phases = []
-    if all_classes is None:
-        all_classes = collections.defaultdict(FreezableList)
-    all_named_lookups_with_phases = {}
-    for CURRENT_PHASE_INDEX, phase in enumerate(phases):
-        all_output_schemas = OrderedSet()
-        autochthonous_schemas = OrderedSet()
-        original_input_schemas = OrderedSet(all_input_schemas)
-        new_input_schemas = OrderedSet(all_input_schemas)
-        output_schemas = OrderedSet(all_input_schemas)
-        classes = PrefixView(phase, all_classes)
-        named_lookups = PrefixView(phase, {})
-        lookups = None
-        while new_input_schemas:
-            output_lookups = phase(
-                original_input_schemas,
-                all_input_schemas,
-                new_input_schemas,
-                classes,
-                named_lookups,
-                functools.partial(
-                    add_rule,
-                    autochthonous_schemas,
-                    output_schemas,
-                    classes,
-                    named_lookups,
-                 ),
-             )
-            if lookups is None:
-                lookups = output_lookups
-            else:
-                assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
-                for i, lookup in enumerate(lookups):
-                    lookup.extend(output_lookups[i])
-            if len(output_lookups) == 1:
-                might_have_feedback = False
-                for rule in (lookup := output_lookups[0]).rules:
-                    if rule.contexts_out if lookup.reversed else rule.contexts_in:
-                        might_have_feedback = True
-                        break
-            else:
-                might_have_feedback = True
-            for output_schema in output_schemas:
-                all_output_schemas.add(output_schema)
-            new_input_schemas = OrderedSet()
-            if might_have_feedback:
-                for output_schema in output_schemas:
-                    if output_schema not in all_input_schemas:
-                        all_input_schemas.add(output_schema)
-                        autochthonous_schemas.add(output_schema)
-                        new_input_schemas.add(output_schema)
-        all_input_schemas = all_output_schemas
-        all_schemas |= all_input_schemas
-        all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
-        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
-    return (
-        all_schemas,
-        all_input_schemas,
-        all_lookups_with_phases,
-        all_classes,
-        all_named_lookups_with_phases,
-    )
-
 class Grouper:
     def __init__(self, groups):
         self._groups = []
@@ -5465,471 +3741,2471 @@ def rename_schemas(grouper, phase_index):
                 if grouper.group_of(schema):
                     grouper.remove_item(group, schema)
 
-def merge_schemas(schemas, lookups_with_phases, classes):
-    grouper = group_schemas(schemas)
-    previous_phase = None
-    for lookup, phase in reversed(lookups_with_phases):
-        if phase is not previous_phase is not None:
-            rename_schemas(grouper, PHASES.index(previous_phase))
-        previous_phase = phase
-        prefix_classes = PrefixView(phase, classes)
-        for rule in lookup.rules:
-            sift_groups(grouper, rule, rule.contexts_in, prefix_classes)
-            sift_groups(grouper, rule, rule.contexts_out, prefix_classes)
-            sift_groups(grouper, rule, rule.inputs, prefix_classes)
-    rename_schemas(grouper, NO_PHASE_INDEX)
-
 CURRENT_PHASE_INDEX = NO_PHASE_INDEX
-PHASES = [
-    dont_ignore_default_ignorables,
-    validate_shading,
-    validate_double_marks,
-    decompose,
-    expand_secants,
-    validate_overlap_controls,
-    add_parent_edges,
-    invalidate_overlap_controls,
-    add_secant_guidelines,
-    add_placeholders_for_missing_children,
-    categorize_edges,
-    promote_final_letter_overlap_to_continuing_overlap,
-    reposition_chinook_jargon_overlap_points,
-    make_mark_variants_of_children,
-    reposition_stenographic_period,
-    disjoin_equals_sign,
-    join_with_next_step,
-    prepare_for_secondary_diphthong_ligature,
-    join_with_previous,
-    unignore_last_orienting_glyph_in_initial_sequence,
-    ignore_first_orienting_glyph_in_initial_sequence,
-    tag_main_glyph_in_orienting_sequence,
-    join_with_next,
-    join_circle_with_adjacent_nonorienting_glyph,
-    ligate_diphthongs,
-    unignore_noninitial_orienting_sequences,
-    unignore_initial_orienting_sequences,
-    join_double_marks,
-    rotate_diacritics,
-    shade,
-    make_widthless_variants_of_marks,
-    classify_marks_for_trees,
-]
-
-MIDDLE_PHASES = [
-    merge_lookalikes,
-]
-
-MARKER_PHASES = [
-    add_shims_for_pseudo_cursive,
-    shrink_wrap_enclosing_circle,
-    add_width_markers,
-    add_end_markers_for_marks,
-    remove_false_end_markers,
-    clear_entry_width_markers,
-    sum_width_markers,
-    calculate_bound_extrema,
-    remove_false_start_markers,
-    mark_hubs_after_initial_secants,
-    find_real_hub,
-    expand_start_markers,
-    mark_maximum_bounds,
-    copy_maximum_left_bound_to_start,
-    dist,
-]
-
-NOTDEF = Notdef()
-SPACE = Space(0)
-H = Dot()
-EXCLAMATION = Complex([(1, H), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
-DOLLAR = Complex([(2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (0.224, Line(341, stretchy=False)), (2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (129.757, Space(322.906, margins=False)), (1.484, Line(90, stretchy=False)), (140, Space(0, margins=False)), (1.484, Line(270, stretchy=False))])
-ASTERISK = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
-PLUS = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
-COMMA = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
-SLASH = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
-ZERO = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
-ONE = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
-TWO = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.7, Line(0, stretchy=False))])
-THREE = Complex([(3, Curve(36, 0, clockwise=True, stretch=0.2, long=True)), (3, Curve(0, 180, clockwise=True, stretch=0.2, long=True)), (0.15, Line(180, stretchy=False)), (0.15, Line(0, stretchy=False)), (3.36, Curve(0, 180, clockwise=True, stretch=0.375, long=True)), (3.42, Curve(180, 155, clockwise=True, stretch=0.937, long=True))])
-FOUR = Complex([(1.296, Line(90, stretchy=False)), (1.173, Line(235, stretchy=False)), (0.922, Line(0, stretchy=False))])
-FIVE = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145, stretchy=False)), (0.572, Line(0, stretchy=False))])
-SIX = Complex([(3.88, Circle(90, 90, clockwise=True)), (19.5, Curve(90, 70, clockwise=True, stretch=0.45)), (4, Curve(65, 355, clockwise=True))])
-SEVEN = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
-EIGHT = Complex([(2.88, Curve(90, 270, clockwise=True, stretch=0.146, long=True)), (2.88, Curve(270, 180, clockwise=True, stretch=0.075, long=True)), (2.95, Curve(180, 270, clockwise=False, stretch=0.075, long=True)), (3.16, Curve(270, 90, clockwise=False, stretch=0.215, long=True)), (2.95, Curve(90, 180, clockwise=False, stretch=0.075, long=True)), (2.88, Curve(180, 90, clockwise=True, stretch=0.075, long=True))])
-NINE = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
-COLON = Complex([(1, H), (428, Space(90, margins=False)), (1, H)])
-SEMICOLON = Complex([(0, Space(0, margins=False)), (1, COMMA), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, H)])
-QUESTION = Complex([(1, H), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
-LESS_THAN = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
-EQUAL = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
-GREATER_THAN = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
-LEFT_BRACKET = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(0, stretchy=False), False), (0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
-RIGHT_BRACKET = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(180, stretchy=False), False), (0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
-GUILLEMET_VERTICAL_SPACE = (75, Space(90, margins=False))
-GUILLEMET_HORIZONTAL_SPACE = (200, Space(0, margins=False))
-LEFT_GUILLEMET = [(0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False))]
-RIGHT_GUILLEMET = [*reversed(LEFT_GUILLEMET)]
-LEFT_GUILLEMET += [(op[0], op[1].reversed(), True) for op in LEFT_GUILLEMET]
-RIGHT_GUILLEMET += [(op[0], op[1].reversed(), True) for op in RIGHT_GUILLEMET]
-LEFT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET, GUILLEMET_HORIZONTAL_SPACE, *LEFT_GUILLEMET])
-RIGHT_DOUBLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET, GUILLEMET_HORIZONTAL_SPACE, *RIGHT_GUILLEMET])
-LEFT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *LEFT_GUILLEMET])
-RIGHT_SINGLE_GUILLEMET = Complex([GUILLEMET_VERTICAL_SPACE, *RIGHT_GUILLEMET])
-DEGREE = Complex([(683, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False))])
-MASCULINE_ORDINAL_INDICATOR = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
-MULTIPLICATION = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
-GREATER_THAN_OVERLAPPING_LESS_THAN = Complex([(1, GREATER_THAN), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, LESS_THAN)])
-GRAVE = Line(150, stretchy=False)
-ACUTE = Line(45, stretchy=False)
-CIRCUMFLEX = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
-MACRON = Line(0, stretchy=False)
-BREVE = Curve(270, 90, clockwise=False, stretch=0.2)
-DIAERESIS = Line(0, stretchy=False, dots=2)
-CARON = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
-INVERTED_BREVE = Curve(90, 270, clockwise=False, stretch=0.2)
-EN_DASH = Complex([(395, Space(90, margins=False)), (1, Line(0, stretchy=False))])
-HIGH_LEFT_QUOTE = Complex([(755, Space(90, margins=False)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
-HIGH_RIGHT_QUOTE = Complex([(742, Space(90, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-LOW_RIGHT_QUOTE = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-ELLIPSIS = Complex([(1, H), (148, Space(0, margins=False)), (1, H), (148, Space(0, margins=False)), (1, H)])
-NNBSP = Space(0, margins=False)
-DOTTED_CIRCLE = Complex([(33, Space(90, margins=False)), (1, H), (446, Space(90, margins=False)), (1, H), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, H), (446, Space(240, margins=False)), (1, H), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, H), (446, Space(210, margins=False)), (1, H), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, H), (446, Space(180, margins=False)), (1, H), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, H), (446, Space(150, margins=False)), (1, H), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, H), (446, Space(120, margins=False)), (1, H)])
-STENOGRAPHIC_PERIOD = Complex([(0.5, Line(135, stretchy=False)), *MULTIPLICATION.instructions])
-DOUBLE_HYPHEN = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
-BOUND = Bound()
-X = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
-P = Line(270)
-P_REVERSE = Line(90)
-T = Line(0)
-T_REVERSE = Line(180)
-F = Line(300)
-F_REVERSE = Line(120)
-K = Line(240)
-K_REVERSE = Line(60)
-L = Line(45)
-L_REVERSE = Line(225)
-M = Curve(180, 0, clockwise=False, stretch=0.2)
-M_REVERSE = Curve(180, 0, clockwise=True, stretch=0.2)
-N = Curve(0, 180, clockwise=True, stretch=0.2)
-N_REVERSE = Curve(0, 180, clockwise=False, stretch=0.2)
-J = Curve(90, 270, clockwise=True, stretch=0.2)
-J_REVERSE = Curve(90, 270, clockwise=False, stretch=0.2)
-S = Curve(270, 90, clockwise=False, stretch=0.2)
-S_REVERSE = Curve(270, 90, clockwise=True, stretch=0.2)
-M_S = Curve(180, 0, clockwise=False, stretch=0.8)
-N_S = Curve(0, 180, clockwise=True, stretch=0.8)
-J_S = Curve(90, 270, clockwise=True, stretch=0.8)
-S_S = Curve(270, 90, clockwise=False, stretch=0.8)
-S_T = Curve(270, 0, clockwise=False)
-S_P = Curve(270, 180, clockwise=True)
-T_S = Curve(0, 270, clockwise=True)
-W = Curve(180, 270, clockwise=False)
-S_N = Curve(0, 90, clockwise=False, secondary=True)
-K_R_S = Curve(90, 180, clockwise=False)
-S_K = Curve(90, 0, clockwise=True, secondary=False)
-J_N = Complex([(1, S_K), (1, N)], maximum_tree_width=1)
-J_N_S = Complex([(3, S_K), (4, N_S)], maximum_tree_width=1)
-O = Circle(0, 0, clockwise=False)
-O_REVERSE = Circle(0, 0, clockwise=True, reversed=True)
-IE = Curve(180, 0, clockwise=False)
-SHORT_I = Curve(0, 180, clockwise=True)
-UI = Curve(90, 270, clockwise=True)
-EE = Curve(270, 90, clockwise=False, secondary=True)
-LONG_I = LongI(240)
-YE = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T), (0.385, Line(242, stretchy=False)), (0.47, T)])
-U_N = Curve(90, 180, clockwise=True)
-LONG_U = Curve(225, 45, clockwise=False, stretch=4, long=True)
-ROMANIAN_U = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
-UH = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
-OU = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
-WA = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
-WO = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
-WI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, M)])
-WEI = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, M), lambda c: c.clone(clockwise=not c.clockwise), (1, N)])
-LEFT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=2 / 3)
-MID_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=0.5)
-RIGHT_HORIZONTAL_SECANT = Line(0, stretchy=False, secant=1 / 3)
-LOW_VERTICAL_SECANT = Line(90, stretchy=False, secant=2 / 3)
-MID_VERTICAL_SECANT = Line(90, stretchy=False, secant=0.5)
-HIGH_VERTICAL_SECANT = Line(90, stretchy=False, secant=1 / 3)
-RTL_SECANT = Line(240, stretchy=False, secant=0.5, secant_curvature_offset=55)
-LTR_SECANT = Line(310, stretchy=False, secant=0.5, secant_curvature_offset=55)
-TANGENT = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
-E_HOOK = Curve(90, 270, clockwise=True, hook=True)
-I_HOOK = Curve(180, 0, clockwise=False, hook=True)
-TANGENT_HOOK = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
-SEPARATE_AFFIX_GUIDELINE = [(250 - LIGHT_LINE / 2, Space(90, margins=False)), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (1.5, Line(180), True)]
-HIGH_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
-HIGH_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
-HIGH_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
-HIGH_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-HIGH_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
-HIGH_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (2, O)])
-HIGH_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-HIGH_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-HIGH_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP + LIGHT_LINE, Space(90, margins=False)), (0.75, Line(0), True), (0.5, Line(90, stretchy=False))])
-LOW_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.25, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-LOW_TIGHT_ACUTE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-LOW_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
-LOW_LONG_GRAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-LOW_DOT = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
-LOW_CIRCLE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
-LOW_LINE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-LOW_WAVE = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-LOW_VERTICAL = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Line(270, stretchy=False))])
-LOW_ARROW = Complex(SEPARATE_AFFIX_GUIDELINE + [(1.5 * STROKE_GAP, Space(270, margins=False)), (0.55, Line(0), True), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
-LIKALISTI = Complex([(5, O), (375, Space(90, margins=False)), (0.5, P), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
-DOTTED_SQUARE = [(152, Space(270, margins=False)), (0.26 - LIGHT_LINE / 1000, Line(90, stretchy=False)), (58 + LIGHT_LINE, Space(90, margins=False)), (0.264 - LIGHT_LINE / 500, Line(90, stretchy=False)), (58 + LIGHT_LINE, Space(90, margins=False)), (0.264 - LIGHT_LINE / 500, Line(90, stretchy=False)), (58 + LIGHT_LINE, Space(90, margins=False)), (0.264 - LIGHT_LINE / 500, Line(90, stretchy=False)), (58 + LIGHT_LINE, Space(90, margins=False)), (0.26 - LIGHT_LINE / 1000, Line(90, stretchy=False)), (0.26 - LIGHT_LINE / 1000, Line(0, stretchy=False)), (58 + LIGHT_LINE, Space(0, margins=False)), (0.264 - LIGHT_LINE / 500, Line(0, stretchy=False)), (58 + LIGHT_LINE, Space(0, margins=False)), (0.264 - LIGHT_LINE / 500, Line(0, stretchy=False)), (58 + LIGHT_LINE, Space(0, margins=False)), (0.264 - LIGHT_LINE / 500, Line(0, stretchy=False)), (58 + LIGHT_LINE, Space(0, margins=False)), (0.26 - LIGHT_LINE / 1000, Line(0, stretchy=False)), (0.26 - LIGHT_LINE / 1000, Line(270, stretchy=False)), (58 + LIGHT_LINE, Space(270, margins=False)), (0.264 - LIGHT_LINE / 500, Line(270, stretchy=False)), (58 + LIGHT_LINE, Space(270, margins=False)), (0.264 - LIGHT_LINE / 500, Line(270, stretchy=False)), (58 + LIGHT_LINE, Space(270, margins=False)), (0.264 - LIGHT_LINE / 500, Line(270, stretchy=False)), (58 + LIGHT_LINE, Space(270, margins=False)), (0.26 - LIGHT_LINE / 1000, Line(270, stretchy=False)), (0.26 - LIGHT_LINE / 1000, Line(180, stretchy=False)), (58 + LIGHT_LINE, Space(180, margins=False)), (0.264 - LIGHT_LINE / 500, Line(180, stretchy=False)), (58 + LIGHT_LINE, Space(180, margins=False)), (0.264 - LIGHT_LINE / 500, Line(180, stretchy=False)), (58 + LIGHT_LINE, Space(180, margins=False)), (0.264 - LIGHT_LINE / 500, Line(180, stretchy=False)), (58 + LIGHT_LINE, Space(180, margins=False)), (0.26 - LIGHT_LINE / 1000, Line(180, stretchy=False))]
-DTLS = InvalidDTLS(instructions=DOTTED_SQUARE + [(341, Space(0, margins=False)), (173, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
-CHINOOK_PERIOD = Complex([(100, Space(90, margins=False)), (1, Line(0, stretchy=False)), (179, Space(90, margins=False)), (1, Line(180, stretchy=False))])
-OVERLAP = InvalidOverlap(continuing=False, instructions=DOTTED_SQUARE + [(162.5, Space(0, margins=False)), (397, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (1.134, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False)), (170, Space(180, margins=False)), (0.4116, Line(90, stretchy=False))])
-CONTINUING_OVERLAP = InvalidOverlap(continuing=True, instructions=DOTTED_SQUARE + [(189, Space(0, margins=False)), (522, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (0.726, Line(0, stretchy=False)), (124, Space(180, margins=False)), (145, Space(90, margins=False)), (0.852, Line(270, stretchy=False)), (0.552, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False))])
-DOWN_STEP = InvalidStep(270, DOTTED_SQUARE + [(444, Space(0, margins=False)), (749, Space(90, margins=False)), (1.184, Line(270, stretchy=False)), (0.32, Line(130, stretchy=False)), (0.32, Line(310, stretchy=False), True), (0.32, Line(50, stretchy=False))])
-UP_STEP = InvalidStep(90, DOTTED_SQUARE + [(444, Space(0, margins=False)), (157, Space(90, margins=False)), (1.184, Line(90, stretchy=False)), (0.32, Line(230, stretchy=False)), (0.32, Line(50, stretchy=False), True), (0.32, Line(310, stretchy=False))])
-LINE = Line(0, stretchy=False)
-
-DOT_1 = Schema(None, H, 1, anchor=RELATIVE_1_ANCHOR)
-DOT_2 = Schema(None, H, 1, anchor=RELATIVE_2_ANCHOR)
-LINE_2 = Schema(None, LINE, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
-LINE_MIDDLE = Schema(None, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
-
-SCHEMAS = [
-    Schema(None, NOTDEF, 1, Type.NON_JOINING, side_bearing=95),
-    Schema(0x0020, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x0021, EXCLAMATION, 1, Type.NON_JOINING, encirclable=True),
-    Schema(0x0024, DOLLAR, 7 / 8, Type.NON_JOINING),
-    Schema(0x002A, ASTERISK, 1, Type.NON_JOINING),
-    Schema(0x002B, PLUS, 1, Type.NON_JOINING),
-    Schema(0x002C, COMMA, 1, Type.NON_JOINING, encirclable=True),
-    Schema(0x002E, H, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x002F, SLASH, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0030, ZERO, 3.882, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0031, ONE, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0032, TWO, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0033, THREE, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0034, FOUR, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0035, FIVE, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0036, SIX, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0037, SEVEN, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0038, EIGHT, 0.974, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0039, NINE, 1.021, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003A, COLON, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
-    Schema(0x003B, SEMICOLON, 1, Type.NON_JOINING, encirclable=True),
-    Schema(0x003C, LESS_THAN, 2, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003D, EQUAL, 1),
-    Schema(0x003E, GREATER_THAN, 2, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x003F, QUESTION, 1, Type.NON_JOINING, encirclable=True),
-    Schema(0x005B, LEFT_BRACKET, 1, Type.NON_JOINING),
-    Schema(0x005D, RIGHT_BRACKET, 1, Type.NON_JOINING),
-    Schema(0x00A0, SPACE, 260, Type.NON_JOINING, side_bearing=260),
-    Schema(0x00AB, LEFT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
-    Schema(0x00B0, DEGREE, 1, Type.NON_JOINING),
-    Schema(0x00BA, MASCULINE_ORDINAL_INDICATOR, 1, Type.NON_JOINING),
-    Schema(0x00BB, RIGHT_DOUBLE_GUILLEMET, 1, Type.NON_JOINING),
-    Schema(0x00D7, MULTIPLICATION, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x0300, GRAVE, 0.2, anchor=ABOVE_ANCHOR),
-    Schema(0x0301, ACUTE, 0.2, anchor=ABOVE_ANCHOR),
-    Schema(0x0302, CIRCUMFLEX, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
-    Schema(0x0304, MACRON, 0.2, anchor=ABOVE_ANCHOR),
-    Schema(0x0306, BREVE, 1, anchor=ABOVE_ANCHOR),
-    Schema(0x0307, H, 1, anchor=ABOVE_ANCHOR),
-    Schema(0x0308, DIAERESIS, 0.2, anchor=ABOVE_ANCHOR),
-    Schema(0x030C, CARON, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
-    Schema(0x0316, GRAVE, 0.2, anchor=BELOW_ANCHOR),
-    Schema(0x0317, ACUTE, 0.2, anchor=BELOW_ANCHOR),
-    Schema(0x0323, H, 1, anchor=BELOW_ANCHOR),
-    Schema(0x0324, DIAERESIS, 0.2, anchor=BELOW_ANCHOR),
-    Schema(0x032F, INVERTED_BREVE, 1, anchor=BELOW_ANCHOR),
-    Schema(0x0331, MACRON, 0.2, anchor=BELOW_ANCHOR),
-    Schema(0x2001, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
-    Schema(0x2003, SPACE, 1500, Type.NON_JOINING, side_bearing=1500),
-    Schema(0x200C, SPACE, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
-    Schema(0x2013, EN_DASH, 1, Type.NON_JOINING, encirclable=True),
-    Schema(0x201C, HIGH_LEFT_QUOTE, 1, Type.NON_JOINING),
-    Schema(0x201D, HIGH_RIGHT_QUOTE, 1, Type.NON_JOINING),
-    Schema(0x201E, LOW_RIGHT_QUOTE, 1, Type.NON_JOINING),
-    Schema(0x2026, ELLIPSIS, 1, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x202F, NNBSP, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
-    Schema(0x2039, LEFT_SINGLE_GUILLEMET, 1, Type.NON_JOINING),
-    Schema(0x203A, RIGHT_SINGLE_GUILLEMET, 1, Type.NON_JOINING),
-    Schema(0x20DD, O, 10, anchor=MIDDLE_ANCHOR),
-    Schema(0x25CC, DOTTED_CIRCLE, 1, Type.NON_JOINING),
-    Schema(0x2AA4, GREATER_THAN_OVERLAPPING_LESS_THAN, 2, Type.NON_JOINING),
-    Schema(0x2E3C, STENOGRAPHIC_PERIOD, 0.5, Type.NON_JOINING, shading_allowed=False),
-    Schema(0x2E40, DOUBLE_HYPHEN, 1, Type.NON_JOINING),
-    Schema(0xE000, BOUND, 1, Type.NON_JOINING, side_bearing=0),
-    Schema(0xEC02, P_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0xEC03, T_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0xEC04, F_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0xEC05, K_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0xEC06, L_REVERSE, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0xEC19, M_REVERSE, 6, shading_allowed=False),
-    Schema(0xEC1A, N_REVERSE, 6, shading_allowed=False),
-    Schema(0xEC1B, J_REVERSE, 6, shading_allowed=False),
-    Schema(0xEC1C, S_REVERSE, 6, shading_allowed=False),
-    Schema(0x1BC00, H, 1, shading_allowed=False),
-    Schema(0x1BC01, X, 0.75, shading_allowed=False),
-    Schema(0x1BC02, P, 1, Type.ORIENTING),
-    Schema(0x1BC03, T, 1, Type.ORIENTING),
-    Schema(0x1BC04, F, 1, Type.ORIENTING),
-    Schema(0x1BC05, K, 1, Type.ORIENTING),
-    Schema(0x1BC06, L, 1, Type.ORIENTING),
-    Schema(0x1BC07, P, 2, Type.ORIENTING),
-    Schema(0x1BC08, T, 2, Type.ORIENTING),
-    Schema(0x1BC09, F, 2, Type.ORIENTING),
-    Schema(0x1BC0A, K, 2, Type.ORIENTING),
-    Schema(0x1BC0B, L, 2, Type.ORIENTING),
-    Schema(0x1BC0C, P, 3, Type.ORIENTING),
-    Schema(0x1BC0D, T, 3, Type.ORIENTING),
-    Schema(0x1BC0E, F, 3, Type.ORIENTING),
-    Schema(0x1BC0F, K, 3, Type.ORIENTING),
-    Schema(0x1BC10, L, 3, Type.ORIENTING),
-    Schema(0x1BC11, T, 1, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC12, T, 1, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC13, T, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC14, K, 1, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC15, K, 2, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC16, L, 1, Type.ORIENTING, marks=[DOT_1]),
-    Schema(0x1BC17, L, 1, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC18, L, 2, Type.ORIENTING, marks=[DOT_1, DOT_2]),
-    Schema(0x1BC19, M, 6),
-    Schema(0x1BC1A, N, 6),
-    Schema(0x1BC1B, J, 6),
-    Schema(0x1BC1C, S, 6),
-    Schema(0x1BC1D, M, 6, marks=[LINE_MIDDLE]),
-    Schema(0x1BC1E, N, 6, marks=[LINE_MIDDLE]),
-    Schema(0x1BC1F, J, 6, marks=[LINE_MIDDLE]),
-    Schema(0x1BC20, S, 6, marks=[LINE_MIDDLE]),
-    Schema(0x1BC21, M, 6, marks=[DOT_1]),
-    Schema(0x1BC22, N, 6, marks=[DOT_1]),
-    Schema(0x1BC23, J, 6, marks=[DOT_1]),
-    Schema(0x1BC24, J, 6, marks=[DOT_1, DOT_2]),
-    Schema(0x1BC25, S, 6, marks=[DOT_1]),
-    Schema(0x1BC26, S, 6, marks=[DOT_2]),
-    Schema(0x1BC27, M_S, 8),
-    Schema(0x1BC28, N_S, 8),
-    Schema(0x1BC29, J_S, 8),
-    Schema(0x1BC2A, S_S, 8),
-    Schema(0x1BC2B, M_S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2C, N_S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2D, J_S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2E, S_S, 8, marks=[LINE_MIDDLE]),
-    Schema(0x1BC2F, J_S, 8, marks=[DOT_1]),
-    Schema(0x1BC30, J_N, 6, shading_allowed=False),
-    Schema(0x1BC31, J_N_S, 2, shading_allowed=False),
-    Schema(0x1BC32, S_T, 4),
-    Schema(0x1BC33, S_T, 6),
-    Schema(0x1BC34, S_P, 4),
-    Schema(0x1BC35, S_P, 6),
-    Schema(0x1BC36, T_S, 4),
-    Schema(0x1BC37, T_S, 6),
-    Schema(0x1BC38, W, 4),
-    Schema(0x1BC39, W, 4, marks=[DOT_1]),
-    Schema(0x1BC3A, W, 6),
-    Schema(0x1BC3B, S_N, 4),
-    Schema(0x1BC3C, S_N, 6),
-    Schema(0x1BC3D, K_R_S, 4, shading_allowed=False),
-    Schema(0x1BC3E, K_R_S, 6, shading_allowed=False),
-    Schema(0x1BC3F, S_K, 4),
-    Schema(0x1BC40, S_K, 6),
-    Schema(0x1BC41, O, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC42, O_REVERSE, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC43, O, 3, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC44, O, 4, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC45, O, 5, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC46, IE, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC47, EE, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC48, IE, 2, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC49, SHORT_I, 2, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC4A, UI, 2, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC4B, EE, 2, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC4C, EE, 2, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC4D, EE, 2, Type.ORIENTING, marks=[DOT_2], shading_allowed=False),
-    Schema(0x1BC4E, EE, 2, Type.ORIENTING, marks=[LINE_2], shading_allowed=False),
-    Schema(0x1BC4F, LONG_I, 0.5, Type.ORIENTING, marks=[DOT_2]),
-    Schema(0x1BC50, YE, 1, shading_allowed=False),
-    Schema(0x1BC51, S_T, 3, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC52, S_P, 3, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC53, S_T, 3, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC54, U_N, 4, shading_allowed=False),
-    Schema(0x1BC55, LONG_U, 2, shading_allowed=False),
-    Schema(0x1BC56, ROMANIAN_U, 4, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC57, UH, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC58, UH, 2, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC59, UH, 2, Type.ORIENTING, marks=[DOT_2], shading_allowed=False),
-    Schema(0x1BC5A, O, 4, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC5B, OU, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC5C, WA, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC5D, WO, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC5E, WI, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC5F, WEI, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC60, WO, 1, Type.ORIENTING, marks=[DOT_1], shading_allowed=False),
-    Schema(0x1BC61, S_T, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC62, S_N, 2, Type.ORIENTING),
-    Schema(0x1BC63, T_S, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC64, S_K, 2, Type.ORIENTING),
-    Schema(0x1BC65, S_P, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC66, W, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC67, S_T, 2, can_lead_orienting_sequence=True, marks=[DOT_1]),
-    Schema(0x1BC68, S_T, 2, can_lead_orienting_sequence=True, marks=[DOT_2]),
-    Schema(0x1BC69, S_K, 2, can_lead_orienting_sequence=True, marks=[DOT_2]),
-    Schema(0x1BC6A, S_K, 2, can_lead_orienting_sequence=True),
-    Schema(0x1BC70, LEFT_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC71, MID_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC72, RIGHT_HORIZONTAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC73, LOW_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC74, MID_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC75, HIGH_VERTICAL_SECANT, 2, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC76, RTL_SECANT, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC77, LTR_SECANT, 1, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC78, TANGENT, 0.5, Type.ORIENTING, shading_allowed=False),
-    Schema(0x1BC79, N_REVERSE, 6, shading_allowed=False),
-    Schema(0x1BC7A, E_HOOK, 2, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
-    Schema(0x1BC7B, I_HOOK, 2, Type.ORIENTING, can_lead_orienting_sequence=True),
-    Schema(0x1BC7C, TANGENT_HOOK, 2, shading_allowed=False, can_lead_orienting_sequence=True),
-    Schema(0x1BC80, HIGH_ACUTE, 1, Type.NON_JOINING),
-    Schema(0x1BC81, HIGH_TIGHT_ACUTE, 1, Type.NON_JOINING),
-    Schema(0x1BC82, HIGH_GRAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC83, HIGH_LONG_GRAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC84, HIGH_DOT, 1, Type.NON_JOINING),
-    Schema(0x1BC85, HIGH_CIRCLE, 1, Type.NON_JOINING),
-    Schema(0x1BC86, HIGH_LINE, 1, Type.NON_JOINING),
-    Schema(0x1BC87, HIGH_WAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC88, HIGH_VERTICAL, 1, Type.NON_JOINING),
-    Schema(0x1BC90, LOW_ACUTE, 1, Type.NON_JOINING),
-    Schema(0x1BC91, LOW_TIGHT_ACUTE, 1, Type.NON_JOINING),
-    Schema(0x1BC92, LOW_GRAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC93, LOW_LONG_GRAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC94, LOW_DOT, 1, Type.NON_JOINING),
-    Schema(0x1BC95, LOW_CIRCLE, 1, Type.NON_JOINING),
-    Schema(0x1BC96, LOW_LINE, 1, Type.NON_JOINING),
-    Schema(0x1BC97, LOW_WAVE, 1, Type.NON_JOINING),
-    Schema(0x1BC98, LOW_VERTICAL, 1, Type.NON_JOINING),
-    Schema(0x1BC99, LOW_ARROW, 1, Type.NON_JOINING),
-    Schema(0x1BC9C, LIKALISTI, 1, Type.NON_JOINING),
-    Schema(0x1BC9D, DTLS, 1, Type.NON_JOINING),
-    Schema(0x1BC9E, LINE, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
-    Schema(0x1BC9F, CHINOOK_PERIOD, 1, Type.NON_JOINING),
-    Schema(0x1BCA0, OVERLAP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-    Schema(0x1BCA1, CONTINUING_OVERLAP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-    Schema(0x1BCA2, DOWN_STEP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-    Schema(0x1BCA3, UP_STEP, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-]
 
 class Builder:
-    def __init__(self, font):
+    def __init__(self, font, bold):
         self.font = font
         self._fea = fontTools.feaLib.ast.FeatureFile()
         self._anchors = {}
+        self._initialize_phases()
+        self.light_line = 101 if bold else 70
+        self.shaded_line = SHADING_FACTOR * self.light_line
+        self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
         code_points = collections.defaultdict(int)
-        for schema in SCHEMAS:
+        self._initialize_schemas(self.light_line, self.stroke_gap)
+        for schema in self._schemas:
             if schema.cmap is not None:
                 code_points[schema.cmap] += 1
         for glyph in font.glyphs():
             if glyph.unicode != -1 and glyph.unicode not in code_points:
-                SCHEMAS.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
+                self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
         code_points = {cp: count for cp, count in code_points.items() if count > 1}
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
+
+    def _initialize_phases(self):
+        self._phases = [
+            self._dont_ignore_default_ignorables,
+            self._validate_shading,
+            self._validate_double_marks,
+            self._decompose,
+            self._expand_secants,
+            self._validate_overlap_controls,
+            self._add_parent_edges,
+            self._invalidate_overlap_controls,
+            self._add_secant_guidelines,
+            self._add_placeholders_for_missing_children,
+            self._categorize_edges,
+            self._promote_final_letter_overlap_to_continuing_overlap,
+            self._reposition_chinook_jargon_overlap_points,
+            self._make_mark_variants_of_children,
+            self._reposition_stenographic_period,
+            self._disjoin_equals_sign,
+            self._join_with_next_step,
+            self._prepare_for_secondary_diphthong_ligature,
+            self._join_with_previous,
+            self._unignore_last_orienting_glyph_in_initial_sequence,
+            self._ignore_first_orienting_glyph_in_initial_sequence,
+            self._tag_main_glyph_in_orienting_sequence,
+            self._join_with_next,
+            self._join_circle_with_adjacent_nonorienting_glyph,
+            self._ligate_diphthongs,
+            self._unignore_noninitial_orienting_sequences,
+            self._unignore_initial_orienting_sequences,
+            self._join_double_marks,
+            self._rotate_diacritics,
+            self._shade,
+            self._make_widthless_variants_of_marks,
+            self._classify_marks_for_trees,
+        ]
+
+        self._middle_phases = [
+            self._merge_lookalikes,
+        ]
+
+        self._marker_phases = [
+            self._add_shims_for_pseudo_cursive,
+            self._shrink_wrap_enclosing_circle,
+            self._add_width_markers,
+            self._add_end_markers_for_marks,
+            self._remove_false_end_markers,
+            self._clear_entry_width_markers,
+            self._sum_width_markers,
+            self._calculate_bound_extrema,
+            self._remove_false_start_markers,
+            self._mark_hubs_after_initial_secants,
+            self._find_real_hub,
+            self._expand_start_markers,
+            self._mark_maximum_bounds,
+            self._copy_maximum_left_bound_to_start,
+            self._dist,
+        ]
+
+    def _initialize_schemas(self, light_line, stroke_gap):
+        notdef = Notdef()
+        space = Space(0)
+        h = Dot()
+        exclamation = Complex([(1, h), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
+        dollar = Complex([(2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (0.224, Line(341, stretchy=False)), (2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (129.757, Space(322.906, margins=False)), (1.484, Line(90, stretchy=False)), (140, Space(0, margins=False)), (1.484, Line(270, stretchy=False))])
+        asterisk = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
+        plus = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
+        comma = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
+        slash = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
+        zero = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
+        one = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
+        two = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.7, Line(0, stretchy=False))])
+        three = Complex([(3, Curve(36, 0, clockwise=True, stretch=0.2, long=True)), (3, Curve(0, 180, clockwise=True, stretch=0.2, long=True)), (0.15, Line(180, stretchy=False)), (0.15, Line(0, stretchy=False)), (3.36, Curve(0, 180, clockwise=True, stretch=0.375, long=True)), (3.42, Curve(180, 155, clockwise=True, stretch=0.937, long=True))])
+        four = Complex([(1.296, Line(90, stretchy=False)), (1.173, Line(235, stretchy=False)), (0.922, Line(0, stretchy=False))])
+        five = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145, stretchy=False)), (0.572, Line(0, stretchy=False))])
+        six = Complex([(3.88, Circle(90, 90, clockwise=True)), (19.5, Curve(90, 70, clockwise=True, stretch=0.45)), (4, Curve(65, 355, clockwise=True))])
+        seven = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
+        eight = Complex([(2.88, Curve(90, 270, clockwise=True, stretch=0.146, long=True)), (2.88, Curve(270, 180, clockwise=True, stretch=0.075, long=True)), (2.95, Curve(180, 270, clockwise=False, stretch=0.075, long=True)), (3.16, Curve(270, 90, clockwise=False, stretch=0.215, long=True)), (2.95, Curve(90, 180, clockwise=False, stretch=0.075, long=True)), (2.88, Curve(180, 90, clockwise=True, stretch=0.075, long=True))])
+        nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
+        colon = Complex([(1, h), (428, Space(90, margins=False)), (1, h)])
+        semicolon = Complex([(0, Space(0, margins=False)), (1, comma), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, h)])
+        question = Complex([(1, h), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
+        less_than = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
+        equal = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
+        greater_than = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
+        left_bracket = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(0, stretchy=False), False), (0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
+        right_bracket = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(180, stretchy=False), False), (0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
+        guillemet_vertical_space = (75, Space(90, margins=False))
+        guillemet_horizontal_space = (200, Space(0, margins=False))
+        left_guillemet = [(0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False))]
+        right_guillemet = [*reversed(left_guillemet)]
+        left_guillemet += [(op[0], op[1].reversed(), True) for op in left_guillemet]
+        right_guillemet += [(op[0], op[1].reversed(), True) for op in right_guillemet]
+        left_double_guillemet = Complex([guillemet_vertical_space, *left_guillemet, guillemet_horizontal_space, *left_guillemet])
+        right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
+        left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
+        right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
+        degree = Complex([(683, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False))])
+        masculine_ordinal_indicator = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
+        multiplication = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
+        greater_than_overlapping_less_than = Complex([(1, greater_than), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, less_than)])
+        grave = Line(150, stretchy=False)
+        acute = Line(45, stretchy=False)
+        circumflex = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
+        macron = Line(0, stretchy=False)
+        breve = Curve(270, 90, clockwise=False, stretch=0.2)
+        diaeresis = Line(0, stretchy=False, dots=2)
+        caron = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
+        inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
+        en_dash = Complex([(395, Space(90, margins=False)), (1, Line(0, stretchy=False))])
+        high_left_quote = Complex([(755, Space(90, margins=False)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
+        high_right_quote = Complex([(742, Space(90, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
+        low_right_quote = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
+        ellipsis = Complex([(1, h), (148, Space(0, margins=False)), (1, h), (148, Space(0, margins=False)), (1, h)])
+        nnbsp = Space(0, margins=False)
+        dotted_circle = Complex([(33, Space(90, margins=False)), (1, h), (446, Space(90, margins=False)), (1, h), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, h), (446, Space(240, margins=False)), (1, h), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, h), (446, Space(210, margins=False)), (1, h), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, h), (446, Space(180, margins=False)), (1, h), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, h), (446, Space(150, margins=False)), (1, h), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, h), (446, Space(120, margins=False)), (1, h)])
+        stenographic_period = Complex([(0.5, Line(135, stretchy=False)), *multiplication.instructions])
+        double_hyphen = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
+        bound = Bound()
+        x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
+        p = Line(270)
+        p_reverse = Line(90)
+        t = Line(0)
+        t_reverse = Line(180)
+        f = Line(300)
+        f_reverse = Line(120)
+        k = Line(240)
+        k_reverse = Line(60)
+        l = Line(45)
+        l_reverse = Line(225)
+        m = Curve(180, 0, clockwise=False, stretch=0.2)
+        m_reverse = Curve(180, 0, clockwise=True, stretch=0.2)
+        n = Curve(0, 180, clockwise=True, stretch=0.2)
+        n_reverse = Curve(0, 180, clockwise=False, stretch=0.2)
+        j = Curve(90, 270, clockwise=True, stretch=0.2)
+        j_reverse = Curve(90, 270, clockwise=False, stretch=0.2)
+        s = Curve(270, 90, clockwise=False, stretch=0.2)
+        s_reverse = Curve(270, 90, clockwise=True, stretch=0.2)
+        m_s = Curve(180, 0, clockwise=False, stretch=0.8)
+        n_s = Curve(0, 180, clockwise=True, stretch=0.8)
+        j_s = Curve(90, 270, clockwise=True, stretch=0.8)
+        s_s = Curve(270, 90, clockwise=False, stretch=0.8)
+        s_t = Curve(270, 0, clockwise=False)
+        s_p = Curve(270, 180, clockwise=True)
+        t_s = Curve(0, 270, clockwise=True)
+        w = Curve(180, 270, clockwise=False)
+        s_n = Curve(0, 90, clockwise=False, secondary=True)
+        k_r_s = Curve(90, 180, clockwise=False)
+        s_k = Curve(90, 0, clockwise=True, secondary=False)
+        j_n = Complex([(1, s_k), (1, n)], maximum_tree_width=1)
+        j_n_s = Complex([(3, s_k), (4, n_s)], maximum_tree_width=1)
+        o = Circle(0, 0, clockwise=False)
+        o_reverse = Circle(0, 0, clockwise=True, reversed=True)
+        ie = Curve(180, 0, clockwise=False)
+        short_i = Curve(0, 180, clockwise=True)
+        ui = Curve(90, 270, clockwise=True)
+        ee = Curve(270, 90, clockwise=False, secondary=True)
+        long_i = LongI(240)
+        ye = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t)])
+        u_n = Curve(90, 180, clockwise=True)
+        long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
+        romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
+        uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
+        ou = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
+        wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
+        wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
+        wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
+        wei = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, m), lambda c: c.clone(clockwise=not c.clockwise), (1, n)])
+        left_horizontal_secant = Line(0, stretchy=False, secant=2 / 3)
+        mid_horizontal_secant = Line(0, stretchy=False, secant=0.5)
+        right_horizontal_secant = Line(0, stretchy=False, secant=1 / 3)
+        low_vertical_secant = Line(90, stretchy=False, secant=2 / 3)
+        mid_vertical_secant = Line(90, stretchy=False, secant=0.5)
+        high_vertical_secant = Line(90, stretchy=False, secant=1 / 3)
+        rtl_secant = Line(240, stretchy=False, secant=0.5, secant_curvature_offset=55)
+        ltr_secant = Line(310, stretchy=False, secant=0.5, secant_curvature_offset=55)
+        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
+        e_hook = Curve(90, 270, clockwise=True, hook=True)
+        i_hook = Curve(180, 0, clockwise=False, hook=True)
+        tangent_hook = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
+        separate_affix_guideline = [(250 - light_line / 2, Space(90, margins=False)), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (1.5, Line(180), True)]
+        high_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
+        high_tight_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
+        high_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
+        high_long_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
+        high_dot = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
+        high_circle = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (2, o)])
+        high_line = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
+        high_wave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+        high_vertical = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (0.5, Line(90, stretchy=False))])
+        low_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.25, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
+        low_tight_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
+        low_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
+        low_long_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
+        low_dot = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
+        low_circle = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
+        low_line = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
+        low_wave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+        low_vertical = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Line(270, stretchy=False))])
+        low_arrow = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.55, Line(0), True), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
+        likalisti = Complex([(5, o), (375, Space(90, margins=False)), (0.5, p), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
+        dotted_square = [(152, Space(270, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (0.26 - light_line / 1000, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.26 - light_line / 1000, Line(180, stretchy=False))]
+        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0, margins=False)), (173, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
+        chinook_period = Complex([(100, Space(90, margins=False)), (1, Line(0, stretchy=False)), (179, Space(90, margins=False)), (1, Line(180, stretchy=False))])
+        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0, margins=False)), (397, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (1.134, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False)), (170, Space(180, margins=False)), (0.4116, Line(90, stretchy=False))])
+        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0, margins=False)), (522, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (0.726, Line(0, stretchy=False)), (124, Space(180, margins=False)), (145, Space(90, margins=False)), (0.852, Line(270, stretchy=False)), (0.552, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False))])
+        down_step = InvalidStep(270, dotted_square + [(444, Space(0, margins=False)), (749, Space(90, margins=False)), (1.184, Line(270, stretchy=False)), (0.32, Line(130, stretchy=False)), (0.32, Line(310, stretchy=False), True), (0.32, Line(50, stretchy=False))])
+        up_step = InvalidStep(90, dotted_square + [(444, Space(0, margins=False)), (157, Space(90, margins=False)), (1.184, Line(90, stretchy=False)), (0.32, Line(230, stretchy=False)), (0.32, Line(50, stretchy=False), True), (0.32, Line(310, stretchy=False))])
+        line = Line(0, stretchy=False)
+
+        dot_1 = Schema(None, h, 1, anchor=RELATIVE_1_ANCHOR)
+        dot_2 = Schema(None, h, 1, anchor=RELATIVE_2_ANCHOR)
+        line_2 = Schema(None, line, 0.35, Type.ORIENTING, anchor=RELATIVE_2_ANCHOR)
+        line_middle = Schema(None, line, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
+
+        self._schemas = [
+            Schema(None, notdef, 1, Type.NON_JOINING, side_bearing=95),
+            Schema(0x0020, space, 260, Type.NON_JOINING, side_bearing=260),
+            Schema(0x0021, exclamation, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING),
+            Schema(0x002A, asterisk, 1, Type.NON_JOINING),
+            Schema(0x002B, plus, 1, Type.NON_JOINING),
+            Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x002E, h, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x002F, slash, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0030, zero, 3.882, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0031, one, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0032, two, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0033, three, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0034, four, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0035, five, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0036, six, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0037, seven, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0038, eight, 0.974, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0039, nine, 1.021, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x003A, colon, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
+            Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x003C, less_than, 2, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x003D, equal, 1),
+            Schema(0x003E, greater_than, 2, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x003F, question, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x005B, left_bracket, 1, Type.NON_JOINING),
+            Schema(0x005D, right_bracket, 1, Type.NON_JOINING),
+            Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
+            Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
+            Schema(0x00B0, degree, 1, Type.NON_JOINING),
+            Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING),
+            Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING),
+            Schema(0x00D7, multiplication, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0300, grave, 0.2, anchor=ABOVE_ANCHOR),
+            Schema(0x0301, acute, 0.2, anchor=ABOVE_ANCHOR),
+            Schema(0x0302, circumflex, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
+            Schema(0x0304, macron, 0.2, anchor=ABOVE_ANCHOR),
+            Schema(0x0306, breve, 1, anchor=ABOVE_ANCHOR),
+            Schema(0x0307, h, 1, anchor=ABOVE_ANCHOR),
+            Schema(0x0308, diaeresis, 0.2, anchor=ABOVE_ANCHOR),
+            Schema(0x030C, caron, 0.2, Type.NON_JOINING, anchor=ABOVE_ANCHOR),
+            Schema(0x0316, grave, 0.2, anchor=BELOW_ANCHOR),
+            Schema(0x0317, acute, 0.2, anchor=BELOW_ANCHOR),
+            Schema(0x0323, h, 1, anchor=BELOW_ANCHOR),
+            Schema(0x0324, diaeresis, 0.2, anchor=BELOW_ANCHOR),
+            Schema(0x032F, inverted_breve, 1, anchor=BELOW_ANCHOR),
+            Schema(0x0331, macron, 0.2, anchor=BELOW_ANCHOR),
+            Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
+            Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
+            Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x2013, en_dash, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x201C, high_left_quote, 1, Type.NON_JOINING),
+            Schema(0x201D, high_right_quote, 1, Type.NON_JOINING),
+            Schema(0x201E, low_right_quote, 1, Type.NON_JOINING),
+            Schema(0x2026, ellipsis, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
+            Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x20DD, o, 10, anchor=MIDDLE_ANCHOR),
+            Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
+            Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
+            Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
+            Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
+            Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC05, k_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC06, l_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC19, m_reverse, 6, shading_allowed=False),
+            Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
+            Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
+            Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
+            Schema(0x1BC00, h, 1, shading_allowed=False),
+            Schema(0x1BC01, x, 0.75, shading_allowed=False),
+            Schema(0x1BC02, p, 1, Type.ORIENTING),
+            Schema(0x1BC03, t, 1, Type.ORIENTING),
+            Schema(0x1BC04, f, 1, Type.ORIENTING),
+            Schema(0x1BC05, k, 1, Type.ORIENTING),
+            Schema(0x1BC06, l, 1, Type.ORIENTING),
+            Schema(0x1BC07, p, 2, Type.ORIENTING),
+            Schema(0x1BC08, t, 2, Type.ORIENTING),
+            Schema(0x1BC09, f, 2, Type.ORIENTING),
+            Schema(0x1BC0A, k, 2, Type.ORIENTING),
+            Schema(0x1BC0B, l, 2, Type.ORIENTING),
+            Schema(0x1BC0C, p, 3, Type.ORIENTING),
+            Schema(0x1BC0D, t, 3, Type.ORIENTING),
+            Schema(0x1BC0E, f, 3, Type.ORIENTING),
+            Schema(0x1BC0F, k, 3, Type.ORIENTING),
+            Schema(0x1BC10, l, 3, Type.ORIENTING),
+            Schema(0x1BC11, t, 1, Type.ORIENTING, marks=[dot_1]),
+            Schema(0x1BC12, t, 1, Type.ORIENTING, marks=[dot_2]),
+            Schema(0x1BC13, t, 2, Type.ORIENTING, marks=[dot_1]),
+            Schema(0x1BC14, k, 1, Type.ORIENTING, marks=[dot_2]),
+            Schema(0x1BC15, k, 2, Type.ORIENTING, marks=[dot_1]),
+            Schema(0x1BC16, l, 1, Type.ORIENTING, marks=[dot_1]),
+            Schema(0x1BC17, l, 1, Type.ORIENTING, marks=[dot_2]),
+            Schema(0x1BC18, l, 2, Type.ORIENTING, marks=[dot_1, dot_2]),
+            Schema(0x1BC19, m, 6),
+            Schema(0x1BC1A, n, 6),
+            Schema(0x1BC1B, j, 6),
+            Schema(0x1BC1C, s, 6),
+            Schema(0x1BC1D, m, 6, marks=[line_middle]),
+            Schema(0x1BC1E, n, 6, marks=[line_middle]),
+            Schema(0x1BC1F, j, 6, marks=[line_middle]),
+            Schema(0x1BC20, s, 6, marks=[line_middle]),
+            Schema(0x1BC21, m, 6, marks=[dot_1]),
+            Schema(0x1BC22, n, 6, marks=[dot_1]),
+            Schema(0x1BC23, j, 6, marks=[dot_1]),
+            Schema(0x1BC24, j, 6, marks=[dot_1, dot_2]),
+            Schema(0x1BC25, s, 6, marks=[dot_1]),
+            Schema(0x1BC26, s, 6, marks=[dot_2]),
+            Schema(0x1BC27, m_s, 8),
+            Schema(0x1BC28, n_s, 8),
+            Schema(0x1BC29, j_s, 8),
+            Schema(0x1BC2A, s_s, 8),
+            Schema(0x1BC2B, m_s, 8, marks=[line_middle]),
+            Schema(0x1BC2C, n_s, 8, marks=[line_middle]),
+            Schema(0x1BC2D, j_s, 8, marks=[line_middle]),
+            Schema(0x1BC2E, s_s, 8, marks=[line_middle]),
+            Schema(0x1BC2F, j_s, 8, marks=[dot_1]),
+            Schema(0x1BC30, j_n, 6, shading_allowed=False),
+            Schema(0x1BC31, j_n_s, 2, shading_allowed=False),
+            Schema(0x1BC32, s_t, 4),
+            Schema(0x1BC33, s_t, 6),
+            Schema(0x1BC34, s_p, 4),
+            Schema(0x1BC35, s_p, 6),
+            Schema(0x1BC36, t_s, 4),
+            Schema(0x1BC37, t_s, 6),
+            Schema(0x1BC38, w, 4),
+            Schema(0x1BC39, w, 4, marks=[dot_1]),
+            Schema(0x1BC3A, w, 6),
+            Schema(0x1BC3B, s_n, 4),
+            Schema(0x1BC3C, s_n, 6),
+            Schema(0x1BC3D, k_r_s, 4, shading_allowed=False),
+            Schema(0x1BC3E, k_r_s, 6, shading_allowed=False),
+            Schema(0x1BC3F, s_k, 4),
+            Schema(0x1BC40, s_k, 6),
+            Schema(0x1BC41, o, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC42, o_reverse, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC43, o, 3, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC44, o, 4, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC45, o, 5, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC46, ie, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC47, ee, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC48, ie, 2, can_lead_orienting_sequence=True, shading_allowed=False),
+            Schema(0x1BC49, short_i, 2, can_lead_orienting_sequence=True, shading_allowed=False),
+            Schema(0x1BC4A, ui, 2, can_lead_orienting_sequence=True, shading_allowed=False),
+            Schema(0x1BC4B, ee, 2, can_lead_orienting_sequence=True, shading_allowed=False),
+            Schema(0x1BC4C, ee, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC4D, ee, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
+            Schema(0x1BC4E, ee, 2, Type.ORIENTING, marks=[line_2], shading_allowed=False),
+            Schema(0x1BC4F, long_i, 0.5, Type.ORIENTING, marks=[dot_2]),
+            Schema(0x1BC50, ye, 1, shading_allowed=False),
+            Schema(0x1BC51, s_t, 3, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC52, s_p, 3, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC53, s_t, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC54, u_n, 4, shading_allowed=False),
+            Schema(0x1BC55, long_u, 2, shading_allowed=False),
+            Schema(0x1BC56, romanian_u, 4, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC57, uh, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC58, uh, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC59, uh, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
+            Schema(0x1BC5A, o, 4, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC5B, ou, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC5C, wa, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC5D, wo, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC5E, wi, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC5F, wei, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC60, wo, 1, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC61, s_t, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC62, s_n, 2, Type.ORIENTING),
+            Schema(0x1BC63, t_s, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC64, s_k, 2, Type.ORIENTING),
+            Schema(0x1BC65, s_p, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC66, w, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC67, s_t, 2, can_lead_orienting_sequence=True, marks=[dot_1]),
+            Schema(0x1BC68, s_t, 2, can_lead_orienting_sequence=True, marks=[dot_2]),
+            Schema(0x1BC69, s_k, 2, can_lead_orienting_sequence=True, marks=[dot_2]),
+            Schema(0x1BC6A, s_k, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC70, left_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC71, mid_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC72, right_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC73, low_vertical_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC74, mid_vertical_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC75, high_vertical_secant, 2, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC76, rtl_secant, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC77, ltr_secant, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC78, tangent, 0.5, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC79, n_reverse, 6, shading_allowed=False),
+            Schema(0x1BC7A, e_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
+            Schema(0x1BC7B, i_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True),
+            Schema(0x1BC7C, tangent_hook, 2, shading_allowed=False, can_lead_orienting_sequence=True),
+            Schema(0x1BC80, high_acute, 1, Type.NON_JOINING),
+            Schema(0x1BC81, high_tight_acute, 1, Type.NON_JOINING),
+            Schema(0x1BC82, high_grave, 1, Type.NON_JOINING),
+            Schema(0x1BC83, high_long_grave, 1, Type.NON_JOINING),
+            Schema(0x1BC84, high_dot, 1, Type.NON_JOINING),
+            Schema(0x1BC85, high_circle, 1, Type.NON_JOINING),
+            Schema(0x1BC86, high_line, 1, Type.NON_JOINING),
+            Schema(0x1BC87, high_wave, 1, Type.NON_JOINING),
+            Schema(0x1BC88, high_vertical, 1, Type.NON_JOINING),
+            Schema(0x1BC90, low_acute, 1, Type.NON_JOINING),
+            Schema(0x1BC91, low_tight_acute, 1, Type.NON_JOINING),
+            Schema(0x1BC92, low_grave, 1, Type.NON_JOINING),
+            Schema(0x1BC93, low_long_grave, 1, Type.NON_JOINING),
+            Schema(0x1BC94, low_dot, 1, Type.NON_JOINING),
+            Schema(0x1BC95, low_circle, 1, Type.NON_JOINING),
+            Schema(0x1BC96, low_line, 1, Type.NON_JOINING),
+            Schema(0x1BC97, low_wave, 1, Type.NON_JOINING),
+            Schema(0x1BC98, low_vertical, 1, Type.NON_JOINING),
+            Schema(0x1BC99, low_arrow, 1, Type.NON_JOINING),
+            Schema(0x1BC9C, likalisti, 1, Type.NON_JOINING),
+            Schema(0x1BC9D, dtls, 1, Type.NON_JOINING),
+            Schema(0x1BC9E, line, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
+            Schema(0x1BC9F, chinook_period, 1, Type.NON_JOINING),
+            Schema(0x1BCA0, overlap, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA1, continuing_overlap, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+        ]
+
+    def _dont_ignore_default_ignorables(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup_1 = Lookup('abvs', 'dupl', 'dflt')
+        lookup_2 = Lookup('abvs', 'dupl', 'dflt')
+        for schema in schemas:
+            if schema.ignorability == Ignorability.OVERRIDDEN_NO:
+                add_rule(lookup_1, Rule([schema], [schema, schema]))
+                add_rule(lookup_2, Rule([schema, schema], [schema]))
+        return [lookup_1, lookup_2]
+
+    def _validate_shading(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='independent_mark',
+            reversed=True,
+        )
+        if len(new_schemas) == len(schemas):
+            invalid_dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
+            valid_dtls = invalid_dtls.clone(cmap=None, path=ValidDTLS())
+            for schema in new_schemas:
+                if schema.anchor:
+                    if schema.cmap is not None:
+                        classes['independent_mark'].append(schema)
+                elif schema.shading_allowed and schema.path.is_shadable():
+                    classes['c'].append(schema)
+            add_rule(lookup, Rule(['c'], [invalid_dtls], [], [valid_dtls]))
+        return [lookup]
+
+    def _validate_double_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='double_mark',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        double_mark = next(s for s in original_schemas if s.cps == [0x1BC9E])
+        classes['double_mark'].append(double_mark)
+        new_maximums = set()
+        for schema in new_schemas:
+            maximum = schema.max_double_marks()
+            new_maximums.add(maximum)
+            classes[str(maximum)].append(schema)
+        for maximum in sorted(new_maximums, reverse=True):
+            for i in range(0, maximum):
+                add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], lookups=[None]))
+        guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING)
+        add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
+        return [lookup]
+
+    def _decompose(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('abvs', 'dupl', 'dflt')
+        for schema in schemas:
+            if schema.marks and schema in new_schemas:
+                add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
+        return [lookup]
+
+    def _expand_secants(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'abvs',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+        named_lookups['non_initial_secant'] = Lookup(None, None, None)
+        for schema in new_schemas:
+            if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+                add_rule(named_lookups['non_initial_secant'], Rule(
+                    [schema],
+                    [schema.clone(
+                        cmap=None,
+                        path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
+                        anchor=SECANT_ANCHOR,
+                        widthless=False,
+                    )],
+                ))
+                classes['secant'].append(schema)
+            elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
+                classes['base'].append(schema)
+        add_rule(lookup, Rule('base', 'secant', [], lookups=['non_initial_secant']))
+        initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
+        add_rule(lookup, Rule(
+            ['secant'],
+            ['secant', continuing_overlap, initial_secant_marker],
+        ))
+        return [lookup]
+
+    def _validate_overlap_controls(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('rclt', 'dupl', 'dflt')
+        new_classes = {}
+        global_max_tree_width = 0
+        for schema in new_schemas:
+            if isinstance(schema.path, ChildEdge):
+                return [lookup]
+            if isinstance(schema.path, InvalidOverlap):
+                if schema.path.continuing:
+                    continuing_overlap = schema
+                else:
+                    letter_overlap = schema
+            elif not schema.anchor:
+                if max_tree_width := schema.path.max_tree_width(schema.size):
+                    if max_tree_width > global_max_tree_width:
+                        global_max_tree_width = max_tree_width
+                    classes['base'].append(schema)
+                    new_class = f'base_{max_tree_width}'
+                    classes[new_class].append(schema)
+                    new_classes[max_tree_width] = new_class
+        assert global_max_tree_width == MAX_TREE_WIDTH
+        classes['invalid'].append(letter_overlap)
+        classes['invalid'].append(continuing_overlap)
+        valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=((1, 0),)), side_bearing=0)
+        valid_continuing_overlap = continuing_overlap.clone(cmap=None, path=ContinuingOverlap(), side_bearing=0)
+        classes['valid'].append(valid_letter_overlap)
+        classes['valid'].append(valid_continuing_overlap)
+        add_rule(lookup, Rule('invalid', 'invalid', [], lookups=[None]))
+        add_rule(lookup, Rule('valid', 'invalid', [], 'valid'))
+        for i in range(global_max_tree_width - 2):
+            add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'invalid'], lookups=[None]))
+        if global_max_tree_width > 1:
+            add_rule(lookup, Rule([], [continuing_overlap], 'invalid', lookups=[None]))
+        for max_tree_width, new_class in new_classes.items():
+            add_rule(lookup, Rule([new_class], 'invalid', ['invalid'] * max_tree_width, lookups=[None]))
+        add_rule(lookup, Rule(['base'], [letter_overlap], [], [valid_letter_overlap]))
+        classes['base'].append(valid_letter_overlap)
+        add_rule(lookup, Rule(['base'], [continuing_overlap], [], [valid_continuing_overlap]))
+        classes['base'].append(valid_continuing_overlap)
+        classes[CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
+        classes[INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
+        classes[CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
+        classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
+        return [lookup]
+
+    def _add_parent_edges(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('blws', 'dupl', 'dflt')
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
+        root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
+        for child_index in range(MAX_TREE_WIDTH):
+            if root_parent_edge not in classes[CHILD_EDGE_CLASSES[child_index]]:
+                classes[CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
+            for layer_index in range(MAX_TREE_DEPTH):
+                if root_parent_edge not in classes[INTER_EDGE_CLASSES[layer_index][child_index]]:
+                    classes[INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
+        for schema in new_schemas:
+            if schema.glyph_class == GlyphClass.JOINER:
+                classes['root' if schema.path.can_be_child(schema.size) else 'root_only'].append(schema)
+        add_rule(lookup, Rule(['root'], [root_parent_edge, 'root']))
+        add_rule(lookup, Rule(['root_only'], [root_only_parent_edge, root_parent_edge, 'root_only']))
+        return [lookup]
+
+    def _invalidate_overlap_controls(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        for schema in new_schemas:
+            if isinstance(schema.path, ParentEdge):
+                node = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, RootOnlyParentEdge):
+                root_only_parent_edge = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, ChildEdge):
+                valid_letter_overlap = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, ContinuingOverlap):
+                valid_continuing_overlap = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, InvalidOverlap):
+                if schema.path.continuing:
+                    invalid_continuing_overlap = schema
+                else:
+                    invalid_letter_overlap = schema
+        classes['valid'].append(valid_letter_overlap)
+        classes['valid'].append(valid_continuing_overlap)
+        classes['invalid'].append(invalid_letter_overlap)
+        classes['invalid'].append(invalid_continuing_overlap)
+        add_rule(lookup, Rule([], 'valid', 'invalid', 'invalid'))
+        for older_sibling_count in range(MAX_TREE_WIDTH - 1, -1, -1):
+            # A continuing overlap not at the top level must be licensed by an
+            # ancestral continuing overlap.
+            # TODO: Optimization: All but the youngest child can use
+            # `valid_letter_overlap` instead of `'valid'`.
+            for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
+                for older_sibling_count_of_continuing_overlap in range(MAX_TREE_WIDTH):
+                    add_rule(lookup, Rule(
+                        [valid_letter_overlap] * older_sibling_count,
+                        [valid_letter_overlap],
+                        [*subtrees, node, *[valid_letter_overlap] * older_sibling_count_of_continuing_overlap, valid_continuing_overlap],
+                        [invalid_letter_overlap]
+                    ))
+            # Trees have a maximum depth of `MAX_TREE_DEPTH` letters.
+            # TODO: Optimization: Why use a nested `for` loop? Can a combination of
+            # `top_width` and `prefix_depth` work?
+            for subtrees in make_trees(node, valid_letter_overlap, MAX_TREE_DEPTH, top_widths=range(older_sibling_count + 1)):
+                for deep_subtree in make_trees(node, 'valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
+                    add_rule(lookup, Rule(
+                        [valid_letter_overlap] * older_sibling_count,
+                        'valid',
+                        [*subtrees, *deep_subtree],
+                        'invalid',
+                    ))
+            # Anything valid needs to be explicitly kept valid, since there might
+            # not be enough context to tell that an invalid overlap is invalid.
+            # TODO: Optimization: The last subtree can just be one node instead of
+            # the full subtree.
+            for subtrees in make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
+                add_rule(lookup, Rule(
+                    [valid_letter_overlap] * older_sibling_count if older_sibling_count else [node],
+                    'valid',
+                    subtrees,
+                    'valid',
+                ))
+        # If an overlap gets here without being kept valid, it is invalid.
+        # FIXME: This should be just one rule, without context, but `add_rule`
+        # is broken: it does not take into account what rules precede it in the
+        # lookup when determining the possible output schemas.
+        add_rule(lookup, Rule([], 'valid', 'valid', 'valid'))
+        add_rule(lookup, Rule([node], 'valid', [], 'invalid'))
+        add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
+        return [lookup]
+
+    def _add_secant_guidelines(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('abvs', 'dupl', 'dflt')
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
+        valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
+        dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
+        initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
+        named_lookups['prepend_zwnj'] = Lookup(None, None, None)
+        for schema in new_schemas:
+            if (isinstance(schema.path, Line)
+                and schema.path.secant
+                and schema.glyph_class == GlyphClass.JOINER
+                and schema in original_schemas
+            ):
+                classes['secant'].append(schema)
+                zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+                guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
+                guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
+                add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
+                add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [valid_continuing_overlap, guideline]))
+        add_rule(named_lookups['prepend_zwnj'], Rule('secant', [zwnj, 'secant']))
+        add_rule(lookup, Rule([], 'secant', [], lookups=['prepend_zwnj']))
+        return [lookup]
+
+    def _add_placeholders_for_missing_children(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup_1 = Lookup(
+            'blws',
+            'dupl',
+            'dflt',
+            mark_filtering_set='valid_final_overlap',
+        )
+        lookup_2 = Lookup(
+            'blws',
+            'dupl',
+            'dflt',
+            mark_filtering_set='valid_final_overlap',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup_1, lookup_2]
+        base_classes = {}
+        for schema in new_schemas:
+            if isinstance(schema.path, ChildEdge):
+                valid_letter_overlap = schema
+                classes['valid_final_overlap'].append(schema)
+            elif isinstance(schema.path, ContinuingOverlap):
+                valid_continuing_overlap = schema
+                classes['valid_final_overlap'].append(schema)
+            elif (schema.glyph_class == GlyphClass.JOINER
+                and (max_tree_width := schema.path.max_tree_width(schema.size)) > 1
+            ):
+                new_class = f'base_{max_tree_width}'
+                classes[new_class].append(schema)
+                base_classes[max_tree_width] = new_class
+        root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
+        placeholder = Schema(None, Space(0, margins=False), 0, Type.JOINING, side_bearing=0, child=True)
+        for max_tree_width, base_class in base_classes.items():
+            add_rule(lookup_1, Rule(
+                [base_class],
+                [valid_letter_overlap],
+                [valid_letter_overlap] * (max_tree_width - 2) + ['valid_final_overlap'],
+                lookups=[None],
+            ))
+            add_rule(lookup_2, Rule(
+                [],
+                [base_class],
+                [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap'],
+                lookups=[None],
+            ))
+            for sibling_count in range(max_tree_width - 1, 0, -1):
+                input_1 = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
+                add_rule(lookup_1, Rule(
+                    [base_class] + [valid_letter_overlap] * (sibling_count - 1),
+                    [input_1],
+                    [],
+                    [input_1] + [root_parent_edge, placeholder] * sibling_count,
+                ))
+                add_rule(lookup_2, Rule(
+                    [],
+                    [base_class],
+                    [valid_letter_overlap] * (sibling_count - 1) + [input_1],
+                    [base_class] + [valid_letter_overlap] * sibling_count,
+                ))
+        return [lookup_1, lookup_2]
+
+    def _categorize_edges(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'blws',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+        )
+        old_groups = [s.path.group() for s in classes['all']]
+        child_edges = {}
+        parent_edges = {}
+        def get_child_edge(lineage):
+            lineage = tuple(lineage)
+            child_edge = child_edges.get(lineage)
+            if child_edge is None:
+                child_edge = default_child_edge.clone(cmap=None, path=default_child_edge.path.clone(lineage=lineage))
+                child_edges[lineage] = child_edge
+            return child_edge
+        def get_parent_edge(lineage):
+            lineage = tuple(lineage)
+            parent_edge = parent_edges.get(lineage)
+            if parent_edge is None:
+                parent_edge = default_parent_edge.clone(cmap=None, path=default_parent_edge.path.clone(lineage=lineage))
+                parent_edges[lineage] = parent_edge
+            return parent_edge
+        for schema in schemas:
+            if isinstance(schema.path, ChildEdge):
+                child_edges[tuple(schema.path.lineage)] = schema
+                if (len(schema.path.lineage) == 1
+                    and schema.path.lineage[0][0] == 1
+                ):
+                    default_child_edge = schema
+            elif isinstance(schema.path, ParentEdge):
+                parent_edges[tuple(schema.path.lineage)] = schema
+                if not schema.path.lineage:
+                    default_parent_edge = schema
+        for schema in new_schemas:
+            if isinstance(schema.path, ChildEdge):
+                classes['all'].append(schema)
+            elif isinstance(schema.path, ParentEdge):
+                classes['all'].append(schema)
+        for edge in new_schemas:
+            if edge.path.group() not in old_groups:
+                if isinstance(edge.path, ChildEdge):
+                    lineage = list(edge.path.lineage)
+                    lineage[-1] = (lineage[-1][0] + 1, 0)
+                    if lineage[-1][0] <= MAX_TREE_WIDTH:
+                        new_child_edge = get_child_edge(lineage)
+                        classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                        classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                        add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
+                    lineage = list(edge.path.lineage)
+                    lineage[-1] = (1, lineage[-1][0])
+                    new_parent_edge = get_parent_edge(lineage)
+                    classes[PARENT_EDGE_CLASS].append(new_parent_edge)
+                    classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                    add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
+                elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
+                    lineage = list(edge.path.lineage)
+                    if len(lineage) < MAX_TREE_DEPTH:
+                        lineage.append((1, lineage[-1][0]))
+                        new_child_edge = get_child_edge(lineage)
+                        classes[CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                        classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                        add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
+                    lineage = list(edge.path.lineage)
+                    while lineage and lineage[-1][0] == lineage[-1][1]:
+                        lineage.pop()
+                    if lineage:
+                        lineage[-1] = (lineage[-1][0] + 1, lineage[-1][1])
+                        if lineage[-1][0] <= MAX_TREE_WIDTH:
+                            new_parent_edge = get_parent_edge(lineage)
+                            classes[PARENT_EDGE_CLASS].append(new_parent_edge)
+                            classes[INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                            add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
+        return [lookup]
+
+    def _promote_final_letter_overlap_to_continuing_overlap(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('rclt', 'dupl', 'dflt')
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        for schema in new_schemas:
+            if isinstance(schema.path, ChildEdge):
+                classes['overlap'].append(schema)
+                if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
+                    classes['final_letter_overlap'].append(schema)
+            elif isinstance(schema.path, ContinuingOverlap):
+                continuing_overlap = schema
+                classes['overlap'].append(schema)
+            elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
+                root_parent_edge = schema
+                classes['secant_or_root_parent_edge'].append(schema)
+            elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.MARK:
+                classes['secant_or_root_parent_edge'].append(schema)
+        add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
+        named_lookups['promote'] = Lookup(None, None, None)
+        add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
+        for overlap in classes['final_letter_overlap']:
+            named_lookups[f'promote_{overlap.path}_and_parent'] = Lookup(
+                None,
+                None,
+                None,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                mark_filtering_set=str(overlap.path),
+            )
+            classes[str(overlap.path)].append(overlap)
+            for parent_edge in new_schemas:
+                if (isinstance(parent_edge.path, ParentEdge)
+                    and parent_edge.path.lineage
+                    and overlap.path.lineage[:-1] == parent_edge.path.lineage[:-1]
+                    and overlap.path.lineage[-1][0] == parent_edge.path.lineage[-1][0] == parent_edge.path.lineage[-1][1]
+                ):
+                    classes[str(overlap.path)].append(parent_edge)
+                    classes[f'parent_for_{overlap.path}'].append(parent_edge)
+            add_rule(named_lookups['promote'], Rule(f'parent_for_{overlap.path}', [root_parent_edge]))
+            add_rule(named_lookups[f'promote_{overlap.path}_and_parent'], Rule(
+                [],
+                [overlap, f'parent_for_{overlap.path}'],
+                [],
+                lookups=['promote', 'promote'],
+            ))
+            named_lookups[f'check_and_promote_{overlap.path}'] = Lookup(
+                None,
+                None,
+                None,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                mark_filtering_set='secant_or_root_parent_edge',
+            )
+            add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
+            add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], [], lookups=[f'promote_{overlap.path}_and_parent']))
+            add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap.path}']), track_possible_outputs=False)
+        return [lookup]
+
+    def _reposition_chinook_jargon_overlap_points(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        # TODO: This should be a general thing, not limited to specific Chinook
+        # Jargon abbreviations and a few similar patterns.
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        line_classes = {}
+        for schema in schemas:
+            if schema.glyph_class == GlyphClass.MARK:
+                if isinstance(schema.path, ChildEdge):
+                    classes['all'].append(schema)
+                    classes['overlap'].append(schema)
+                    classes['letter_overlap'].append(schema)
+                elif isinstance(schema.path, ContinuingOverlap):
+                    classes['all'].append(schema)
+                    classes['overlap'].append(schema)
+                    classes['continuing_overlap'].append(schema)
+                elif not schema.path.invisible():
+                    classes['all'].append(schema)
+            elif schema.glyph_class == GlyphClass.JOINER:
+                if schema.path.max_tree_width(schema.size) == 0:
+                    continue
+                if (isinstance(schema.path, Line)
+                    and not isinstance(schema.path, LongI)
+                    and (schema.size == 1 or schema.cps == [0x1BC07])
+                    and not schema.path.secant
+                    and not schema.path.dots
+                ):
+                    angle = schema.path.angle
+                    max_tree_width = schema.path.max_tree_width(schema.size)
+                    line_class = f'line_{angle}_{max_tree_width}'
+                    classes['line'].append(schema)
+                    classes[line_class].append(schema)
+                    line_classes[line_class] = (angle, max_tree_width)
+                elif (isinstance(schema.path, Curve)
+                    and schema.cps in [[0x1BC1B], [0x1BC1C]]
+                    and schema.size == 6
+                    and schema.joining_type == Type.JOINING
+                    and (schema.path.angle_in, schema.path.angle_out) in [(90, 270), (270, 90)]
+                ):
+                    classes['curve'].append(schema)
+        if len(original_schemas) == len(schemas):
+            for width in range(1, MAX_TREE_WIDTH + 1):
+                add_rule(lookup, Rule(['line', *['letter_overlap'] * (width - 1), 'overlap'], 'curve', 'overlap', 'curve'))
+        for curve in classes['curve']:
+            if curve in new_schemas:
+                for line_class, (angle, _) in line_classes.items():
+                    for width in range(1, curve.path.max_tree_width(curve.size) + 1):
+                        add_rule(lookup, Rule(
+                            [],
+                            [curve],
+                            [*['overlap'] * width, line_class],
+                            [curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))],
+                        ))
+        for curve_child in classes['curve']:
+            if curve_child in new_schemas:
+                for line_class, (angle, max_tree_width) in line_classes.items():
+                    for width in range(1, max_tree_width + 1):
+                        add_rule(lookup, Rule(
+                            [line_class, *['letter_overlap'] * (width - 1), 'overlap'],
+                            [curve_child],
+                            [],
+                            [curve_child.clone(cmap=None, path=curve_child.path.clone(overlap_angle=angle))],
+                        ))
+        return [lookup]
+
+    def _make_mark_variants_of_children(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('blws', 'dupl', 'dflt')
+        children_to_be = []
+        old_child_count = len(classes['child'])
+        for schema in new_schemas:
+            if isinstance(schema.path, ParentEdge) and schema.path.lineage:
+                classes['all'].append(schema)
+            elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child(schema.size):
+                classes['child_to_be'].append(schema)
+        for i, child_to_be in enumerate(classes['child_to_be']):
+            if i < old_child_count:
+                continue
+            child = child_to_be.clone(cmap=None, child=True)
+            classes['child'].append(child)
+            classes[PARENT_EDGE_CLASS].append(child)
+            for child_index in range(MAX_TREE_WIDTH):
+                classes[CHILD_EDGE_CLASSES[child_index]].append(child)
+        add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
+        return [lookup]
+
+    def _reposition_stenographic_period(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        for schema in new_schemas:
+            if (isinstance(schema.path, InvalidStep)
+                or isinstance(schema.path, Space) and schema.joining_type == Type.JOINING
+            ) and schema.glyph_class != GlyphClass.MARK:
+                classes['c'].append(schema)
+            elif schema.cmap == 0x2E3C:
+                period = schema
+        zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+        joining_period = period.clone(cmap=None, joining_type=Type.JOINING)
+        add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
+        return [lookup]
+
+    def _disjoin_equals_sign(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        equals_sign = next(s for s in schemas if s.cmap == 0x003D)
+        continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
+        root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
+        zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+        classes['all'].append(continuing_overlap)
+        classes['all'].append(root_parent_edge)
+        add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
+        add_rule(lookup, Rule([equals_sign, continuing_overlap], [root_parent_edge], [], lookups=[None]))
+        add_rule(lookup, Rule([equals_sign], [root_parent_edge], [], [zwnj, root_parent_edge]))
+        return [lookup]
+
+    def _join_with_next_step(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            reversed=True,
+        )
+        old_input_count = len(classes['i'])
+        for schema in new_schemas:
+            if isinstance(schema.path, InvalidStep):
+                classes['i'].append(schema)
+            if schema.glyph_class == GlyphClass.JOINER:
+                classes['c'].append(schema)
+        new_context = 'o' not in classes
+        for i, target_schema in enumerate(classes['i']):
+            if new_context or i >= old_input_count:
+                output_schema = target_schema.contextualize(NO_CONTEXT, NO_CONTEXT).clone(
+                    size=800,
+                    joining_type=Type.JOINING,
+                    side_bearing=0,
+                )
+                classes['o'].append(output_schema)
+        if new_context:
+            add_rule(lookup, Rule([], 'i', 'c', 'o'))
+        return [lookup]
+
+    def _prepare_for_secondary_diphthong_ligature(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            reversed=True,
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        for schema in new_schemas:
+            if not schema.can_become_part_of_diphthong:
+                continue
+            if isinstance(schema.path, Curve):
+                if schema.is_primary:
+                    classes['primary_semicircle'].append(schema)
+            elif schema.path.reversed:
+                classes['reversed_circle'].append(schema)
+                classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
+        add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
+        return [lookup]
+
+    def _join_with_previous(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup_1 = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+        )
+        lookup_2 = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup_1, lookup_2]
+        contexts_in = OrderedSet()
+        @functools.cache
+        def get_context_marker(context):
+            return Schema(None, ContextMarker(False, context), 0)
+        for schema in original_schemas:
+            if schema.glyph_class == GlyphClass.JOINER:
+                if (schema.joining_type == Type.ORIENTING
+                    and schema.context_in == NO_CONTEXT
+                ):
+                    classes['i'].append(schema)
+                if (context_in := schema.path_context_out()) != NO_CONTEXT:
+                    if context_in.ignorable_for_topography:
+                        context_in = context_in.clone(angle=0)
+                    context_in = get_context_marker(context_in)
+                    classes['all'].append(context_in)
+                    classes['i2'].append(schema)
+                    classes['o2'].append(context_in)
+                    contexts_in.add(context_in)
+        classes['all'].extend(classes[CONTINUING_OVERLAP_CLASS])
+        add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
+        for j, context_in in enumerate(contexts_in):
+            for i, target_schema in enumerate(classes['i']):
+                classes[f'o_{j}'].append(target_schema.contextualize(context_in.path.context, target_schema.context_out))
+            add_rule(lookup_2, Rule([context_in], 'i', [], f'o_{j}'))
+        return [lookup_1, lookup_2]
+
+    def _unignore_last_orienting_glyph_in_initial_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='i',
+        )
+        if 'check_previous' in named_lookups:
+            return [lookup]
+        for schema in new_schemas:
+            if schema.ignored_for_topography:
+                classes['i'].append(schema)
+                classes['o'].append(schema.clone(ignored_for_topography=False))
+            elif schema.glyph_class == GlyphClass.JOINER and not isinstance(schema.path, Space):
+                if (schema.joining_type == Type.ORIENTING
+                    and schema.can_be_ignored_for_topography()
+                ):
+                    classes['first'].append(schema)
+                else:
+                    classes['c'].append(schema)
+                    if schema.can_lead_orienting_sequence and not isinstance(schema.path, Line):
+                        classes['fixed_form'].append(schema)
+        named_lookups['check_previous'] = Lookup(
+            None,
+            None,
+            None,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        )
+        add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
+        add_rule(named_lookups['check_previous'], Rule('c', 'i', [], lookups=[None]))
+        add_rule(named_lookups['check_previous'], Rule([], 'i', 'fixed_form', lookups=[None]))
+        add_rule(named_lookups['check_previous'], Rule('i', 'o'))
+        add_rule(lookup, Rule([], 'i', 'c', lookups=['check_previous']))
+        return [lookup]
+
+    def _ignore_first_orienting_glyph_in_initial_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            reversed=True,
+        )
+        for schema in new_schemas:
+            if schema.glyph_class != GlyphClass.JOINER:
+                continue
+            classes['joiner'].append(schema)
+            if (schema.can_lead_orienting_sequence
+                and schema.can_be_ignored_for_topography()
+            ):
+                classes['c'].append(schema)
+                if schema.joining_type == Type.ORIENTING:
+                    classes['i'].append(schema)
+                    angle_out = schema.path.angle_out - schema.path.angle_in
+                    path = schema.path.clone(
+                        angle_in=0,
+                        angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
+                        clockwise=True,
+                        **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})
+                    )
+                    classes['o'].append(schema.clone(
+                        cmap=None,
+                        path=path,
+                        ignored_for_topography=True,
+                        context_in=None,
+                        context_out=None,
+                    ))
+        add_rule(lookup, Rule('joiner', 'i', [], 'i'))
+        add_rule(lookup, Rule([], 'i', 'c', 'o'))
+        return [lookup]
+
+    def _tag_main_glyph_in_orienting_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='dependent',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        for schema in new_schemas:
+            if schema.ignored_for_topography:
+                classes['dependent'].append(schema)
+            elif (schema.joining_type == Type.ORIENTING
+                and schema.glyph_class == GlyphClass.JOINER
+                and isinstance(schema.path, Circle)
+                and schema.path.role == CircleRole.INDEPENDENT
+            ):
+                classes['i'].append(schema)
+                classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(role=CircleRole.LEADER)))
+        add_rule(lookup, Rule('dependent', 'i', [], 'o'))
+        add_rule(lookup, Rule([], 'i', 'dependent', 'o'))
+        return [lookup]
+
+    def _join_with_next(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        pre_lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+        )
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set=CONTINUING_OVERLAP_CLASS,
+            reversed=True,
+        )
+        post_lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='continuing_overlap_after_secant',
+            reversed=True,
+        )
+        contexts_out = OrderedSet()
+        new_contexts_out = set()
+        old_input_count = len(classes['i'])
+        if old_input_count == 0:
+            for schema in original_schemas:
+                if (schema.glyph_class == GlyphClass.JOINER
+                    and schema.joining_type == Type.ORIENTING
+                    and schema.context_out == NO_CONTEXT
+                ):
+                    classes['i'].append(schema)
+                    if isinstance(schema.path, Line) and schema.path.secant:
+                        classes['secant_i'].append(schema)
+                        classes['secant_o'].append(schema)
+            continuing_overlap = next(iter(classes[CONTINUING_OVERLAP_CLASS]))
+            continuing_overlap_after_secant = Schema(None, ContinuingOverlapS(), 0)
+            classes['continuing_overlap_after_secant'].append(continuing_overlap_after_secant)
+            add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
+        for schema in new_schemas:
+            if (schema.glyph_class == GlyphClass.JOINER
+                and (old_input_count == 0 or not isinstance(schema.path, (LongI, Curve, Circle, Complex)))
+                and not (isinstance(schema.path, Line) and schema.path.secant)
+                and (context_out := schema.path.context_in()) != NO_CONTEXT
+            ):
+                contexts_out.add(context_out)
+                if schema not in (context_out_class := classes[f'c_{context_out}']):
+                    if not context_out_class:
+                        new_contexts_out.add(context_out)
+                    context_out_class.append(schema)
+        for context_out in contexts_out:
+            output_class_name = f'o_{context_out}'
+            new_context = context_out in new_contexts_out
+            for i, target_schema in enumerate(classes['i']):
+                if new_context or i >= old_input_count:
+                    output_schema = target_schema.contextualize(target_schema.context_in, context_out)
+                    classes[output_class_name].append(output_schema)
+                    if isinstance(output_schema.path, Line) and output_schema.path.secant:
+                        classes['secant_o'].append(output_schema)
+            if new_context:
+                add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
+        if old_input_count == 0:
+            # FIXME: This rule shouldn’t need to be contextual, but without the
+            # context, fontTools throws a `KeyError` in `buildCoverage`.
+            add_rule(post_lookup, Rule(['secant_o'], [continuing_overlap_after_secant], [], [continuing_overlap]))
+        return [pre_lookup, lookup, post_lookup]
+
+    def _join_circle_with_adjacent_nonorienting_glyph(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='ignored_for_topography',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup]
+        contexts_out = OrderedSet()
+        for schema in new_schemas:
+            if schema.ignored_for_topography:
+                if isinstance(schema.path, Circle):
+                    classes['i'].append(schema)
+                classes['ignored_for_topography'].append(schema)
+            elif (schema.glyph_class == GlyphClass.JOINER
+                and (not schema.can_lead_orienting_sequence
+                    or isinstance(schema.path, Line) and schema.path.visible_base and not schema.path.secant
+                )
+            ):
+                if (context_out := schema.path.context_in()) != NO_CONTEXT:
+                    context_out = Context(context_out.angle)
+                    contexts_out.add(context_out)
+                    classes[f'c_{context_out}'].append(schema)
+        for context_out in contexts_out:
+            output_class_name = f'o_{context_out}'
+            for circle in classes['i']:
+                classes[output_class_name].append(circle.clone(cmap=None, context_out=context_out))
+            add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
+        return [lookup]
+
+    def _ligate_diphthongs(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rlig',
+            'dupl',
+            'dflt',
+            mark_filtering_set='ignored_for_topography',
+            reversed=True,
+        )
+        diphthong_1_classes = OrderedSet()
+        diphthong_2_classes = OrderedSet()
+        for schema in new_schemas:
+            if not schema.can_become_part_of_diphthong:
+                continue
+            is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
+            is_ignored = schema.ignored_for_topography
+            is_primary = schema.is_primary
+            if is_ignored and not is_primary:
+                continue
+            input_class_name = f'i1_{is_circle_letter}_{is_ignored}'
+            classes[input_class_name].append(schema)
+            output_class_name = f'o1_{is_circle_letter}_{is_ignored}'
+            output_schema = schema.clone(cmap=None, diphthong_1=True)
+            classes[output_class_name].append(output_schema)
+            diphthong_1_classes.add((
+                input_class_name,
+                is_circle_letter,
+                is_ignored,
+                output_class_name,
+            ))
+            if schema.ignored_for_topography:
+                classes['ignored_for_topography'].append(output_schema)
+            input_class_name = f'i2_{is_circle_letter}_{is_ignored}'
+            classes[input_class_name].append(schema)
+            output_class_name = f'o2_{is_circle_letter}_{is_ignored}'
+            output_schema = schema.clone(cmap=None, diphthong_2=True)
+            classes[output_class_name].append(output_schema)
+            diphthong_2_classes.add((
+                input_class_name,
+                is_circle_letter,
+                is_ignored,
+                output_class_name,
+            ))
+            if schema.ignored_for_topography:
+                classes['ignored_for_topography'].append(schema)
+                classes['ignored_for_topography'].append(output_schema)
+        for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes.keys():
+            for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes.keys():
+                if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
+                    add_rule(lookup, Rule(input_1, input_2, [], output_2))
+                    add_rule(lookup, Rule([], input_1, output_2, output_1))
+        return [lookup]
+
+    def _unignore_noninitial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='i',
+        )
+        contexts_in = OrderedSet()
+        new_contexts_in = set()
+        old_input_count = len(classes['i'])
+        for schema in new_schemas:
+            if schema.ignored_for_topography and (
+                schema.context_in.angle is None or schema.context_in.ignorable_for_topography
+            ):
+                classes['i'].append(schema)
+            elif (schema.glyph_class == GlyphClass.JOINER
+                and schema.can_lead_orienting_sequence
+                and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
+                    or schema.phase_index < self._phases.index(self._join_circle_with_adjacent_nonorienting_glyph)
+                    if isinstance(schema.path, Circle)
+                    else schema.can_be_ignored_for_topography())
+            ):
+                context_in = schema.path_context_out().clone(diphthong_start=False, diphthong_end=False)
+                contexts_in.add(context_in)
+                if schema not in (context_in_class := classes[f'c_{context_in}']):
+                    if not context_in_class:
+                        new_contexts_in.add(context_in)
+                    context_in_class.append(schema)
+        for context_in in contexts_in:
+            output_class_name = f'o_{context_in}'
+            new_context = context_in in new_contexts_in
+            for i, target_schema in enumerate(classes['i']):
+                if new_context or i >= old_input_count:
+                    output_schema = target_schema.contextualize(context_in, target_schema.context_out, ignore_dependent_schemas=False)
+                    classes[output_class_name].append(output_schema)
+            if new_context:
+                add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
+        return [lookup]
+
+    def _unignore_initial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='i',
+            reversed=True,
+        )
+        contexts_out = OrderedSet()
+        new_contexts_out = set()
+        old_input_count = len(classes['i'])
+        for schema in new_schemas:
+            if schema.ignored_for_topography and (
+                schema.context_out.angle is None or schema.context_out.ignorable_for_topography
+            ):
+                classes['i'].append(schema)
+            elif (schema.glyph_class == GlyphClass.JOINER
+                and schema.can_lead_orienting_sequence
+                and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
+                    or schema.phase_index < self._phases.index(self._join_circle_with_adjacent_nonorienting_glyph)
+                    if isinstance(schema.path, Circle)
+                    else schema.can_be_ignored_for_topography())
+            ):
+                context_out = schema.path_context_in().clone(diphthong_start=False, diphthong_end=False)
+                contexts_out.add(context_out)
+                if schema not in (context_out_class := classes[f'c_{context_out}']):
+                    if not context_out_class:
+                        new_contexts_out.add(context_out)
+                    context_out_class.append(schema)
+        for context_out in contexts_out:
+            output_class_name = f'o_{context_out}'
+            new_context = context_out in new_contexts_out
+            for i, target_schema in enumerate(classes['i']):
+                if new_context or i >= old_input_count:
+                    output_schema = target_schema.contextualize(target_schema.context_in, context_out, ignore_dependent_schemas=False)
+                    classes[output_class_name].append(output_schema)
+            if new_context:
+                add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
+        return [lookup]
+
+    def _join_double_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rlig',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+        )
+        for schema in new_schemas:
+            if schema.cps == [0x1BC9E]:
+                classes['all'].append(schema)
+                for i in range(2, MAX_DOUBLE_MARKS + 1):
+                    add_rule(lookup, Rule([schema] * i, [schema.clone(
+                        cmap=None,
+                        cps=schema.cps * i,
+                        path=Complex([
+                            (1, schema.path),
+                            (500, Space((schema.path.angle + 180) % 360, margins=False)),
+                            (250, Space((schema.path.angle - 90) % 360, margins=False)),
+                        ] * i),
+                    )]))
+        return [lookup]
+
+    def _rotate_diacritics(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        base_anchors_and_contexts = OrderedSet()
+        new_base_anchors_and_contexts = set()
+        for schema in original_schemas:
+            if schema.anchor:
+                if (schema.joining_type == Type.ORIENTING
+                        and schema.base_angle is None
+                        and schema in new_schemas):
+                    classes['all'].append(schema)
+                    classes[f'i_{schema.anchor}'].append(schema)
+            elif not schema.ignored_for_topography:
+                for base_anchor, base_angle in schema.diacritic_angles.items():
+                    base_context = Context(base_angle, schema.path.context_out().clockwise)
+                    base_anchor_and_context = (base_anchor, base_context)
+                    base_anchors_and_contexts.add(base_anchor_and_context)
+                    if schema not in (base_anchor_and_context_class := classes[f'c_{base_anchor}_{base_context}']):
+                        if not base_anchor_and_context_class:
+                            new_base_anchors_and_contexts.add(base_anchor_and_context)
+                        base_anchor_and_context_class.append(schema)
+                        if schema.glyph_class == GlyphClass.MARK:
+                            classes['all'].append(schema)
+        for base_anchor_and_context in base_anchors_and_contexts:
+            if base_anchor_and_context in new_base_anchors_and_contexts:
+                anchor, context = base_anchor_and_context
+                output_class_name = f'o_{anchor}_{context}'
+                for target_schema in classes[f'i_{anchor}']:
+                    if anchor == target_schema.anchor:
+                        output_schema = target_schema.rotate_diacritic(context)
+                        classes[output_class_name].append(output_schema)
+                add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
+        return [lookup]
+
+    def _shade(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rlig',
+            'dupl',
+            'dflt',
+            mark_filtering_set='independent_mark',
+        )
+        dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
+        classes['independent_mark'].append(dtls)
+        if new_schemas:
+            for schema in new_schemas:
+                if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
+                    if schema.cmap is not None:
+                        classes['independent_mark'].append(schema)
+                elif (schema in original_schemas
+                    and not schema.ignored_for_topography
+                    and schema.shading_allowed
+                    and schema.path.is_shadable()
+                ):
+                    classes['i'].append(schema)
+                    classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
+                    if schema.glyph_class == GlyphClass.MARK:
+                        classes['independent_mark'].append(schema)
+            add_rule(lookup, Rule(['i', dtls], 'o'))
+        return [lookup]
+
+    def _make_widthless_variants_of_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('psts', 'dupl', 'dflt')
+        first_iteration = 'i' not in classes
+        for schema in new_schemas:
+            if schema.glyph_class == GlyphClass.MARK:
+                if schema.anchor and schema.widthless is None and not schema.path.invisible():
+                    classes['i'].append(schema)
+                    widthless_variant = schema.clone(cmap=None, widthless=True)
+                    classes['o'].append(widthless_variant)
+                    classes['c'].append(widthless_variant)
+            elif schema.joining_type == Type.NON_JOINING:
+                classes['c'].append(schema)
+        if first_iteration:
+            add_rule(lookup, Rule('c', 'i', [], 'o'))
+        return [lookup]
+
+    def _classify_marks_for_trees(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        for schema in schemas:
+            for anchor in MARK_ANCHORS:
+                if schema.child or schema.anchor == anchor:
+                    classes[f'global..{mkmk(anchor)}'].append(schema)
+        return []
+
+    def _merge_lookalikes(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+        )
+        grouper = group_schemas(new_schemas)
+        for group in grouper.groups():
+            group.sort(key=Schema.sort_key)
+            group = iter(group)
+            canonical_schema = next(group)
+            if not canonical_schema.might_need_width_markers:
+                continue
+            for schema in group:
+                add_rule(lookup, Rule([schema], [canonical_schema]))
+        return [lookup]
+
+    def _add_shims_for_pseudo_cursive(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        marker_lookup = Lookup(
+            'haln',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        )
+        space_lookup = Lookup(
+            'haln',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+            reversed=True,
+        )
+        if len(original_schemas) != len(schemas):
+            return [marker_lookup, space_lookup]
+        pseudo_cursive_schemas = {}
+        exit_schemas = []
+        entry_schemas = []
+        for schema in new_schemas:
+            if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
+                continue
+            if (isinstance(schema.path, (Dot, Space, XShape))
+                and schema.size
+                and not schema.path.can_be_hub(schema.size)
+            ):
+                x_min, _, x_max, _ = schema.glyph.boundingBox()
+                pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
+            if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
+                for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+                    if anchor_class_name == CURSIVE_ANCHOR:
+                        if type == 'exit' and schema.context_out == NO_CONTEXT and not schema.diphthong_1:
+                            exit_schemas.append((schema, x, y))
+                        elif type == 'entry' and schema.context_in == NO_CONTEXT and not schema.diphthong_2:
+                            entry_schemas.append((schema, x, y))
+        @functools.cache
+        def get_shim(width, height):
+            return Schema(
+                None,
+                Space(width and math.degrees(math.atan(height / width)) % 360, margins=False),
+                math.hypot(width, height),
+                side_bearing=width,
+            )
+        marker = get_shim(0, 0)
+        rounding_base = 4
+        for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
+            add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
+            exit_classes = {}
+            exit_classes_containing_pseudo_cursive_schemas = set()
+            exit_classes_containing_true_cursive_schemas = set()
+            entry_classes = {}
+            for prefix, e_schemas, e_classes, height_sign, get_distance_to_edge in [
+                ('exit', exit_schemas, exit_classes, -1, lambda bounds, x: bounds[1] - x),
+                ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
+            ]:
+                for e_schema, x, y in e_schemas:
+                    bounds = e_schema.glyph.foreground.xBoundsAtY(y - self.light_line, y + self.light_line)
+                    distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
+                    shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
+                    shim_height = round(pseudo_cursive_half_width * height_sign)
+                    if (e_schemas is exit_schemas
+                        and isinstance(pseudo_cursive_schema.path, Space)
+                        and isinstance(e_schema.path, Space)
+                    ):
+                        # Margins do not collapse between spaces.
+                        shim_width += DEFAULT_SIDE_BEARING
+                    exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
+                    if exit_is_pseudo_cursive:
+                        shim_height += pseudo_cursive_schemas[e_schema]
+                    shim_height = rounding_base * round(shim_height / rounding_base)
+                    shim_width = rounding_base * round(shim_width / rounding_base)
+                    e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
+                    classes[e_class].append(e_schema)
+                    if e_class not in e_classes:
+                        e_classes[e_class] = get_shim(shim_width, shim_height)
+                    (exit_classes_containing_pseudo_cursive_schemas
+                            if exit_is_pseudo_cursive
+                            else exit_classes_containing_true_cursive_schemas
+                        ).add(e_class)
+            for exit_class, shim in exit_classes.items():
+                if exit_class in exit_classes_containing_pseudo_cursive_schemas:
+                    add_rule(space_lookup, Rule([exit_class, marker], [marker], [pseudo_cursive_schema], [shim]))
+                if exit_class in exit_classes_containing_true_cursive_schemas:
+                    add_rule(space_lookup, Rule(exit_class, [marker], [pseudo_cursive_schema], [shim]))
+            for entry_class, shim in entry_classes.items():
+                add_rule(space_lookup, Rule([pseudo_cursive_schema], [marker], entry_class, [shim]))
+        return [marker_lookup, space_lookup]
+
+    def _shrink_wrap_enclosing_circle(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            'dupl',
+            'dflt',
+            mark_filtering_set='i',
+        )
+        dist_lookup = Lookup(
+            'dist',
+            'dupl',
+            'dflt',
+            mark_filtering_set='o',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup, dist_lookup]
+        punctuation = {}
+        circle_schema = None
+        for schema in schemas:
+            if not schema.glyph:
+                continue
+            if schema.widthless and schema.cps == [0x20DD]:
+                assert circle_schema is None
+                circle_schema = schema
+                classes['i'].append(circle_schema)
+            elif schema.encirclable:
+                x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
+                dx = x_max - x_min
+                dy = y_max - y_min
+                class_name = f'c_{dx}_{dy}'
+                classes[class_name].append(schema)
+                punctuation[class_name] = (dx, dy, schema.glyph.width)
+        for class_name, (dx, dy, width) in punctuation.items():
+            dx += 3 * self.stroke_gap + self.light_line
+            dy += 3 * self.stroke_gap + self.light_line
+            if dx > dy:
+                dy = max(dy, dx * 0.75)
+            elif dx < dy:
+                dx = max(dx, dy * 0.75)
+            new_circle_schema = circle_schema.clone(
+                cmap=None,
+                path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
+                size=min(dx, dy) / 100,
+            )
+            add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
+            classes['o'].append(new_circle_schema)
+            side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - width) / 2)
+            add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[side_bearing]))
+            add_rule(dist_lookup, Rule([class_name], [new_circle_schema], [], x_advances=[side_bearing]))
+        return [lookup, dist_lookup]
+
+    def _add_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookups_per_position = 68
+        lookups = [
+            Lookup('psts', 'dupl', 'dflt')
+            for _ in range(lookups_per_position)
+        ]
+        rule_count = 0
+        carry_0_schema = Schema(None, Carry(0), 0)
+        entry_width_markers = {}
+        left_bound_markers = {}
+        right_bound_markers = {}
+        anchor_width_markers = {}
+        start = Schema(None, Start(), 0)
+        hub = next((s for s in schemas if isinstance(s.path, Hub)), None)
+        if hub is None:
+            hub = Schema(None, Hub(), 0)
+            classes[HUB_CLASS].append(hub)
+            classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
+        end = Schema(None, End(), 0)
+        mark_anchor_selectors = {}
+        def get_mark_anchor_selector(schema):
+            only_anchor_class_name = None
+            for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
+                if type == 'mark' and anchor_class_name in MARK_ANCHORS:
+                    assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
+                    only_anchor_class_name = anchor_class_name
+            index = MARK_ANCHORS.index(only_anchor_class_name)
+            if index in mark_anchor_selectors:
+                return mark_anchor_selectors[index]
+            return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
+        glyph_class_selectors = {}
+        def get_glyph_class_selector(schema):
+            glyph_class = schema.glyph_class
+            if glyph_class in glyph_class_selectors:
+                return glyph_class_selectors[glyph_class]
+            return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
+        for schema in new_schemas:
+            if schema not in original_schemas:
+                continue
+            if schema.glyph is None:
+                if isinstance(schema.path, MarkAnchorSelector):
+                    mark_anchor_selectors[schema.path.index] = schema
+                elif isinstance(schema.path, GlyphClassSelector):
+                    glyph_class_selectors[schema.glyph_class] = schema
+                if not isinstance(schema.path, Space):
+                    # Not a schema created in `add_shims_for_pseudo_cursive`
+                    continue
+            if schema.might_need_width_markers and (
+                schema.glyph_class != GlyphClass.MARK or any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
+            ):
+                entry_xs = {}
+                exit_xs = {}
+                if schema.glyph is None and isinstance(schema.path, Space):
+                    entry_xs[CURSIVE_ANCHOR] = 0
+                    exit_xs[CURSIVE_ANCHOR] = schema.size
+                else:
+                    for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
+                        if type in ['entry', 'mark']:
+                            entry_xs[anchor_class_name] = x
+                        elif type in ['base', 'basemark', 'exit']:
+                            exit_xs[anchor_class_name] = x
+                if not (entry_xs or exit_xs):
+                    # This glyph never appears in the final glyph buffer.
+                    continue
+                entry_xs.setdefault(CURSIVE_ANCHOR, 0)
+                if CURSIVE_ANCHOR not in exit_xs:
+                    exit_xs[CURSIVE_ANCHOR] = exit_xs.get(CONTINUING_OVERLAP_ANCHOR, 0)
+                entry_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, entry_xs[CURSIVE_ANCHOR])
+                exit_xs.setdefault(CONTINUING_OVERLAP_ANCHOR, exit_xs[CURSIVE_ANCHOR])
+                start_x = entry_xs[CURSIVE_ANCHOR if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
+                if schema.glyph is None:
+                    x_min = x_max = 0
+                else:
+                    x_min, _, x_max, _ = schema.glyph.boundingBox()
+                if x_min == x_max == 0:
+                    x_min = entry_xs[CURSIVE_ANCHOR]
+                    x_max = exit_xs[CURSIVE_ANCHOR]
+                if schema.glyph_class == GlyphClass.MARK:
+                    mark_anchor_selector = [get_mark_anchor_selector(schema)]
+                else:
+                    mark_anchor_selector = []
+                glyph_class_selector = get_glyph_class_selector(schema)
+                digits = []
+                for width, digit_path, width_markers in [
+                    (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
+                    (x_min - start_x, LeftBoundDigit, left_bound_markers),
+                    (x_max - start_x, RightBoundDigit, right_bound_markers),
+                    *[
+                        (
+                            exit_xs[anchor] - start_x if anchor in exit_xs else 0,
+                            AnchorWidthDigit,
+                            anchor_width_markers,
+                        ) for anchor in MARK_ANCHORS
+                    ],
+                    *[
+                        (
+                            exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
+                            AnchorWidthDigit,
+                            anchor_width_markers)
+                        for anchor in CURSIVE_ANCHORS
+                    ],
+                ]:
+                    assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                        if width >= 0
+                        else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                        ), f'Glyph {schema} is too wide: {width} units'
+                    digits_base = len(digits)
+                    digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
+                    quotient = round(width)
+                    for i in range(WIDTH_MARKER_PLACES):
+                        quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+                        args = (i, remainder)
+                        if args not in width_markers:
+                            width_markers[args] = Schema(None, digit_path(*args), 0)
+                        digits[digits_base + i * 2 + 1] = width_markers[args]
+                lookup = lookups[rule_count % lookups_per_position]
+                rule_count += 1
+                add_rule(lookup, Rule([schema], [
+                    start,
+                    glyph_class_selector,
+                    *mark_anchor_selector,
+                    *([hub] if schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_hub(schema.size) else []),
+                    schema,
+                    *digits,
+                    end,
+                ]))
+        return lookups
+
+    def _add_end_markers_for_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('psts', 'dupl', 'dflt')
+        end = next(s for s in new_schemas if isinstance(s.path, End))
+        for schema in new_schemas:
+            if (schema.glyph is not None
+                and schema.glyph_class == GlyphClass.MARK
+                and not schema.ignored_for_topography
+                and not schema.path.invisible()
+                and not any(a[0] in MARK_ANCHORS for a in schema.glyph.anchorPoints)
+            ):
+                add_rule(lookup, Rule([schema], [schema, end]))
+        return [lookup]
+
+    def _remove_false_end_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+        )
+        if 'all' in classes:
+            return [lookup]
+        dummy = Schema(None, Dummy(), 0)
+        end = next(s for s in new_schemas if isinstance(s.path, End))
+        classes['all'].append(end)
+        add_rule(lookup, Rule([], [end], [end], [dummy]))
+        return [lookup]
+
+    def _clear_entry_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+        )
+        zeros = [None] * WIDTH_MARKER_PLACES
+        if 'zero' not in named_lookups:
+            named_lookups['zero'] = Lookup(None, None, None)
+        for schema in schemas:
+            if isinstance(schema.path, EntryWidthDigit):
+                classes['all'].append(schema)
+                classes[str(schema.path.place)].append(schema)
+                if schema.path.digit == 0:
+                    zeros[schema.path.place] = schema
+            elif isinstance(schema.path, ContinuingOverlap):
+                classes['all'].append(schema)
+                continuing_overlap = schema
+        for schema in new_schemas:
+            if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
+                add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
+        add_rule(lookup, Rule(
+            [continuing_overlap],
+            [*map(str, range(WIDTH_MARKER_PLACES))],
+            [],
+            lookups=[None] * WIDTH_MARKER_PLACES,
+        ))
+        add_rule(lookup, Rule(
+            [],
+            [*map(str, range(WIDTH_MARKER_PLACES))],
+            [],
+            lookups=['zero'] * WIDTH_MARKER_PLACES,
+        ))
+        return [lookup]
+
+    def _sum_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+        )
+        carry_schemas = {}
+        dummied_carry_schemas = set()
+        original_carry_schemas = []
+        entry_digit_schemas = {}
+        original_entry_digit_schemas = []
+        left_digit_schemas = {}
+        original_left_digit_schemas = []
+        right_digit_schemas = {}
+        original_right_digit_schemas = []
+        anchor_digit_schemas = {}
+        original_anchor_digit_schemas = []
+        mark_anchor_selectors = {}
+        def get_mark_anchor_selector(index, class_name):
+            if index in mark_anchor_selectors:
+                rv = mark_anchor_selectors[index]
+                classes[class_name].append(rv)
+                return rv
+            rv = Schema(
+                None,
+                MarkAnchorSelector(index - len(CURSIVE_ANCHORS)),
+                0,
+            )
+            classes['all'].append(rv)
+            classes[class_name].append(rv)
+            return mark_anchor_selectors.setdefault(index, rv)
+        glyph_class_selectors = {}
+        def get_glyph_class_selector(glyph_class, class_name):
+            if glyph_class in glyph_class_selectors:
+                rv = glyph_class_selectors[glyph_class]
+                classes[class_name].append(rv)
+                return rv
+            rv = Schema(
+                None,
+                GlyphClassSelector(glyph_class),
+                0,
+            )
+            classes['all'].append(rv)
+            classes[class_name].append(rv)
+            return glyph_class_selectors.setdefault(glyph_class, rv)
+        for schema in schemas:
+            if isinstance(schema.path, ContinuingOverlap):
+                classes['all'].append(schema)
+                continuing_overlap = schema
+            elif isinstance(schema.path, Carry):
+                carry_schemas[schema.path.value] = schema
+                original_carry_schemas.append(schema)
+                if schema in new_schemas:
+                    classes['all'].append(schema)
+                    classes['c'].append(schema)
+            elif isinstance(schema.path, EntryWidthDigit):
+                entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                original_entry_digit_schemas.append(schema)
+                if schema in new_schemas:
+                    classes['all'].append(schema)
+                    classes[f'idx_{schema.path.place}'].append(schema)
+            elif isinstance(schema.path, LeftBoundDigit):
+                left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                original_left_digit_schemas.append(schema)
+                if schema in new_schemas:
+                    classes['all'].append(schema)
+                    classes[f'ldx_{schema.path.place}'].append(schema)
+            elif isinstance(schema.path, RightBoundDigit):
+                right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                original_right_digit_schemas.append(schema)
+                if schema in new_schemas:
+                    classes['all'].append(schema)
+                    classes[f'rdx_{schema.path.place}'].append(schema)
+            elif isinstance(schema.path, AnchorWidthDigit):
+                anchor_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                original_anchor_digit_schemas.append(schema)
+                if schema in new_schemas:
+                    classes['all'].append(schema)
+                    classes[f'adx_{schema.path.place}'].append(schema)
+            elif isinstance(schema.path, Dummy):
+                dummy = schema
+            elif isinstance(schema.path, MarkAnchorSelector):
+                mark_anchor_selectors[schema.path.index] = schema
+            elif isinstance(schema.path, GlyphClassSelector):
+                glyph_class_selectors[schema.path.glyph_class] = schema
+        for (
+            original_augend_schemas,
+            augend_letter,
+            inner_iterable,
+        ) in [(
+            original_entry_digit_schemas,
+            'i',
+            [*[(
+                False,
+                0,
+                i,
+                'a',
+                original_anchor_digit_schemas,
+                anchor_digit_schemas,
+                AnchorWidthDigit,
+            ) for i, anchor in enumerate(ALL_ANCHORS)], (
+                False,
+                0,
+                0,
+                'l',
+                original_left_digit_schemas,
+                left_digit_schemas,
+                LeftBoundDigit,
+            ), (
+                False,
+                0,
+                0,
+                'r',
+                original_right_digit_schemas,
+                right_digit_schemas,
+                RightBoundDigit,
+            )],
+        ), (
+            original_anchor_digit_schemas,
+            'a',
+            [*[(
+                True,
+                i,
+                0,
+                'i',
+                original_entry_digit_schemas,
+                entry_digit_schemas,
+                EntryWidthDigit,
+            ) for i in range(len(ALL_ANCHORS) - 1, -1, -1)], *[(
+                False,
+                i,
+                len(ALL_ANCHORS) - 1 - i,
+                'a',
+                original_anchor_digit_schemas,
+                anchor_digit_schemas,
+                AnchorWidthDigit,
+            ) for i in range(len(ALL_ANCHORS))]],
+        )]:
+            for augend_schema in original_augend_schemas:
+                augend_is_new = augend_schema in new_schemas
+                place = augend_schema.path.place
+                augend = augend_schema.path.digit
+                for (
+                    continuing_overlap_is_relevant,
+                    augend_skip_backtrack,
+                    addend_skip_backtrack,
+                    addend_letter,
+                    original_addend_schemas,
+                    addend_schemas,
+                    addend_path,
+                ) in inner_iterable:
+                    for carry_in_schema in original_carry_schemas:
+                        carry_in = carry_in_schema.path.value
+                        carry_in_is_new = carry_in_schema in new_schemas
+                        if carry_in_is_new and carry_in_schema.path.value not in dummied_carry_schemas:
+                            dummied_carry_schemas.add(carry_in_schema.path.value)
+                            add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
+                        for addend_schema in original_addend_schemas:
+                            if place != addend_schema.path.place:
+                                continue
+                            if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
+                                continue
+                            addend = addend_schema.path.digit
+                            carry_out, sum_digit = divmod(carry_in + augend + addend, WIDTH_MARKER_RADIX)
+                            context_in_lookup_name = f'e{place}_c{carry_in}_{addend_letter}{addend}'
+                            if continuing_overlap_is_relevant:
+                                classes[context_in_lookup_name].append(continuing_overlap)
+                            classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{augend_schema.path.place}'])
+                            if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
+                                if carry_out in carry_schemas:
+                                    carry_out_schema = carry_schemas[carry_out]
+                                else:
+                                    carry_out_schema = Schema(None, Carry(carry_out), 0)
+                                    carry_schemas[carry_out] = carry_out_schema
+                                sum_index = place * WIDTH_MARKER_RADIX + sum_digit
+                                if sum_index in addend_schemas:
+                                    sum_digit_schema = addend_schemas[sum_index]
+                                else:
+                                    sum_digit_schema = Schema(None, addend_path(place, sum_digit), 0)
+                                    addend_schemas[sum_index] = sum_digit_schema
+                                    classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'].append(sum_digit_schema)
+                                    classes['all'].append(sum_digit_schema)
+                                outputs = ([sum_digit_schema]
+                                    if place == WIDTH_MARKER_PLACES - 1
+                                    else [sum_digit_schema, carry_out_schema])
+                                sum_lookup_name = str(sum_digit)
+                                if sum_lookup_name not in named_lookups:
+                                    named_lookups[sum_lookup_name] = Lookup(None, None, None)
+                                if context_in_lookup_name not in named_lookups:
+                                    classes[context_in_lookup_name].append(addend_schema)
+                                    named_lookups[context_in_lookup_name] = Lookup(
+                                        None,
+                                        None,
+                                        None,
+                                        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                                        mark_filtering_set=context_in_lookup_name,
+                                    )
+                                add_rule(lookup, Rule([carry_in_schema], [addend_schema], [], lookups=[context_in_lookup_name]))
+                                classes[context_in_lookup_name].extend(classes[f'idx_{augend_schema.path.place}'])
+                                if addend_skip_backtrack != 0:
+                                    classes[context_in_lookup_name].extend(classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'])
+                                context_in_lookup_context_in = []
+                                if augend_letter == 'i' and addend_letter == 'a':
+                                    context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.JOINER, context_in_lookup_name))
+                                context_in_lookup_context_in.append(augend_schema)
+                                context_in_lookup_context_in.extend([f'{augend_letter}dx_{augend_schema.path.place}'] * augend_skip_backtrack)
+                                if augend_letter == 'a' and addend_letter == 'a':
+                                    context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
+                                    context_in_lookup_context_in.append(f'idx_{augend_schema.path.place}')
+                                elif augend_skip_backtrack == 1:
+                                    context_in_lookup_context_in.append(continuing_overlap)
+                                elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
+                                    context_in_lookup_context_in.append(get_mark_anchor_selector(
+                                        len(ALL_ANCHORS) - augend_skip_backtrack - 1,
+                                        context_in_lookup_name,
+                                    ))
+                                context_in_lookup_context_in.extend([f'{addend_letter}dx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)
+                                add_rule(named_lookups[context_in_lookup_name], Rule(
+                                    context_in_lookup_context_in,
+                                    [addend_schema],
+                                    [],
+                                    lookups=[sum_lookup_name],
+                                ))
+                                add_rule(named_lookups[sum_lookup_name], Rule([addend_schema], outputs))
+        return [lookup]
+
+    def _calculate_bound_extrema(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        left_lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='ldx',
+        )
+        named_lookups['ldx_copy'] = Lookup(
+            None,
+            None,
+            None,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='ldx',
+        )
+        left_digit_schemas = {}
+        right_lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='rdx',
+        )
+        named_lookups['rdx_copy'] = Lookup(
+            None,
+            None,
+            None,
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='rdx',
+        )
+        right_digit_schemas = {}
+        for schema in schemas:
+            if isinstance(schema.path, LeftBoundDigit):
+                left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                if schema in new_schemas:
+                    classes['ldx'].append(schema)
+            elif isinstance(schema.path, RightBoundDigit):
+                right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                if schema in new_schemas:
+                    classes['rdx'].append(schema)
+        for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
+            for i in range(0, WIDTH_MARKER_RADIX):
+                left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
+                right_schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
+                i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
+                if left_schema_i is None and right_schema_i is None:
+                    continue
+                for j in range(0, WIDTH_MARKER_RADIX):
+                    if i == j:
+                        continue
+                    j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX
+                    for schema_i, digit_schemas, lookup, marker_class, copy_lookup_name, compare in [
+                        (left_schema_i, left_digit_schemas, left_lookup, 'ldx', 'ldx_copy', int.__gt__),
+                        (right_schema_i, right_digit_schemas, right_lookup, 'rdx', 'rdx_copy', int.__lt__),
+                    ]:
+                        schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
+                        if schema_j is None:
+                            continue
+                        add_rule(lookup, Rule(
+                            [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
+                            [*[marker_class] * schema_j.path.place, schema_j],
+                            [],
+                            lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (schema_j.path.place + 1)))
+                        add_rule(named_lookups[copy_lookup_name], Rule(
+                            [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - 1)],
+                            [schema_j],
+                            [],
+                            [schema_i]))
+        return [left_lookup, right_lookup]
+
+    def _remove_false_start_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
+        start = next(s for s in new_schemas if isinstance(s.path, Start))
+        classes['all'].append(start)
+        add_rule(lookup, Rule([start], [start], [], [dummy]))
+        return [lookup]
+
+    def _mark_hubs_after_initial_secants(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            mark_filtering_set='all',
+            reversed=True,
+        )
+        hub = None
+        for schema in schemas:
+            if isinstance(schema.path, Hub):
+                if hub:
+                    return [lookup]
+                hub = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+                classes['secant'].append(schema)
+        initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))
+        classes[HUB_CLASS].append(initial_secant_hub)
+        classes[CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
+        add_rule(lookup, Rule(
+            ['secant'],
+            [hub],
+            [],
+            [initial_secant_hub],
+        ))
+        return [lookup]
+
+    def _find_real_hub(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+        )
+        for schema in new_schemas:
+            if isinstance(schema.path, Dummy):
+                dummy = schema
+            elif isinstance(schema.path, Hub):
+                if schema.path.initial_secant:
+                    initial_secant_hub = schema
+                else:
+                    hub = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, InitialSecantMarker):
+                initial_secant_marker = schema
+                classes['all'].append(schema)
+            elif isinstance(schema.path, ContinuingOverlap):
+                continuing_overlap = schema
+                classes['all'].append(schema)
+        add_rule(lookup, Rule([], [initial_secant_marker], [hub], [initial_secant_marker]))
+        add_rule(lookup, Rule([], [initial_secant_marker], [initial_secant_hub], [dummy]))
+        add_rule(lookup, Rule([], [initial_secant_marker], [], [initial_secant_hub]))
+        add_rule(lookup, Rule([hub], [hub], [], [dummy]))
+        add_rule(lookup, Rule([initial_secant_hub], [hub], [], [dummy]))
+        add_rule(lookup, Rule([continuing_overlap], [hub], [], [dummy]))
+        return [lookup]
+
+    def _expand_start_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('psts', 'dupl', 'dflt')
+        start = next(s for s in new_schemas if isinstance(s.path, Start))
+        add_rule(lookup, Rule([start], [
+            start,
+            *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
+        ]))
+        return [lookup]
+
+    def _mark_maximum_bounds(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        left_lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            mark_filtering_set='ldx',
+            reversed=True,
+        )
+        right_lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            mark_filtering_set='rdx',
+            reversed=True,
+        )
+        anchor_lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            mark_filtering_set='adx',
+            reversed=True,
+        )
+        new_left_bounds = []
+        new_right_bounds = []
+        new_anchor_widths = []
+        end = next(s for s in schemas if isinstance(s.path, End))
+        for schema in new_schemas:
+            if isinstance(schema.path, LeftBoundDigit):
+                classes['ldx'].append(schema)
+                new_left_bounds.append(schema)
+            elif isinstance(schema.path, RightBoundDigit):
+                classes['rdx'].append(schema)
+                new_right_bounds.append(schema)
+            elif isinstance(schema.path, AnchorWidthDigit):
+                classes['adx'].append(schema)
+                new_anchor_widths.append(schema)
+        for new_digits, lookup, class_name, digit_path, status in [
+            (new_left_bounds, left_lookup, 'ldx', LeftBoundDigit, DigitStatus.ALMOST_DONE),
+            (new_right_bounds, right_lookup, 'rdx', RightBoundDigit, DigitStatus.DONE),
+            (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
+        ]:
+            for schema in new_digits:
+                if schema.path.status != DigitStatus.NORMAL:
+                    continue
+                skipped_schemas = [class_name] * schema.path.place
+                add_rule(lookup, Rule(
+                    [],
+                    [schema],
+                    [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
+                    [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
+        return [left_lookup, right_lookup, anchor_lookup]
+
+    def _copy_maximum_left_bound_to_start(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'psts',
+            'dupl',
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+            mark_filtering_set='all',
+        )
+        new_left_totals = []
+        new_left_start_totals = [None] * WIDTH_MARKER_PLACES
+        start = next(s for s in schemas if isinstance(s.path, Start))
+        if start not in classes['all']:
+            classes['all'].append(start)
+        for schema in new_schemas:
+            if isinstance(schema.path, LeftBoundDigit):
+                if schema.path.status == DigitStatus.ALMOST_DONE:
+                    new_left_totals.append(schema)
+                elif schema.path.status == DigitStatus.DONE and schema.path.digit == 0:
+                    new_left_start_totals[schema.path.place] = schema
+        for total in new_left_totals:
+            classes['all'].append(total)
+            if total.path.digit == 0:
+                done = new_left_start_totals[total.path.place]
+            else:
+                done = Schema(None, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
+            classes['all'].append(done)
+            if total.path.digit != 0:
+                input = new_left_start_totals[total.path.place]
+                if input not in classes['all']:
+                    classes['all'].append(input)
+                add_rule(lookup, Rule(
+                    [start, *['all'] * total.path.place],
+                    [input],
+                    [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
+                    [done]))
+        return [lookup]
+
+    def _dist(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('dist', 'dupl', 'dflt')
+        for schema in new_schemas:
+            if ((isinstance(schema.path, LeftBoundDigit)
+                    or isinstance(schema.path, RightBoundDigit)
+                    or isinstance(schema.path, AnchorWidthDigit))
+                    and schema.path.status == DigitStatus.DONE):
+                digit = schema.path.digit
+                if schema.path.place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
+                    digit -= WIDTH_MARKER_RADIX
+                x_advance = digit * WIDTH_MARKER_RADIX ** schema.path.place
+                if not isinstance(schema.path, RightBoundDigit):
+                    x_advance = -x_advance
+                if schema.path.place == 0 and not isinstance(schema.path, AnchorWidthDigit):
+                    x_advance += DEFAULT_SIDE_BEARING
+                if x_advance:
+                    add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))
+        return [lookup]
+
+    def _run_phases(self, all_input_schemas, phases, all_classes=None):
+        global CURRENT_PHASE_INDEX
+        all_schemas = OrderedSet(all_input_schemas)
+        all_input_schemas = OrderedSet(all_input_schemas)
+        all_lookups_with_phases = []
+        if all_classes is None:
+            all_classes = collections.defaultdict(FreezableList)
+        all_named_lookups_with_phases = {}
+        for CURRENT_PHASE_INDEX, phase in enumerate(phases):
+            all_output_schemas = OrderedSet()
+            autochthonous_schemas = OrderedSet()
+            original_input_schemas = OrderedSet(all_input_schemas)
+            new_input_schemas = OrderedSet(all_input_schemas)
+            output_schemas = OrderedSet(all_input_schemas)
+            classes = PrefixView(phase, all_classes)
+            named_lookups = PrefixView(phase, {})
+            lookups = None
+            while new_input_schemas:
+                output_lookups = phase(
+                    original_input_schemas,
+                    all_input_schemas,
+                    new_input_schemas,
+                    classes,
+                    named_lookups,
+                    functools.partial(
+                        add_rule,
+                        autochthonous_schemas,
+                        output_schemas,
+                        classes,
+                        named_lookups,
+                     ),
+                 )
+                if lookups is None:
+                    lookups = output_lookups
+                else:
+                    assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
+                    for i, lookup in enumerate(lookups):
+                        lookup.extend(output_lookups[i])
+                if len(output_lookups) == 1:
+                    might_have_feedback = False
+                    for rule in (lookup := output_lookups[0]).rules:
+                        if rule.contexts_out if lookup.reversed else rule.contexts_in:
+                            might_have_feedback = True
+                            break
+                else:
+                    might_have_feedback = True
+                for output_schema in output_schemas:
+                    all_output_schemas.add(output_schema)
+                new_input_schemas = OrderedSet()
+                if might_have_feedback:
+                    for output_schema in output_schemas:
+                        if output_schema not in all_input_schemas:
+                            all_input_schemas.add(output_schema)
+                            autochthonous_schemas.add(output_schema)
+                            new_input_schemas.add(output_schema)
+            all_input_schemas = all_output_schemas
+            all_schemas |= all_input_schemas
+            all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
+            all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
+        return (
+            all_schemas,
+            all_input_schemas,
+            all_lookups_with_phases,
+            all_classes,
+            all_named_lookups_with_phases,
+        )
 
     def _add_lookup(
         self,
@@ -6047,15 +6323,16 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    @staticmethod
-    def _draw_glyph(glyph, schema):
+    def _draw_glyph(self, glyph, schema):
         assert not schema.marks
         pen = glyph.glyphPen()
         invisible = schema.path.invisible()
         floating = schema.path.draw(
             glyph,
             not invisible and pen,
-            LIGHT_LINE if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else SHADED_LINE,
+            self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else self.shaded_line,
+            self.light_line,
+            self.stroke_gap,
             schema.size,
             schema.anchor,
             schema.joining_type,
@@ -6212,6 +6489,20 @@ class Builder:
             named_lookups_to_do = new_named_lookups_to_do
         return named_lookup_asts
 
+    def _merge_schemas(self, schemas, lookups_with_phases, classes):
+        grouper = group_schemas(schemas)
+        previous_phase = None
+        for lookup, phase in reversed(lookups_with_phases):
+            if phase is not previous_phase is not None:
+                rename_schemas(grouper, self._phases.index(previous_phase))
+            previous_phase = phase
+            prefix_classes = PrefixView(phase, classes)
+            for rule in lookup.rules:
+                sift_groups(grouper, rule, rule.contexts_in, prefix_classes)
+                sift_groups(grouper, rule, rule.contexts_out, prefix_classes)
+                sift_groups(grouper, rule, rule.inputs, prefix_classes)
+        rename_schemas(grouper, NO_PHASE_INDEX)
+
     def augment(self):
         (
             schemas,
@@ -6219,8 +6510,8 @@ class Builder:
             lookups_with_phases,
             classes,
             named_lookups_with_phases,
-        ) = run_phases(SCHEMAS, PHASES)
-        merge_schemas(schemas, lookups_with_phases, classes)
+        ) = self._run_phases(self._schemas, self._phases)
+        self._merge_schemas(schemas, lookups_with_phases, classes)
         class_asts = self.convert_classes(classes)
         named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
         (
@@ -6229,7 +6520,7 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = run_phases([schema for schema in output_schemas if schema.canonical_schema is schema], MIDDLE_PHASES, classes)
+        ) = self._run_phases([schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
@@ -6248,7 +6539,7 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = run_phases([*map(self._glyph_to_schema, self.font.glyphs())], MARKER_PHASES, classes)
+        ) = self._run_phases([*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         for schema in schemas:
             if schema.glyph is None:
