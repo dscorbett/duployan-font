@@ -3456,18 +3456,19 @@ class Lookup:
         else:
             raise ValueError("Unrecognized script tag: '{}'".format(self.script))
 
-    def to_ast(self, class_asts, named_lookup_asts, name):
+    def to_asts(self, class_asts, named_lookup_asts, name):
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
         if isinstance(name, str):
             lookup_block = fontTools.feaLib.ast.LookupBlock(name)
-            ast = lookup_block
+            asts = [lookup_block]
         else:
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
-            ast = fontTools.feaLib.ast.FeatureBlock(self.feature)
-            ast.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
-            ast.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-            ast.statements.append(lookup_block)
+            feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
+            feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
+            feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
+            feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
+            asts = [lookup_block, feature_block]
         lookup_block.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
@@ -3478,7 +3479,7 @@ class Lookup:
                     for r in self.rules
                     for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed)
             }.values())
-        return ast
+        return asts
 
     def freeze(self):
         self.rules.freeze()
@@ -6474,11 +6475,13 @@ class Builder:
                 if name not in named_lookups_to_do:
                     continue
                 try:
-                    named_lookup_ast = lookup.to_ast(
+                    named_lookup_ast = lookup.to_asts(
                         PrefixView(phase, class_asts),
                         PrefixView(phase, named_lookup_asts),
                         name,
                     )
+                    assert len(named_lookup_ast) == 1, f'A named lookup should generate 1 AST, not {len(named_lookup_ast)}'
+                    named_lookup_ast = named_lookup_ast[0]
                 except KeyError:
                     new_named_lookups_to_do.append(name)
                     continue
@@ -6546,9 +6549,9 @@ class Builder:
                 self._create_marker(schema)
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
-        self._fea.statements.extend(
-            lp[0].to_ast(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i)
-                for i, lp in enumerate(lookups_with_phases))
+        for i, lp in enumerate(lookups_with_phases):
+            for statement in lp[0].to_asts(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
+                self._fea.statements.append(statement)
         self._add_lookups(class_asts)
 
     def merge_features(self, tt_font, old_fea):
