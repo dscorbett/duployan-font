@@ -3023,7 +3023,7 @@ class Schema:
             if self.diphthong_2:
                 name += '2'
         if self.child:
-            name += '.blws'
+            name += '.sub'
         if isinstance(self.path, Curve) and self.path.overlap_angle is not None:
             name += f'.{int(self.path.overlap_angle)}'
         if self.widthless:
@@ -3380,10 +3380,65 @@ class Rule:
         return len(self.inputs) == 1 and self.outputs is not None and len(self.outputs) != 1
 
 class Lookup:
+    _DISCRETIONARY_FEATURES = {
+        'afrc',
+        'calt',
+        'clig',
+        'cswh',
+        *{f'cv{x:02}' for x in range(1, 100)},
+        'dlig',
+        'hist',
+        'hlig',
+        'kern',
+        'liga',
+        'lnum',
+        'onum',
+        'ordn',
+        'pnum',
+        'salt',
+        'sinf',
+        *{f'ss{x:02}' for x in range(1, 21)},
+        'subs',
+        'sups',
+        'swsh',
+        'titl',
+        'tnum',
+        'zero',
+    }
+    _REQUIRED_SCRIPT_FEATURES = {
+        'DFLT': {
+            'abvm',
+            'blwm',
+            'curs',
+            'dist',
+            'locl',
+            'mark',
+            'mkmk',
+            'rclt',
+            'rlig',
+        },
+        'dupl': {
+            'abvm',
+            'abvs',
+            'blwm',
+            'blws',
+            'curs',
+            'dist',
+            'haln',
+            'mark',
+            'mkmk',
+            'pres',
+            'psts',
+            'rclt',
+            'rlig',
+        },
+    }
+    KNOWN_SCRIPTS = {*_REQUIRED_SCRIPT_FEATURES.keys()}
+
     def __init__(
             self,
             feature,
-            script,
+            scripts,
             language,
             *,
             flags=0,
@@ -3395,66 +3450,38 @@ class Lookup:
         if mark_filtering_set:
              flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         self.feature = feature
-        self.script = script
+        if scripts is not None:
+            scripts = [scripts] if isinstance(scripts, str) else sorted(scripts)
+            self.required = set()
+        else:
+            scripts = []
+            self.required = {False}
+        self.scripts = scripts
         self.language = language
+        for script in self.scripts:
+            assert len(script) == 4, f"Script tag must be 4 characters long: '{script}'"
+        assert language is None or len(language) == 4, f"Language tag must be 4 characters long: '{language}'"
+        assert feature is None or len(feature) == 4, f"Feature tag must be 4 characters long: '{feature}'"
         self.flags = flags
         self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
         self.rules = FreezableList()
-        assert (feature is None) == (script is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
-        if script == 'dupl':
-            assert feature not in [
-                'rvrn',
-                'ltra',
-                'ltrm',
-                'rtla',
-                'rtlm',
-                'frac',
-                'numr',
-                'dnom',
-                'rand',
-                'trak',
-                'HARF',
-                'locl',
-                'ccmp',
-                'nukt',
-                'akhn',
-                'rphf',
-                'pref',
-                'rkrf',
-                'abvf',
-                'blwf',
-                'half',
-                'pstf',
-                'vatu',
-                'cjct',
-                'isol',
-                'init',
-                'medi',
-                'fina',
-                'BUZZ',
-            ], f"The feature '{feature}' is not simple enough for the phase system to handle"
-            self.required = feature in [
-                'abvs',
-                'blws',
-                'calt',
-                'clig',
-                'haln',
-                'pres',
-                'psts',
-                'rclt',
-                'rlig',
-                'curs',
-                'dist',
-                'mark',
-                'abvm',
-                'blwm',
-                'mkmk',
-            ]
-        elif script is None:
-            self.required = False
-        else:
-            raise ValueError("Unrecognized script tag: '{}'".format(self.script))
+        assert (feature is None) == (not scripts) == (language is None), 'Not clear whether this is a named or a normal lookup'
+        for script in scripts:
+            if feature in self._DISCRETIONARY_FEATURES:
+                required = False
+            else:
+                try:
+                    script_features = self._REQUIRED_SCRIPT_FEATURES[script]
+                except KeyError:
+                    raise ValueError(f"Unrecognized script tag: '{script}'")
+                assert feature in script_features, f"The phase system does not support the feature '{feature}' for the script '{script}'"
+                required = True
+            self.required.add(required)
+        assert len(self.required) == 1, f"""Scripts {{{
+                ', '.join("'{script}'" for script in scripts)
+            }}} disagree about whether the feature '{feature}' is required"""
+        self.required = next(iter(self.required))
 
     def to_asts(self, class_asts, named_lookup_asts, name):
         contextual = any(r.is_contextual() for r in self.rules)
@@ -3465,9 +3492,10 @@ class Lookup:
         else:
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
-            feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(self.script))
-            feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-            feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
+            for script in self.scripts:
+                feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
+                feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
+                feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
             asts = [lookup_block, feature_block]
         lookup_block.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
@@ -3488,9 +3516,13 @@ class Lookup:
         self.rules.append(rule)
 
     def extend(self, other):
-        assert self.feature == other.feature, "Incompatible features: '{}', '{}'".format(self.feature, other.feature)
-        assert self.script == other.script, "Incompatible scripts: '{}', '{}'".format(self.script, other.script)
-        assert self.language == other.language, "Incompatible languages: '{}', '{}'".format(self.language, other.language)
+        assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
+        assert self.scripts == other.scripts, f'''Incompatible script sets: {{{
+                ', '.join(f"'{script}'" for script in self.scripts)
+            }}} != {{{
+                ', '.join(f"'{script}'" for script in other.scripts)
+            }}}'''
+        assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
         for rule in other.rules:
             self.append(rule)
 
@@ -4203,8 +4235,8 @@ class Builder:
         ]
 
     def _dont_ignore_default_ignorables(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup_1 = Lookup('abvs', 'dupl', 'dflt')
-        lookup_2 = Lookup('abvs', 'dupl', 'dflt')
+        lookup_1 = Lookup('abvm', {'DFLT', 'dupl'}, 'dflt')
+        lookup_2 = Lookup('abvm', {'DFLT', 'dupl'}, 'dflt')
         for schema in schemas:
             if schema.ignorability == Ignorability.OVERRIDDEN_NO:
                 add_rule(lookup_1, Rule([schema], [schema, schema]))
@@ -4295,7 +4327,7 @@ class Builder:
         return [lookup]
 
     def _validate_overlap_controls(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('rclt', 'dupl', 'dflt')
+        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
         new_classes = {}
         global_max_tree_width = 0
         for schema in new_schemas:
@@ -4340,7 +4372,7 @@ class Builder:
         return [lookup]
 
     def _add_parent_edges(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('blws', 'dupl', 'dflt')
+        lookup = Lookup('blwm', {'DFLT', 'dupl'}, 'dflt')
         if len(original_schemas) != len(schemas):
             return [lookup]
         root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
@@ -4361,7 +4393,7 @@ class Builder:
     def _invalidate_overlap_controls(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -4461,14 +4493,14 @@ class Builder:
 
     def _add_placeholders_for_missing_children(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup_1 = Lookup(
-            'blws',
-            'dupl',
+            'blwm',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='valid_final_overlap',
         )
         lookup_2 = Lookup(
-            'blws',
-            'dupl',
+            'blwm',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='valid_final_overlap',
         )
@@ -4521,8 +4553,8 @@ class Builder:
 
     def _categorize_edges(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'blws',
-            'dupl',
+            'blwm',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -4597,7 +4629,7 @@ class Builder:
         return [lookup]
 
     def _promote_final_letter_overlap_to_continuing_overlap(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('rclt', 'dupl', 'dflt')
+        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
         if len(original_schemas) != len(schemas):
             return [lookup]
         for schema in new_schemas:
@@ -4657,7 +4689,7 @@ class Builder:
         # Jargon abbreviations and a few similar patterns.
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
             reversed=True,
@@ -4723,7 +4755,7 @@ class Builder:
         return [lookup]
 
     def _make_mark_variants_of_children(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('blws', 'dupl', 'dflt')
+        lookup = Lookup('blwm', {'DFLT', 'dupl'}, 'dflt')
         children_to_be = []
         old_child_count = len(classes['child'])
         for schema in new_schemas:
@@ -4745,7 +4777,7 @@ class Builder:
     def _reposition_stenographic_period(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
         )
         if len(original_schemas) != len(schemas):
@@ -4765,7 +4797,7 @@ class Builder:
     def _disjoin_equals_sign(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
         )
@@ -4785,7 +4817,7 @@ class Builder:
     def _join_with_next_step(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
             reversed=True,
@@ -4812,7 +4844,7 @@ class Builder:
     def _prepare_for_secondary_diphthong_ligature(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
             reversed=True,
@@ -4834,12 +4866,12 @@ class Builder:
     def _join_with_previous(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup_1 = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
         )
         lookup_2 = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
             reversed=True,
@@ -4875,7 +4907,7 @@ class Builder:
     def _unignore_last_orienting_glyph_in_initial_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='i',
         )
@@ -4910,7 +4942,7 @@ class Builder:
     def _ignore_first_orienting_glyph_in_initial_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
             reversed=True,
@@ -4946,7 +4978,7 @@ class Builder:
     def _tag_main_glyph_in_orienting_sequence(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='dependent',
         )
@@ -4969,20 +5001,20 @@ class Builder:
     def _join_with_next(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         pre_lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set=CONTINUING_OVERLAP_CLASS,
         )
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set=CONTINUING_OVERLAP_CLASS,
             reversed=True,
         )
         post_lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='continuing_overlap_after_secant',
             reversed=True,
@@ -5035,7 +5067,7 @@ class Builder:
     def _join_circle_with_adjacent_nonorienting_glyph(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='ignored_for_topography',
         )
@@ -5066,7 +5098,7 @@ class Builder:
     def _ligate_diphthongs(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rlig',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='ignored_for_topography',
             reversed=True,
@@ -5118,7 +5150,7 @@ class Builder:
     def _unignore_noninitial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='i',
         )
@@ -5157,7 +5189,7 @@ class Builder:
     def _unignore_initial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='i',
             reversed=True,
@@ -5219,7 +5251,7 @@ class Builder:
     def _rotate_diacritics(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
             reversed=True,
@@ -5282,7 +5314,7 @@ class Builder:
         return [lookup]
 
     def _make_widthless_variants_of_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('psts', 'dupl', 'dflt')
+        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
         first_iteration = 'i' not in classes
         for schema in new_schemas:
             if schema.glyph_class == GlyphClass.MARK:
@@ -5307,7 +5339,7 @@ class Builder:
     def _merge_lookalikes(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
         )
         grouper = group_schemas(new_schemas)
@@ -5323,14 +5355,14 @@ class Builder:
 
     def _add_shims_for_pseudo_cursive(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         marker_lookup = Lookup(
-            'haln',
-            'dupl',
+            'abvm',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         )
         space_lookup = Lookup(
-            'haln',
-            'dupl',
+            'abvm',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
             reversed=True,
@@ -5412,13 +5444,13 @@ class Builder:
     def _shrink_wrap_enclosing_circle(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
             'rclt',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='i',
         )
         dist_lookup = Lookup(
             'dist',
-            'dupl',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='o',
         )
@@ -5462,7 +5494,7 @@ class Builder:
     def _add_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookups_per_position = 68
         lookups = [
-            Lookup('psts', 'dupl', 'dflt')
+            Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
             for _ in range(lookups_per_position)
         ]
         rule_count = 0
@@ -5588,7 +5620,7 @@ class Builder:
         return lookups
 
     def _add_end_markers_for_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('psts', 'dupl', 'dflt')
+        lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         end = next(s for s in new_schemas if isinstance(s.path, End))
         for schema in new_schemas:
             if (schema.glyph is not None
@@ -5602,8 +5634,8 @@ class Builder:
 
     def _remove_false_end_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -5618,8 +5650,8 @@ class Builder:
 
     def _clear_entry_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -5655,8 +5687,8 @@ class Builder:
 
     def _sum_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
         )
@@ -5882,8 +5914,8 @@ class Builder:
 
     def _calculate_bound_extrema(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         left_lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='ldx',
@@ -5897,8 +5929,8 @@ class Builder:
         )
         left_digit_schemas = {}
         right_lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='rdx',
@@ -5952,8 +5984,8 @@ class Builder:
 
     def _remove_false_start_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -5967,7 +5999,7 @@ class Builder:
 
     def _mark_hubs_after_initial_secants(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
+            'dist',
             'dupl',
             'dflt',
             mark_filtering_set='all',
@@ -5995,8 +6027,8 @@ class Builder:
 
     def _find_real_hub(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -6025,7 +6057,7 @@ class Builder:
         return [lookup]
 
     def _expand_start_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('psts', 'dupl', 'dflt')
+        lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         start = next(s for s in new_schemas if isinstance(s.path, Start))
         add_rule(lookup, Rule([start], [
             start,
@@ -6035,22 +6067,22 @@ class Builder:
 
     def _mark_maximum_bounds(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         left_lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='ldx',
             reversed=True,
         )
         right_lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='rdx',
             reversed=True,
         )
         anchor_lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='adx',
             reversed=True,
@@ -6087,8 +6119,8 @@ class Builder:
 
     def _copy_maximum_left_bound_to_start(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
-            'psts',
-            'dupl',
+            'dist',
+            {'DFLT', 'dupl'},
             'dflt',
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='all',
@@ -6123,7 +6155,7 @@ class Builder:
         return [lookup]
 
     def _dist(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('dist', 'dupl', 'dflt')
+        lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         for schema in new_schemas:
             if ((isinstance(schema.path, LeftBoundDigit)
                     or isinstance(schema.path, RightBoundDigit)
@@ -6231,9 +6263,10 @@ class Builder:
         self._fea.statements.append(lookup)
         self._anchors[anchor_class_name] = lookup
         feature = fontTools.feaLib.ast.FeatureBlock(feature_tag)
-        feature.statements.append(fontTools.feaLib.ast.ScriptStatement('dupl'))
-        feature.statements.append(fontTools.feaLib.ast.LanguageStatement('dflt'))
-        feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
+        for script in Lookup.KNOWN_SCRIPTS:
+            feature.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
+            feature.statements.append(fontTools.feaLib.ast.LanguageStatement('dflt'))
+            feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
         self._fea.statements.append(feature)
 
     def _add_lookups(self, class_asts):

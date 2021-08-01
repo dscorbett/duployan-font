@@ -98,8 +98,8 @@
 1BC04 1BC9D 1BC9E 1BC72::[u1BC04_u1BC9D.F@261,0|u1BC9E.double.30@308,219|u1BC72.right_horizontal_secant.0@120,192|_@1240,0]
 
 # Skipping child nodes
-1BC1B 1BCA0 1BC0A 1BC72::[u1BC1B.j@120,0|u1BC0A.g.blws@804,-489|u1BC72.right_horizontal_secant.0@327,260|_@1447,0]
-1BC02 1BCA0 1BC3A 1BC72::[u1BC02.p@453,0|u1BC3A.w_r.blws@603,-93|u1BC72.right_horizontal_secant.0@120,167|_@1240,0]
+1BC1B 1BCA0 1BC0A 1BC72::[u1BC1B.j@120,0|u1BC0A.g.sub@804,-489|u1BC72.right_horizontal_secant.0@327,260|_@1447,0]
+1BC02 1BCA0 1BC3A 1BC72::[u1BC02.p@453,0|u1BC3A.w_r.sub@603,-93|u1BC72.right_horizontal_secant.0@120,167|_@1240,0]
 
 # Not skipping continuing overlaps
 1BC1B 1BCA1 1BC0A 1BC72::[u1BC1B.j@202,0|u1BC0A.g@886,-489|u1BC72.right_horizontal_secant.0@120,-240|_@1240,0]
