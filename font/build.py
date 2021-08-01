@@ -174,6 +174,7 @@ def tweak_font(options, builder):
         tt_font['name'].names = [*filter(None, map(filter_map_name, tt_font['name'].names))]
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_unique_id(tt_font['name'].names)
+        tt_font['CFF '].cff[0].Notice = next(name for name in tt_font['name'].names if name.nameID == 0).string
 
         tt_font.save(options.output)
 
