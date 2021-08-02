@@ -2806,6 +2806,7 @@ class Schema:
         self.phase_index = CURRENT_PHASE_INDEX
         self._glyph_name = None
         self._canonical_schema = self
+        self._lookalike_group = [self]
         self.glyph = None
 
     def sort_key(self):
@@ -2958,6 +2959,19 @@ class Schema:
     @canonical_schema.deleter
     def canonical_schema(self):
         del self._canonical_schema
+
+    @property
+    def lookalike_group(self):
+        return self._lookalike_group
+
+    @lookalike_group.setter
+    def lookalike_group(self, lookalike_group):
+        assert len(self._lookalike_group) == 1 and self._lookalike_group[0] is self
+        self._lookalike_group = lookalike_group
+
+    @lookalike_group.deleter
+    def lookalike_group(self):
+        del self._lookalike_group
 
     @staticmethod
     def _agl_name(cp):
@@ -5345,12 +5359,14 @@ class Builder:
         grouper = group_schemas(new_schemas)
         for group in grouper.groups():
             group.sort(key=Schema.sort_key)
-            group = iter(group)
-            canonical_schema = next(group)
-            if not canonical_schema.might_need_width_markers:
+            group_iter = iter(group)
+            lookalike_schema = next(group_iter)
+            if not lookalike_schema.might_need_width_markers:
                 continue
-            for schema in group:
-                add_rule(lookup, Rule([schema], [canonical_schema]))
+            lookalike_schema.lookalike_group = group
+            for schema in group_iter:
+                add_rule(lookup, Rule([schema], [lookalike_schema]))
+                schema.lookalike_group = group
         return [lookup]
 
     def _add_shims_for_pseudo_cursive(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -5382,12 +5398,16 @@ class Builder:
                 x_min, _, x_max, _ = schema.glyph.boundingBox()
                 pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
-                for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
-                    if anchor_class_name == CURSIVE_ANCHOR:
-                        if type == 'exit' and schema.context_out == NO_CONTEXT and not schema.diphthong_1:
-                            exit_schemas.append((schema, x, y))
-                        elif type == 'entry' and schema.context_in == NO_CONTEXT and not schema.diphthong_2:
-                            entry_schemas.append((schema, x, y))
+                if (
+                    (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
+                    | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
+                ):
+                    for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+                        if anchor_class_name == CURSIVE_ANCHOR:
+                            if looks_like_valid_exit and type == 'exit':
+                                exit_schemas.append((schema, x, y))
+                            elif looks_like_valid_entry and type == 'entry':
+                                entry_schemas.append((schema, x, y))
         @functools.cache
         def get_shim(width, height):
             return Schema(
