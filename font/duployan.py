@@ -3961,7 +3961,7 @@ class Builder:
         s_k = Curve(90, 0, clockwise=True, secondary=False)
         j_n = Complex([(1, s_k), (1, n)], maximum_tree_width=1)
         j_n_s = Complex([(3, s_k), (4, n_s)], maximum_tree_width=1)
-        o = Circle(0, 0, clockwise=False)
+        o = Circle(180, 180, clockwise=False)
         o_reverse = Circle(0, 0, clockwise=True, reversed=True)
         ie = Curve(180, 0, clockwise=False)
         short_i = Curve(0, 180, clockwise=True)
