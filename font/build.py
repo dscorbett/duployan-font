@@ -24,6 +24,7 @@ import tempfile
 
 import fontforge
 import fontTools.misc.timeTools
+import fontTools.ttLib
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
 
@@ -127,6 +128,11 @@ def set_unique_id(names):
     git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
     unique_id_record.string = ';'.join([full_name, version, git_hash])
 
+def add_meta(tt_font):
+    meta = tt_font['meta'] = fontTools.ttLib.newTable('meta')
+    meta.data['dlng'] = 'Dupl'
+    meta.data['slng'] = 'Dupl'
+
 def tweak_font(options, builder):
     with fontTools.ttLib.ttFont.TTFont(options.output, recalcBBoxes=False) as tt_font:
         # Remove the FontForge timestamp table.
@@ -177,6 +183,8 @@ def tweak_font(options, builder):
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_unique_id(tt_font['name'].names)
         tt_font['CFF '].cff[0].Notice = next(name for name in tt_font['name'].names if name.nameID == 0).string
+
+        add_meta(tt_font)
 
         tt_font.save(options.output)
 
