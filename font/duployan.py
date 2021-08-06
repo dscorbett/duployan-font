@@ -1053,6 +1053,7 @@ class Line(Shape):
         final_tick=False,
         tittle=None,
         visible_base=True,
+        original_angle=None,
     ):
         self.angle = angle
         self.minor = minor
@@ -1063,6 +1064,7 @@ class Line(Shape):
         self.final_tick = final_tick
         self.tittle = tittle
         self.visible_base = visible_base
+        self.original_angle = original_angle
 
     def clone(
         self,
@@ -1076,6 +1078,7 @@ class Line(Shape):
         final_tick=CLONE_DEFAULT,
         tittle=CLONE_DEFAULT,
         visible_base=CLONE_DEFAULT,
+        original_angle=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
@@ -1087,6 +1090,7 @@ class Line(Shape):
             final_tick=self.final_tick if final_tick is CLONE_DEFAULT else final_tick,
             tittle=self.tittle if tittle is CLONE_DEFAULT else tittle,
             visible_base=self.visible_base if visible_base is CLONE_DEFAULT else visible_base,
+            original_angle=self.original_angle if original_angle is CLONE_DEFAULT else original_angle,
         )
 
     def __str__(self):
@@ -1110,6 +1114,7 @@ class Line(Shape):
             self.final_tick,
             self.tittle,
             self.visible_base,
+            self.original_angle if self.original_angle != self.angle else None,
         )
 
     def invisible(self):
@@ -1132,7 +1137,7 @@ class Line(Shape):
 
     def _get_length(self, size):
         if self.stretchy:
-            length_denominator = abs(math.sin(math.radians(self.angle)))
+            length_denominator = abs(math.sin(math.radians(self.angle if self.original_angle is None else self.original_angle)))
             if length_denominator < EPSILON:
                 length_denominator = 1
         else:
@@ -1210,7 +1215,7 @@ class Line(Shape):
                     if self.hub_priority(size) != 0:
                         glyph.addAnchorPoint(PRE_HUB_CURSIVE_ANCHOR, 'exit', length, end_y)
                     glyph.addAnchorPoint(anchor_name(SECANT_ANCHOR), base, child_interval * (max_tree_width + 1), 0)
-            if size == 2 and self.angle == 45:
+            if size == 2 and 0 < self.angle <= 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2 - (light_line + stroke_gap), -(stroke_width + light_line) / 2)
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + light_line + stroke_gap, -(stroke_width + light_line) / 2)
@@ -1263,10 +1268,12 @@ class Line(Shape):
         return self
 
     def context_in(self):
-        return Context(self.angle, minor=self.minor)
+        # FIXME: This should use the current angle, not the original angle.
+        return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
 
     def context_out(self):
-        return Context(self.angle, minor=self.minor)
+        # FIXME: This should use the current angle, not the original angle.
+        return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
 
     def rotate_diacritic(self, context):
         angle = context.angle
@@ -3851,6 +3858,7 @@ class Builder:
             self._reposition_stenographic_period,
             self._disjoin_equals_sign,
             self._join_with_next_step,
+            self._separate_subantiparallel_lines,
             self._prepare_for_secondary_diphthong_ligature,
             self._join_with_previous,
             self._unignore_last_orienting_glyph_in_initial_sequence,
@@ -4874,6 +4882,62 @@ class Builder:
                 classes['o'].append(output_schema)
         if new_context:
             add_rule(lookup, Rule([], 'i', 'c', 'o'))
+        return [lookup]
+
+    def _separate_subantiparallel_lines(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        )
+        lines_by_angle = collections.defaultdict(list)
+        for schema in new_schemas:
+            if schema.glyph_class != GlyphClass.JOINER:
+                continue
+            if isinstance(schema.path, Line):
+                if (schema.path.dots is None
+                    and schema.path.secant is None
+                    and schema.path.original_angle is None
+                    and not isinstance(schema.path, LongI)
+                ):
+                    lines_by_angle[schema.path.angle].append(schema)
+            elif isinstance(schema.path, Circle) and schema.is_primary or isinstance(schema.path, (RomanianU, Wa, Wi)):
+                classes['vowel'].append(schema)
+        closeness_threshold = 20
+        def axis_alignment(x):
+            return abs(x % 90 - 45)
+        for a1, lines_1 in lines_by_angle.items():
+            for a2, lines_2 in lines_by_angle.items():
+                if (axis_alignment(a1) < axis_alignment(a2)
+                    and Curve.in_degree_range(
+                        a1,
+                        (a2 + 180 - (closeness_threshold - EPSILON)) % 360,
+                        (a2 + 180 + closeness_threshold - EPSILON) % 360,
+                        False,
+                    )
+                ):
+                    classes[f'i_{a1}_{a2}'].extend(lines_1)
+                    classes[f'c_{a1}_{a2}'].extend(lines_2)
+                    for line_1 in lines_1:
+                        if line_1.size < 3:
+                            classes[f'o_{a1}_{a2}'].append(line_1.clone(
+                                cmap=None,
+                                path=line_1.path.clone(
+                                    angle=(a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360,
+                                    original_angle=line_1.path.angle,
+                                ),
+                            ))
+                        else:
+                            # FIXME: All these new glyphs with new angles overflows the GSUB builder, so
+                            # don’t change the angle for large lines. Large lines are less common so the
+                            # bug has less impact.
+                            classes[f'o_{a1}_{a2}'].append(line_1)
+                    add_rule(lookup, Rule([], f'i_{a1}_{a2}', ['vowel', f'c_{a1}_{a2}'], f'o_{a1}_{a2}'))
+                    add_rule(lookup, Rule([f'c_{a1}_{a2}', 'vowel'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
+                    # TODO: Once `Line.context_in` and `Line_context_out` report the true angle, add
+                    # the following rule.
+                    #add_rule(lookup, Rule(f'o_{a1}_{a2}', f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
         return [lookup]
 
     def _prepare_for_secondary_diphthong_ligature(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
