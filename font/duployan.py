@@ -5603,6 +5603,7 @@ class Builder:
             Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
             for _ in range(lookups_per_position)
         ]
+        carry_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         rule_count = 0
         carry_0_schema = Schema(None, Carry(0), 0)
         entry_width_markers = {}
@@ -5707,14 +5708,16 @@ class Builder:
                         else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                         ), f'Glyph {schema} is too wide: {width} units'
                     digits_base = len(digits)
-                    digits += [carry_0_schema] * WIDTH_MARKER_PLACES * 2
+                    digits += [None] * WIDTH_MARKER_PLACES
                     quotient = round(width)
                     for i in range(WIDTH_MARKER_PLACES):
                         quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
                         args = (i, remainder)
                         if args not in width_markers:
-                            width_markers[args] = Schema(None, digit_path(*args), 0)
-                        digits[digits_base + i * 2 + 1] = width_markers[args]
+                            width_marker = Schema(None, digit_path(*args), 0)
+                            width_markers[args] = width_marker
+                            add_rule(carry_expansion_lookup, Rule([width_marker], [carry_0_schema, width_marker]))
+                        digits[digits_base + i] = width_markers[args]
                 lookup = lookups[rule_count % lookups_per_position]
                 rule_count += 1
                 add_rule(lookup, Rule([schema], [
@@ -5726,7 +5729,7 @@ class Builder:
                     *digits,
                     end,
                 ]))
-        return lookups
+        return [*lookups, carry_expansion_lookup]
 
     def _add_end_markers_for_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
