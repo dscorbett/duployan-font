@@ -4949,19 +4949,13 @@ class Builder:
                     classes[f'i_{a1}_{a2}'].extend(lines_1)
                     classes[f'c_{a1}_{a2}'].extend(lines_2)
                     for line_1 in lines_1:
-                        if line_1.size < 3:
-                            classes[f'o_{a1}_{a2}'].append(line_1.clone(
-                                cmap=None,
-                                path=line_1.path.clone(
-                                    angle=(a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360,
-                                    original_angle=line_1.path.angle,
-                                ),
-                            ))
-                        else:
-                            # FIXME: All these new glyphs with new angles overflows the GSUB builder, so
-                            # don’t change the angle for large lines. Large lines are less common so the
-                            # bug has less impact.
-                            classes[f'o_{a1}_{a2}'].append(line_1)
+                        classes[f'o_{a1}_{a2}'].append(line_1.clone(
+                            cmap=None,
+                            path=line_1.path.clone(
+                                angle=(a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360,
+                                original_angle=line_1.path.angle,
+                            ),
+                        ))
                     add_rule(lookup, Rule([], f'i_{a1}_{a2}', ['vowel', f'c_{a1}_{a2}'], f'o_{a1}_{a2}'))
                     add_rule(lookup, Rule([f'c_{a1}_{a2}', 'vowel'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
                     # TODO: Once `Line.context_in` and `Line_context_out` report the true angle, add
@@ -5627,7 +5621,7 @@ class Builder:
         return [lookup, dist_lookup]
 
     def _add_width_markers(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookups_per_position = 68
+        lookups_per_position = 6
         lookups = [
             Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
             for _ in range(lookups_per_position)
