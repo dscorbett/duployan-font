@@ -607,6 +607,35 @@ class AnchorWidthDigit(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
+class WidthNumber(Shape):
+    def __init__(self, digit_path, width):
+        self.digit_path = digit_path
+        self.width = width
+
+    def __str__(self):
+        return f'''{
+                'ilra'[[EntryWidthDigit, LeftBoundDigit, RightBoundDigit, AnchorWidthDigit].index(self.digit_path)]
+            }dx.{self.width}'''.replace('-', 'n')
+
+    @staticmethod
+    def name_implies_type():
+        return True
+
+    def invisible(self):
+        return True
+
+    @staticmethod
+    def guaranteed_glyph_class():
+        return GlyphClass.MARK
+
+    def to_digits(self, register_width_marker):
+        digits = [None] * WIDTH_MARKER_PLACES
+        quotient = self.width
+        for i in range(WIDTH_MARKER_PLACES):
+            quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+            digits[i] = register_width_marker(self.digit_path, i, remainder)
+        return digits
+
 class MarkAnchorSelector(Shape):
     def __init__(self, index):
         self.index = index
@@ -5603,6 +5632,7 @@ class Builder:
             Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
             for _ in range(lookups_per_position)
         ]
+        digit_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         carry_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         rule_count = 0
         carry_0_schema = Schema(None, Carry(0), 0)
@@ -5610,6 +5640,12 @@ class Builder:
         left_bound_markers = {}
         right_bound_markers = {}
         anchor_width_markers = {}
+        path_to_markers = {
+            EntryWidthDigit: entry_width_markers,
+            LeftBoundDigit: left_bound_markers,
+            RightBoundDigit: right_bound_markers,
+            AnchorWidthDigit: anchor_width_markers,
+        }
         start = Schema(None, Start(), 0)
         hubs = {-1: []}
         for hub_priority in range(0, MAX_HUB_PRIORITY + 1):
@@ -5637,6 +5673,35 @@ class Builder:
             if glyph_class in glyph_class_selectors:
                 return glyph_class_selectors[glyph_class]
             return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
+        def register_width_marker(width_markers, digit_path, *args):
+            if args not in width_markers:
+                width_marker = Schema(None, digit_path(*args), 0)
+                width_markers[args] = width_marker
+                add_rule(carry_expansion_lookup, Rule([width_marker], [carry_0_schema, width_marker]))
+            return width_markers[args]
+        width_number_schemas = {}
+        def get_width_number_schema(width_number):
+            if width_number in width_number_schemas:
+                return width_number_schemas[width_number]
+            return width_number_schemas.setdefault(width_number, Schema(None, width_number, 0))
+        width_number_counter = collections.Counter()
+        minimum_optimizable_width_number_count = 2
+        width_numbers = {}
+        def get_width_number(digit_path, width):
+            width = round(width)
+            if (digit_path, width) in width_numbers:
+                width_number = width_numbers[(digit_path, width)]
+            else:
+                width_number = WidthNumber(digit_path, width)
+                width_numbers[(digit_path, width)] = width_number
+            width_number_counter[width_number] += 1
+            if width_number_counter[width_number] == minimum_optimizable_width_number_count:
+                add_rule(digit_expansion_lookup, Rule(
+                    [get_width_number_schema(width_number)],
+                    width_number.to_digits(functools.partial(register_width_marker, path_to_markers[digit_path])),
+                ))
+            return width_number
+        rules_to_add = []
         for schema in new_schemas:
             if schema not in original_schemas:
                 continue
@@ -5683,53 +5748,60 @@ class Builder:
                 else:
                     mark_anchor_selector = []
                 glyph_class_selector = get_glyph_class_selector(schema)
-                digits = []
-                for width, digit_path, width_markers in [
-                    (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit, entry_width_markers),
-                    (x_min - start_x, LeftBoundDigit, left_bound_markers),
-                    (x_max - start_x, RightBoundDigit, right_bound_markers),
+                widths = []
+                for width, digit_path in [
+                    (entry_xs[CURSIVE_ANCHOR] - entry_xs[CONTINUING_OVERLAP_ANCHOR], EntryWidthDigit),
+                    (x_min - start_x, LeftBoundDigit),
+                    (x_max - start_x, RightBoundDigit),
                     *[
                         (
                             exit_xs[anchor] - start_x if anchor in exit_xs else 0,
                             AnchorWidthDigit,
-                            anchor_width_markers,
                         ) for anchor in MARK_ANCHORS
                     ],
                     *[
                         (
                             exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
                             AnchorWidthDigit,
-                            anchor_width_markers)
-                        for anchor in CURSIVE_ANCHORS
+                        ) for anchor in CURSIVE_ANCHORS
                     ],
                 ]:
                     assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                         if width >= 0
                         else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
                         ), f'Glyph {schema} is too wide: {width} units'
-                    digits_base = len(digits)
-                    digits += [None] * WIDTH_MARKER_PLACES
-                    quotient = round(width)
-                    for i in range(WIDTH_MARKER_PLACES):
-                        quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-                        args = (i, remainder)
-                        if args not in width_markers:
-                            width_marker = Schema(None, digit_path(*args), 0)
-                            width_markers[args] = width_marker
-                            add_rule(carry_expansion_lookup, Rule([width_marker], [carry_0_schema, width_marker]))
-                        digits[digits_base + i] = width_markers[args]
+                    widths.append(get_width_number(digit_path, width))
                 lookup = lookups[rule_count % lookups_per_position]
                 rule_count += 1
-                add_rule(lookup, Rule([schema], [
-                    start,
-                    glyph_class_selector,
-                    *mark_anchor_selector,
-                    *hubs[schema.hub_priority],
-                    schema,
-                    *digits,
-                    end,
-                ]))
-        return [*lookups, carry_expansion_lookup]
+                rules_to_add.append((
+                    widths,
+                    (lambda widths,
+                            lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, schema=schema:
+                        add_rule(lookup, Rule([schema], [
+                            start,
+                            glyph_class_selector,
+                            *mark_anchor_selector,
+                            *hubs[schema.hub_priority],
+                            schema,
+                            *widths,
+                            end,
+                        ]))
+                    ),
+                ))
+        for widths, rule_to_add in rules_to_add:
+            final_widths = []
+            for width in widths:
+                if width_number_counter[width] >= minimum_optimizable_width_number_count:
+                    final_widths.append(get_width_number_schema(width))
+                else:
+                    final_widths.extend(width.to_digits(functools.partial(register_width_marker, path_to_markers[width.digit_path])))
+            rule_to_add(final_widths)
+            rule_count -= 1
+        return [
+            *lookups,
+            digit_expansion_lookup,
+            carry_expansion_lookup,
+        ]
 
     def _add_end_markers_for_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
