@@ -3389,9 +3389,9 @@ class Rule:
                     asts = []
                     for i, glyph_name in enumerate(class_asts[input].glyphs.glyphs):
                         asts.append(fontTools.feaLib.ast.MultipleSubstStatement(
-                            glyphs_to_ast(self.contexts_in, i),
+                            glyphs_to_ast(self.contexts_in),
                             glyph_name,
-                            glyphs_to_ast(self.contexts_out, i),
+                            glyphs_to_ast(self.contexts_out),
                             glyphs_to_names(self.outputs, i),
                             in_contextual_lookup,
                         ))
