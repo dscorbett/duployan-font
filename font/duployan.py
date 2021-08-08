@@ -3504,7 +3504,7 @@ class Lookup:
             'rlig',
         },
     }
-    KNOWN_SCRIPTS = {*_REQUIRED_SCRIPT_FEATURES.keys()}
+    KNOWN_SCRIPTS = sorted(_REQUIRED_SCRIPT_FEATURES)
 
     def __init__(
             self,
