@@ -485,12 +485,8 @@ class End(Shape):
         return GlyphClass.BLOCKER
 
 class Carry(Shape):
-    def __init__(self, value):
-        self.value = int(value)
-        assert self.value == value, value
-
     def __str__(self):
-        return f'c.{self.value}'
+        return 'c'
 
     @staticmethod
     def name_implies_type():
@@ -3250,6 +3246,12 @@ class FreezableList:
     def __len__(self):
         return len(self._delegate)
 
+    def insert(self, index, object, /):
+        try:
+            self._delegate.insert(index, object)
+        except AttributeError:
+            raise ValueError('Inserting into a frozen list') from None
+
     def append(self, object, /):
         try:
             self._delegate.append(object)
@@ -3277,6 +3279,10 @@ class OrderedSet(dict):
 
     def sorted(self, /, *, key=None, reverse=False):
         return sorted(self.keys(), key=key, reverse=reverse)
+
+class AlwaysTrueList(list):
+    def __bool__(self):
+        return True
 
 class Rule:
     def __init__(
@@ -3515,6 +3521,7 @@ class Lookup:
             flags=0,
             mark_filtering_set=None,
             reversed=False,
+            prepending=False,
     ):
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
@@ -3536,6 +3543,7 @@ class Lookup:
         self.flags = flags
         self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
+        self.prepending = prepending
         self.rules = FreezableList()
         assert (feature is None) == (not scripts) == (language is None), 'Not clear whether this is a named or a normal lookup'
         for script in scripts:
@@ -3594,8 +3602,12 @@ class Lookup:
                 ', '.join(f"'{script}'" for script in other.scripts)
             }}}'''
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
-        for rule in other.rules:
-            self.append(rule)
+        if self.prepending:
+            for rule in other.rules:
+                self.rules.insert(0, rule)
+        else:
+            for rule in other.rules:
+                self.append(rule)
 
 def make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
     if maximum_depth <= 0:
@@ -5629,7 +5641,6 @@ class Builder:
         digit_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         carry_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
         rule_count = 0
-        carry_0_schema = Schema(None, Carry(0), 0)
         entry_width_markers = {}
         left_bound_markers = {}
         right_bound_markers = {}
@@ -5671,7 +5682,6 @@ class Builder:
             if args not in width_markers:
                 width_marker = Schema(None, digit_path(*args), 0)
                 width_markers[args] = width_marker
-                add_rule(carry_expansion_lookup, Rule([width_marker], [carry_0_schema, width_marker]))
             return width_markers[args]
         width_number_schemas = {}
         def get_width_number_schema(width_number):
@@ -5794,7 +5804,6 @@ class Builder:
         return [
             *lookups,
             digit_expansion_lookup,
-            carry_expansion_lookup,
         ]
 
     def _add_end_markers_for_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -5869,10 +5878,11 @@ class Builder:
             {'DFLT', 'dupl'},
             'dflt',
             mark_filtering_set='all',
+            prepending=True,
         )
-        carry_schemas = {}
-        dummied_carry_schemas = set()
-        original_carry_schemas = []
+        carry_schema = None
+        carry_0_placeholder = object()
+        original_carry_schemas = [carry_0_placeholder]
         entry_digit_schemas = {}
         original_entry_digit_schemas = []
         left_digit_schemas = {}
@@ -5914,11 +5924,10 @@ class Builder:
                 classes['all'].append(schema)
                 continuing_overlap = schema
             elif isinstance(schema.path, Carry):
-                carry_schemas[schema.path.value] = schema
+                carry_schema = schema
                 original_carry_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
-                    classes['c'].append(schema)
             elif isinstance(schema.path, EntryWidthDigit):
                 entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
                 original_entry_digit_schemas.append(schema)
@@ -6016,11 +6025,8 @@ class Builder:
                     addend_path,
                 ) in inner_iterable:
                     for carry_in_schema in original_carry_schemas:
-                        carry_in = carry_in_schema.path.value
+                        carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                         carry_in_is_new = carry_in_schema in new_schemas
-                        if carry_in_is_new and carry_in_schema.path.value not in dummied_carry_schemas:
-                            dummied_carry_schemas.add(carry_in_schema.path.value)
-                            add_rule(lookup, Rule([carry_in_schema], [carry_schemas[0]], [], [dummy]))
                         for addend_schema in original_addend_schemas:
                             if place != addend_schema.path.place:
                                 continue
@@ -6033,11 +6039,14 @@ class Builder:
                                 classes[context_in_lookup_name].append(continuing_overlap)
                             classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{augend_schema.path.place}'])
                             if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
-                                if carry_out in carry_schemas:
-                                    carry_out_schema = carry_schemas[carry_out]
+                                if carry_out == 0:
+                                    carry_out_schema = carry_0_placeholder
+                                elif carry_schema is not None:
+                                    carry_out_schema = carry_schema
                                 else:
-                                    carry_out_schema = Schema(None, Carry(carry_out), 0)
-                                    carry_schemas[carry_out] = carry_out_schema
+                                    assert carry_out == 1, carry_out
+                                    carry_out_schema = Schema(None, Carry(), 0)
+                                    carry_schema = carry_out_schema
                                 sum_index = place * WIDTH_MARKER_RADIX + sum_digit
                                 if sum_index in addend_schemas:
                                     sum_digit_schema = addend_schemas[sum_index]
@@ -6047,7 +6056,7 @@ class Builder:
                                     classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'].append(sum_digit_schema)
                                     classes['all'].append(sum_digit_schema)
                                 outputs = ([sum_digit_schema]
-                                    if place == WIDTH_MARKER_PLACES - 1
+                                    if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                     else [sum_digit_schema, carry_out_schema])
                                 sum_lookup_name = str(sum_digit)
                                 if sum_lookup_name not in named_lookups:
@@ -6061,7 +6070,12 @@ class Builder:
                                         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                         mark_filtering_set=context_in_lookup_name,
                                     )
-                                add_rule(lookup, Rule([carry_in_schema], [addend_schema], [], lookups=[context_in_lookup_name]))
+                                add_rule(lookup, Rule(
+                                    AlwaysTrueList() if carry_in == 0 else [carry_in_schema],
+                                    [addend_schema],
+                                    [],
+                                    lookups=[context_in_lookup_name],
+                                ))
                                 classes[context_in_lookup_name].extend(classes[f'idx_{augend_schema.path.place}'])
                                 if addend_skip_backtrack != 0:
                                     classes[context_in_lookup_name].extend(classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'])
