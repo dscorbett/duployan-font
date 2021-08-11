@@ -3602,6 +3602,7 @@ class Lookup:
                 ', '.join(f"'{script}'" for script in other.scripts)
             }}}'''
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
+        assert self.prepending == other.prepending, f'Incompatible prepending values: {self.prepending} != {other.prepending}'
         if self.prepending:
             for rule in other.rules:
                 self.rules.insert(0, rule)
@@ -3680,6 +3681,21 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
         elif input in autochthonous_schemas:
             return
 
+    def is_prefix(maybe_prefix, full):
+        return len(maybe_prefix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(maybe_prefix, full)))
+    def is_suffix(maybe_suffix, full):
+        return len(maybe_suffix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(reversed(maybe_suffix), reversed(full))))
+    if not lookup.prepending and any(r.is_contextual() for r in lookup.rules):
+        # TODO: Check prepending lookups too.
+        for i, previous_rule in enumerate(lookup.rules):
+            if lookup.prepending:
+                previous_rule, rule = rule, previous_rule
+            if (previous_rule.inputs == rule.inputs
+                and is_suffix(previous_rule.contexts_in, rule.contexts_in)
+                and is_prefix(previous_rule.contexts_out, rule.contexts_out)
+                and (previous_rule.contexts_in != rule.contexts_in or previous_rule.contexts_out != rule.contexts_out)
+            ):
+                return
     lookup.append(rule)
 
     # FIXME: `track_possible_outputs` is a manual workaround for this function’s
