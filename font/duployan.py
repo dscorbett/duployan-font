@@ -4427,13 +4427,19 @@ class Builder:
         return [lookup]
 
     def _validate_overlap_controls(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
+        lookup = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+            mark_filtering_set='overlap',
+        )
         new_classes = {}
         global_max_tree_width = 0
         for schema in new_schemas:
             if isinstance(schema.path, ChildEdge):
                 return [lookup]
             if isinstance(schema.path, InvalidOverlap):
+                classes['overlap'].append(schema)
                 if schema.path.continuing:
                     continuing_overlap = schema
                 else:
@@ -4453,6 +4459,8 @@ class Builder:
         valid_continuing_overlap = continuing_overlap.clone(cmap=None, path=ContinuingOverlap(), side_bearing=0)
         classes['valid'].append(valid_letter_overlap)
         classes['valid'].append(valid_continuing_overlap)
+        classes['overlap'].append(valid_letter_overlap)
+        classes['overlap'].append(valid_continuing_overlap)
         add_rule(lookup, Rule('invalid', 'invalid', [], lookups=[None]))
         add_rule(lookup, Rule('valid', 'invalid', [], 'valid'))
         for i in range(global_max_tree_width - 2):
