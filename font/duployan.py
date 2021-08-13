@@ -3975,7 +3975,7 @@ class Builder:
         seven = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
         eight = Complex([(2.88, Curve(90, 270, clockwise=True, stretch=0.146, long=True)), (2.88, Curve(270, 180, clockwise=True, stretch=0.075, long=True)), (2.95, Curve(180, 270, clockwise=False, stretch=0.075, long=True)), (3.16, Curve(270, 90, clockwise=False, stretch=0.215, long=True)), (2.95, Curve(90, 180, clockwise=False, stretch=0.075, long=True)), (2.88, Curve(180, 90, clockwise=True, stretch=0.075, long=True))])
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
-        colon = Complex([(1, h), (428, Space(90, margins=False)), (1, h)])
+        colon = Complex([(1, h), (509, Space(90, margins=False)), (1, h)])
         semicolon = Complex([(0, Space(0, margins=False)), (1, comma), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, h)])
         question = Complex([(1, h), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
         less_than = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])

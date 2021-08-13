@@ -95,7 +95,7 @@
 # U+20DD COMBINING ENCLOSING CIRCLE
 0021 20DD:--script Dupl:[exclam@366,0|uni20DD.enclosing_circle.psts@486,-175|_@972,0]
 002C 20DD:--script Dupl:[comma@140,0|uni20DD.enclosing_circle.psts@287,-351|_@573,0]
-003A 20DD:--script Dupl:[colon@234,0|uni20DD.enclosing_circle.psts@354,-174|_@708,0]
+003A 20DD:--script Dupl:[colon@260,0|uni20DD.enclosing_circle.psts@380,-174|_@760,0]
 003B 20DD:--script Dupl:[semicolon@300,0|uni20DD.enclosing_circle.psts@447,-352|_@893,0]
 003F 20DD:--script Dupl:[question@213,0|uni20DD.enclosing_circle.psts@483,-175|_@966,0]
 2013 20DD:--script Dupl:[uni2013.en_dash@140,0|uni20DD.enclosing_circle.psts@510,42|_@1020,0]
