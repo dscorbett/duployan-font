@@ -1774,15 +1774,21 @@ class Curve(Shape):
                         (candidate_angle_in + curve_offset) % 360,
                         candidate_clockwise,
                     )
-                ) or (
-                    context_out.clockwise == context_in.clockwise == candidate_clockwise
-                    and self.in_degree_range(
-                        angle_out,
-                        (candidate_angle_out - CURVE_OFFSET) % 360,
-                        (candidate_angle_out + CURVE_OFFSET) % 360,
-                        False,
-                    )
                 )
+            ):
+                flip()
+            if (context_out.clockwise == context_in.clockwise == candidate_clockwise
+                and (self.in_degree_range(
+                    angle_out,
+                    (angle_in + 180) % 360,
+                    (angle_in + 180 + curve_offset) % 360,
+                    not candidate_clockwise,
+                ) or self.in_degree_range(
+                    (angle_out - curve_offset) % 360,
+                    (angle_in + 180) % 360,
+                    (angle_in + 180 + curve_offset) % 360,
+                    not candidate_clockwise,
+                ))
             ):
                 flip()
         if context_in.diphthong_start or context_out.diphthong_end:
