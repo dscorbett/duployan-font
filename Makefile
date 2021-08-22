@@ -14,18 +14,24 @@
 # limitations under the License.
 
 STYLES = Regular Bold
-FONT_PREFIX = font/Duployan-
+ifdef NOTO
+    FONT_FAMILY_NAME = NotoSansDuployan
+    override NOTO = --noto
+else
+    FONT_FAMILY_NAME = Duployan
+endif
+FONT_PREFIX = font/$(FONT_FAMILY_NAME)-
 FONT_SUFFIX = .otf
 FONTS = $(addprefix $(FONT_PREFIX),$(addsuffix $(FONT_SUFFIX),$(STYLES)))
 
 .PHONY: all
 all: $(FONTS)
 
-%-Regular.otf: %.fea font/*.py
-	font/build.py --fea $< --output $@
+$(FONT_PREFIX)Regular.otf: font/Duployan.fea font/*.py
+	font/build.py --fea $< $(NOTO) --output $@
 
-%-Bold.otf: %.fea font/*.py
-	font/build.py --bold --fea $< --output $@
+$(FONT_PREFIX)Bold.otf: font/Duployan.fea font/*.py
+	font/build.py --bold --fea $< $(NOTO) --output $@
 
 .PHONY: clean
 clean:

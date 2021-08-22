@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
+        noto:
+          - ''
         requirements:
           - frozen
           - oldest
@@ -31,8 +33,12 @@ jobs:
         styles:
           - Regular
         include:
-          - requirements: frozen
+          - noto: ''
+            requirements: frozen
             styles: Bold
+          - noto: true
+            requirements: frozen
+            styles: Regular
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -105,6 +111,6 @@ jobs:
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
-        run: make "STYLES=${{ matrix.styles }}"
+        run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}"
       - name: Test
-        run: make "STYLES=${{ matrix.styles }}" check
+        run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}" check
