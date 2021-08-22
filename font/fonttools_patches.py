@@ -21,12 +21,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import struct
-
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.tables.otTables
 
-def compile(self, font):
+def compile(self, font, *args, **kwargs):
     writer = fontTools.ttLib.tables.otBase.OTTableWriter(tableTag=self.tableTag)
     if self.tableTag == 'GSUB':
         ext_type = 7
@@ -35,35 +33,15 @@ def compile(self, font):
     else:
         ext_type = None
     if ext_type is not None:
+        ext_subtable_thunk = fontTools.ttLib.tables.otTables.lookupTypes[self.tableTag][ext_type]
         for lookup in font[self.tableTag].table.LookupList.Lookup:
             if lookup.SubTable[0].__class__.LookupType != ext_type:
                 lookup.LookupType = ext_type
                 for si, subtable in enumerate(lookup.SubTable):
-                    ext_subtable = fontTools.ttLib.tables.otTables.lookupTypes[self.tableTag][ext_type]()
+                    ext_subtable = ext_subtable_thunk()
                     ext_subtable.Format = 1
                     ext_subtable.ExtSubTable = subtable
                     lookup.SubTable[si] = ext_subtable
     self.table.compile(writer, font)
     return writer.getAllData()
-
-def getDataLength(self):
-    return sum(map(len, self.items))
-
-def writeInt8(self, value):
-    self.items.append(struct.pack('>b', value))
-
-def writeShort(self, value):
-    self.items.append(struct.pack('>h', value))
-
-def writeUInt8(self, value):
-    self.items.append(struct.pack('>B', value))
-
-def writeUShort(self, value):
-    self.items.append(struct.pack('>H', value))
-
-def CountReference_len(self):
-    return self.size
-
-def OTTableWriter_len(self):
-    return self.offsetSize
 

@@ -49,46 +49,7 @@ def generate_feature_string(font, lookup):
         return fea_file.read().decode('utf-8')
 
 def patch_fonttools():
-    if fontTools.__version__ not in [
-        '4.18.2',
-        '4.19.0',
-        '4.19.1',
-        '4.20.0',
-        '4.21.0',
-        '4.21.1',
-        '4.22.0',
-        '4.22.1',
-        '4.23.0',
-        '4.23.1',
-        '4.24.0',
-        '4.24.1',
-        '4.24.2',
-        '4.24.3',
-        '4.24.4',
-        '4.25.0',
-        '4.25.1',
-        '4.25.2',
-        '4.26.0',
-        '4.26.1',
-    ]:
-        return
-
-    getGlyphID_inner = fontTools.ttLib.ttFont.TTFont.getGlyphID
-    def getGlyphID(self, glyphName, requireReal=False):
-        try:
-            return self._reverseGlyphOrderDict[glyphName]
-        except (AttributeError, KeyError):
-            getGlyphID_inner(self, glyphName, requireReal)
-    fontTools.ttLib.ttFont.TTFont.getGlyphID = getGlyphID
-
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
-    fontTools.ttLib.tables.otBase.CountReference.__len__ = fonttools_patches.CountReference_len
-    fontTools.ttLib.tables.otBase.OTTableWriter.__len__ = fonttools_patches.OTTableWriter_len
-    fontTools.ttLib.tables.otBase.OTTableWriter.getDataLength = fonttools_patches.getDataLength
-    fontTools.ttLib.tables.otBase.OTTableWriter.writeInt8 = fonttools_patches.writeInt8
-    fontTools.ttLib.tables.otBase.OTTableWriter.writeShort = fonttools_patches.writeShort
-    fontTools.ttLib.tables.otBase.OTTableWriter.writeUInt8 = fonttools_patches.writeUInt8
-    fontTools.ttLib.tables.otBase.OTTableWriter.writeUShort = fonttools_patches.writeUShort
 
 def filter_map_name(name):
     if name.platformID != 3 or name.platEncID != 1:
