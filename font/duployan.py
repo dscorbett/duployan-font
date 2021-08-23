@@ -2992,8 +2992,8 @@ class Schema:
             self.widthless,
             tuple(m.group for m in self.marks or []),
             self.glyph_class,
-            self.context_in == NO_CONTEXT and self.diphthong_1 and isinstance(self.path, Circle),
-            self.context_out == NO_CONTEXT and self.diphthong_2 and isinstance(self.path, Circle),
+            self.context_in == NO_CONTEXT and not self.diphthong_1,
+            self.context_out == NO_CONTEXT and not self.diphthong_2,
             self.diphthong_1,
             self.diphthong_2,
         )
