@@ -3882,7 +3882,7 @@ def rename_schemas(grouper, phase_index):
 CURRENT_PHASE_INDEX = NO_PHASE_INDEX
 
 class Builder:
-    def __init__(self, font, bold):
+    def __init__(self, font, bold, noto):
         self.font = font
         self._fea = fontTools.feaLib.ast.FeatureFile()
         self._anchors = {}
@@ -3891,7 +3891,7 @@ class Builder:
         self.shaded_line = SHADING_FACTOR * self.light_line
         self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
         code_points = collections.defaultdict(int)
-        self._initialize_schemas(self.light_line, self.stroke_gap)
+        self._initialize_schemas(noto, self.light_line, self.stroke_gap)
         for schema in self._schemas:
             if schema.cmap is not None:
                 code_points[schema.cmap] += 1
@@ -3961,7 +3961,7 @@ class Builder:
             self._dist,
         ]
 
-    def _initialize_schemas(self, light_line, stroke_gap):
+    def _initialize_schemas(self, noto, light_line, stroke_gap):
         notdef = Notdef()
         space = Space(0)
         h = Dot()
@@ -4181,16 +4181,6 @@ class Builder:
             Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
-            Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
-            Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0xEC05, k_reverse, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0xEC06, l_reverse, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0xEC19, m_reverse, 6, shading_allowed=False),
-            Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
-            Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
-            Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
             Schema(0x1BC00, h, 1, shading_allowed=False),
             Schema(0x1BC01, x, 0.75, shading_allowed=False),
             Schema(0x1BC02, p, 1, Type.ORIENTING),
@@ -4339,6 +4329,19 @@ class Builder:
             Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
             Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
         ]
+        if not noto:
+            self._schemas += [
+                Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
+                Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC05, k_reverse, 1, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC06, l_reverse, 1, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC19, m_reverse, 6, shading_allowed=False),
+                Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
+                Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
+                Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
+            ]
 
     def _dont_ignore_default_ignorables(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup_1 = Lookup('abvm', {'DFLT', 'dupl'}, 'dflt')

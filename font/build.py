@@ -197,7 +197,7 @@ def make_font(options):
     font.fontname = font.familyname
     font.fullname = font.familyname
     font.encoding = 'UnicodeFull'
-    builder = duployan.Builder(font, options.bold)
+    builder = duployan.Builder(font, options.bold, options.noto)
     builder.augment()
     build_font(options, builder.font)
     patch_fonttools()
