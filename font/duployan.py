@@ -2870,6 +2870,7 @@ class Schema:
             len(self.cps),
             self.original_shape != type(self.path),
             self.cps,
+            len(self._calculate_name()),
         )
 
     def clone(
