@@ -1681,7 +1681,7 @@ class Curve(Shape):
         return (0
             if any(m.anchor == MIDDLE_ANCHOR for m in marks)
             else 1
-            if size < 3 or joining_type == Type.ORIENTING or self.long
+            if size <= 2 or joining_type == Type.ORIENTING or self.long
             else 2
             if size < 5
             else 3)
@@ -4069,7 +4069,7 @@ class Builder:
         long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
-        ou = Ou([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
+        ou = Ou([(3, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -4252,9 +4252,9 @@ class Builder:
             Schema(0x1BC40, s_k, 6),
             Schema(0x1BC41, o, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC42, o_reverse, 2, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC43, o, 3, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC44, o, 4, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC45, o, 5, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC43, o, 2.5, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC44, o, 3, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC45, o, 3.5, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC46, ie, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC47, ee, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC48, ie, 2, can_lead_orienting_sequence=True, shading_allowed=False),
@@ -4269,13 +4269,13 @@ class Builder:
             Schema(0x1BC51, s_t, 3, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC52, s_p, 3, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC53, s_t, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
-            Schema(0x1BC54, u_n, 4, shading_allowed=False),
+            Schema(0x1BC54, u_n, 3, shading_allowed=False),
             Schema(0x1BC55, long_u, 2, shading_allowed=False),
-            Schema(0x1BC56, romanian_u, 4, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC56, romanian_u, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC57, uh, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC58, uh, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC59, uh, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
-            Schema(0x1BC5A, o, 4, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC5A, o, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC5B, ou, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5C, wa, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5D, wo, 1, Type.ORIENTING, shading_allowed=False),
@@ -5579,7 +5579,7 @@ class Builder:
                 side_bearing=width,
             )
         marker = get_shim(0, 0)
-        rounding_base = 4
+        rounding_base = 5
         for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
             add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
             exit_classes = {}

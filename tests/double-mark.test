@@ -56,8 +56,8 @@
 1BC19 1BC9E 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC19.m@533,0|u1BC9E_u1BC9E_u1BC9E.double__double__double.0@121,247|dupl.Line.0.dotted@653,0|u1BC9E.double.90.psts@1148,-112|dupl.Line.0.dotted@1643,0|u1BC9E.double.90.psts@2138,-112|_@2633,0]
 1BC32 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC32.s_t@180,0|u1BC9E_u1BC9E.double__double.45@120,-60|dupl.Line.0.dotted@500,0|u1BC9E.double.90.psts@995,-112|dupl.Line.0.dotted@1490,0|u1BC9E.double.90.psts@1985,-112|_@2480,0]
 1BC33 1BC9E 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC33.s_t_r@191,0|u1BC9E_u1BC9E_u1BC9E.double__double__double.45@120,-71|dupl.Line.0.dotted@611,0|u1BC9E.double.90.psts@1106,-112|dupl.Line.0.dotted@1601,0|u1BC9E.double.90.psts@2096,-112|_@2591,0]
-1BC45 1BC9E 1BC9E::[u1BC45.aou@370,0|dupl.Line.0.dotted@740,0|u1BC9E.double.90.psts@1235,-112|dupl.Line.0.dotted@1730,0|u1BC9E.double.90.psts@2225,-112|_@2720,0]
-1BC54 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC54.u_n@120,0|u1BC9E_u1BC9E.double__double.45@342,222|dupl.Line.0.dotted@700,0|u1BC9E.double.90.psts@1195,-112|dupl.Line.0.dotted@1690,0|u1BC9E.double.90.psts@2185,-112|_@2680,0]
+1BC45 1BC9E 1BC9E::[u1BC45.aou@295,0|dupl.Line.0.dotted@590,0|u1BC9E.double.90.psts@1085,-112|dupl.Line.0.dotted@1580,0|u1BC9E.double.90.psts@2075,-112|_@2570,0]
+1BC54 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC54.u_n@120,0|u1BC9E_u1BC9E.double__double.45@257,137|dupl.Line.0.dotted@615,0|u1BC9E.double.90.psts@1110,-112|dupl.Line.0.dotted@1605,0|u1BC9E.double.90.psts@2100,-112|_@2595,0]
 
 # No valid base
 1BC9E::[uni25CC.dotted_circle@0,0|dupl.Line.0.dotted@686,0|u1BC9E.double.90.psts@1181,-112|_@1676,0]
@@ -65,6 +65,6 @@
 1BC11 1BC9E::[u1BC03.t@120,0|dupl.Dot.rel1@370,70|dupl.Line.0.dotted@740,0|u1BC9E.double.90.psts@1235,-112|_@1730,0]
 1BC1D 1BC9E::[u1BC19.m@532,0|u1BC9E.double@120,360|dupl.Line.0.dotted@652,0|u1BC9E.double.90.psts@1147,-112|_@1642,0]
 1BC4F 1BC9E::[u1BC4F.long_i.240@264,0|dupl.Dot.rel2@334,370|dupl.Line.0.dotted@454,0|u1BC9E.double.90.psts@949,-112|_@1444,0]
-1BC5B 1BC9E::[u1BC5B.ou@320,0|dupl.Line.0.dotted@640,0|u1BC9E.double.90.psts@1135,-112|_@1630,0]
+1BC5B 1BC9E::[u1BC5B.ou@270,0|dupl.Line.0.dotted@540,0|u1BC9E.double.90.psts@1035,-112|_@1530,0]
 1BC73 1BC9E::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@370,-667|dupl.Line.0.dotted@120,0|dupl.Line.0.dotted@990,0|u1BC9E.double.90.psts@1485,-112|_@1980,0]
 1BC02 1BC9D 1BC9D 1BC9E::[u1BC02_u1BC9D.P@145,0|u1BC9D.dtls@290,0|dupl.Line.0.dotted@1418,0|u1BC9E.double.90.psts@1913,-112|_@2408,0]
