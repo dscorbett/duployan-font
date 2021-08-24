@@ -2559,6 +2559,9 @@ class RomanianU(Complex):
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
+class Ou(Complex):
+    pass
+
 class Wa(Complex):
     def __init__(
         self,
@@ -4066,7 +4069,7 @@ class Builder:
         long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
-        ou = Complex([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
+        ou = Ou([(4, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -4977,7 +4980,9 @@ class Builder:
                     and not isinstance(schema.path, LongI)
                 ):
                     lines_by_angle[schema.path.angle].append(schema)
-            elif isinstance(schema.path, Circle) and schema.is_primary or isinstance(schema.path, (RomanianU, Wa, Wi)):
+            elif (isinstance(schema.path, Circle) and schema.is_primary
+                or isinstance(schema.path, (RomanianU, Ou, Wa, Wi))
+            ):
                 classes['vowel'].append(schema)
         closeness_threshold = 20
         def axis_alignment(x):
