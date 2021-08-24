@@ -5002,6 +5002,8 @@ class Builder:
                                 original_angle=line_1.path.angle,
                             ),
                         ))
+                    add_rule(lookup, Rule([], f'i_{a1}_{a2}', f'c_{a1}_{a2}', f'o_{a1}_{a2}'))
+                    add_rule(lookup, Rule(f'c_{a1}_{a2}', f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
                     add_rule(lookup, Rule([], f'i_{a1}_{a2}', ['vowel', f'c_{a1}_{a2}'], f'o_{a1}_{a2}'))
                     add_rule(lookup, Rule([f'c_{a1}_{a2}', 'vowel'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
                     # TODO: Once `Line.context_in` and `Line_context_out` report the true angle, add
