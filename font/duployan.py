@@ -5058,7 +5058,7 @@ class Builder:
         def get_context_marker(context):
             return Schema(None, ContextMarker(False, context), 0)
         for schema in original_schemas:
-            if schema.glyph_class == GlyphClass.JOINER:
+            if schema.glyph_class == GlyphClass.JOINER and not (isinstance(schema.path, Line) and schema.path.secant):
                 if (schema.joining_type == Type.ORIENTING
                     and schema.context_in == NO_CONTEXT
                 ):
