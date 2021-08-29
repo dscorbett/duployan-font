@@ -2202,7 +2202,7 @@ class Complex(Shape):
 
     def group(self):
         return (
-            *((op[0], op[1].group()) for op in self.instructions if not callable(op)),
+            *(op if callable(op) else (op[0], op[1].group(), op[2:]) for op in self.instructions),
             self._final_rotation,
         )
 
@@ -2560,7 +2560,136 @@ class RomanianU(Complex):
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
 class Ou(Complex):
-    pass
+    def __init__(
+        self,
+        instructions,
+        role=CircleRole.INDEPENDENT,
+        _initial=False,
+        _isolated=True,
+    ):
+        super().__init__(instructions, hook=True)
+        self.role = role
+        self._initial = _initial
+        self._isolated = _isolated
+
+    def clone(
+        self,
+        *,
+        instructions=CLONE_DEFAULT,
+        role=CLONE_DEFAULT,
+        _initial=CLONE_DEFAULT,
+        _isolated=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            self.instructions if instructions is CLONE_DEFAULT else instructions,
+            self.role if role is CLONE_DEFAULT else role,
+            self._initial if _initial is CLONE_DEFAULT else _initial,
+            self._isolated if _isolated is CLONE_DEFAULT else _isolated,
+        )
+
+    def __str__(self):
+        rv = str(self.instructions[2 if self._initial and self.role == CircleRole.LEADER else 0][1])
+        if self.role == CircleRole.LEADER and not self._isolated:
+            rv += '.open'
+        return rv
+
+    def group(self):
+        leader = self.role == CircleRole.LEADER and not self._isolated
+        return (
+            super().group(),
+            leader,
+            leader and self._initial,
+        )
+
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
+        if self.role != CircleRole.LEADER or self._isolated:
+            drawer = super()
+        else:
+            circle_op = self.instructions[2 if self._initial else 0]
+            circle_path = circle_op[1]
+            clockwise = circle_path.clockwise
+            curve_op = self.instructions[0 if self._initial else 2]
+            curve_path = curve_op[1]
+            curve_da = curve_path.angle_out - curve_path.angle_in
+            if self._initial:
+                angle_out = circle_path.angle_out
+                intermediate_angle = (angle_out + curve_da) % 360
+                instructions = [
+                    (curve_op[0], curve_path.clone(
+                        angle_in=angle_out,
+                        angle_out=intermediate_angle,
+                        clockwise=clockwise,
+                    )),
+                    (circle_op[0], Curve(
+                        angle_in=intermediate_angle,
+                        angle_out=angle_out,
+                        clockwise=clockwise,
+                    )),
+                ]
+            else:
+                angle_in = circle_path.angle_in
+                intermediate_angle = (angle_in - curve_da) % 360
+                instructions = [
+                    (circle_op[0], Curve(
+                        angle_in=angle_in,
+                        angle_out=intermediate_angle,
+                        clockwise=clockwise,
+                    )),
+                    (curve_op[0], curve_path.clone(
+                        angle_in=intermediate_angle,
+                        angle_out=angle_in,
+                        clockwise=clockwise,
+                    )),
+                ]
+            drawer = Complex(instructions=instructions)
+        drawer.draw(
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+        )
+
+    def contextualize(self, context_in, context_out):
+        return super().contextualize(context_in, context_out).clone(
+            _initial=self._initial or context_in == NO_CONTEXT,
+            _isolated=False,
+        )
+
+    def context_in(self):
+        if self._initial:
+            return super().context_out().reversed()
+        else:
+            return super().context_in()
+
+    def context_out(self):
+        if self._isolated:
+            return super().context_out()
+        else:
+            return self.context_in().reversed()
 
 class Wa(Complex):
     def __init__(
@@ -3154,6 +3283,7 @@ class Schema:
             or self.diphthong_2
             or (self.glyph_class != GlyphClass.JOINER and not self.ignored_for_topography)
             or self.joining_type != Type.ORIENTING
+            or isinstance(self.path, Ou)
             or not self.can_be_ignored_for_topography()
             or isinstance(self.path, Curve) and not self.path.reversed_circle and (self.path.hook or (self.path.angle_out - self.path.angle_in) % 180 != 0)
             # TODO: Remove the following restrictions.
@@ -3162,7 +3292,7 @@ class Schema:
         )
 
     def can_be_ignored_for_topography(self):
-        return (isinstance(self.path, Circle)
+        return (isinstance(self.path, (Circle, Ou))
             or isinstance(self.path, Curve) and not self.path.hook
         )
 
@@ -3207,7 +3337,7 @@ class Schema:
         ignorable_for_topography = (
                 self.glyph_class == GlyphClass.JOINER
                 and self.can_lead_orienting_sequence
-                and self.can_be_ignored_for_topography()
+                and (isinstance(self.path, Ou) or self.can_be_ignored_for_topography())
             ) or CLONE_DEFAULT
         return context_in.clone(
             ignorable_for_topography=ignorable_for_topography,
@@ -3220,7 +3350,7 @@ class Schema:
         ignorable_for_topography = (
             self.glyph_class == GlyphClass.JOINER
                 and self.can_lead_orienting_sequence
-                and self.can_be_ignored_for_topography()
+                and (isinstance(self.path, Ou) or self.can_be_ignored_for_topography())
             ) or CLONE_DEFAULT
         return context_out.clone(
             ignorable_for_topography=ignorable_for_topography,
@@ -4069,7 +4199,7 @@ class Builder:
         long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
-        ou = Ou([(3, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 3, Curve(145, 270, clockwise=False))], hook=True)
+        ou = Ou([(1, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 9, Curve(145, 270, clockwise=False))])
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -4276,7 +4406,7 @@ class Builder:
             Schema(0x1BC58, uh, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC59, uh, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
             Schema(0x1BC5A, o, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
-            Schema(0x1BC5B, ou, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC5B, ou, 3, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
             Schema(0x1BC5C, wa, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5D, wo, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5E, wi, 1, Type.ORIENTING, shading_allowed=False),
@@ -5027,7 +5157,7 @@ class Builder:
         if len(original_schemas) != len(schemas):
             return [lookup]
         for schema in new_schemas:
-            if not schema.can_become_part_of_diphthong:
+            if isinstance(schema.path, Ou) or not schema.can_become_part_of_diphthong:
                 continue
             if isinstance(schema.path, Curve):
                 if schema.is_primary:
@@ -5126,11 +5256,13 @@ class Builder:
             if schema.glyph_class != GlyphClass.JOINER:
                 continue
             classes['joiner'].append(schema)
+            if isinstance(schema.path, Ou):
+                classes['c'].append(schema)
             if (schema.can_lead_orienting_sequence
                 and schema.can_be_ignored_for_topography()
             ):
                 classes['c'].append(schema)
-                if schema.joining_type == Type.ORIENTING:
+                if schema.joining_type == Type.ORIENTING and not isinstance(schema.path, Ou):
                     classes['i'].append(schema)
                     angle_out = schema.path.angle_out - schema.path.angle_in
                     path = schema.path.clone(
@@ -5164,8 +5296,9 @@ class Builder:
                 classes['dependent'].append(schema)
             elif (schema.joining_type == Type.ORIENTING
                 and schema.glyph_class == GlyphClass.JOINER
-                and isinstance(schema.path, Circle)
-                and schema.path.role == CircleRole.INDEPENDENT
+                and (isinstance(schema.path, (Circle, Ou))
+                    and schema.path.role == CircleRole.INDEPENDENT
+                )
             ):
                 classes['i'].append(schema)
                 classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(role=CircleRole.LEADER)))
@@ -5342,7 +5475,7 @@ class Builder:
                 and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
                     or schema.phase_index < self._phases.index(self._join_circle_with_adjacent_nonorienting_glyph)
                     if isinstance(schema.path, Circle)
-                    else schema.can_be_ignored_for_topography())
+                    else isinstance(schema.path, Ou) or schema.can_be_ignored_for_topography())
             ):
                 context_in = schema.path_context_out().clone(diphthong_start=False, diphthong_end=False)
                 contexts_in.add(context_in)
@@ -5382,7 +5515,7 @@ class Builder:
                 and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
                     or schema.phase_index < self._phases.index(self._join_circle_with_adjacent_nonorienting_glyph)
                     if isinstance(schema.path, Circle)
-                    else schema.can_be_ignored_for_topography())
+                    else isinstance(schema.path, Ou) or schema.can_be_ignored_for_topography())
             ):
                 context_out = schema.path_context_in().clone(diphthong_start=False, diphthong_end=False)
                 contexts_out.add(context_out)
