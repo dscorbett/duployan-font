@@ -3288,8 +3288,7 @@ class Schema:
             or isinstance(self.path, Ou)
             or not self.can_be_ignored_for_topography()
             or isinstance(self.path, Curve) and not self.path.reversed_circle and (self.path.hook or (self.path.angle_out - self.path.angle_in) % 180 != 0)
-            # TODO: Remove the following restrictions.
-            or self.size > 4
+            # TODO: Remove the following restriction.
             or self.path.stretch
         )
 
