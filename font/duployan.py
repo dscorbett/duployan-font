@@ -1678,13 +1678,10 @@ class Curve(Shape):
         return 1
 
     def max_double_marks(self, size, joining_type, marks):
-        return (0
-            if any(m.anchor == MIDDLE_ANCHOR for m in marks)
-            else 1
-            if size <= 2 or joining_type == Type.ORIENTING or self.long
-            else 2
-            if size < 5
-            else 3)
+        if any(m.anchor == MIDDLE_ANCHOR for m in marks):
+            return 0
+        a1, a2 = self._get_normalized_angles()
+        return min(3, int(abs(a1 - a2) / 360 * size))
 
     def is_shadable(self):
         return True
@@ -4366,21 +4363,21 @@ class Builder:
             Schema(0x1BC2F, j_s, 8, marks=[dot_1]),
             Schema(0x1BC30, j_n, 6, shading_allowed=False),
             Schema(0x1BC31, j_n_s, 2, shading_allowed=False),
-            Schema(0x1BC32, s_t, 4),
-            Schema(0x1BC33, s_t, 6),
-            Schema(0x1BC34, s_p, 4),
-            Schema(0x1BC35, s_p, 6),
-            Schema(0x1BC36, t_s, 4),
-            Schema(0x1BC37, t_s, 6),
-            Schema(0x1BC38, w, 4),
-            Schema(0x1BC39, w, 4, marks=[dot_1]),
-            Schema(0x1BC3A, w, 6),
-            Schema(0x1BC3B, s_n, 4),
-            Schema(0x1BC3C, s_n, 6),
-            Schema(0x1BC3D, k_r_s, 4, shading_allowed=False),
-            Schema(0x1BC3E, k_r_s, 6, shading_allowed=False),
-            Schema(0x1BC3F, s_k, 4),
-            Schema(0x1BC40, s_k, 6),
+            Schema(0x1BC32, s_t, 8),
+            Schema(0x1BC33, s_t, 12),
+            Schema(0x1BC34, s_p, 8),
+            Schema(0x1BC35, s_p, 12),
+            Schema(0x1BC36, t_s, 8),
+            Schema(0x1BC37, t_s, 12),
+            Schema(0x1BC38, w, 8),
+            Schema(0x1BC39, w, 8, marks=[dot_1]),
+            Schema(0x1BC3A, w, 12),
+            Schema(0x1BC3B, s_n, 8),
+            Schema(0x1BC3C, s_n, 12),
+            Schema(0x1BC3D, k_r_s, 8, shading_allowed=False),
+            Schema(0x1BC3E, k_r_s, 12, shading_allowed=False),
+            Schema(0x1BC3F, s_k, 8),
+            Schema(0x1BC40, s_k, 12),
             Schema(0x1BC41, o, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC42, o_reverse, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC43, o, 2.5, Type.ORIENTING, shading_allowed=False),
@@ -4397,9 +4394,9 @@ class Builder:
             Schema(0x1BC4E, ee, 2, Type.ORIENTING, marks=[line_2], shading_allowed=False),
             Schema(0x1BC4F, long_i, 0.5, Type.ORIENTING, marks=[dot_2]),
             Schema(0x1BC50, ye, 1, shading_allowed=False),
-            Schema(0x1BC51, s_t, 3, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC52, s_p, 3, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC53, s_t, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC51, s_t, 6, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC52, s_p, 6, Type.ORIENTING, shading_allowed=False),
+            Schema(0x1BC53, s_t, 6, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC54, u_n, 3, shading_allowed=False),
             Schema(0x1BC55, long_u, 2, shading_allowed=False),
             Schema(0x1BC56, romanian_u, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
@@ -4413,16 +4410,16 @@ class Builder:
             Schema(0x1BC5E, wi, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5F, wei, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC60, wo, 1, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
-            Schema(0x1BC61, s_t, 2, can_lead_orienting_sequence=True),
-            Schema(0x1BC62, s_n, 2, Type.ORIENTING),
-            Schema(0x1BC63, t_s, 2, can_lead_orienting_sequence=True),
-            Schema(0x1BC64, s_k, 2, Type.ORIENTING),
-            Schema(0x1BC65, s_p, 2, can_lead_orienting_sequence=True),
-            Schema(0x1BC66, w, 2, can_lead_orienting_sequence=True),
-            Schema(0x1BC67, s_t, 2, can_lead_orienting_sequence=True, marks=[dot_1]),
-            Schema(0x1BC68, s_t, 2, can_lead_orienting_sequence=True, marks=[dot_2]),
-            Schema(0x1BC69, s_k, 2, can_lead_orienting_sequence=True, marks=[dot_2]),
-            Schema(0x1BC6A, s_k, 2, can_lead_orienting_sequence=True),
+            Schema(0x1BC61, s_t, 3.2, can_lead_orienting_sequence=True),
+            Schema(0x1BC62, s_n, 3.2, Type.ORIENTING),
+            Schema(0x1BC63, t_s, 3.2, can_lead_orienting_sequence=True),
+            Schema(0x1BC64, s_k, 3.2, Type.ORIENTING),
+            Schema(0x1BC65, s_p, 3.2, can_lead_orienting_sequence=True),
+            Schema(0x1BC66, w, 3.2, can_lead_orienting_sequence=True),
+            Schema(0x1BC67, s_t, 3.2, can_lead_orienting_sequence=True, marks=[dot_1]),
+            Schema(0x1BC68, s_t, 3.2, can_lead_orienting_sequence=True, marks=[dot_2]),
+            Schema(0x1BC69, s_k, 3.2, can_lead_orienting_sequence=True, marks=[dot_2]),
+            Schema(0x1BC6A, s_k, 3.2, can_lead_orienting_sequence=True),
             Schema(0x1BC70, left_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC71, mid_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC72, right_horizontal_secant, 2, Type.ORIENTING, shading_allowed=False),
