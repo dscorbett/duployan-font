@@ -63,14 +63,14 @@
 1BC0A 1BC77::[u1BC0A.g@714,0|u1BC77.left_to_right_secant.310@120,58|_@834,0]
 
 # Initial before isolated non-hub letter
-1BC70 1BC41::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,100|u1BC41.a@787,0|_@1240,0]
-1BC71 1BC41::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@120,100|u1BC41.a@620,0|_@1240,0]
-1BC72 1BC41::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@120,100|u1BC41.a@453,0|_@1240,0]
-1BC73 1BC41::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@220,-567|u1BC41.a@220,0|_@440,0]
-1BC74 1BC41::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@220,-400|u1BC41.a@220,0|_@440,0]
-1BC75 1BC41::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@220,-233|u1BC41.a@220,0|_@440,0]
-1BC76 1BC41::[uni200C.zwnj@0,0|u1BC76.secant.195@603,36|u1BC41.a@362,0|_@723,0]
-1BC77 1BC41::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@120,-91|u1BC41.a@281,0|_@561,0]
+1BC70 1BC41::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,100|u1BC41.a@887,0|_@1240,0]
+1BC71 1BC41::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@120,100|u1BC41.a@720,0|_@1240,0]
+1BC72 1BC41::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@120,100|u1BC41.a@553,0|_@1240,0]
+1BC73 1BC41::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@220,-567|u1BC41.a@320,0|_@440,0]
+1BC74 1BC41::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@220,-400|u1BC41.a@320,0|_@440,0]
+1BC75 1BC41::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@220,-233|u1BC41.a@320,0|_@440,0]
+1BC76 1BC41::[uni200C.zwnj@0,0|u1BC76.secant@370,-116|u1BC41.a@345,0|_@490,0]
+1BC77 1BC41::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.280@177,-146|u1BC41.a@320,0|_@440,0]
 
 # Initial before initial non-hub letter
 1BC70 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,550|u1BC41.a.300p300@700,450|u1BC04.f@700,0|_@1240,0]

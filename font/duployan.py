@@ -4131,6 +4131,7 @@ class Builder:
         right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
         right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
+        enclosing_circle = Circle(180, 180, clockwise=False)
         degree = Complex([(683, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False))])
         masculine_ordinal_indicator = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
         multiplication = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
@@ -4185,8 +4186,8 @@ class Builder:
         s_k = Curve(90, 0, clockwise=True, secondary=False)
         j_n = Complex([(1, s_k), (1, n)], maximum_tree_width=1)
         j_n_s = Complex([(3, s_k), (4, n_s)], maximum_tree_width=1)
-        o = Circle(180, 180, clockwise=False)
-        o_reverse = Circle(0, 0, clockwise=True, reversed=True)
+        o = Circle(90, 90, clockwise=False)
+        o_reverse = Circle(270, 270, clockwise=True, reversed=True)
         ie = Curve(180, 0, clockwise=False)
         short_i = Curve(0, 180, clockwise=True)
         ui = Curve(90, 270, clockwise=True)
@@ -4308,7 +4309,7 @@ class Builder:
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
-            Schema(0x20DD, o, 10, anchor=MIDDLE_ANCHOR),
+            Schema(0x20DD, enclosing_circle, 10, anchor=MIDDLE_ANCHOR),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
