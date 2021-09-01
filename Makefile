@@ -63,8 +63,8 @@ endif
 		$(MAKE) -C util lib hb-shape; \
 	fi
 
-.PHONY: requirements.txt
-requirements.txt:
-	pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --no-emit-trusted-host --quiet --upgrade requirements.in
-	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' requirements.in)" "$$(cat requirements.txt)" >requirements.txt
-	git diff requirements.txt
+.PHONY: $(patsubst %.in,%.txt,$(wildcard *requirements.in))
+$(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
+	pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --no-emit-trusted-host --quiet --upgrade $<
+	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
+	git diff $@

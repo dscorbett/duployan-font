@@ -100,10 +100,11 @@ jobs:
         run: make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
       - name: Add HarfBuzz to path
         run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
+      - name: Install dev requirements
+        run: pip install --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Prepare oldest requirements
         if: matrix.requirements == 'oldest'
         run: |
-          pip install packaging
           ./get-old-requirements.py --input requirements.in --output requirements.txt
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
