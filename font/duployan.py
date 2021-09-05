@@ -280,6 +280,9 @@ class Shape:
     def max_double_marks(self, size, joining_type, marks):
         return 0
 
+    def is_pseudo_cursive(self, size):
+        return False
+
     def is_shadable(self):
         return False
 
@@ -793,6 +796,9 @@ class Space(Shape):
     def can_be_child(self, size):
         return size == 0 and self.angle == 0 and not self.margins
 
+    def is_pseudo_cursive(self, size):
+        return size and self.hub_priority(size) == -1
+
     def context_in(self):
         return NO_CONTEXT
 
@@ -1055,6 +1061,9 @@ class Dot(Shape):
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(PRE_HUB_CURSIVE_ANCHOR, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
+
+    def is_pseudo_cursive(self, size):
+        return True
 
     def is_shadable(self):
         return True
@@ -2876,6 +2885,9 @@ class XShape(Complex):
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x_avg, y_avg)
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x_avg, y_avg)
 
+    def is_pseudo_cursive(self, size):
+        return True
+
     def context_in(self):
         return NO_CONTEXT
 
@@ -3271,6 +3283,10 @@ class Schema:
         return (0
             if self.glyph_class != GlyphClass.JOINER
             else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
+
+    @functools.cached_property
+    def pseudo_cursive(self):
+        return self.glyph_class == GlyphClass.JOINER and self.path.is_pseudo_cursive(self.size)
 
     @functools.cached_property
     def is_primary(self):
@@ -5221,7 +5237,10 @@ class Builder:
             if schema.ignored_for_topography:
                 classes['i'].append(schema)
                 classes['o'].append(schema.clone(ignored_for_topography=False))
-            elif schema.glyph_class == GlyphClass.JOINER and not isinstance(schema.path, Space):
+            elif (schema.glyph_class == GlyphClass.JOINER
+                and not isinstance(schema.path, Space)
+                and not schema.pseudo_cursive
+            ):
                 if (schema.joining_type == Type.ORIENTING
                     and schema.can_be_ignored_for_topography()
                 ):
@@ -5252,7 +5271,7 @@ class Builder:
             reversed=True,
         )
         for schema in new_schemas:
-            if schema.glyph_class != GlyphClass.JOINER:
+            if schema.glyph_class != GlyphClass.JOINER or schema.pseudo_cursive:
                 continue
             classes['joiner'].append(schema)
             if isinstance(schema.path, Ou):
@@ -5684,11 +5703,7 @@ class Builder:
         for schema in new_schemas:
             if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
                 continue
-            if (isinstance(schema.path, (Dot, XShape))
-                or isinstance(schema.path, Space)
-                and schema.size
-                and schema.hub_priority == -1
-            ):
+            if schema.pseudo_cursive:
                 x_min, _, x_max, _ = schema.glyph.boundingBox()
                 pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
