@@ -5239,6 +5239,7 @@ class Builder:
                 classes['o'].append(schema.clone(ignored_for_topography=False))
             elif (schema.glyph_class == GlyphClass.JOINER
                 and not isinstance(schema.path, Space)
+                and not (isinstance(schema.path, Line) and schema.path.secant)
                 and not schema.pseudo_cursive
             ):
                 if (schema.joining_type == Type.ORIENTING
@@ -5271,7 +5272,10 @@ class Builder:
             reversed=True,
         )
         for schema in new_schemas:
-            if schema.glyph_class != GlyphClass.JOINER or schema.pseudo_cursive:
+            if (schema.glyph_class != GlyphClass.JOINER
+                or schema.pseudo_cursive
+                or isinstance(schema.path, Line) and schema.path.secant
+            ):
                 continue
             classes['joiner'].append(schema)
             if isinstance(schema.path, Ou):

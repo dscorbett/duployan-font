@@ -232,3 +232,6 @@
 
 # Initial after pseudo-cursive
 1BC01 1BC41 1BC46 1BC03::[u1BC01.x@160,0|u1BC41.a.0n0.diph1@335,68|u1BC46.i.180n0.diph2@335,268|u1BC03.t@435,468|_@1055,0]
+
+# Initial after secant
+1BC76 1BC46 1BC41 1BC05::[uni200C.zwnj@0,0|u1BC76.secant@370,333|u1BC46.i.240p60.diph1@258,413|u1BC41.a.240p240.diph2@381,350|u1BC05.k@431,0|_@738,0]
