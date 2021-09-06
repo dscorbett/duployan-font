@@ -2837,6 +2837,63 @@ class Wi(Complex):
             )
         return self
 
+class TangentHook(Complex):
+    def __init__(
+        self,
+        instructions,
+        *,
+        _initial=False,
+    ):
+        while callable(instructions[0]):
+            instructions = instructions[1:]
+        super().__init__([self.override_initial_context if _initial else self.override_noninitial_context, *instructions], hook=True)
+        self._initial = _initial
+
+    @staticmethod
+    def override_noninitial_context(c):
+        return Context(
+            None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else  (c.angle + 90) % 360,
+            not (90 < c.angle < 315),
+        )
+
+    @staticmethod
+    def override_initial_context(c):
+        return Context(
+            None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else  (c.angle + 90) % 360,
+            90 < c.angle < 315,
+        )
+
+    def clone(
+        self,
+        *,
+        instructions=CLONE_DEFAULT,
+        _initial=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
+            _initial=self._initial if _initial is CLONE_DEFAULT else _initial,
+        )
+
+    def contextualize(self, context_in, context_out):
+        if context_in == NO_CONTEXT != context_out and not self._initial:
+            shape = self.clone(instructions=[
+                self.instructions[0],
+                (self.instructions[1][0], self.instructions[1][1].clone(
+                    angle_in=self.instructions[1][1].angle_in,
+                    angle_out=(self.instructions[1][1].angle_out + 180) % 360,
+                    clockwise=not self.instructions[1][1].clockwise,
+                )),
+                self.instructions[2],
+                (self.instructions[3][0], self.instructions[3][1].clone(
+                    angle_in=self.instructions[3][1].angle_out,
+                    angle_out=(self.instructions[3][1].angle_out + 180) % 360,
+                    clockwise=not self.instructions[3][1].clockwise,
+                )),
+            ], _initial=True)
+        else:
+            shape = super()
+        return shape.contextualize(context_in, context_out)
+
 class XShape(Complex):
     def hub_priority(self, size):
         return 1
@@ -4230,7 +4287,7 @@ class Builder:
         tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
-        tangent_hook = Complex([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
+        tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
         separate_affix_guideline = [(250 - light_line / 2, Space(90, margins=False)), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (1.5, Line(180), True)]
         high_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
         high_tight_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
@@ -4449,7 +4506,7 @@ class Builder:
             Schema(0x1BC79, n_reverse, 6, shading_allowed=False),
             Schema(0x1BC7A, e_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
             Schema(0x1BC7B, i_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True),
-            Schema(0x1BC7C, tangent_hook, 2, shading_allowed=False, can_lead_orienting_sequence=True),
+            Schema(0x1BC7C, tangent_hook, 2, Type.ORIENTING, shading_allowed=False, can_lead_orienting_sequence=True),
             Schema(0x1BC80, high_acute, 1, Type.NON_JOINING),
             Schema(0x1BC81, high_tight_acute, 1, Type.NON_JOINING),
             Schema(0x1BC82, high_grave, 1, Type.NON_JOINING),
