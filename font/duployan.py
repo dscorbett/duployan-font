@@ -1312,14 +1312,12 @@ class Line(Shape):
     def rotate_diacritic(self, context):
         angle = context.angle
         if self.secant:
-            minimum_da = 45
             clockwise = context.clockwise
-            if clockwise:
-                angle -= self.secant_curvature_offset
-            elif clockwise is not None:
-                angle += self.secant_curvature_offset
-            else:
+            if clockwise is None:
                 minimum_da = 30
+            else:
+                minimum_da = 0 if context.ignorable_for_topography else 45
+                angle -= self.secant_curvature_offset * (1 if clockwise else -1)
             da = (self.angle % 180) - (angle % 180)
             if da > 90:
                 da -= 180
@@ -5654,7 +5652,8 @@ class Builder:
                     classes[f'i_{schema.anchor}'].append(schema)
             elif not schema.ignored_for_topography:
                 for base_anchor, base_angle in schema.diacritic_angles.items():
-                    base_context = Context(base_angle, schema.path.context_out().clockwise)
+                    base_context = schema.path_context_out()
+                    base_context = Context(base_angle, base_context.clockwise, ignorable_for_topography=base_context.ignorable_for_topography)
                     base_anchor_and_context = (base_anchor, base_context)
                     base_anchors_and_contexts.add(base_anchor_and_context)
                     if schema not in (base_anchor_and_context_class := classes[f'c_{base_anchor}_{base_context}']):
