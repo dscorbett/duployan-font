@@ -4182,7 +4182,7 @@ class Builder:
         five = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145, stretchy=False)), (0.572, Line(0, stretchy=False))])
         six = Complex([(3.88, Circle(90, 90, clockwise=True)), (19.5, Curve(90, 70, clockwise=True, stretch=0.45)), (4, Curve(65, 355, clockwise=True))])
         seven = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
-        eight = Complex([(2.88, Curve(90, 270, clockwise=True, stretch=0.146, long=True)), (2.88, Curve(270, 180, clockwise=True, stretch=0.075, long=True)), (2.95, Curve(180, 270, clockwise=False, stretch=0.075, long=True)), (3.16, Curve(270, 90, clockwise=False, stretch=0.215, long=True)), (2.95, Curve(90, 180, clockwise=False, stretch=0.075, long=True)), (2.88, Curve(180, 90, clockwise=True, stretch=0.075, long=True))])
+        eight = Complex([(2.88, Curve(180, 90, clockwise=True)), (2.88, Curve(90, 270, clockwise=True)), (2.88, Curve(270, 180, clockwise=True)), (3.16, Curve(180, 270, clockwise=False)), (3.16, Curve(270, 90, clockwise=False)), (3.16, Curve(90, 180, clockwise=False))])
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
         colon = Complex([(1, h), (509, Space(90, margins=False)), (1, h)])
         semicolon = Complex([(0, Space(0, margins=False)), (1, comma), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False)), (416, Space(90, margins=False)), (1, h)])
@@ -4339,7 +4339,7 @@ class Builder:
             Schema(0x0035, five, 1, Type.NON_JOINING, shading_allowed=False),
             Schema(0x0036, six, 1, Type.NON_JOINING, shading_allowed=False),
             Schema(0x0037, seven, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0038, eight, 0.974, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0038, eight, 1.064, Type.NON_JOINING, shading_allowed=False),
             Schema(0x0039, nine, 1.021, Type.NON_JOINING, shading_allowed=False),
             Schema(0x003A, colon, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
             Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
