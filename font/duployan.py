@@ -1085,8 +1085,6 @@ class Line(Shape):
         secant_curvature_offset=45,
         dots=None,
         final_tick=False,
-        tittle=None,
-        visible_base=True,
         original_angle=None,
     ):
         self.angle = angle
@@ -1096,8 +1094,6 @@ class Line(Shape):
         self.secant_curvature_offset = secant_curvature_offset
         self.dots = dots
         self.final_tick = final_tick
-        self.tittle = tittle
-        self.visible_base = visible_base
         self.original_angle = original_angle
 
     def clone(
@@ -1110,8 +1106,6 @@ class Line(Shape):
         secant_curvature_offset=CLONE_DEFAULT,
         dots=CLONE_DEFAULT,
         final_tick=CLONE_DEFAULT,
-        tittle=CLONE_DEFAULT,
-        visible_base=CLONE_DEFAULT,
         original_angle=CLONE_DEFAULT,
     ):
         return type(self)(
@@ -1122,8 +1116,6 @@ class Line(Shape):
             secant_curvature_offset=self.secant_curvature_offset if secant_curvature_offset is CLONE_DEFAULT else secant_curvature_offset,
             dots=self.dots if dots is CLONE_DEFAULT else dots,
             final_tick=self.final_tick if final_tick is CLONE_DEFAULT else final_tick,
-            tittle=self.tittle if tittle is CLONE_DEFAULT else tittle,
-            visible_base=self.visible_base if visible_base is CLONE_DEFAULT else visible_base,
             original_angle=self.original_angle if original_angle is CLONE_DEFAULT else original_angle,
         )
 
@@ -1146,13 +1138,8 @@ class Line(Shape):
             self.secant_curvature_offset,
             self.dots,
             self.final_tick,
-            self.tittle,
-            self.visible_base,
             self.original_angle if self.original_angle != self.angle else None,
         )
-
-    def invisible(self):
-        return not self.visible_base
 
     @staticmethod
     def can_take_secant():
@@ -1195,21 +1182,18 @@ class Line(Shape):
             diphthong_2,
     ):
         end_y = 0
-        if self.visible_base:
-            length = self._get_length(size)
-            pen.moveTo((0, 0))
-            if self.dots:
-                dot_interval = length / (self.dots - 1)
-                for dot_index in range(1, self.dots):
-                    pen.endPath()
-                    pen.moveTo((dot_interval * dot_index, 0))
-            else:
-                pen.lineTo((length, 0))
-                if self.final_tick:
-                    end_y = 100 if 90 < self.angle <= 270 else -100
-                    pen.lineTo((length, end_y))
+        length = self._get_length(size)
+        pen.moveTo((0, 0))
+        if self.dots:
+            dot_interval = length / (self.dots - 1)
+            for dot_index in range(1, self.dots):
+                pen.endPath()
+                pen.moveTo((dot_interval * dot_index, 0))
         else:
-            length = 0
+            pen.lineTo((length, 0))
+            if self.final_tick:
+                end_y = 100 if 90 < self.angle <= 270 else -100
+                pen.lineTo((length, end_y))
         if anchor:
             if (joining_type == Type.ORIENTING
                 or self.angle % 180 == 0
@@ -1255,12 +1239,7 @@ class Line(Shape):
                 glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2 + light_line + stroke_gap, -(stroke_width + light_line) / 2)
             else:
                 glyph.addAnchorPoint(anchor_name(RELATIVE_1_ANCHOR), base, length / 2, (stroke_width + light_line) / 2)
-                if self.tittle:
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, -(stroke_width + light_line), 0)
-                elif isinstance(self, LongI):
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, 0, 0)
-                else:
-                    glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(RELATIVE_2_ANCHOR), base, length / 2, -(stroke_width + light_line) / 2)
             glyph.addAnchorPoint(anchor_name(MIDDLE_ANCHOR), base, length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -1287,7 +1266,7 @@ class Line(Shape):
             ) else int(self._get_length(size) // (250 * 0.45)) - 1)
 
     def is_shadable(self):
-        return self.visible_base and not self.dots
+        return not self.dots
 
     def contextualize(self, context_in, context_out):
         if self.secant:
@@ -1352,58 +1331,6 @@ class Line(Shape):
 
     def reversed(self):
         return self.clone(angle=(self.angle + 180) % 360)
-
-class LongI(Line):
-    def __init__(
-        self,
-        angle,
-        *,
-        _tittle=True,
-        _visible_base=True,
-    ):
-        super().__init__(
-            angle,
-            tittle=_tittle,
-            visible_base=_visible_base,
-        )
-
-    def clone(
-        self,
-        *,
-        angle=CLONE_DEFAULT,
-        _tittle=CLONE_DEFAULT,
-        _visible_base=CLONE_DEFAULT,
-    ):
-        return type(self)(
-            angle=self.angle if angle is CLONE_DEFAULT else angle,
-            _tittle=self.tittle if _tittle is CLONE_DEFAULT else _tittle,
-            _visible_base=self.visible_base if _visible_base is CLONE_DEFAULT else _visible_base,
-        )
-
-    def __str__(self):
-        return str(int(self.angle))
-
-    def contextualize(self, context_in, context_out):
-        angle_in = context_in.angle
-        angle_out = context_out.angle
-        if ((angle_in == self.angle or angle_out == self.angle)
-            and (angle_in == angle_out or context_in == NO_CONTEXT or context_out == NO_CONTEXT)
-        ):
-            return self.clone(angle=(180 - self.angle) % 360, _tittle=False)
-        elif angle_in != angle_out and context_in != NO_CONTEXT and context_out != NO_CONTEXT:
-            angle_out = (angle_out + 180) % 360
-            da = (angle_out - angle_in) % 360
-            angle = ((angle_in + angle_out) / 2) % 360
-            if (da < 180) == (angle_in <= angle <= angle_out):
-                angle = (angle + 180) % 360
-            return self.clone(angle=angle, _tittle=True, _visible_base=False)
-        return self.clone(_tittle=False)
-
-    def is_shadable(self):
-        return False
-
-    def max_double_marks(self, size, joining_type, marks):
-        return 0
 
 class Curve(Shape):
     def __init__(
@@ -4263,7 +4190,6 @@ class Builder:
         short_i = Curve(0, 180, clockwise=True)
         ui = Curve(90, 270, clockwise=True)
         ee = Curve(270, 90, clockwise=False, secondary=True)
-        long_i = LongI(240)
         ye = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t)])
         u_n = Curve(90, 180, clockwise=True)
         long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
@@ -4464,7 +4390,7 @@ class Builder:
             Schema(0x1BC4C, ee, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC4D, ee, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
             Schema(0x1BC4E, ee, 2, Type.ORIENTING, marks=[line_2], shading_allowed=False),
-            Schema(0x1BC4F, long_i, 0.5, Type.ORIENTING, marks=[dot_2]),
+            Schema(0x1BC4F, k, 0.5, Type.ORIENTING),
             Schema(0x1BC50, ye, 1, shading_allowed=False),
             Schema(0x1BC51, s_t, 6, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC52, s_p, 6, Type.ORIENTING, shading_allowed=False),
@@ -5032,7 +4958,6 @@ class Builder:
                 if schema.path.max_tree_width(schema.size) == 0:
                     continue
                 if (isinstance(schema.path, Line)
-                    and not isinstance(schema.path, LongI)
                     and (schema.size == 1 or schema.cps == [0x1BC07])
                     and not schema.path.secant
                     and not schema.path.dots
@@ -5177,7 +5102,6 @@ class Builder:
                 if (schema.path.dots is None
                     and schema.path.secant is None
                     and schema.path.original_angle is None
-                    and not isinstance(schema.path, LongI)
                 ):
                     lines_by_angle[schema.path.angle].append(schema)
             elif (isinstance(schema.path, Circle) and schema.is_primary
@@ -5423,7 +5347,7 @@ class Builder:
             add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
         for schema in new_schemas:
             if (schema.glyph_class == GlyphClass.JOINER
-                and (old_input_count == 0 or not isinstance(schema.path, (LongI, Curve, Circle, Complex)))
+                and (old_input_count == 0 or not isinstance(schema.path, (Curve, Circle, Complex)))
                 and not (isinstance(schema.path, Line) and schema.path.secant)
                 and (context_out := schema.path.context_in()) != NO_CONTEXT
             ):
@@ -5466,7 +5390,7 @@ class Builder:
                 classes['ignored_for_topography'].append(schema)
             elif (schema.glyph_class == GlyphClass.JOINER
                 and (not schema.can_lead_orienting_sequence
-                    or isinstance(schema.path, Line) and schema.path.visible_base and not schema.path.secant
+                    or isinstance(schema.path, Line) and not schema.path.secant
                 )
             ):
                 if (context_out := schema.path.context_in()) != NO_CONTEXT:
