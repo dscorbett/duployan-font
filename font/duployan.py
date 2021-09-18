@@ -2989,6 +2989,7 @@ class Schema:
     def sort_key(self):
         cmap_string = '' if self.cmap is None else chr(self.cmap)
         return (
+            bool(self.cps) and any(unicodedata.category(chr(cp)) == 'Co' for cp in self.cps),
             self.phase_index,
             self.cmap is None,
             not unicodedata.is_normalized('NFD', cmap_string),
