@@ -2894,6 +2894,9 @@ class Schema:
         (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
         (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
         (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
+        (r'^uniEC44$', 'DUPLOYAN LETTER REVERSED O'),
+        (r'^uniEC5A$', 'DUPLOYAN LETTER REVERSED OW'),
+        (r'^uniEC5B$', 'DUPLOYAN LETTER REVERSED OU'),
         # Unicode name aliases
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
@@ -4196,6 +4199,7 @@ class Builder:
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
         ou = Ou([(1, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 9, Curve(145, 270, clockwise=False))])
+        ou_reverse = Ou([(1, Circle(0, 35, clockwise=True)), lambda c: c, (5 / 9, Curve(35, 270, clockwise=True))])
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -4471,6 +4475,9 @@ class Builder:
                 Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
                 Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
                 Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
+                Schema(0xEC44, o_reverse, 3, Type.ORIENTING, shading_allowed=False),
+                Schema(0xEC5A, o_reverse, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+                Schema(0xEC5B, ou_reverse, 3, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
             ]
 
     def _dont_ignore_default_ignorables(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
