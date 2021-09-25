@@ -718,10 +718,10 @@ class Notdef(Shape):
     ):
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
-        pen.lineTo(stroke_width / 2, 663 + stroke_width / 2)
-        pen.lineTo(360 + stroke_width / 2, 663 + stroke_width / 2)
-        pen.lineTo(360 + stroke_width / 2, stroke_width / 2)
-        pen.lineTo(stroke_width / 2, stroke_width / 2)
+        pen.lineTo((stroke_width / 2, 663 + stroke_width / 2))
+        pen.lineTo((360 + stroke_width / 2, 663 + stroke_width / 2))
+        pen.lineTo((360 + stroke_width / 2, stroke_width / 2))
+        pen.lineTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
 
@@ -1500,7 +1500,7 @@ class Curve(Shape):
             entry = rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
             entry = (p0[0] + entry[0], p0[1] + entry[1])
             pen.moveTo(entry)
-            pen.lineTo(*p0)
+            pen.lineTo(p0)
         else:
             entry = p0
             pen.moveTo(entry)
@@ -1516,7 +1516,7 @@ class Curve(Shape):
             swash_length = math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
             swash_endpoint = rect(abs(swash_length), math.radians(self.angle_out))
             swash_endpoint = (p3[0] + swash_endpoint[0], p3[1] + swash_endpoint[1])
-            pen.lineTo(*swash_endpoint)
+            pen.lineTo(swash_endpoint)
             exit = rect(min(r, abs(swash_length)), math.radians(self.angle_out))
             exit = (p3[0] + exit[0], p3[1] + exit[1])
         else:
@@ -1524,7 +1524,7 @@ class Curve(Shape):
         if diphthong_1:
             exit_delta = rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
-            pen.lineTo(*exit)
+            pen.lineTo(exit)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
         anchor_name = mkmk if child else lambda a: a
@@ -1893,7 +1893,7 @@ class Circle(Shape):
             pen.moveTo(entry)
             entry_delta = rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
             entry = (entry[0] + entry_delta[0], entry[1] + entry_delta[1])
-            pen.lineTo(*entry)
+            pen.lineTo(entry)
             pen.endPath()
         pen.moveTo((0, r))
         pen.curveTo((cp, r), (r, cp), (r, 0))
@@ -1906,7 +1906,7 @@ class Circle(Shape):
             pen.moveTo(exit)
             exit_delta = rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
-            pen.lineTo(*exit)
+            pen.lineTo(exit)
             pen.endPath()
         anchor_name = mkmk if child else lambda a: a
         base = 'basemark' if child else 'base'
