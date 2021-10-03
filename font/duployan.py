@@ -1675,14 +1675,6 @@ class Curve(Shape):
             )
             if self.secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
                 flip()
-            if (context_out == NO_CONTEXT
-                and context_in.ignorable_for_topography
-                and (context_in.clockwise == candidate_clockwise) != context_in.diphthong_start
-                or context_in == NO_CONTEXT
-                and context_out.ignorable_for_topography
-                and (context_out.clockwise == candidate_clockwise) != context_out.diphthong_end
-            ):
-                flip()
         if self.hook or (context_in != NO_CONTEXT != context_out):
             final_hook = self.hook and context_in != NO_CONTEXT
             if final_hook:
@@ -2612,7 +2604,8 @@ class Ou(Complex):
 
     def context_in(self):
         if self._initial:
-            return super().context_out().reversed()
+            rv = super().context_out()
+            return rv.clone(angle=(rv.angle + 180) % 360)
         else:
             return super().context_in()
 
@@ -2620,7 +2613,8 @@ class Ou(Complex):
         if self._isolated:
             return super().context_out()
         else:
-            return self.context_in().reversed()
+            rv = self.context_in()
+            return rv.clone(angle=(rv.angle + 180) % 360)
 
 class Wa(Complex):
     def __init__(
