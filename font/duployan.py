@@ -5683,15 +5683,37 @@ class Builder:
         )
         if len(original_schemas) != len(schemas):
             return [marker_lookup, space_lookup]
-        pseudo_cursive_schemas = {}
+        pseudo_cursive_schemas_to_classes = {}
+        pseudo_cursive_info = {}
         exit_schemas = []
         entry_schemas = []
         for schema in new_schemas:
             if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
                 continue
             if schema.pseudo_cursive:
-                x_min, _, x_max, _ = schema.glyph.boundingBox()
-                pseudo_cursive_schemas[schema] = (x_max - x_min) / 2
+                x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
+                exit_x = exit_y = entry_x = entry_y = None
+                for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+                    if anchor_class_name == CURSIVE_ANCHOR:
+                        if type == 'exit':
+                            exit_x = x
+                            exit_y = y
+                        elif type == 'entry':
+                            entry_x = x
+                            entry_y = y
+                assert entry_y == exit_y
+                is_space = isinstance(schema.path, Space)
+                bottom_bound = y_min - MINIMUM_STROKE_GAP - entry_y
+                top_bound = y_max + MINIMUM_STROKE_GAP - entry_y
+                class_name = f'pseudo_cursive_{is_space}_{bottom_bound}_{top_bound}'.replace('-', 'n')
+                classes[class_name].append(schema)
+                pseudo_cursive_schemas_to_classes[schema] = class_name
+                pseudo_cursive_info[class_name] = (
+                    is_space,
+                    bottom_bound,
+                    top_bound,
+                    (x_max - x_min) / 2,
+                )
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
                 if (
                     (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
@@ -5713,8 +5735,13 @@ class Builder:
             )
         marker = get_shim(0, 0)
         rounding_base = 5
-        for pseudo_cursive_index, (pseudo_cursive_schema, pseudo_cursive_half_width) in enumerate(pseudo_cursive_schemas.items()):
-            add_rule(marker_lookup, Rule([pseudo_cursive_schema], [marker, pseudo_cursive_schema, marker]))
+        for pseudo_cursive_index, (pseudo_cursive_class_name, (
+            pseudo_cursive_is_space,
+            pseudo_cursive_bottom_bound,
+            pseudo_cursive_top_bound,
+            pseudo_cursive_half_width,
+        )) in enumerate(pseudo_cursive_info.items()):
+            add_rule(marker_lookup, Rule(pseudo_cursive_class_name, [marker, pseudo_cursive_class_name, marker]))
             exit_classes = {}
             exit_classes_containing_pseudo_cursive_schemas = set()
             exit_classes_containing_true_cursive_schemas = set()
@@ -5724,19 +5751,19 @@ class Builder:
                 ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
             ]:
                 for e_schema, x, y in e_schemas:
-                    bounds = e_schema.glyph.foreground.xBoundsAtY(y - self.light_line, y + self.light_line)
+                    bounds = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                     distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                     shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
                     shim_height = round(pseudo_cursive_half_width * height_sign)
-                    if (e_schemas is exit_schemas
-                        and isinstance(pseudo_cursive_schema.path, Space)
+                    if (pseudo_cursive_is_space
+                        and e_schemas is exit_schemas
                         and isinstance(e_schema.path, Space)
                     ):
                         # Margins do not collapse between spaces.
                         shim_width += DEFAULT_SIDE_BEARING
-                    exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas
+                    exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas_to_classes
                     if exit_is_pseudo_cursive:
-                        shim_height += pseudo_cursive_schemas[e_schema]
+                        shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][3]
                     shim_height = rounding_base * round(shim_height / rounding_base)
                     shim_width = rounding_base * round(shim_width / rounding_base)
                     e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
@@ -5749,11 +5776,11 @@ class Builder:
                         ).add(e_class)
             for exit_class, shim in exit_classes.items():
                 if exit_class in exit_classes_containing_pseudo_cursive_schemas:
-                    add_rule(space_lookup, Rule([exit_class, marker], [marker], [pseudo_cursive_schema], [shim]))
+                    add_rule(space_lookup, Rule([exit_class, marker], [marker], pseudo_cursive_class_name, [shim]))
                 if exit_class in exit_classes_containing_true_cursive_schemas:
-                    add_rule(space_lookup, Rule(exit_class, [marker], [pseudo_cursive_schema], [shim]))
+                    add_rule(space_lookup, Rule(exit_class, [marker], pseudo_cursive_class_name, [shim]))
             for entry_class, shim in entry_classes.items():
-                add_rule(space_lookup, Rule([pseudo_cursive_schema], [marker], entry_class, [shim]))
+                add_rule(space_lookup, Rule(pseudo_cursive_class_name, [marker], entry_class, [shim]))
         return [marker_lookup, space_lookup]
 
     def _shrink_wrap_enclosing_circle(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
