@@ -2860,6 +2860,7 @@ class XShape(Complex):
         y_avg = (y_min + y_max) / 2
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', x_avg, y_avg)
         glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', x_avg, y_avg)
+        glyph.addAnchorPoint(POST_HUB_CURSIVE_ANCHOR, 'entry', x_avg, y_avg)
 
     def is_pseudo_cursive(self, size):
         return True
