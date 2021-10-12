@@ -5702,7 +5702,11 @@ class Builder:
                             entry_x = x
                             entry_y = y
                 assert entry_y == exit_y
-                is_space = isinstance(schema.path, Space)
+                is_space = x_min == x_max
+                if is_space:
+                    assert x_min == 0
+                    assert entry_x == 0
+                    exit_x = 0
                 bottom_bound = y_min - MINIMUM_STROKE_GAP - entry_y
                 top_bound = y_max + MINIMUM_STROKE_GAP - entry_y
                 class_name = f'pseudo_cursive_{is_space}_{bottom_bound}_{top_bound}'.replace('-', 'n')
@@ -5710,9 +5714,11 @@ class Builder:
                 pseudo_cursive_schemas_to_classes[schema] = class_name
                 pseudo_cursive_info[class_name] = (
                     is_space,
+                    entry_x - x_min,
+                    x_max - exit_x,
                     bottom_bound,
                     top_bound,
-                    (x_max - x_min) / 2,
+                    (y_max - y_min) / 2 if isinstance(schema.path, Dot) else 0,
                 )
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
                 if (
@@ -5737,24 +5743,26 @@ class Builder:
         rounding_base = 5
         for pseudo_cursive_index, (pseudo_cursive_class_name, (
             pseudo_cursive_is_space,
+            pseudo_cursive_left_bound,
+            pseudo_cursive_right_bound,
             pseudo_cursive_bottom_bound,
             pseudo_cursive_top_bound,
-            pseudo_cursive_half_width,
+            pseudo_cursive_y_offset,
         )) in enumerate(pseudo_cursive_info.items()):
             add_rule(marker_lookup, Rule(pseudo_cursive_class_name, [marker, pseudo_cursive_class_name, marker]))
             exit_classes = {}
             exit_classes_containing_pseudo_cursive_schemas = set()
             exit_classes_containing_true_cursive_schemas = set()
             entry_classes = {}
-            for prefix, e_schemas, e_classes, height_sign, get_distance_to_edge in [
-                ('exit', exit_schemas, exit_classes, -1, lambda bounds, x: bounds[1] - x),
-                ('entry', entry_schemas, entry_classes, 1, lambda bounds, x: x - bounds[0]),
+            for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, height_sign, get_distance_to_edge in [
+                ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, -1, lambda bounds, x: bounds[1] - x),
+                ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, 1, lambda bounds, x: x - bounds[0]),
             ]:
                 for e_schema, x, y in e_schemas:
                     bounds = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                     distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
-                    shim_width = round(distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_half_width)
-                    shim_height = round(pseudo_cursive_half_width * height_sign)
+                    shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
+                    shim_height = pseudo_cursive_y_offset * height_sign
                     if (pseudo_cursive_is_space
                         and e_schemas is exit_schemas
                         and isinstance(e_schema.path, Space)
@@ -5763,7 +5771,7 @@ class Builder:
                         shim_width += DEFAULT_SIDE_BEARING
                     exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas_to_classes
                     if exit_is_pseudo_cursive:
-                        shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][3]
+                        shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][5]
                     shim_height = rounding_base * round(shim_height / rounding_base)
                     shim_width = rounding_base * round(shim_width / rounding_base)
                     e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
