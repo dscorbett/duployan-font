@@ -2616,6 +2616,99 @@ class Ou(Complex):
             rv = self.context_in()
             return rv.clone(angle=(rv.angle + 180) % 360)
 
+class SeparateAffix(Complex):
+    def __init__(
+        self,
+        instructions,
+        *,
+        low=False,
+        tight=False,
+    ):
+        super().__init__(instructions)
+        self.low = low
+        self.tight = tight
+
+    def clone(
+        self,
+        *,
+        instructions=CLONE_DEFAULT,
+        low=CLONE_DEFAULT,
+        tight=CLONE_DEFAULT,
+    ):
+        return type(self)(
+            instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
+            low=self.low if low is CLONE_DEFAULT else low,
+            tight=self.tight if tight is CLONE_DEFAULT else tight,
+        )
+
+    def group(self):
+        return (
+            super().group(),
+            self.low,
+            self.tight,
+        )
+
+    def hub_priority(self, size):
+        return -1
+
+    def draw(
+            self,
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+    ):
+        super().draw(
+            glyph,
+            pen,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            child,
+            initial_circle_diphthong,
+            final_circle_diphthong,
+            diphthong_1,
+            diphthong_2,
+        )
+        for anchor_class_name, type, x, y in glyph.anchorPoints:
+            if anchor_class_name == CURSIVE_ANCHOR:
+                if type == 'entry':
+                    entry = x, y
+                elif type == 'exit':
+                    exit = x, y
+        glyph.anchorPoints = []
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        cursive_y = (y_max + 200 if self.low else y_min - 200)
+        entry_x, exit_x = x_min, x_max
+        if self.tight:
+            entry_x, exit_x = exit_x, entry_x
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'entry', entry_x, cursive_y)
+        glyph.addAnchorPoint(CURSIVE_ANCHOR, 'exit', exit_x, cursive_y)
+
+    def is_pseudo_cursive(self, size):
+        return True
+
+    def is_shadable(self):
+        return False
+
+    def context_in(self):
+        return NO_CONTEXT
+
+    def context_out(self):
+        return NO_CONTEXT
+
 class Wa(Complex):
     def __init__(
         self,
@@ -4212,26 +4305,25 @@ class Builder:
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
         tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
-        separate_affix_guideline = [(250 - light_line / 2, Space(90, margins=False)), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (0.25, Line(0), True), (1, Dot()), (1.5, Line(180), True)]
-        high_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.25, Line(0), True), (0.5, Line(45, stretchy=False))])
-        high_tight_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(45, stretchy=False))])
-        high_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1, Line(0), True), (0.5, Line(135, stretchy=False))])
-        high_long_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (1.25, Line(0), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-        high_dot = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
-        high_circle = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (2, Circle(0, 0, clockwise=False))])
-        high_line = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-        high_wave = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.375, Line(0), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-        high_vertical = Complex(separate_affix_guideline + [(1.5 * stroke_gap + light_line, Space(90, margins=False)), (0.75, Line(0), True), (0.5, Line(90, stretchy=False))])
-        low_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.25, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-        low_tight_acute = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(45)) * 0.5, Line(270), True), (0.5, Line(45, stretchy=False))])
-        low_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1, Line(0), True), (math.sin(math.radians(135)) * 0.5, Line(270), True), (0.5, Line(135, stretchy=False))])
-        low_long_grave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (1.25, Line(0), True), (math.sin(math.radians(120)) * 0.5, Line(270), True), (0.75, Line(180, stretchy=False)), (0.4, Line(120, stretchy=False))])
-        low_dot = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (1, Dot(centered=True))])
-        low_circle = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (2, Circle(180, 180, clockwise=False))])
-        low_line = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.5, Line(0), True), (0.5, Line(0, stretchy=False))])
-        low_wave = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.375, Line(0), True), (100, Space(180, margins=False)), (2, Curve(180, 90, clockwise=False), True), (2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-        low_vertical = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.75, Line(0), True), (0.5, Line(270, stretchy=False))])
-        low_arrow = Complex(separate_affix_guideline + [(1.5 * stroke_gap, Space(270, margins=False)), (0.55, Line(0), True), (0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))])
+        high_acute = SeparateAffix([(0.5, Line(45, stretchy=False))])
+        high_tight_acute = SeparateAffix([(0.5, Line(45, stretchy=False))], tight=True)
+        high_grave = SeparateAffix([(0.5, Line(315, stretchy=False))])
+        high_long_grave = SeparateAffix([(0.4, Line(300, stretchy=False)), (0.75, Line(0, stretchy=False))])
+        high_dot = SeparateAffix([(1, Dot(centered=True))])
+        high_circle = SeparateAffix([(2, Circle(0, 0, clockwise=False))])
+        high_line = SeparateAffix([(0.5, Line(0, stretchy=False))])
+        high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+        high_vertical = SeparateAffix([(0.5, Line(90, stretchy=False))])
+        low_acute = high_acute.clone(low=True)
+        low_tight_acute = high_tight_acute.clone(low=True)
+        low_grave = high_grave.clone(low=True)
+        low_long_grave = high_long_grave.clone(low=True)
+        low_dot = high_dot.clone(low=True)
+        low_circle = high_circle.clone(low=True)
+        low_line = high_line.clone(low=True)
+        low_wave = high_wave.clone(low=True)
+        low_vertical = high_vertical.clone(low=True)
+        low_arrow = SeparateAffix([(0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))], low=True)
         likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90, margins=False)), (0.5, p), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
         dotted_square = [(152, Space(270, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (0.26 - light_line / 1000, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.26 - light_line / 1000, Line(180, stretchy=False))]
         dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0, margins=False)), (173, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
@@ -4431,25 +4523,25 @@ class Builder:
             Schema(0x1BC7A, e_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
             Schema(0x1BC7B, i_hook, 2, Type.ORIENTING, can_lead_orienting_sequence=True),
             Schema(0x1BC7C, tangent_hook, 2, Type.ORIENTING, shading_allowed=False, can_lead_orienting_sequence=True),
-            Schema(0x1BC80, high_acute, 1, Type.NON_JOINING),
-            Schema(0x1BC81, high_tight_acute, 1, Type.NON_JOINING),
-            Schema(0x1BC82, high_grave, 1, Type.NON_JOINING),
-            Schema(0x1BC83, high_long_grave, 1, Type.NON_JOINING),
-            Schema(0x1BC84, high_dot, 1, Type.NON_JOINING),
-            Schema(0x1BC85, high_circle, 1, Type.NON_JOINING),
-            Schema(0x1BC86, high_line, 1, Type.NON_JOINING),
-            Schema(0x1BC87, high_wave, 1, Type.NON_JOINING),
-            Schema(0x1BC88, high_vertical, 1, Type.NON_JOINING),
-            Schema(0x1BC90, low_acute, 1, Type.NON_JOINING),
-            Schema(0x1BC91, low_tight_acute, 1, Type.NON_JOINING),
-            Schema(0x1BC92, low_grave, 1, Type.NON_JOINING),
-            Schema(0x1BC93, low_long_grave, 1, Type.NON_JOINING),
-            Schema(0x1BC94, low_dot, 1, Type.NON_JOINING),
-            Schema(0x1BC95, low_circle, 1, Type.NON_JOINING),
-            Schema(0x1BC96, low_line, 1, Type.NON_JOINING),
-            Schema(0x1BC97, low_wave, 1, Type.NON_JOINING),
-            Schema(0x1BC98, low_vertical, 1, Type.NON_JOINING),
-            Schema(0x1BC99, low_arrow, 1, Type.NON_JOINING),
+            Schema(0x1BC80, high_acute, 1),
+            Schema(0x1BC81, high_tight_acute, 1),
+            Schema(0x1BC82, high_grave, 1),
+            Schema(0x1BC83, high_long_grave, 1),
+            Schema(0x1BC84, high_dot, 1),
+            Schema(0x1BC85, high_circle, 1),
+            Schema(0x1BC86, high_line, 1),
+            Schema(0x1BC87, high_wave, 1),
+            Schema(0x1BC88, high_vertical, 1),
+            Schema(0x1BC90, low_acute, 1),
+            Schema(0x1BC91, low_tight_acute, 1),
+            Schema(0x1BC92, low_grave, 1),
+            Schema(0x1BC93, low_long_grave, 1),
+            Schema(0x1BC94, low_dot, 1),
+            Schema(0x1BC95, low_circle, 1),
+            Schema(0x1BC96, low_line, 1),
+            Schema(0x1BC97, low_wave, 1),
+            Schema(0x1BC98, low_vertical, 1),
+            Schema(0x1BC99, low_arrow, 1),
             Schema(0x1BC9C, likalisti, 1, Type.NON_JOINING),
             Schema(0x1BC9D, dtls, 1, Type.NON_JOINING),
             Schema(0x1BC9E, line, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR),
@@ -5720,6 +5812,7 @@ class Builder:
                     bottom_bound,
                     top_bound,
                     (y_max - y_min) / 2 if isinstance(schema.path, Dot) else 0,
+                    200 if isinstance(schema.path, SeparateAffix) else 5,
                 )
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
                 if (
@@ -5741,7 +5834,8 @@ class Builder:
                 side_bearing=width,
             )
         marker = get_shim(0, 0)
-        rounding_base = 5
+        def round_with_base(number, base, minimum):
+            return max(minimum, base * round(number / base), key=abs)
         for pseudo_cursive_index, (pseudo_cursive_class_name, (
             pseudo_cursive_is_space,
             pseudo_cursive_left_bound,
@@ -5749,6 +5843,7 @@ class Builder:
             pseudo_cursive_bottom_bound,
             pseudo_cursive_top_bound,
             pseudo_cursive_y_offset,
+            rounding_base,
         )) in enumerate(pseudo_cursive_info.items()):
             add_rule(marker_lookup, Rule(pseudo_cursive_class_name, [marker, pseudo_cursive_class_name, marker]))
             exit_classes = {}
@@ -5773,8 +5868,8 @@ class Builder:
                     exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas_to_classes
                     if exit_is_pseudo_cursive:
                         shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][5]
-                    shim_height = rounding_base * round(shim_height / rounding_base)
-                    shim_width = rounding_base * round(shim_width / rounding_base)
+                    shim_width = round_with_base(shim_width, rounding_base, MINIMUM_STROKE_GAP)
+                    shim_height = round_with_base(shim_height, rounding_base, 0)
                     e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
                     classes[e_class].append(e_schema)
                     if e_class not in e_classes:
