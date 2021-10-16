@@ -5167,7 +5167,20 @@ class Builder:
         for schema in new_schemas:
             if isinstance(schema.path, InvalidStep):
                 classes['i'].append(schema)
-            if schema.glyph_class == GlyphClass.JOINER:
+                if schema.path.angle == 90:
+                    classes['i_up'].append(schema)
+                elif schema.path.angle == 270:
+                    classes['i_down'].append(schema)
+                else:
+                    assert False, f'Unsupported step angle: {schema.path.angle}'
+            if isinstance(schema.path, Space) and schema.hub_priority == 0:
+                if schema.path.angle == 90:
+                    classes['c_up'].append(schema)
+                elif schema.path.angle == 270:
+                    classes['c_down'].append(schema)
+                else:
+                    assert False, f'Unsupported step angle: {schema.path.angle}'
+            elif schema.glyph_class == GlyphClass.JOINER:
                 classes['c'].append(schema)
         new_context = 'o' not in classes
         for i, target_schema in enumerate(classes['i']):
@@ -5178,8 +5191,14 @@ class Builder:
                     side_bearing=0,
                 )
                 classes['o'].append(output_schema)
+                if target_schema in classes['i_up']:
+                    classes['o_up'].append(output_schema)
+                if target_schema in classes['i_down']:
+                    classes['o_down'].append(output_schema)
         if new_context:
             add_rule(lookup, Rule([], 'i', 'c', 'o'))
+            add_rule(lookup, Rule([], 'i_up', 'c_up', 'o_up'))
+            add_rule(lookup, Rule([], 'i_down', 'c_down', 'o_down'))
         return [lookup]
 
     def _separate_subantiparallel_lines(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
