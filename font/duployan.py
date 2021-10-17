@@ -4040,7 +4040,13 @@ def group_schemas(schemas):
         group_dict[schema.group].append(schema)
     return Grouper(group_dict.values())
 
-def sift_groups(grouper, rule, target_part, classes):
+def sift_groups_in_lookup(grouper, lookup, classes, named_lookups_with_phases):
+    for rule in lookup.rules:
+        sift_groups(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)
+        sift_groups(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases)
+        sift_groups(grouper, rule, rule.inputs, classes, named_lookups_with_phases)
+
+def sift_groups(grouper, rule, target_part, classes, named_lookups_with_phases):
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
@@ -4077,10 +4083,10 @@ def sift_groups(grouper, rule, target_part, classes):
                                     for new_group in new_groups.values():
                                         if len(new_group) > 1:
                                             grouper.add([*dict.fromkeys(new_group)])
-                        elif rule.lookups is not None and not all(lookup is None for lookup in rule.lookups):
-                            # TODO: Optimization: Check named lookups instead of assuming the group
-                            # must be removed.
-                            grouper.remove(intersection)
+                        elif rule.lookups is not None:
+                            for lookup in rule.lookups:
+                                if lookup is not None:
+                                    sift_groups_in_lookup(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases)
         else:
             for group in grouper.groups():
                 if s in group:
@@ -7044,7 +7050,7 @@ class Builder:
             named_lookups_to_do = new_named_lookups_to_do
         return named_lookup_asts
 
-    def _merge_schemas(self, schemas, lookups_with_phases, classes):
+    def _merge_schemas(self, schemas, lookups_with_phases, classes, named_lookups_with_phases):
         grouper = group_schemas(schemas)
         previous_phase = None
         for lookup, phase in reversed(lookups_with_phases):
@@ -7052,10 +7058,8 @@ class Builder:
                 rename_schemas(grouper, self._phases.index(previous_phase))
             previous_phase = phase
             prefix_classes = PrefixView(phase, classes)
-            for rule in lookup.rules:
-                sift_groups(grouper, rule, rule.contexts_in, prefix_classes)
-                sift_groups(grouper, rule, rule.contexts_out, prefix_classes)
-                sift_groups(grouper, rule, rule.inputs, prefix_classes)
+            prefix_named_lookups_with_phases = PrefixView(phase, named_lookups_with_phases)
+            sift_groups_in_lookup(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
         rename_schemas(grouper, NO_PHASE_INDEX)
 
     def augment(self):
@@ -7066,7 +7070,7 @@ class Builder:
             classes,
             named_lookups_with_phases,
         ) = self._run_phases(self._schemas, self._phases)
-        self._merge_schemas(schemas, lookups_with_phases, classes)
+        self._merge_schemas(schemas, lookups_with_phases, classes, named_lookups_with_phases)
         class_asts = self.convert_classes(classes)
         named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
         (
