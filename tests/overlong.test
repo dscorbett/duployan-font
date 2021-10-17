@@ -1,0 +1,35 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Semicircles
+1BC46 1BC46::[u1BC46.i@220,0|uni25CC.dotted_circle@340,0|u1BC46.i@1246,0|_@1366,0]
+1BC47 1BC46::[u1BC47.e@120,0|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|_@1466,0]
+1BC02 1BC47 1BC46::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|_@1466,0]
+1BC46 1BC47 1BC02::[u1BC46.i@220,0|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1346,500|u1BC02.p@1146,0|_@1466,0]
+
+# Medium quarter-circles
+1BC51 1BC51 1BC51 1BC51::[u1BC51.u@120,0|u1BC51.u.0p90@420,0|u1BC51.u.90p180@720,300|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
+1BC52 1BC51 1BC51 1BC51::[u1BC52.eu@720,0|u1BC51.u.180n90@420,0|u1BC51.u.90n0@120,300|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
+1BC02 1BC52 1BC51 1BC51 1BC51::[u1BC02.p@720,0|u1BC51.u.270n180@720,-300|u1BC51.u.180n90@420,-300|u1BC51.u.90n0@120,0|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
+1BC51 1BC51 1BC51 1BC52 1BC02::[u1BC51.u@120,0|u1BC51.u.0p90@420,0|u1BC51.u.90p180@720,300|uni25CC.dotted_circle@840,0|u1BC51.u.180p270@1946,0|u1BC02.p@1646,-500|_@2066,0]
+
+# Small quarter-circles
+1BC64 1BC64 1BC64 1BC64::[u1BC64.nasal_a@120,0|u1BC62.nasal_o.0n270@280,0|u1BC62.nasal_o.270n180@440,-160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
+1BC62 1BC64 1BC64 1BC64::[u1BC62.nasal_o@280,0|u1BC62.nasal_o.90p180@440,160|u1BC62.nasal_o.180p270@280,160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
+1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@440,0|u1BC62.nasal_o.270n180@440,-160|u1BC62.nasal_o.180n90@280,-160|u1BC62.nasal_o.90n0@120,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
+1BC64 1BC64 1BC64 1BC62 1BC02::[u1BC64.nasal_a@120,0|u1BC62.nasal_o.0n270@280,0|u1BC62.nasal_o.270n180@440,-160|uni25CC.dotted_circle@560,0|u1BC62.nasal_o.180p270@1526,500|u1BC02.p@1366,0|_@1646,0]
+
+# Trees
+1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@120,0|u1BC46.i.180p0.sub@707,-150|u1BC46.i@957,-150|_@1240,0]
+1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@120,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3716,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4742,0|_@4862,0]

@@ -1431,6 +1431,17 @@ class Curve(Shape):
         a2 = (90 if self.clockwise else -90) + angle_out
         return a1, a2
 
+    def _get_normalized_angles_and_da(self, diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong):
+        a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
+        if final_circle_diphthong:
+            a2 = a1
+        elif initial_circle_diphthong:
+            a1 = a2
+        return a1, a2, a2 - a1 or 360
+
+    def get_da(self):
+        return self._get_normalized_angles_and_da(False, False, False, False)[2]
+
     def _get_angle_to_overlap_point(self, a1, a2, *, is_entry):
         angle_to_overlap_point = self.overlap_angle
         angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90))
@@ -1483,12 +1494,7 @@ class Curve(Shape):
             diphthong_1,
             diphthong_2,
     ):
-        a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
-        if final_circle_diphthong:
-            a2 = a1
-        elif initial_circle_diphthong:
-            a1 = a2
-        da = a2 - a1 or 360
+        a1, a2, da = self._get_normalized_angles_and_da(diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong)
         r = int(RADIUS * size)
         beziers_needed = int(math.ceil(abs(da) / 90))
         bezier_arc = da / beziers_needed
@@ -4146,6 +4152,7 @@ class Builder:
             self._promote_final_letter_overlap_to_continuing_overlap,
             self._reposition_chinook_jargon_overlap_points,
             self._make_mark_variants_of_children,
+            self._interrupt_overlong_primary_curve_sequences,
             self._reposition_stenographic_period,
             self._disjoin_equals_sign,
             self._join_with_next_step,
@@ -5119,6 +5126,101 @@ class Builder:
             for child_index in range(MAX_TREE_WIDTH):
                 classes[CHILD_EDGE_CLASSES[child_index]].append(child)
         add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
+        return [lookup]
+
+    def _interrupt_overlong_primary_curve_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+            flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        )
+        dotted_circle = next(s for s in schemas if s.cmap == 0x25CC)
+        deltas_by_size = collections.defaultdict(OrderedSet)
+        new_deltas_by_size = collections.defaultdict(set)
+        for schema in schemas:
+            if schema.glyph_class == GlyphClass.MARK:
+                continue
+            if (schema.joining_type == Type.ORIENTING
+                and isinstance(schema.path, Curve)
+            ):
+                if schema.path.hook:
+                    continue
+                delta = abs(schema.path.get_da())
+                assert delta != 360, f'{schema!r}'
+                class_name = f'{schema.size}_{delta}'
+                if schema.path.secondary:
+                    classes[f'secondary_{class_name}'].append(schema)
+                else:
+                    deltas_by_size[schema.size].add(delta)
+                    if class_name not in classes:
+                        new_deltas_by_size[schema.size].add(delta)
+                    classes[class_name].append(schema)
+            elif (schema.joining_type != Type.NON_JOINING
+                and not isinstance(schema.path, Space)
+                and not (isinstance(schema.path, Line) and schema.path.secant)
+                and not schema.pseudo_cursive
+            ):
+                classes['c'].append(schema)
+        def find_overlong_sequences(deltas, overlong_sequences, sequence):
+            delta_so_far = sum(sequence)
+            for delta in deltas:
+                new_sequence = [*sequence, delta]
+                if abs(delta_so_far + delta) >= 360:
+                    overlong_sequences.append(new_sequence)
+                else:
+                    find_overlong_sequences(deltas, overlong_sequences, new_sequence)
+        overlong_class_sequences = []
+        for size, deltas in deltas_by_size.items():
+            overlong_sequences = []
+            find_overlong_sequences(deltas, overlong_sequences, [])
+            overlong_class_sequences.extend(
+                [f'{size}_{d}' for d in s]
+                    for s in overlong_sequences
+                    if any(d in new_deltas_by_size[size] for d in s)
+            )
+        for overlong_class_sequence in overlong_class_sequences:
+            add_rule(lookup, Rule(
+                overlong_class_sequence[:-1],
+                overlong_class_sequence[-1],
+                [],
+                [dotted_circle, overlong_class_sequence[-1]],
+            ))
+            secondary_class_name_0 = f'secondary_{overlong_class_sequence[0]}'
+            secondary_class_name_n1 = f'secondary_{overlong_class_sequence[-1]}'
+            if secondary_class_name_0 in classes:
+                add_rule(lookup, Rule(
+                    ['c', secondary_class_name_0, *overlong_class_sequence[1:-1]],
+                    overlong_class_sequence[-1],
+                    [],
+                    [dotted_circle, overlong_class_sequence[-1]],
+                ))
+            if secondary_class_name_n1 in classes:
+                add_rule(lookup, Rule(
+                    ['c', *overlong_class_sequence[:-2]],
+                    [overlong_class_sequence[-2]],
+                    secondary_class_name_n1,
+                    lookups=[None],
+                ))
+                add_rule(lookup, Rule(
+                    overlong_class_sequence[:-2],
+                    [overlong_class_sequence[-2]],
+                    [secondary_class_name_n1, 'c'],
+                    [overlong_class_sequence[-2], dotted_circle],
+                ))
+            if secondary_class_name_0 in classes:
+                add_rule(lookup, Rule(
+                    [secondary_class_name_0, *overlong_class_sequence[1:-1]],
+                    overlong_class_sequence[-1],
+                    'c',
+                    lookups=[None],
+                ))
+                add_rule(lookup, Rule(
+                    [secondary_class_name_0, *overlong_class_sequence[1:-1]],
+                    overlong_class_sequence[-1],
+                    [],
+                    [dotted_circle, overlong_class_sequence[-1]],
+                ))
         return [lookup]
 
     def _reposition_stenographic_period(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
