@@ -5197,16 +5197,16 @@ class Builder:
                 ))
             if secondary_class_name_n1 in classes:
                 add_rule(lookup, Rule(
-                    ['c', *overlong_class_sequence[:-2]],
-                    [overlong_class_sequence[-2]],
+                    ['c', *overlong_class_sequence[:-1]],
                     secondary_class_name_n1,
+                    [],
                     lookups=[None],
                 ))
                 add_rule(lookup, Rule(
-                    overlong_class_sequence[:-2],
-                    [overlong_class_sequence[-2]],
-                    [secondary_class_name_n1, 'c'],
-                    [overlong_class_sequence[-2], dotted_circle],
+                    overlong_class_sequence[:-1],
+                    secondary_class_name_n1,
+                    'c',
+                    [dotted_circle, secondary_class_name_n1],
                 ))
             if secondary_class_name_0 in classes:
                 add_rule(lookup, Rule(
