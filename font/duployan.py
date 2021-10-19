@@ -33,6 +33,7 @@ import fontTools.misc.transform
 import fontTools.otlLib.builder
 
 DEFAULT_SIDE_BEARING = 85
+CAP_HEIGHT = 714
 EPSILON = 1e-5
 RADIUS = 50
 SHADING_FACTOR = 12 / 7
@@ -3034,6 +3035,8 @@ class Schema:
             joining_type=Type.JOINING,
             *,
             side_bearing=DEFAULT_SIDE_BEARING,
+            y_min=0,
+            y_max=None,
             child=False,
             can_lead_orienting_sequence=None,
             ignored_for_topography=False,
@@ -3058,6 +3061,8 @@ class Schema:
         self.size = size
         self.joining_type = joining_type
         self.side_bearing = side_bearing
+        self.y_min = y_min
+        self.y_max = y_max
         self.child = child
         self.can_lead_orienting_sequence = can_lead_orienting_sequence if can_lead_orienting_sequence is not None else joining_type == Type.ORIENTING
         self.ignored_for_topography = ignored_for_topography
@@ -3102,6 +3107,8 @@ class Schema:
         size=CLONE_DEFAULT,
         joining_type=CLONE_DEFAULT,
         side_bearing=CLONE_DEFAULT,
+        y_min=CLONE_DEFAULT,
+        y_max=CLONE_DEFAULT,
         child=CLONE_DEFAULT,
         can_lead_orienting_sequence=CLONE_DEFAULT,
         ignored_for_topography=CLONE_DEFAULT,
@@ -3125,6 +3132,8 @@ class Schema:
             self.size if size is CLONE_DEFAULT else size,
             self.joining_type if joining_type is CLONE_DEFAULT else joining_type,
             side_bearing=self.side_bearing if side_bearing is CLONE_DEFAULT else side_bearing,
+            y_min=self.y_min if y_min is CLONE_DEFAULT else y_min,
+            y_max=self.y_max if y_max is CLONE_DEFAULT else y_max,
             child=self.child if child is CLONE_DEFAULT else child,
             can_lead_orienting_sequence=self.can_lead_orienting_sequence if can_lead_orienting_sequence is CLONE_DEFAULT else can_lead_orienting_sequence,
             ignored_for_topography=self.ignored_for_topography if ignored_for_topography is CLONE_DEFAULT else ignored_for_topography,
@@ -3189,6 +3198,8 @@ class Schema:
             return (
                 self.ignorability == Ignorability.DEFAULT_YES,
                 self.side_bearing,
+                self.y_min,
+                self.y_max,
             )
         if isinstance(self.path, Circle) and (self.diphthong_1 or self.diphthong_2):
             path_group = (
@@ -3208,6 +3219,8 @@ class Schema:
             self.size,
             self.joining_type,
             self.side_bearing,
+            self.y_min,
+            self.y_max,
             self.child,
             self.anchor,
             self.widthless,
@@ -4235,7 +4248,6 @@ class Builder:
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
         right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
         enclosing_circle = Circle(180, 180, clockwise=False)
-        degree = Complex([(683, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False))])
         masculine_ordinal_indicator = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
         multiplication = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
         greater_than_overlapping_less_than = Complex([(1, greater_than), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, less_than)])
@@ -4353,36 +4365,36 @@ class Builder:
         line_middle = Schema(None, line, 0.45, Type.ORIENTING, anchor=MIDDLE_ANCHOR)
 
         self._schemas = [
-            Schema(None, notdef, 1, Type.NON_JOINING, side_bearing=95),
+            Schema(None, notdef, 1, Type.NON_JOINING, side_bearing=95, y_max=CAP_HEIGHT),
             Schema(0x0020, space, 260, Type.NON_JOINING, side_bearing=260),
-            Schema(0x0021, exclamation, 1, Type.NON_JOINING, encirclable=True),
-            Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING),
+            Schema(0x0021, exclamation, 1, Type.NON_JOINING, encirclable=True, y_max=CAP_HEIGHT),
+            Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x002A, asterisk, 1, Type.NON_JOINING),
             Schema(0x002B, plus, 1, Type.NON_JOINING),
             Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x002E, h, 1, Type.NON_JOINING, shading_allowed=False),
             Schema(0x002F, slash, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0030, zero, 3.882, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0031, one, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0032, two, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0033, three, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0034, four, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0035, five, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0036, six, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0037, seven, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0038, eight, 1.064, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x0039, nine, 1.021, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x0030, zero, 3.882, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0031, one, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0032, two, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0033, three, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0034, four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0035, five, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0036, six, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0037, seven, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0038, eight, 1.064, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x0039, nine, 1.021, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x003A, colon, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
             Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x003C, less_than, 2, Type.NON_JOINING, shading_allowed=False),
             Schema(0x003D, equal, 1),
             Schema(0x003E, greater_than, 2, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x003F, question, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x003F, question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
             Schema(0x005B, left_bracket, 1, Type.NON_JOINING),
             Schema(0x005D, right_bracket, 1, Type.NON_JOINING),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
-            Schema(0x00B0, degree, 1, Type.NON_JOINING),
+            Schema(0x00B0, enclosing_circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING),
             Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING),
             Schema(0x00D7, multiplication, 1, Type.NON_JOINING, shading_allowed=False),
@@ -6984,16 +6996,16 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    def _draw_glyph(self, glyph, schema):
+    def _draw_glyph(self, glyph, schema, scalar=1):
         assert not schema.marks
         pen = glyph.glyphPen()
         invisible = schema.path.invisible()
         floating = schema.path.draw(
             glyph,
             not invisible and pen,
-            self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else self.shaded_line,
-            self.light_line,
-            self.stroke_gap,
+            scalar * (self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else self.shaded_line),
+            scalar * self.light_line,
+            scalar * self.stroke_gap,
             schema.size,
             schema.anchor,
             schema.joining_type,
@@ -7004,7 +7016,7 @@ class Builder:
             schema.diphthong_2,
         )
         if schema.joining_type == Type.NON_JOINING:
-            glyph.left_side_bearing = schema.side_bearing
+            glyph.left_side_bearing = scalar * schema.side_bearing
         else:
             entry_x = next(
                 (x for anchor_class_name, type, x, _ in glyph.anchorPoints
@@ -7013,12 +7025,28 @@ class Builder:
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
         if not floating:
-            _, y_min, _, _ = glyph.boundingBox()
-            glyph.transform(fontTools.misc.transform.Offset(0, -y_min))
+            _, y_min, _, y_max = glyph.boundingBox()
+            if y_min != y_max:
+                if schema.y_min is not None:
+                    if schema.y_max is not None:
+                        if (desired_to_actual_ratio := (schema.y_max - schema.y_min) / (y_max - y_min)) != 1:
+                            if scalar == 1:
+                                glyph.clear()
+                                self._draw_glyph(glyph, schema, 1 / desired_to_actual_ratio)
+                            else:
+                                glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
+                                    .scale(desired_to_actual_ratio)
+                                )
+                        _, y_min, _, _ = glyph.boundingBox()
+                        glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
+                    else:
+                        glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
+                elif schema.y_max is not None:
+                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_max - y_max))
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
-            glyph.right_side_bearing = schema.side_bearing
+            glyph.right_side_bearing = scalar * schema.side_bearing
 
     def _create_glyph(self, schema, *, drawing):
         if schema.path.name_in_sfd():

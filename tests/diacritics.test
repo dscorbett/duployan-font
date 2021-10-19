@@ -13,20 +13,20 @@
 # limitations under the License.
 
 # U+0021 EXCLAMATION MARK
-0021 0300::[exclam@0,0|uni0300.grave.psts@120,895|_@240,0]
-0021 0301::[exclam@0,0|uni0301.acute.psts@120,895|_@240,0]
-0021 0302::[exclam@0,0|uni0302.circumflex.psts@-91,895|_@240,0]
-0021 0304::[exclam@0,0|uni0304.macron.psts@70,895|_@240,0]
-0021 0306::[exclam@0,0|uni0306.breve.psts@120,895|_@240,0]
-0021 0307::[exclam@0,0|uni0307.dot_above.psts@120,895|_@240,0]
-0021 0308::[exclam@0,0|uni0308.diaeresis.0.dotted.psts@70,895|_@240,0]
-0021 030C::[exclam@0,0|uni030C.caron.psts@-91,895|_@240,0]
-0021 0316::[exclam@0,0|uni0316.grave_below.psts@207,-225|_@240,0]
-0021 0317::[exclam@0,0|uni0317.acute_below.psts@49,-246|_@240,0]
-0021 0323::[exclam@0,0|uni0323.dot_below.psts@120,-175|_@240,0]
-0021 0324::[exclam@0,0|uni0324.diaeresis_below.0.dotted.psts@70,-175|_@240,0]
-0021 032F::[exclam@0,0|uni032F.inverted_breve_below.psts@120,-225|_@240,0]
-0021 0331::[exclam@0,0|uni0331.macron_below.psts@70,-175|_@240,0]
+0021 0300::[exclam@0,0|uni0300.grave.psts@120,818|_@240,0]
+0021 0301::[exclam@0,0|uni0301.acute.psts@120,818|_@240,0]
+0021 0302::[exclam@0,0|uni0302.circumflex.psts@-91,818|_@240,0]
+0021 0304::[exclam@0,0|uni0304.macron.psts@70,818|_@240,0]
+0021 0306::[exclam@0,0|uni0306.breve.psts@120,818|_@240,0]
+0021 0307::[exclam@0,0|uni0307.dot_above.psts@120,818|_@240,0]
+0021 0308::[exclam@0,0|uni0308.diaeresis.0.dotted.psts@70,818|_@240,0]
+0021 030C::[exclam@0,0|uni030C.caron.psts@-91,818|_@240,0]
+0021 0316::[exclam@0,0|uni0316.grave_below.psts@207,-224|_@240,0]
+0021 0317::[exclam@0,0|uni0317.acute_below.psts@49,-245|_@240,0]
+0021 0323::[exclam@0,0|uni0323.dot_below.psts@120,-174|_@240,0]
+0021 0324::[exclam@0,0|uni0324.diaeresis_below.0.dotted.psts@70,-174|_@240,0]
+0021 032F::[exclam@0,0|uni032F.inverted_breve_below.psts@120,-224|_@240,0]
+0021 0331::[exclam@0,0|uni0331.macron_below.psts@70,-174|_@240,0]
 
 # <U+1BC03 DUPLOYAN LETTER T, U+1BC9E DUPLOYAN DOUBLE MARK>
 1BC03 1BC9E 0300::[u1BC03.t@120,0|u1BC9E.double.90@370,-112|uni0300.grave@370,245|_@740,0]
@@ -93,9 +93,9 @@
 1BC51 0331::[u1BC51.u@120,0|uni0331.macron_below@220,-105|_@540,0]
 
 # U+20DD COMBINING ENCLOSING CIRCLE
-0021 20DD:--script Dupl:[exclam@366,0|uni20DD.enclosing_circle.psts@486,-175|_@972,0]
+0021 20DD:--script Dupl:[exclam@338,0|uni20DD.enclosing_circle.psts@458,-174|_@916,0]
 002C 20DD:--script Dupl:[comma@140,0|uni20DD.enclosing_circle.psts@287,-351|_@573,0]
 003A 20DD:--script Dupl:[colon@260,0|uni20DD.enclosing_circle.psts@380,-174|_@760,0]
 003B 20DD:--script Dupl:[semicolon@300,0|uni20DD.enclosing_circle.psts@447,-352|_@893,0]
-003F 20DD:--script Dupl:[question@213,0|uni20DD.enclosing_circle.psts@483,-175|_@966,0]
+003F 20DD:--script Dupl:[question@201,0|uni20DD.enclosing_circle.psts@457,-174|_@915,0]
 2013 20DD:--script Dupl:[uni2013.en_dash@140,0|uni20DD.enclosing_circle.psts@510,42|_@1020,0]
