@@ -3310,6 +3310,13 @@ class Schema:
                 if name:
                     name += '.'
                 name += name_from_path
+        if self.cmap is None and cps == [0x2044]:
+            name += '.frac'
+        if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
+            if self.y_min is None:
+                name += '.numr'
+            else:
+                name += '.dnom'
         if not cps and isinstance(self.path, Space):
             name += f'''.{
                     int(self.size * math.cos(math.radians(self.path.angle)))
@@ -4183,6 +4190,7 @@ class Builder:
             self._join_double_marks,
             self._rotate_diacritics,
             self._shade,
+            self._create_diagonal_fractions,
             self._make_widthless_variants_of_marks,
             self._classify_marks_for_trees,
         ]
@@ -4423,6 +4431,7 @@ class Builder:
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x2044, slash, 1, Type.NON_JOINING, shading_allowed=False),
             Schema(0x20DD, enclosing_circle, 10, anchor=MIDDLE_ANCHOR),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
@@ -5857,6 +5866,44 @@ class Builder:
             add_rule(lookup, Rule(['i', dtls], 'o'))
         return [lookup]
 
+    def _create_diagonal_fractions(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup_slash = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+        )
+        lookup_numr = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+            reversed=True,
+        )
+        lookup_dnom = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+        )
+        if len(original_schemas) != len(schemas):
+            return [lookup_slash, lookup_numr, lookup_dnom]
+        for schema in new_schemas:
+            if schema.cmap in range(0x0030, 0x0039 + 1):
+                classes['i'].append(schema)
+                numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
+                dnom = schema.clone(cmap=None, y_max=0.6 * schema.y_max)
+                classes['numr'].append(numr)
+                classes['dnom'].append(dnom)
+                classes['numr_or_slash'].append(numr)
+                classes['dnom_or_slash'].append(dnom)
+            elif schema.cmap == 0x2044:
+                slash = schema
+        valid_slash = slash.clone(cmap=None, side_bearing=-250)
+        classes['numr_or_slash'].append(valid_slash)
+        classes['dnom_or_slash'].append(valid_slash)
+        add_rule(lookup_slash, Rule('i', [slash], 'i', [valid_slash]))
+        add_rule(lookup_numr, Rule([], 'i', 'numr_or_slash', 'numr'))
+        add_rule(lookup_dnom, Rule('dnom_or_slash', 'i', [], 'dnom'))
+        return [lookup_slash, lookup_numr, lookup_dnom]
+
     def _make_widthless_variants_of_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
         first_iteration = 'i' not in classes
@@ -5951,7 +5998,7 @@ class Builder:
                     bottom_bound,
                     top_bound,
                     (y_max - y_min) / 2 if isinstance(schema.path, Dot) else 0,
-                    200 if isinstance(schema.path, SeparateAffix) else 5,
+                    200 if isinstance(schema.path, SeparateAffix) else 6,
                 )
             if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
                 if (

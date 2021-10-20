@@ -28,7 +28,7 @@
 1BCA3 2E3C 1BC03::[uni2E3C.stenographic_period@208,917|uni200C.zwnj@416,0|u1BC03.t@536,0|_@1156,0]
 
 # U+202F NARROW NO-BREAK SPACE, i.e. right step
-1BC06 202F 2E3C 1BC03::[u1BC06.l@120,0|uni202F.nnbsp@740,535|uni2E3C.stenographic_period@975,412|uni200C.zwnj@1183,0|u1BC03.t@1303,0|_@1923,0]
+1BC06 202F 2E3C 1BC03::[u1BC06.l@120,0|uni202F.nnbsp@740,535|uni2E3C.stenographic_period@974,412|uni200C.zwnj@1182,0|u1BC03.t@1302,0|_@1922,0]
 
 # Multiple opposing steps
 1BCA2 1BCA3 1BC02::[u1BCA2.down_step@0,0|u1BC02.p@1248,505|_@1368,0]
