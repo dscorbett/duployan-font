@@ -1,0 +1,20 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+1BC02 1BC44 034F 034F::[u1BC02.p@120,0|u1BC44.o.90n90@120,-150|_@540,0]
+1BC02 1BC44 034F 034F 034F::[u1BC02.p@420,0|u1BC44.o.90p90@420,-150|_@540,0]
+1BC02 1BC5A 034F 034F::[u1BC02.p@120,0|u1BC44.o.90n90@120,-150|dupl.Dot.rel1@270,0|_@540,0]
+1BC02 1BC5A 034F 034F 034F::[u1BC02.p@420,0|u1BC44.o.90p90@420,-150|dupl.Dot.rel1@270,0|_@540,0]
+1BC5B 034F 034F::[u1BC5B.ou@270,0|_@540,0]
+1BC5B 034F 034F 034F::[u1BC5B.ou.0n35@270,0|_@540,0]

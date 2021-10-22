@@ -2092,6 +2092,14 @@ class Circle(Shape):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
+    def as_reversed(self):
+        return self.clone(
+            angle_in=(self.angle_out + 180) % 360,
+            angle_out=(self.angle_in + 180) % 360,
+            clockwise=not self.clockwise,
+            reversed=not self.reversed,
+        )
+
 class Complex(Shape):
     def __init__(
         self,
@@ -2623,6 +2631,23 @@ class Ou(Complex):
             rv = self.context_in()
             return rv.clone(angle=(rv.angle + 180) % 360)
 
+    def as_reversed(self):
+        circle_path = self.instructions[0][1]
+        curve_path = self.instructions[2][1]
+        intermediate_angle = (circle_path.angle_in - circle_path.angle_out) % 360
+        return self.clone(instructions=[
+            (self.instructions[0][0], circle_path.clone(
+                angle_in=(circle_path.angle_in + 180) % 360,
+                angle_out=intermediate_angle,
+                clockwise=not circle_path.clockwise,
+            )),
+            self.instructions[1],
+            (self.instructions[2][0], curve_path.clone(
+                angle_in=intermediate_angle,
+                clockwise=not curve_path.clockwise,
+            )),
+        ])
+
 class SeparateAffix(Complex):
     def __init__(
         self,
@@ -2993,6 +3018,7 @@ class Schema:
         (r'^uniEC5A$', 'DUPLOYAN LETTER REVERSED OW'),
         (r'^uniEC5B$', 'DUPLOYAN LETTER REVERSED OU'),
         # Unicode name aliases
+        (r'^COMBINING GRAPHEME JOINER$', 'CGJ'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
         (r'^ZERO WIDTH NON-JOINER$', 'ZWNJ'),
         (r'^ZERO WIDTH JOINER$', 'ZWJ'),
@@ -4165,6 +4191,7 @@ class Builder:
     def _initialize_phases(self):
         self._phases = [
             self._dont_ignore_default_ignorables,
+            self._reversed_circle_kludge,
             self._validate_shading,
             self._validate_double_marks,
             self._decompose,
@@ -4317,7 +4344,7 @@ class Builder:
         j_n = Complex([(1, s_k), (1, n)], maximum_tree_width=1)
         j_n_s = Complex([(3, s_k), (4, n_s)], maximum_tree_width=1)
         o = Circle(90, 90, clockwise=False)
-        o_reverse = Circle(270, 270, clockwise=True, reversed=True)
+        o_reverse = o.as_reversed()
         ie = Curve(180, 0, clockwise=False)
         short_i = Curve(0, 180, clockwise=True)
         ui = Curve(90, 270, clockwise=True)
@@ -4328,7 +4355,7 @@ class Builder:
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
         ou = Ou([(1, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 9, Curve(145, 270, clockwise=False))])
-        ou_reverse = Ou([(1, Circle(0, 35, clockwise=True)), lambda c: c, (5 / 9, Curve(35, 270, clockwise=True))])
+        ou_reverse = ou.as_reversed()
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -4427,6 +4454,7 @@ class Builder:
             Schema(0x0324, diaeresis, 0.2, anchor=BELOW_ANCHOR),
             Schema(0x032F, inverted_breve, 1, anchor=BELOW_ANCHOR),
             Schema(0x0331, macron, 0.2, anchor=BELOW_ANCHOR),
+            Schema(0x034F, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.DEFAULT_YES),
             Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
@@ -4617,6 +4645,14 @@ class Builder:
                 add_rule(lookup_1, Rule([schema], [schema, schema]))
                 add_rule(lookup_2, Rule([schema, schema], [schema]))
         return [lookup_1, lookup_2]
+
+    def _reversed_circle_kludge(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
+        cgj = next(s for s in schemas if s.cmap == 0x034F)
+        for schema in new_schemas:
+            if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B]:
+                add_rule(lookup, Rule([schema, cgj, cgj, cgj], [schema.clone(cmap=None, path=schema.path.as_reversed())]))
+        return [lookup]
 
     def _validate_shading(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup(
