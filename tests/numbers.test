@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Incomplete fractions
 0030 2044::[zero@0,0|uni2044.fraction_slash@622,0|_@1457,0]
 2044 0030::[uni2044.fraction_slash@0,0|zero@835,0|_@1457,0]
+
+# Fractions
 0030 2044 0030::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|zero.dnom@637,0|_@1082,0]
 0031 2044 0030::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|zero.dnom@502,0|_@947,0]
 0032 2044 0030::[two.numr@0,0|uni2044.fraction_slash.frac@450,0|zero.dnom@615,0|_@1060,0]
@@ -34,3 +37,9 @@
 0030 2044 0038::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|eight.dnom@637,0|_@1057,0]
 0030 2044 0039::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|nine.dnom@637,0|_@1069,0]
 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039 2044 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039::[zero.numr@0,0|one.numr@472,0|two.numr@809,0|three.numr@1259,0|four.numr@1720,0|five.numr@2236,0|six.numr@2669,0|seven.numr@3141,0|eight.numr@3626,0|nine.numr@4066,0|uni2044.fraction_slash.frac@4520,0|zero.dnom@4685,0|one.dnom@5130,0|two.dnom@5453,0|three.dnom@5881,0|four.dnom@6323,0|five.dnom@6811,0|six.dnom@7228,0|seven.dnom@7677,0|eight.dnom@8146,0|nine.dnom@8566,0|_@8998,0]
+
+# Superscripts
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[zero.sups@0,0|one.sups@472,0|two.sups@809,0|three.sups@1259,0|four.sups@1720,0|five.sups@2236,0|six.sups@2669,0|seven.sups@3141,0|eight.sups@3626,0|nine.sups@4066,0|_@4520,0]
+
+# Subscripts
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features subs:[zero.subs@0,0|one.subs@472,0|two.subs@809,0|three.subs@1259,0|four.subs@1720,0|five.subs@2236,0|six.subs@2669,0|seven.subs@3141,0|eight.subs@3626,0|nine.subs@4066,0|_@4520,0]

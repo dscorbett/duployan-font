@@ -3314,9 +3314,15 @@ class Schema:
             name += '.frac'
         if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
             if self.y_min is None:
-                name += '.numr'
+                if self.y_max > CAP_HEIGHT:
+                    name += '.sups'
+                else:
+                    name += '.numr'
             else:
-                name += '.dnom'
+                if self.y_min < 0:
+                    name += '.subs'
+                else:
+                    name += '.dnom'
         if not cps and isinstance(self.path, Space):
             name += f'''.{
                     int(self.size * math.cos(math.radians(self.path.angle)))
@@ -4191,6 +4197,7 @@ class Builder:
             self._rotate_diacritics,
             self._shade,
             self._create_diagonal_fractions,
+            self._create_superscripts_and_subscripts,
             self._make_widthless_variants_of_marks,
             self._classify_marks_for_trees,
         ]
@@ -5903,6 +5910,18 @@ class Builder:
         add_rule(lookup_numr, Rule([], 'i', 'numr_or_slash', 'numr'))
         add_rule(lookup_dnom, Rule('dnom_or_slash', 'i', [], 'dnom'))
         return [lookup_slash, lookup_numr, lookup_dnom]
+
+    def _create_superscripts_and_subscripts(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup_sups = Lookup('sups', {'DFLT', 'dupl'}, 'dflt')
+        lookup_subs = Lookup('subs', {'DFLT', 'dupl'}, 'dflt')
+        for schema in new_schemas:
+            if schema.cmap in range(0x0030, 0x0039 + 1):
+                classes['i'].append(schema)
+                classes['o_sups'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=None, y_max=1.18 * schema.y_max))
+                classes['o_subs'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=-0.18 * schema.y_max, y_max=None))
+        add_rule(lookup_sups, Rule('i', 'o_sups'))
+        add_rule(lookup_subs, Rule('i', 'o_subs'))
+        return [lookup_sups, lookup_subs]
 
     def _make_widthless_variants_of_marks(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
