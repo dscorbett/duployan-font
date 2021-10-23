@@ -5915,37 +5915,38 @@ class Builder:
             {'DFLT', 'dupl'},
             'dflt',
         )
+        lookup_dnom = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+        )
         lookup_numr = Lookup(
             'rclt',
             {'DFLT', 'dupl'},
             'dflt',
             reversed=True,
         )
-        lookup_dnom = Lookup(
-            'rclt',
-            {'DFLT', 'dupl'},
-            'dflt',
-        )
         if len(original_schemas) != len(schemas):
-            return [lookup_slash, lookup_numr, lookup_dnom]
+            return [lookup_slash, lookup_dnom, lookup_numr]
         for schema in new_schemas:
             if schema.cmap in range(0x0030, 0x0039 + 1):
                 classes['i'].append(schema)
-                numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
                 dnom = schema.clone(cmap=None, y_max=0.6 * schema.y_max)
-                classes['numr'].append(numr)
+                numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
                 classes['dnom'].append(dnom)
-                classes['numr_or_slash'].append(numr)
+                classes['numr'].append(numr)
                 classes['dnom_or_slash'].append(dnom)
+                classes['numr_or_slash'].append(numr)
             elif schema.cmap == 0x2044:
                 slash = schema
         valid_slash = slash.clone(cmap=None, side_bearing=-250)
-        classes['numr_or_slash'].append(valid_slash)
         classes['dnom_or_slash'].append(valid_slash)
+        classes['numr_or_slash'].append(valid_slash)
         add_rule(lookup_slash, Rule('i', [slash], 'i', [valid_slash]))
-        add_rule(lookup_numr, Rule([], 'i', 'numr_or_slash', 'numr'))
         add_rule(lookup_dnom, Rule('dnom_or_slash', 'i', [], 'dnom'))
-        return [lookup_slash, lookup_numr, lookup_dnom]
+        add_rule(lookup_dnom, Rule('dnom', [valid_slash], [], [slash]))
+        add_rule(lookup_numr, Rule([], 'i', 'numr_or_slash', 'numr'))
+        return [lookup_slash, lookup_dnom, lookup_numr]
 
     def _create_superscripts_and_subscripts(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
         lookup_sups = Lookup('sups', {'DFLT', 'dupl'}, 'dflt')
