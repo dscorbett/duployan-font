@@ -2365,6 +2365,8 @@ class Complex(Shape):
         for i, op in enumerate(self.instructions):
             if callable(op):
                 forced_context = op(forced_context or (context_out if initial_hook else context_in))
+                if forced_context.ignorable_for_topography:
+                    forced_context = forced_context.clone(ignorable_for_topography=False)
                 instructions.append(op)
             else:
                 scalar, component = op
@@ -2401,10 +2403,10 @@ class Complex(Shape):
                 else:
                     context_in = component.context_out()
                 if forced_context is not None:
-                    if initial_hook:
-                        assert component.context_out() == forced_context, f'{component.context_out()} != {forced_context}'
-                    else:
-                        assert component.context_in() == forced_context, f'{component.context_in()} != {forced_context}'
+                    actual_context = component.context_out() if initial_hook else component.context_in()
+                    if forced_context.clockwise is None:
+                        actual_context = actual_context.clone(clockwise=None)
+                    assert actual_context == forced_context, f'{actual_context} != {forced_context}'
                     forced_context = None
         if initial_hook:
             instructions.reverse()
@@ -2844,17 +2846,22 @@ class Wa(Complex):
                 ])
         return self.clone(instructions=instructions)
 
+    def as_reversed(self):
+        return self.clone(
+            instructions=[op if callable(op) else (op[0], op[1].as_reversed(), *op[2:]) for op in self.instructions],
+        )
+
 class Wi(Complex):
     def contextualize(self, context_in, context_out):
         if context_in != NO_CONTEXT or context_out == NO_CONTEXT:
             curve_index = next(i for i, op in enumerate(self.instructions) if not callable(op) and not isinstance(op[1], Circle))
-            if curve_index == 0:
+            if curve_index == 1:
                 return super().contextualize(context_in, context_out)
-            curve_path = self.clone(instructions=self.instructions[curve_index:]).contextualize(context_in, context_out)
+            curve_path = self.clone(instructions=self.instructions[curve_index - 1:]).contextualize(context_in, context_out)
             circle_path = self.instructions[0][1].clone(
-                angle_in=curve_path.instructions[0][1].angle_in,
-                angle_out=curve_path.instructions[0][1].angle_in,
-                clockwise=curve_path.instructions[0][1].clockwise,
+                angle_in=curve_path.instructions[1][1].angle_in,
+                angle_out=curve_path.instructions[1][1].angle_in,
+                clockwise=curve_path.instructions[1][1].clockwise,
             )
             return self.clone(instructions=[(self.instructions[0][0], circle_path), *curve_path.instructions])
         if Curve.in_degree_range(
@@ -2863,23 +2870,30 @@ class Wi(Complex):
             (self.instructions[-1][1].angle_out + 180 - EPSILON * (-1 if self.instructions[-1][1].clockwise else 1)) % 360,
             self.instructions[-1][1].clockwise,
         ):
-            return self.clone(
-                instructions=[
-                    op
-                        if callable(op)
-                        else (
-                            op[0],
-                            op[1].clone(
-                                    angle_in=(op[1].angle_in + 180) % 360,
-                                    angle_out=(op[1].angle_out + 180) % 360,
-                                    clockwise=not op[1].clockwise,
-                                ) if isinstance(op[1], (Circle, Curve))
-                                else op[1]
-                            *op[2:],
-                        ) for op in self.instructions
-                ],
-            )
+            return self.as_reversed()
         return self
+
+    def as_reversed(self):
+        first_callable = True
+        return self.clone(
+            instructions=[
+                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)
+                        if (first_callable | (first_callable := False))
+                        else op
+                    )
+                    if callable(op)
+                    else (
+                        op[0],
+                        op[1].clone(
+                                angle_in=(op[1].angle_in + 180) % 360,
+                                angle_out=(op[1].angle_out + 180) % 360,
+                                clockwise=not op[1].clockwise,
+                            ) if isinstance(op[1], (Circle, Curve))
+                            else op[1]
+                        *op[2:],
+                    ) for op in self.instructions
+            ],
+        )
 
 class TangentHook(Complex):
     def __init__(
@@ -4650,8 +4664,11 @@ class Builder:
         lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
         cgj = next(s for s in schemas if s.cmap == 0x034F)
         for schema in new_schemas:
-            if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B]:
-                add_rule(lookup, Rule([schema, cgj, cgj, cgj], [schema.clone(cmap=None, path=schema.path.as_reversed())]))
+            if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
+                add_rule(lookup, Rule(
+                    [schema, cgj, cgj, cgj],
+                    [schema.clone(cmap=None, cps=[*schema.cps, 0x034F, 0x034F, 0x034F], path=schema.path.as_reversed())],
+                ))
         return [lookup]
 
     def _validate_shading(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
