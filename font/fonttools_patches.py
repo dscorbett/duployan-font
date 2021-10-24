@@ -24,6 +24,13 @@
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.tables.otTables
 
+def buildCoverage(glyphs, glyphMap, *args, **kwargs):
+    if not glyphs:
+        return None
+    self = fontTools.ttLib.tables.otTables.Coverage()
+    self.glyphs = sorted(set(glyphs), key=glyphMap.__getitem__)
+    return self
+
 def compile(self, font, *args, **kwargs):
     writer = fontTools.ttLib.tables.otBase.OTTableWriter(tableTag=self.tableTag)
     if self.tableTag == 'GSUB':

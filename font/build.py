@@ -24,6 +24,7 @@ import tempfile
 
 import fontforge
 import fontTools.misc.timeTools
+import fontTools.otlLib.builder
 import fontTools.ttLib
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
@@ -50,6 +51,7 @@ def generate_feature_string(font, lookup):
         return fea_file.read().decode('utf-8')
 
 def patch_fonttools():
+    fontTools.otlLib.builder.buildCoverage = fonttools_patches.buildCoverage
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
 
 def set_noto_values(tt_font):
