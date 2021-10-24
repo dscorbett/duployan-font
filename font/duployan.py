@@ -4661,7 +4661,7 @@ class Builder:
         return [lookup_1, lookup_2]
 
     def _reversed_circle_kludge(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-        lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
+        lookup = Lookup('rlig', {'DFLT', 'dupl'}, 'dflt')
         cgj = next(s for s in schemas if s.cmap == 0x034F)
         for schema in new_schemas:
             if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
