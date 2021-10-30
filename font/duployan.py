@@ -1646,6 +1646,7 @@ class Curve(Shape):
                 angle_in = (angle_out - da) % 360
         if angle_out is None:
             angle_out = (angle_in + da) % 360
+        flips = 0
         def flip():
             nonlocal candidate_clockwise
             nonlocal candidate_angle_in
@@ -1706,6 +1707,7 @@ class Curve(Shape):
                 )
             ):
                 flip()
+                flips += not final_hook
             if (context_out.clockwise == context_in.clockwise == candidate_clockwise
                 and (self.in_degree_range(
                     angle_out,
@@ -1720,9 +1722,12 @@ class Curve(Shape):
                 ))
             ):
                 flip()
+                flips += 1
         if context_in.diphthong_start or context_out.diphthong_end:
             candidate_angle_in = (candidate_angle_in - 180) % 360
             candidate_angle_out = (candidate_angle_out - 180) % 360
+        if flips % 2 == 1:
+            flip()
         return self.clone(
             angle_in=candidate_angle_in,
             angle_out=candidate_angle_out,
