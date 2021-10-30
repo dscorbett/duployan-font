@@ -56,7 +56,7 @@ EC1C 1BC7B::[uniEC1C.reversed_s@940,0|u1BC46.i.180n0@220,300|_@1060,0]
 
 # Vertical hook, initial
 1BC7B EC02::[u1BC46.i.180n0@220,-200|uniEC02.reversed_p@220,0|_@340,0]
-1BC7B EC04::[u1BC46.i.180n0@408,-200|uniEC04.reversed_f@408,0|_@528,0]
+1BC7B EC04::[u1BC46.i.180p0@408,0|uniEC04.reversed_f@408,0|_@528,0]
 1BC7B EC19::[u1BC46.i.180p0@420,0|uniEC19.reversed_m@420,0|_@540,0]
 1BC7B EC1A::[u1BC46.i.0n180@120,0|u1BC79.tail@120,0|_@540,0]
 1BC7B EC1B::[u1BC46.i.180n0@840,-200|uniEC1B.reversed_j@840,0|_@960,0]
