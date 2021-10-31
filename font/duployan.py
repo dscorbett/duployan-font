@@ -3026,6 +3026,7 @@ class Ignorability(enum.Enum):
     OVERRIDDEN_NO = enum.auto()
 
 class Schema:
+    _COLLAPSIBLE_UNI_NAME = re.compile(r'(?<=uni[0-9A-F]{4})_uni(?=[0-9A-F]{4})')
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
@@ -3334,6 +3335,7 @@ class Schema:
                 name = '_'.join(map(self._agl_name, cps))
             except:
                 name = '_'.join(map(self._u_name, cps))
+                name = self._COLLAPSIBLE_UNI_NAME.sub('', name)
                 readable_name = '__'.join(map(self._readable_name, cps))
                 for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
                     readable_name = regex.sub(repl, readable_name)
