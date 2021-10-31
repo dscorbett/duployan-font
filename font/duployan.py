@@ -1347,6 +1347,7 @@ class Curve(Shape):
         reversed_circle=False,
         overlap_angle=None,
         secondary=None,
+        would_flip=None,
     ):
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         self.angle_in = angle_in
@@ -1359,6 +1360,7 @@ class Curve(Shape):
         self.reversed_circle = reversed_circle
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
         self.secondary = clockwise if secondary is None else secondary
+        self.would_flip = would_flip
 
     def clone(
         self,
@@ -1373,6 +1375,7 @@ class Curve(Shape):
         reversed_circle=CLONE_DEFAULT,
         overlap_angle=CLONE_DEFAULT,
         secondary=CLONE_DEFAULT,
+        would_flip=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1385,6 +1388,7 @@ class Curve(Shape):
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
+            would_flip=self.would_flip if would_flip is CLONE_DEFAULT else would_flip,
         )
 
     def __str__(self):
@@ -1726,12 +1730,14 @@ class Curve(Shape):
         if context_in.diphthong_start or context_out.diphthong_end:
             candidate_angle_in = (candidate_angle_in - 180) % 360
             candidate_angle_out = (candidate_angle_out - 180) % 360
-        if flips % 2 == 1:
+        would_flip = flips % 2 == 1 and context_in != NO_CONTEXT != context_out
+        if would_flip:
             flip()
         return self.clone(
             angle_in=candidate_angle_in,
             angle_out=candidate_angle_out,
             clockwise=candidate_clockwise,
+            would_flip=would_flip,
         )
 
     def context_in(self):
@@ -4233,6 +4239,7 @@ class Builder:
             self._join_with_next,
             self._join_circle_with_adjacent_nonorienting_glyph,
             self._ligate_diphthongs,
+            self._thwart_what_would_flip,
             self._unignore_noninitial_orienting_sequences,
             self._unignore_initial_orienting_sequences,
             self._join_double_marks,
@@ -5755,6 +5762,29 @@ class Builder:
                 if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
                     add_rule(lookup, Rule(input_1, input_2, [], output_2))
                     add_rule(lookup, Rule([], input_1, output_2, output_1))
+        return [lookup]
+
+    def _thwart_what_would_flip(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+        lookup = Lookup(
+            'rclt',
+            {'DFLT', 'dupl'},
+            'dflt',
+            mark_filtering_set='all',
+        )
+        dotted_circle = next(s for s in schemas if s.cmap == 0x25CC)
+        for schema in new_schemas:
+            if isinstance(schema.path, Curve) and schema.path.would_flip:
+                classes['i'].append(schema)
+            elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
+                classes['root_parent_edge'].append(schema)
+                classes['all'].append(schema)
+            elif schema.ignored_for_topography and (
+                schema.context_in.angle is None or schema.context_in.ignorable_for_topography
+            ):
+                classes['tail'].append(schema)
+                classes['all'].append(schema)
+        add_rule(lookup, Rule('i', 'root_parent_edge', 'tail', lookups=[None]))
+        add_rule(lookup, Rule('i', 'root_parent_edge', [], [dotted_circle, 'root_parent_edge']))
         return [lookup]
 
     def _unignore_noninitial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
