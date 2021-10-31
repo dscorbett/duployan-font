@@ -36,6 +36,7 @@ DEFAULT_SIDE_BEARING = 85
 CAP_HEIGHT = 714
 EPSILON = 1e-5
 RADIUS = 50
+LINE_FACTOR = 500
 SHADING_FACTOR = 12 / 7
 MINIMUM_STROKE_GAP = 70
 STRIKEOUT_POSITION = 258
@@ -1164,7 +1165,7 @@ class Line(Shape):
                 length_denominator = 1
         else:
             length_denominator = 1
-        return int(500 * size / length_denominator)
+        return int(LINE_FACTOR * size / length_denominator)
 
     def draw(
             self,
@@ -3030,6 +3031,7 @@ class Schema:
     _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
+        (r'^uniE001$', 'LATIN CROSS POMMEE'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
         (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
         (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),
@@ -4335,6 +4337,11 @@ class Builder:
         stenographic_period = Complex([(0.5, Line(135, stretchy=False)), *multiplication.instructions])
         double_hyphen = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
         bound = Bound()
+        cross_knob_line_factor = 0.42
+        cross_knob_factor = cross_knob_line_factor * LINE_FACTOR / RADIUS
+        cross_knob_instructions = [(cross_knob_line_factor, Line(270), True), (cross_knob_factor, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True), (cross_knob_factor / 2, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True)]
+        cross_pommy = Complex([*cross_knob_instructions, (3 + 2 * cross_knob_line_factor, Line(270)), *cross_knob_instructions, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), *cross_knob_instructions, (2 + 2 * cross_knob_line_factor, Line(0)), *cross_knob_instructions])
+        cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270)
         p_reverse = Line(90)
@@ -4403,7 +4410,7 @@ class Builder:
         high_dot = SeparateAffix([(1, Dot(centered=True))])
         high_circle = SeparateAffix([(2, Circle(0, 0, clockwise=False))])
         high_line = SeparateAffix([(0.5, Line(0, stretchy=False))])
-        high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / 500, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
+        high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / LINE_FACTOR, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
         high_vertical = SeparateAffix([(0.5, Line(90, stretchy=False))])
         low_acute = high_acute.clone(low=True)
         low_tight_acute = high_tight_acute.clone(low=True)
@@ -4416,7 +4423,7 @@ class Builder:
         low_vertical = high_vertical.clone(low=True)
         low_arrow = SeparateAffix([(0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))], low=True)
         likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90, margins=False)), (0.5, p), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
-        dotted_square = [(152, Space(270, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / 500, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / 500, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / 500, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (0.26 - light_line / 1000, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / 500, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.26 - light_line / 1000, Line(180, stretchy=False))]
+        dotted_square = [(152, Space(270, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (0.26 - light_line / 1000, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.26 - light_line / 1000, Line(180, stretchy=False))]
         dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0, margins=False)), (173, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
         chinook_period = Complex([(100, Space(90, margins=False)), (1, Line(0, stretchy=False)), (179, Space(90, margins=False)), (1, Line(180, stretchy=False))])
         overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0, margins=False)), (397, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (1.134, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False)), (170, Space(180, margins=False)), (0.4116, Line(90, stretchy=False))])
@@ -4493,6 +4500,7 @@ class Builder:
             Schema(0x2044, slash, 1, Type.NON_JOINING, shading_allowed=False),
             Schema(0x20DD, enclosing_circle, 10, anchor=MIDDLE_ANCHOR),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
+            Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
             Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
@@ -4647,6 +4655,7 @@ class Builder:
         if not noto:
             self._schemas += [
                 Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
+                Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
                 Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
                 Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
                 Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
