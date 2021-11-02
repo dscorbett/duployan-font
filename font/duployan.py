@@ -3032,6 +3032,7 @@ class Schema:
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
+        (r'^uniE003$', 'HEART WITH CROSS'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
         (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
         (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),
@@ -4343,6 +4344,7 @@ class Builder:
         cross_knob_instructions = [(cross_knob_line_factor, Line(270), True), (cross_knob_factor, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True), (cross_knob_factor / 2, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True)]
         cross_pommy = Complex([*cross_knob_instructions, (3 + 2 * cross_knob_line_factor, Line(270)), *cross_knob_instructions, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), *cross_knob_instructions, (2 + 2 * cross_knob_line_factor, Line(0)), *cross_knob_instructions])
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
+        sacred_heart = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.904, Line(128, stretchy=False)), (3.528, Curve(128, 335, clockwise=True, stretch=0.036, long=True)), (3.528, Curve(335, 318, clockwise=True, stretch=0.346, long=True)), (7.5, Space(0, margins=False)), (1, cross.instructions[0][1].reversed(), True), *[(op[0] / 3, op[1]) for op in cross.instructions]])
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270)
         p_reverse = Line(90)
@@ -4658,6 +4660,7 @@ class Builder:
             self._schemas += [
                 Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
                 Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
+                Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
                 Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
                 Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
                 Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
