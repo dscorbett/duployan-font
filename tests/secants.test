@@ -73,14 +73,14 @@
 1BC77 1BC41::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.280@177,-146|u1BC41.a@320,0|_@440,0]
 
 # Initial before initial non-hub letter
-1BC70 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,550|u1BC41.a.300p300@700,450|u1BC04.f@700,0|_@1240,0]
-1BC71 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@120,550|u1BC41.a.300p300@533,450|u1BC04.f@533,0|_@1240,0]
-1BC72 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@120,550|u1BC41.a.300p300@366,450|u1BC04.f@366,0|_@1240,0]
-1BC73 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@220,-117|u1BC41.a.300p300@133,450|u1BC04.f@133,0|_@541,0]
-1BC74 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@220,50|u1BC41.a.300p300@133,450|u1BC04.f@133,0|_@541,0]
-1BC75 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@220,217|u1BC41.a.300p300@133,450|u1BC04.f@133,0|_@541,0]
-1BC76 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76.secant@370,334|u1BC41.a.300p300@158,450|u1BC04.f@158,0|_@566,0]
-1BC77 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@120,359|u1BC41.a.300p300@194,450|u1BC04.f@194,0|_@602,0]
+1BC70 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,550|u1BC41.a.120n120@700,450|u1BC04.f@700,0|_@1240,0]
+1BC71 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@120,550|u1BC41.a.120n120@533,450|u1BC04.f@533,0|_@1240,0]
+1BC72 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@120,550|u1BC41.a.120n120@366,450|u1BC04.f@366,0|_@1240,0]
+1BC73 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@220,-117|u1BC41.a.120n120@133,450|u1BC04.f@133,0|_@541,0]
+1BC74 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@220,50|u1BC41.a.120n120@133,450|u1BC04.f@133,0|_@541,0]
+1BC75 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@220,217|u1BC41.a.120n120@133,450|u1BC04.f@133,0|_@541,0]
+1BC76 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76.secant@370,334|u1BC41.a.120n120@158,450|u1BC04.f@158,0|_@566,0]
+1BC77 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@120,359|u1BC41.a.120n120@194,450|u1BC04.f@194,0|_@602,0]
 
 # Initial indirectly before medial non-hub letter
 1BC70 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@120,749|u1BC0A.g@931,0|u1BC41.a.240n300@354,-50|u1BC04.f@354,-400|_@1240,0]
@@ -106,8 +106,8 @@
 1BC02 1BCA1 1BC3A 1BC72::[u1BC02.p@673,0|u1BC3A.w_r@973,-353|u1BC72.right_horizontal_secant.0@120,-53|_@1240,0]
 
 # Final after circle letter
-1BC04 1BC41 1BC70::[u1BC04.f@412,0|u1BC41.a.300p300@700,-50|u1BC70.left_horizontal_secant.0@120,50|_@1240,0]
-1BC04 1BC57 1BC73::[u1BC04.f@120,0|u1BC57.uh.300p300@408,-215|u1BC73.low_vertical_secant.90@495,-617|_@789,0]
+1BC04 1BC41 1BC70::[u1BC04.f@412,0|u1BC41.a.120n120@700,-50|u1BC70.left_horizontal_secant.0@120,50|_@1240,0]
+1BC04 1BC57 1BC73::[u1BC04.f@120,0|u1BC57.uh.120n120@408,-215|u1BC73.low_vertical_secant.90@495,-617|_@789,0]
 
 # Medial after curve glyph
 1BC03 1BC1A 1BC74 1BC05::[u1BC03.t@120,720|u1BC1A.n@620,0|u1BC74.mid_vertical_secant.90@880,-320|u1BC05.k@620,-500|_@1040,0]
