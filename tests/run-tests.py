@@ -26,6 +26,9 @@ import sys
 CI = os.getenv('CI') == 'true'
 DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
 GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
+NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
+NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
+UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)')
 
 def parse_color(color):
     if color == 'auto':
@@ -51,6 +54,11 @@ def parse_json(s):
         x += int(glyph['ax'])
         y += int(glyph['ay'])
     yield f'_@{x},{y}'
+
+def munge(output, incomplete):
+    if incomplete:
+        return UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
+    return output
 
 def print_diff(actual_output, expected_output, color):
     if color:
@@ -84,7 +92,7 @@ def print_diff(actual_output, expected_output, color):
     print('Actual:   ' + actual_output)
     print('Expected: ' + expected_output)
 
-def run_test(font, line, png_file, color, view_all):
+def run_test(font, line, png_file, color, incomplete, view_all):
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         [
@@ -106,7 +114,7 @@ def run_test(font, line, png_file, color, view_all):
     if not font.endswith('-Regular.otf'):
         actual_output = GLYPH_POSITION_PATTERN.sub('', actual_output)
         expected_output = GLYPH_POSITION_PATTERN.sub('', expected_output)
-    passed = actual_output == expected_output
+    passed = munge(actual_output, incomplete) == munge(expected_output, incomplete) or incomplete and NOTDEF_PATTERN.search(actual_output)
     if not passed or view_all:
         if not passed:
             print_diff(actual_output, expected_output, color)
@@ -140,6 +148,7 @@ def run_test(font, line, png_file, color, view_all):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run shaping tests.')
     parser.add_argument('--color', default='auto', help='Whether to print diffs in color: "yes", "no", or "auto".')
+    parser.add_argument('--incomplete', action='store_true', help='Whether the font is less than the complete font. Do not fail a test if the actual result contains `.notdef`. Ignore the parts of glyph names that indicate code points.')
     parser.add_argument('--view', action='store_true', help='Render all test cases, not just the failures.')
     parser.add_argument('font', help='The path to a font.')
     parser.add_argument('tests', nargs='*', help='The paths to test files.')
@@ -160,6 +169,7 @@ if __name__ == '__main__':
                         line,
                         os.path.join(failed_dir, 'png', os.path.basename(fn), '{:03}'.format(line_number)),
                         color,
+                        args.incomplete,
                         args.view,
                     )
                     passed_file = passed_file and passed_line

@@ -16,6 +16,7 @@
 STYLES = Regular Bold
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
+    CHECK_ARGS = --incomplete
     override NOTO = --noto
 else
     FONT_FAMILY_NAME = Duployan
@@ -39,7 +40,7 @@ clean:
 
 .PHONY: $(addprefix check-,$(STYLES))
 $(addprefix check-,$(STYLES)): check-%: $(FONT_PREFIX)%$(FONT_SUFFIX)
-	tests/run-tests.py $< tests/*.test
+	tests/run-tests.py $(CHECK_ARGS) $< tests/*.test
 
 .PHONY: check
 check: $(addprefix check-,$(STYLES))

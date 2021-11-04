@@ -114,5 +114,4 @@ jobs:
       - name: Build
         run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}"
       - name: Test
-        if: matrix.noto == ''
-        run: make "STYLES=${{ matrix.styles }}" check
+        run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}" check
