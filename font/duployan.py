@@ -1828,7 +1828,7 @@ class Circle(Shape):
             }{
                 int(angle_out)
             }{
-                'r' if self.reversed else ''
+                'r' if self.reversed and self.angle_in != self.angle_out else ''
             }'''
 
     def group(self):
