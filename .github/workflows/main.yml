@@ -18,10 +18,10 @@ on: push
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
   HARFBUZZ_VERSION: 4.1.0
-  PYTHON_VERSION: 3.9
+  PYTHON_VERSION: '3.10'
 jobs:
   main:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         noto:

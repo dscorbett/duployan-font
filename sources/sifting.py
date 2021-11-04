@@ -116,7 +116,7 @@ def _sift_groups_in_rule_part(
                                 if isinstance(output, str) and len(output_class := classes[output]) != 1:
                                     grouper.remove(intersection)
                                     new_groups = collections.defaultdict(list)
-                                    for input_schema, output_schema in zip(cls, output_class):
+                                    for input_schema, output_schema in zip(cls, output_class, strict=True):
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)

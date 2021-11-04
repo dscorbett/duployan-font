@@ -325,22 +325,26 @@ def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas,
         reversed=True,
     )
     for schema in new_schemas:
-        if isinstance(schema.path, ParentEdge):
-            node = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, RootOnlyParentEdge):
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ChildEdge):
-            valid_letter_overlap = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            valid_continuing_overlap = schema
-            classes['all'].append(schema)
-        elif isinstance(schema.path, InvalidOverlap):
-            if schema.path.continuing:
+        match schema.path:
+            case ParentEdge():
+                node = schema
+                classes['all'].append(schema)
+            case RootOnlyParentEdge():
+                root_only_parent_edge = schema
+                classes['all'].append(schema)
+            case ChildEdge():
+                valid_letter_overlap = schema
+                classes['all'].append(schema)
+            case ContinuingOverlap():
+                valid_continuing_overlap = schema
+                classes['all'].append(schema)
+            case InvalidOverlap(continuing=True):
                 invalid_continuing_overlap = schema
-            else:
-                invalid_letter_overlap = schema
+            case InvalidOverlap():
+                if schema.path.continuing:
+                    invalid_continuing_overlap = schema
+                else:
+                    invalid_letter_overlap = schema
     classes['valid'].append(valid_letter_overlap)
     classes['valid'].append(valid_continuing_overlap)
     classes['invalid'].append(invalid_letter_overlap)
@@ -563,18 +567,19 @@ def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            classes['overlap'].append(schema)
-            if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
-                classes['final_letter_overlap'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            continuing_overlap = schema
-            classes['overlap'].append(schema)
-        elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
-            root_parent_edge = schema
-            classes['secant_or_root_parent_edge'].append(schema)
-        elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.MARK:
-            classes['secant_or_root_parent_edge'].append(schema)
+        match schema.path:
+            case ChildEdge():
+                classes['overlap'].append(schema)
+                if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
+                    classes['final_letter_overlap'].append(schema)
+            case ContinuingOverlap():
+                continuing_overlap = schema
+                classes['overlap'].append(schema)
+            case ParentEdge(lineage=[]):
+                root_parent_edge = schema
+                classes['secant_or_root_parent_edge'].append(schema)
+            case Line() if schema.path.secant and schema.glyph_class == GlyphClass.MARK:
+                classes['secant_or_root_parent_edge'].append(schema)
     add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
     named_lookups['promote'] = Lookup(None, None, None)
     add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))

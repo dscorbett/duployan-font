@@ -443,6 +443,7 @@ class Rule:
                                 self.x_advances or [None] * len(self.inputs),
                             )
                     ],
+                    strict=True,
                 )),
                 glyphs_to_ast(self.contexts_in),
                 glyphs_to_ast(self.contexts_out),
@@ -511,7 +512,7 @@ class Rule:
                         input_class_index = i
                 assert input_class is not None, 'A ligature substitution with a glyph class output must have a glyph class input'
                 asts = []
-                for input_glyph_name, output_glyph_name in zip(class_asts[input_class].glyphs.glyphs, class_asts[output].glyphs.glyphs):
+                for input_glyph_name, output_glyph_name in zip(class_asts[input_class].glyphs.glyphs, class_asts[output].glyphs.glyphs, strict=True):
                     asts.append(fontTools.feaLib.ast.LigatureSubstStatement(
                         glyphs_to_ast(self.contexts_in),
                         [

@@ -698,7 +698,7 @@ class Builder:
             schema.diphthong_2,
         )
         if schema.joining_type == Type.NON_JOINING:
-            glyph.left_side_bearing = scalar * schema.side_bearing
+            glyph.left_side_bearing = int(scalar * schema.side_bearing)
         else:
             entry_x = next(
                 (x for anchor_class_name, type, x, _ in glyph.anchorPoints
@@ -728,7 +728,7 @@ class Builder:
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
-            glyph.right_side_bearing = scalar * schema.side_bearing
+            glyph.right_side_bearing = int(scalar * schema.side_bearing)
 
     def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
         glyph_name = str(schema)
@@ -759,18 +759,19 @@ class Builder:
                 x = round(x)
                 y = round(y)
                 glyph_name = glyph.glyphname
-                if type == 'mark':
-                    mark_positions[anchor_class_name][(x, y)].append(glyph_name)
-                elif type == 'base':
-                    base_positions[anchor_class_name][(x, y)].append(glyph_name)
-                elif type == 'basemark':
-                    basemark_positions[anchor_class_name][(x, y)].append(glyph_name)
-                elif type == 'entry':
-                    cursive_positions[anchor_class_name][glyph_name][0] = fontTools.feaLib.ast.Anchor(x, y)
-                elif type == 'exit':
-                    cursive_positions[anchor_class_name][glyph_name][1] = fontTools.feaLib.ast.Anchor(x, y)
-                else:
-                    raise RuntimeError('Unknown anchor type: {}'.format(type))
+                match type:
+                    case 'mark':
+                        mark_positions[anchor_class_name][(x, y)].append(glyph_name)
+                    case 'base':
+                        base_positions[anchor_class_name][(x, y)].append(glyph_name)
+                    case 'basemark':
+                        basemark_positions[anchor_class_name][(x, y)].append(glyph_name)
+                    case 'entry':
+                        cursive_positions[anchor_class_name][glyph_name][0] = fontTools.feaLib.ast.Anchor(x, y)
+                    case 'exit':
+                        cursive_positions[anchor_class_name][glyph_name][1] = fontTools.feaLib.ast.Anchor(x, y)
+                    case _:
+                        raise RuntimeError('Unknown anchor type: {}'.format(type))
         for anchor_class_name, lookup in self._anchors.items():
             mark_class = fontTools.feaLib.ast.MarkClass(anchor_class_name)
             for x_y, glyph_class in mark_positions[anchor_class_name].items():
@@ -798,13 +799,13 @@ class Builder:
         marks = []
         ligatures = []
         for glyph in self.font.glyphs():
-            glyph_class = glyph.glyphclass
-            if glyph_class == GlyphClass.BLOCKER:
-                bases.append(glyph.glyphname)
-            elif glyph_class == GlyphClass.MARK:
-                marks.append(glyph.glyphname)
-            elif glyph_class == GlyphClass.JOINER:
-                ligatures.append(glyph.glyphname)
+            match glyph.glyphclass:
+                case GlyphClass.BLOCKER:
+                    bases.append(glyph.glyphname)
+                case GlyphClass.MARK:
+                    marks.append(glyph.glyphname)
+                case GlyphClass.JOINER:
+                    ligatures.append(glyph.glyphname)
         gdef = fontTools.feaLib.ast.TableBlock('GDEF')
         gdef.statements.append(fontTools.feaLib.ast.GlyphClassDefStatement(
             fontTools.feaLib.ast.GlyphClass(bases),

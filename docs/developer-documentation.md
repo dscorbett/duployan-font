@@ -22,7 +22,7 @@ limitations under the License.
 The prerequisites are:
 
 * GNU Make
-* Python 3.9 or later
+* Python 3.10 or later
 * FontForge 20190801 with Python 3 extensions
 
 To build Noto Sans Duployan, run:
