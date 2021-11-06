@@ -44,6 +44,7 @@ $(addprefix check-,$(STYLES)): check-%: $(FONT_PREFIX)%$(FONT_SUFFIX)
 
 .PHONY: check
 check: $(addprefix check-,$(STYLES))
+	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml $(FONTS)
 
 .PHONY: hb-shape
 hb-shape:

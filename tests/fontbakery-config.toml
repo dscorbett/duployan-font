@@ -12,5 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fontbakery == 0.8.3
-packaging >= 20.5, < 22
+exclude_checks = [
+    "com.google.fonts/check/family/win_ascent_and_descent",
+    "com.google.fonts/check/gpos_kerning_info",
+]
+
+[overrides."com.google.fonts/check/valid_glyphnames"]
+legacy-long-names = "PASS"
