@@ -4516,6 +4516,18 @@ class Builder:
             Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
+            Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
+            Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
+            Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC05, k_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC06, l_reverse, 1, Type.ORIENTING, shading_allowed=False),
+            Schema(0xEC19, m_reverse, 6, shading_allowed=False),
+            Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
+            Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
+            Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
             Schema(0x1BC00, h, 1, shading_allowed=False),
             Schema(0x1BC01, x, 0.75, shading_allowed=False),
             Schema(0x1BC02, p, 1, Type.ORIENTING),
@@ -4664,20 +4676,13 @@ class Builder:
             Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
             Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
         ]
-        if not noto:
-            self._schemas += [
-                Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
-                Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
-                Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
-                Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
-                Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
-                Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
-                Schema(0xEC05, k_reverse, 1, Type.ORIENTING, shading_allowed=False),
-                Schema(0xEC06, l_reverse, 1, Type.ORIENTING, shading_allowed=False),
-                Schema(0xEC19, m_reverse, 6, shading_allowed=False),
-                Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
-                Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
-                Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
+        if noto:
+            self._schemas = [
+                s for s in self._schemas
+                if s.cmap is None or not (
+                    unicodedata.category(chr(s.cmap)) == 'Co'
+                    or unicodedata.category(chr(s.cmap)) == 'Zs' and s.joining_type != Type.NON_JOINING
+                )
             ]
 
     def _dont_ignore_default_ignorables(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
