@@ -7411,6 +7411,8 @@ class Builder:
             for statement in lp[0].to_asts(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
                 self._fea.statements.append(statement)
         self._add_lookups(class_asts)
+        self.font.selection.all()
+        self.font.simplify(3, ('smoothcurves',))
 
     def merge_features(self, tt_font, old_fea):
         self._fea.statements.extend(
