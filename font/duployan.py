@@ -38,6 +38,7 @@ EPSILON = 1e-5
 RADIUS = 50
 LINE_FACTOR = 500
 SHADING_FACTOR = 12 / 7
+REGULAR_LIGHT_LINE = 70
 MINIMUM_STROKE_GAP = 70
 STRIKEOUT_POSITION = 258
 MAX_HUB_PRIORITY = 2
@@ -4206,7 +4207,7 @@ class Builder:
         self._fea = fontTools.feaLib.ast.FeatureFile()
         self._anchors = {}
         self._initialize_phases()
-        self.light_line = 101 if bold else 70
+        self.light_line = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line = SHADING_FACTOR * self.light_line
         self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
         code_points = collections.defaultdict(int)

@@ -30,15 +30,9 @@ jobs:
           - frozen
           - oldest
           - newest
-        styles:
-          - Regular
         include:
-          - noto: ''
-            requirements: frozen
-            styles: Bold
           - noto: true
             requirements: frozen
-            styles: Regular
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -112,6 +106,6 @@ jobs:
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
-        run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}"
+        run: make -j "NOTO=${{ matrix.noto }}"
       - name: Test
-        run: make "NOTO=${{ matrix.noto }}" "STYLES=${{ matrix.styles }}" check
+        run: make -j "NOTO=${{ matrix.noto }}" check

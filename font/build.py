@@ -177,9 +177,9 @@ def tweak_font(options, builder):
         tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
         tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
         tt_font['OS/2'].yStrikeoutPosition = duployan.STRIKEOUT_POSITION
-        tt_font['OS/2'].yStrikeoutSize = builder.light_line
+        tt_font['OS/2'].yStrikeoutSize = duployan.REGULAR_LIGHT_LINE
         tt_font['post'].underlinePosition = tt_font['OS/2'].sTypoDescender
-        tt_font['post'].underlineThickness = builder.light_line
+        tt_font['post'].underlineThickness = duployan.REGULAR_LIGHT_LINE
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender

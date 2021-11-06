@@ -55,9 +55,11 @@ def parse_json(s):
         y += int(glyph['ay'])
     yield f'_@{x},{y}'
 
-def munge(output, incomplete):
+def munge(output, regular, incomplete):
     if incomplete:
-        return UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
+        output = UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
+    if not regular:
+        output = GLYPH_POSITION_PATTERN.sub('', output)
     return output
 
 def print_diff(actual_output, expected_output, color):
@@ -111,10 +113,8 @@ def run_test(font, line, png_file, color, incomplete, view_all):
     stdout_data, stderr_data = p.communicate()
     print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
     actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
-    if not font.endswith('-Regular.otf'):
-        actual_output = GLYPH_POSITION_PATTERN.sub('', actual_output)
-        expected_output = GLYPH_POSITION_PATTERN.sub('', expected_output)
-    passed = munge(actual_output, incomplete) == munge(expected_output, incomplete) or incomplete and NOTDEF_PATTERN.search(actual_output)
+    regular = font.endswith('-Regular.otf')
+    passed = munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete) or incomplete and NOTDEF_PATTERN.search(actual_output)
     if not passed or view_all:
         if not passed:
             print_diff(actual_output, expected_output, color)
