@@ -739,7 +739,7 @@ class Space(Shape):
         self,
         angle,
         *,
-        margins=True,
+        margins=False,
     ):
         self.angle = angle
         self.margins = margins
@@ -1085,7 +1085,7 @@ class Line(Shape):
         angle,
         *,
         minor=False,
-        stretchy=True,
+        stretchy=False,
         secant=None,
         secant_curvature_offset=45,
         dots=None,
@@ -2495,7 +2495,7 @@ class InvalidStep(Complex):
         )
 
     def contextualize(self, context_in, context_out):
-        return Space(self.angle)
+        return Space(self.angle, margins=True)
 
     def context_in(self):
         return NO_CONTEXT
@@ -4295,35 +4295,35 @@ class Builder:
 
     def _initialize_schemas(self, noto, light_line, stroke_gap):
         notdef = Notdef()
-        space = Space(0)
+        space = Space(0, margins=True)
         h = Dot()
-        exclamation = Complex([(1, h), (201, Space(90, margins=False)), (1.109, Line(90, stretchy=False))])
-        dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, relative_stretch=False)), (0.0995, Line(360 - 8, stretchy=False)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, relative_stretch=False)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (151.739, Space(328.952, margins=False)), (1.484, Line(90, stretchy=False)), (140, Space(0, margins=False)), (1.484, Line(270, stretchy=False))])
-        asterisk = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
-        plus = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
-        comma = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
-        slash = Line(60, stretchy=False)
+        exclamation = Complex([(1, h), (201, Space(90)), (1.109, Line(90))])
+        dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, relative_stretch=False)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, relative_stretch=False)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
+        asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), False), (0.467, Line(126)), (0.467, Line(306), False), (0.467, Line(54)), (0.467, Line(234), False), (0.467, Line(342))])
+        plus = Complex([(146, Space(90)), (0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
+        comma = Complex([(35, Space(0)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
+        slash = Line(60)
         zero = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
-        one = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
-        two = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.7, Line(0, stretchy=False))])
-        three = Complex([(3, Curve(36, 0, clockwise=True, stretch=0.2, long=True)), (3, Curve(0, 180, clockwise=True, stretch=0.2, long=True)), (0.15, Line(180, stretchy=False)), (0.15, Line(0, stretchy=False)), (3.36, Curve(0, 180, clockwise=True, stretch=0.375, long=True)), (3.42, Curve(180, 155, clockwise=True, stretch=0.937, long=True))])
-        four = Complex([(1.296, Line(90, stretchy=False)), (1.173, Line(235, stretchy=False)), (0.922, Line(0, stretchy=False))])
-        five = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145, stretchy=False)), (0.572, Line(0, stretchy=False))])
+        one = Complex([(1.288, Line(90)), (0.416, Line(218))])
+        two = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232)), (0.7, Line(0))])
+        three = Complex([(3, Curve(36, 0, clockwise=True, stretch=0.2, long=True)), (3, Curve(0, 180, clockwise=True, stretch=0.2, long=True)), (0.15, Line(180)), (0.15, Line(0)), (3.36, Curve(0, 180, clockwise=True, stretch=0.375, long=True)), (3.42, Curve(180, 155, clockwise=True, stretch=0.937, long=True))])
+        four = Complex([(1.296, Line(90)), (1.173, Line(235)), (0.922, Line(0))])
+        five = Complex([(3.72, Curve(330, 0, clockwise=False, stretch=0.196, long=True)), (3.72, Curve(0, 180, clockwise=False, stretch=13 / 93, long=True)), (3.72, Curve(180, 210, clockwise=False, stretch=0.196, long=True)), (0.565, Line(86.145)), (0.572, Line(0))])
         six = Complex([(3.88, Circle(90, 90, clockwise=True)), (19.5, Curve(90, 70, clockwise=True, stretch=0.45)), (4, Curve(65, 355, clockwise=True))])
-        seven = Complex([(0.818, Line(0, stretchy=False)), (1.36, Line(246, stretchy=False))])
+        seven = Complex([(0.818, Line(0)), (1.36, Line(246))])
         eight = Complex([(2.88, Curve(180, 90, clockwise=True)), (2.88, Curve(90, 270, clockwise=True)), (2.88, Curve(270, 180, clockwise=True)), (3.16, Curve(180, 270, clockwise=False)), (3.16, Curve(270, 90, clockwise=False)), (3.16, Curve(90, 180, clockwise=False))])
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
-        colon = Complex([(1, h), (509, Space(90, margins=False)), (1, h)])
-        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (416, Space(90, margins=False)), (1, h)])
-        question = Complex([(1, h), (201, Space(90, margins=False)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45, stretchy=False)), (4.013, Curve(45, 210, clockwise=False))])
-        less_than = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
-        equal = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
-        greater_than = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
-        left_bracket = Complex([(0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
-        right_bracket = Complex([(0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
-        guillemet_vertical_space = (75, Space(90, margins=False))
-        guillemet_horizontal_space = (200, Space(0, margins=False))
-        left_guillemet = [(0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False))]
+        colon = Complex([(1, h), (509, Space(90)), (1, h)])
+        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (416, Space(90)), (1, h)])
+        question = Complex([(1, h), (201, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
+        less_than = Complex([(1, Line(153)), (1, Line(27))])
+        equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
+        greater_than = Complex([(1, Line(27)), (1, Line(153))])
+        left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
+        right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
+        guillemet_vertical_space = (75, Space(90))
+        guillemet_horizontal_space = (200, Space(0))
+        left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
         right_guillemet = [*reversed(left_guillemet)]
         left_guillemet += [(op[0], op[1].reversed(), True) for op in left_guillemet]
         right_guillemet += [(op[0], op[1].reversed(), True) for op in right_guillemet]
@@ -4332,44 +4332,44 @@ class Builder:
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
         right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
         enclosing_circle = Circle(180, 180, clockwise=False)
-        masculine_ordinal_indicator = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
-        multiplication = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
-        grave = Line(150, stretchy=False)
-        acute = Line(45, stretchy=False)
-        circumflex = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
-        macron = Line(0, stretchy=False)
+        masculine_ordinal_indicator = Complex([(625.5, Space(90)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
+        multiplication = Complex([(1, Line(315)), (0.5, Line(135), False), (0.5, Line(225)), (1, Line(45))])
+        grave = Line(150)
+        acute = Line(45)
+        circumflex = Complex([(1, Line(25)), (1, Line(335))])
+        macron = Line(0)
         breve = Curve(270, 90, clockwise=False, stretch=0.2)
-        diaeresis = Line(0, stretchy=False, dots=2)
-        caron = Complex([(1, Line(335, stretchy=False)), (1, Line(25, stretchy=False))])
+        diaeresis = Line(0, dots=2)
+        caron = Complex([(1, Line(335)), (1, Line(25))])
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
-        en_dash = Complex([(395, Space(90, margins=False)), (1, Line(0, stretchy=False))])
-        high_left_quote = Complex([(755, Space(90, margins=False)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0, margins=False)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
-        high_right_quote = Complex([(742, Space(90, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-        low_right_quote = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0, margins=False)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-        ellipsis = Complex([(1, h), (148, Space(0, margins=False)), (1, h), (148, Space(0, margins=False)), (1, h)])
-        nnbsp = Space(0, margins=False)
-        dotted_circle = Complex([(33, Space(90, margins=False)), (1, h), (446, Space(90, margins=False)), (1, h), (223, Space(270, margins=False)), (223, Space(60, margins=False)), (1, h), (446, Space(240, margins=False)), (1, h), (223, Space(60, margins=False)), (223, Space(30, margins=False)), (1, h), (446, Space(210, margins=False)), (1, h), (223, Space(30, margins=False)), (223, Space(0, margins=False)), (1, h), (446, Space(180, margins=False)), (1, h), (223, Space(0, margins=False)), (223, Space(330, margins=False)), (1, h), (446, Space(150, margins=False)), (1, h), (223, Space(330, margins=False)), (223, Space(300, margins=False)), (1, h), (446, Space(120, margins=False)), (1, h)])
-        skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 0.55, Space(270, margins=False)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120, margins=False)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0, margins=False)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240, margins=False)), (7 * 2 * 1.4 * RADIUS * 0.3, Space(270, margins=False)), (1, h), (150, Space(160, margins=False)), (1, h), (150, Space(340, margins=False)), (150, Space(20, margins=False)), (1, h), (150, Space(200, margins=False)), (7 * 2 * 1.4 * RADIUS / 2, Space(270, margins=False)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150, stretchy=False), False), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330, stretchy=False)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150, stretchy=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30, stretchy=False), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210, stretchy=False)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
-        stenographic_period = Complex([(0.5, Line(135, stretchy=False)), *multiplication.instructions])
-        double_hyphen = Complex([(305, Space(90, margins=False)), (0.5, Line(0, stretchy=False)), (179, Space(90, margins=False)), (0.5, Line(180, stretchy=False))])
+        en_dash = Complex([(395, Space(90)), (1, Line(0))])
+        high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
+        high_right_quote = Complex([(742, Space(90)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
+        low_right_quote = Complex([(35, Space(0)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
+        ellipsis = Complex([(1, h), (148, Space(0)), (1, h), (148, Space(0)), (1, h)])
+        nnbsp = Space(0)
+        dotted_circle = Complex([(33, Space(90)), (1, h), (446, Space(90)), (1, h), (223, Space(270)), (223, Space(60)), (1, h), (446, Space(240)), (1, h), (223, Space(60)), (223, Space(30)), (1, h), (446, Space(210)), (1, h), (223, Space(30)), (223, Space(0)), (1, h), (446, Space(180)), (1, h), (223, Space(0)), (223, Space(330)), (1, h), (446, Space(150)), (1, h), (223, Space(330)), (223, Space(300)), (1, h), (446, Space(120)), (1, h)])
+        skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 0.55, Space(270)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 0.3, Space(270)), (1, h), (150, Space(160)), (1, h), (150, Space(340)), (150, Space(20)), (1, h), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), False), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
+        stenographic_period = Complex([(0.5, Line(135)), *multiplication.instructions])
+        double_hyphen = Complex([(305, Space(90)), (0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
         bound = Bound()
         cross_knob_line_factor = 0.42
         cross_knob_factor = cross_knob_line_factor * LINE_FACTOR / RADIUS
         cross_knob_instructions = [(cross_knob_line_factor, Line(270), True), (cross_knob_factor, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True), (cross_knob_factor / 2, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True)]
         cross_pommy = Complex([*cross_knob_instructions, (3 + 2 * cross_knob_line_factor, Line(270)), *cross_knob_instructions, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), *cross_knob_instructions, (2 + 2 * cross_knob_line_factor, Line(0)), *cross_knob_instructions])
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
-        sacred_heart = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.904, Line(128, stretchy=False)), (3.528, Curve(128, 335, clockwise=True, stretch=0.036, long=True)), (3.528, Curve(335, 318, clockwise=True, stretch=0.346, long=True)), (7.5, Space(0, margins=False)), (1, cross.instructions[0][1].reversed(), True), *[(op[0] / 3, op[1]) for op in cross.instructions]])
+        sacred_heart = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232)), (0.904, Line(128)), (3.528, Curve(128, 335, clockwise=True, stretch=0.036, long=True)), (3.528, Curve(335, 318, clockwise=True, stretch=0.346, long=True)), (7.5, Space(0)), (1, cross.instructions[0][1].reversed(), True), *[(op[0] / 3, op[1]) for op in cross.instructions]])
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
-        p = Line(270)
-        p_reverse = Line(90)
-        t = Line(0)
-        t_reverse = Line(180)
-        f = Line(300)
-        f_reverse = Line(120)
-        k = Line(240)
-        k_reverse = Line(60)
-        l = Line(45)
-        l_reverse = Line(225)
+        p = Line(270, stretchy=True)
+        p_reverse = Line(90, stretchy=True)
+        t = Line(0, stretchy=True)
+        t_reverse = Line(180, stretchy=True)
+        f = Line(300, stretchy=True)
+        f_reverse = Line(120, stretchy=True)
+        k = Line(240, stretchy=True)
+        k_reverse = Line(60, stretchy=True)
+        l = Line(45, stretchy=True)
+        l_reverse = Line(225, stretchy=True)
         m = Curve(180, 0, clockwise=False, stretch=0.2)
         m_reverse = Curve(180, 0, clockwise=True, stretch=0.2)
         n = Curve(0, 180, clockwise=True, stretch=0.2)
@@ -4397,7 +4397,7 @@ class Builder:
         short_i = Curve(0, 180, clockwise=True)
         ui = Curve(90, 270, clockwise=True)
         ee = Curve(270, 90, clockwise=False, secondary=True)
-        ye = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t), (0.385, Line(242, stretchy=False)), (0.47, t)])
+        ye = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242)), (0.47, t), (0.385, Line(242)), (0.47, t), (0.385, Line(242)), (0.47, t)])
         u_n = Curve(90, 180, clockwise=True)
         long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
@@ -4408,27 +4408,27 @@ class Builder:
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
         wei = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (1, m), lambda c: c.clone(clockwise=not c.clockwise), (1, n)])
-        left_horizontal_secant = Line(0, stretchy=False, secant=2 / 3)
-        mid_horizontal_secant = Line(0, stretchy=False, secant=0.5)
-        right_horizontal_secant = Line(0, stretchy=False, secant=1 / 3)
-        low_vertical_secant = Line(90, stretchy=False, secant=2 / 3)
-        mid_vertical_secant = Line(90, stretchy=False, secant=0.5)
-        high_vertical_secant = Line(90, stretchy=False, secant=1 / 3)
-        rtl_secant = Line(240, stretchy=False, secant=0.5, secant_curvature_offset=55)
-        ltr_secant = Line(310, stretchy=False, secant=0.5, secant_curvature_offset=55)
-        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270, stretchy=False)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90, stretchy=False))], hook=True)
+        left_horizontal_secant = Line(0, secant=2 / 3)
+        mid_horizontal_secant = Line(0, secant=0.5)
+        right_horizontal_secant = Line(0, secant=1 / 3)
+        low_vertical_secant = Line(90, secant=2 / 3)
+        mid_vertical_secant = Line(90, secant=0.5)
+        high_vertical_secant = Line(90, secant=1 / 3)
+        rtl_secant = Line(240, secant=0.5, secant_curvature_offset=55)
+        ltr_secant = Line(310, secant=0.5, secant_curvature_offset=55)
+        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90))], hook=True)
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
         tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
-        high_acute = SeparateAffix([(0.5, Line(45, stretchy=False))])
-        high_tight_acute = SeparateAffix([(0.5, Line(45, stretchy=False))], tight=True)
-        high_grave = SeparateAffix([(0.5, Line(315, stretchy=False))])
-        high_long_grave = SeparateAffix([(0.4, Line(300, stretchy=False)), (0.75, Line(0, stretchy=False))])
+        high_acute = SeparateAffix([(0.5, Line(45))])
+        high_tight_acute = SeparateAffix([(0.5, Line(45))], tight=True)
+        high_grave = SeparateAffix([(0.5, Line(315))])
+        high_long_grave = SeparateAffix([(0.4, Line(300)), (0.75, Line(0))])
         high_dot = SeparateAffix([(1, Dot(centered=True))])
         high_circle = SeparateAffix([(2, Circle(0, 0, clockwise=False))])
-        high_line = SeparateAffix([(0.5, Line(0, stretchy=False))])
-        high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / LINE_FACTOR, Line(315, stretchy=False)), (2, Curve(315, 90, clockwise=False))])
-        high_vertical = SeparateAffix([(0.5, Line(90, stretchy=False))])
+        high_line = SeparateAffix([(0.5, Line(0))])
+        high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / LINE_FACTOR, Line(315)), (2, Curve(315, 90, clockwise=False))])
+        high_vertical = SeparateAffix([(0.5, Line(90))])
         low_acute = high_acute.clone(low=True)
         low_tight_acute = high_tight_acute.clone(low=True)
         low_grave = high_grave.clone(low=True)
@@ -4438,16 +4438,16 @@ class Builder:
         low_line = high_line.clone(low=True)
         low_wave = high_wave.clone(low=True)
         low_vertical = high_vertical.clone(low=True)
-        low_arrow = SeparateAffix([(0.4, Line(0, stretchy=False)), (0.4, Line(240, stretchy=False))], low=True)
-        likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90, margins=False)), (0.5, p), (math.hypot(125, 125), Space(135, margins=False)), (0.5, Line(0, stretchy=False))])
-        dotted_square = [(152, Space(270, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(90, stretchy=False)), (58 + light_line, Space(90, margins=False)), (0.26 - light_line / 1000, Line(90, stretchy=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(0, stretchy=False)), (58 + light_line, Space(0, margins=False)), (0.26 - light_line / 1000, Line(0, stretchy=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(270, stretchy=False)), (58 + light_line, Space(270, margins=False)), (0.26 - light_line / 1000, Line(270, stretchy=False)), (0.26 - light_line / 1000, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.264 - light_line / LINE_FACTOR, Line(180, stretchy=False)), (58 + light_line, Space(180, margins=False)), (0.26 - light_line / 1000, Line(180, stretchy=False))]
-        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0, margins=False)), (173, Space(90, margins=False)), (0.238, Line(180, stretchy=False)), (0.412, Line(90, stretchy=False)), (130, Space(90, margins=False)), (0.412, Line(90, stretchy=False)), (0.18, Line(0, stretchy=False)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180, stretchy=False)), (369, Space(0, margins=False)), (0.412, Line(90, stretchy=False)), (0.148, Line(180, stretchy=False), True), (0.296, Line(0, stretchy=False)), (341, Space(270, margins=False)), (14.5, Space(180, margins=False)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341, stretchy=False)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
-        chinook_period = Complex([(100, Space(90, margins=False)), (1, Line(0, stretchy=False)), (179, Space(90, margins=False)), (1, Line(180, stretchy=False))])
-        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0, margins=False)), (397, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (1.134, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False)), (170, Space(180, margins=False)), (0.4116, Line(90, stretchy=False))])
-        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0, margins=False)), (522, Space(90, margins=False)), (0.192, Line(90, stretchy=False)), (0.096, Line(270, stretchy=False), True), (0.726, Line(0, stretchy=False)), (124, Space(180, margins=False)), (145, Space(90, margins=False)), (0.852, Line(270, stretchy=False)), (0.552, Line(0, stretchy=False)), (0.32, Line(140, stretchy=False)), (0.32, Line(320, stretchy=False), True), (0.32, Line(220, stretchy=False))])
-        down_step = InvalidStep(270, dotted_square + [(444, Space(0, margins=False)), (749, Space(90, margins=False)), (1.184, Line(270, stretchy=False)), (0.32, Line(130, stretchy=False)), (0.32, Line(310, stretchy=False), True), (0.32, Line(50, stretchy=False))])
-        up_step = InvalidStep(90, dotted_square + [(444, Space(0, margins=False)), (157, Space(90, margins=False)), (1.184, Line(90, stretchy=False)), (0.32, Line(230, stretchy=False)), (0.32, Line(50, stretchy=False), True), (0.32, Line(310, stretchy=False))])
-        line = Line(0, stretchy=False)
+        low_arrow = SeparateAffix([(0.4, Line(0)), (0.4, Line(240))], low=True)
+        likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90)), (0.5, p), (math.hypot(125, 125), Space(135)), (0.5, Line(0))])
+        dotted_square = [(152, Space(270)), (0.26 - light_line / 1000, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.26 - light_line / 1000, Line(90)), (0.26 - light_line / 1000, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.26 - light_line / 1000, Line(0)), (0.26 - light_line / 1000, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.26 - light_line / 1000, Line(270)), (0.26 - light_line / 1000, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.26 - light_line / 1000, Line(180))]
+        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
+        chinook_period = Complex([(100, Space(90)), (1, Line(0)), (179, Space(90)), (1, Line(180))])
+        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])
+        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])
+        down_step = InvalidStep(270, dotted_square + [(444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])
+        up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
+        line = Line(0)
 
         dot_1 = Schema(None, h, 1, anchor=RELATIVE_1_ANCHOR)
         dot_2 = Schema(None, h, 1, anchor=RELATIVE_2_ANCHOR)
@@ -4958,7 +4958,7 @@ class Builder:
                 and schema in original_schemas
             ):
                 classes['secant'].append(schema)
-                zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+                zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
                 guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
                 guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
                 add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
@@ -4997,7 +4997,7 @@ class Builder:
                 classes[new_class].append(schema)
                 base_classes[max_tree_width] = new_class
         root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
-        placeholder = Schema(None, Space(0, margins=False), 0, Type.JOINING, side_bearing=0, child=True)
+        placeholder = Schema(None, Space(0), 0, Type.JOINING, side_bearing=0, child=True)
         for max_tree_width, base_class in base_classes.items():
             add_rule(lookup_1, Rule(
                 [base_class],
@@ -5359,7 +5359,7 @@ class Builder:
                 classes['c'].append(schema)
             elif schema.cmap == 0x2E3C:
                 period = schema
-        zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+        zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
         joining_period = period.clone(cmap=None, joining_type=Type.JOINING)
         add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
         return [lookup]
@@ -5376,7 +5376,7 @@ class Builder:
         equals_sign = next(s for s in schemas if s.cmap == 0x003D)
         continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
         root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
-        zwnj = Schema(None, Space(0), 0, Type.NON_JOINING, side_bearing=0)
+        zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
         classes['all'].append(continuing_overlap)
         classes['all'].append(root_parent_edge)
         add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
@@ -5917,8 +5917,8 @@ class Builder:
                         cps=schema.cps * i,
                         path=Complex([
                             (1, schema.path),
-                            (500, Space((schema.path.angle + 180) % 360, margins=False)),
-                            (250, Space((schema.path.angle - 90) % 360, margins=False)),
+                            (500, Space((schema.path.angle + 180) % 360)),
+                            (250, Space((schema.path.angle - 90) % 360)),
                         ] * i),
                     )]))
         return [lookup]
@@ -6151,7 +6151,7 @@ class Builder:
         def get_shim(width, height):
             return Schema(
                 None,
-                Space(width and math.degrees(math.atan(height / width)) % 360, margins=False),
+                Space(width and math.degrees(math.atan(height / width)) % 360),
                 math.hypot(width, height),
                 side_bearing=width,
             )
