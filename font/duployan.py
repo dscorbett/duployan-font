@@ -34,6 +34,8 @@ import fontTools.otlLib.builder
 
 DEFAULT_SIDE_BEARING = 85
 CAP_HEIGHT = 714
+BRACKET_HEIGHT = 1.27 * CAP_HEIGHT
+BRACKET_DEPTH = -0.27 * CAP_HEIGHT
 EPSILON = 1e-5
 RADIUS = 50
 LINE_FACTOR = 500
@@ -4300,7 +4302,7 @@ class Builder:
         asterisk = Complex([(310, Space(90, margins=False)), (0.467, Line(90, stretchy=False)), (0.467, Line(198, stretchy=False)), (0.467, Line(18, stretchy=False), False), (0.467, Line(126, stretchy=False)), (0.467, Line(306, stretchy=False), False), (0.467, Line(54, stretchy=False)), (0.467, Line(234, stretchy=False), False), (0.467, Line(342, stretchy=False))])
         plus = Complex([(146, Space(90, margins=False)), (0.828, Line(90, stretchy=False)), (0.414, Line(270, stretchy=False)), (0.414, Line(180, stretchy=False)), (0.828, Line(0, stretchy=False))])
         comma = Complex([(35, Space(0, margins=False)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
-        slash = Complex([(0, Space(0, margins=False)), (0.364, Line(240, stretchy=False)), (2.378, Line(60, stretchy=False))])
+        slash = Line(60, stretchy=False)
         zero = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
         one = Complex([(1.288, Line(90, stretchy=False)), (0.416, Line(218, stretchy=False))])
         two = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232, stretchy=False)), (0.7, Line(0, stretchy=False))])
@@ -4317,8 +4319,8 @@ class Builder:
         less_than = Complex([(1, Line(153, stretchy=False)), (1, Line(27, stretchy=False))])
         equal = Complex([(305, Space(90, margins=False)), (1, Line(0, stretchy=False)), (180, Space(90, margins=False)), (1, Line(180, stretchy=False)), (90, Space(270, margins=False)), (1, Line(0, stretchy=False), True)], maximum_tree_width=1)
         greater_than = Complex([(1, Line(27, stretchy=False)), (1, Line(153, stretchy=False))])
-        left_bracket = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(0, stretchy=False), False), (0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
-        right_bracket = Complex([(0, Space(0, margins=False)), (0.315, Line(270, stretchy=False), False), (0.45, Line(180, stretchy=False), False), (0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
+        left_bracket = Complex([(0.45, Line(180, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(0, stretchy=False))])
+        right_bracket = Complex([(0.45, Line(0, stretchy=False)), (2.059, Line(90, stretchy=False)), (0.45, Line(180, stretchy=False))])
         guillemet_vertical_space = (75, Space(90, margins=False))
         guillemet_horizontal_space = (200, Space(0, margins=False))
         left_guillemet = [(0.524, Line(129.89, stretchy=False)), (0.524, Line(50.11, stretchy=False))]
@@ -4462,7 +4464,7 @@ class Builder:
             Schema(0x002B, plus, 1, Type.NON_JOINING),
             Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x002E, h, 1, Type.NON_JOINING, shading_allowed=False),
-            Schema(0x002F, slash, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x002F, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x0030, zero, 3.882, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x0031, one, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x0032, two, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
@@ -4479,8 +4481,8 @@ class Builder:
             Schema(0x003D, equal, 1),
             Schema(0x003E, greater_than, 2, Type.NON_JOINING, shading_allowed=False),
             Schema(0x003F, question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
-            Schema(0x005B, left_bracket, 1, Type.NON_JOINING),
-            Schema(0x005D, right_bracket, 1, Type.NON_JOINING),
+            Schema(0x005B, left_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x005D, right_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
             Schema(0x00B0, enclosing_circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT, shading_allowed=False),
@@ -4513,7 +4515,7 @@ class Builder:
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
-            Schema(0x2044, slash, 1, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x20DD, enclosing_circle, 10, anchor=MIDDLE_ANCHOR),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2620, skull_and_crossbones, 1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
