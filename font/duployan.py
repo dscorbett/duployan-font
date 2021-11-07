@@ -7423,6 +7423,7 @@ class Builder:
                 self._fea.statements.append(statement)
         self._add_lookups(class_asts)
         self.font.selection.all()
+        self.font.round()
         self.font.simplify(3, ('smoothcurves',))
 
     def merge_features(self, tt_font, old_fea):
