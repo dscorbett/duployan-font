@@ -28,6 +28,7 @@ DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
 GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
 NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
 SPACE_NAME_COMPONENT_PATTERN = re.compile('(?<=[\[|])(?:uni00A0|uni200[0-9A]|uni202F|uni205F|uni3000)(?![0-9A-Za-z_])')
+FULL_FONT_CODE_POINTS = [0x034F]
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)')
 
@@ -116,7 +117,11 @@ def run_test(font, line, png_file, color, incomplete, view_all):
     actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
     regular = font.endswith('-Regular.otf')
     passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
-        or incomplete and (NOTDEF_PATTERN.search(actual_output) or SPACE_NAME_COMPONENT_PATTERN.search(expected_output))
+        or incomplete and (
+            NOTDEF_PATTERN.search(actual_output)
+            or SPACE_NAME_COMPONENT_PATTERN.search(expected_output)
+            or any(int(cp, 16) in FULL_FONT_CODE_POINTS for cp in code_points.split())
+        )
     )
     if not passed or view_all:
         if not passed:

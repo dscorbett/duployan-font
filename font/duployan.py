@@ -4206,7 +4206,7 @@ class Builder:
         self.font = font
         self._fea = fontTools.feaLib.ast.FeatureFile()
         self._anchors = {}
-        self._initialize_phases()
+        self._initialize_phases(noto)
         self.light_line = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line = SHADING_FACTOR * self.light_line
         self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
@@ -4222,10 +4222,15 @@ class Builder:
         assert not code_points, ('Duplicate code points:\n    '
             + '\n    '.join(map(hex, sorted(code_points.keys()))))
 
-    def _initialize_phases(self):
+    def _initialize_phases(self, noto):
         self._phases = [
             self._dont_ignore_default_ignorables,
-            self._reversed_circle_kludge,
+        ]
+        if not noto:
+            self._phases += [
+                self._reversed_circle_kludge,
+            ]
+        self._phases += [
             self._validate_shading,
             self._validate_double_marks,
             self._decompose,
@@ -4680,7 +4685,8 @@ class Builder:
             self._schemas = [
                 s for s in self._schemas
                 if s.cmap is None or not (
-                    unicodedata.category(chr(s.cmap)) == 'Co'
+                    s.cmap == 0x034F
+                    or unicodedata.category(chr(s.cmap)) == 'Co'
                     or unicodedata.category(chr(s.cmap)) == 'Zs' and s.joining_type != Type.NON_JOINING
                 )
             ]
