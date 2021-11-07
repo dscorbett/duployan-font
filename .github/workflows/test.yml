@@ -30,9 +30,13 @@ jobs:
           - frozen
           - oldest
           - newest
+        skip-check:
+          - ''
         include:
-          - noto: true
+          - noto: Noto
             requirements: frozen
+          - requirements: frozen
+            skip-check: skip-check
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -84,17 +88,20 @@ jobs:
       - name: Add site-packages to default search path
         run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Cache HarfBuzz
+        if: matrix.skip-check == ''
         id: cache-harfbuzz
         uses: actions/cache@v2
         with:
           key: ${{ runner.os }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}
           path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
       - name: Install HarfBuzz
-        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.skip-check == ''
         run: make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
       - name: Add HarfBuzz to path
+        if: matrix.skip-check == ''
         run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
       - name: Install dev requirements
+        if: matrix.skip-check == ''
         run: pip install --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Prepare oldest requirements
         if: matrix.requirements == 'oldest'
@@ -108,4 +115,5 @@ jobs:
       - name: Build
         run: make -j "NOTO=${{ matrix.noto }}"
       - name: Test
+        if: matrix.skip-check == ''
         run: make -j "NOTO=${{ matrix.noto }}" check

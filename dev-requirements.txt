@@ -186,7 +186,9 @@ dehinter==3.1.0 \
 font-v==1.0.5 \
     --hash=sha256:5542d83656be4bd5cf44da2512fef99ba376788345a06bbba5a0d8dda6034351 \
     --hash=sha256:561f4adca51f1f5a7bb2c558da04e7c35fb9f40ffba9020ecf8c06168e153c5d
-    # via fontbakery
+    # via
+    #   -r requirements.in
+    #   fontbakery
 fontbakery==0.8.3 \
     --hash=sha256:ab366fb9884034b946b69d2405bf93493cacf3ba891bc2538c8caa722f263be3
     # via -r dev-requirements.in
@@ -206,6 +208,7 @@ fonttools[lxml,ufo,unicode]==4.28.0 \
     --hash=sha256:a5a09dacac7dd8037957f97d0377f862b1ff862ba8d4d3f6182bc23a4b549c7a \
     --hash=sha256:c1021f3c994bc35d711832d13ed6bb20a79983e2f6b6d6afce13a8f88711cb1f
     # via
+    #   -r requirements.in
     #   babelfont
     #   booleanoperations
     #   collidoscope
@@ -463,9 +466,9 @@ requests==2.26.0 \
     --hash=sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24 \
     --hash=sha256:b8aa58f8cf793ffd8782d3d8cb19e66ef36f7aba4353eec859e74678b01b07a7
     # via fontbakery
-rich==10.12.0 \
-    --hash=sha256:83fb3eff778beec3c55201455c17cccde1ccdf66d5b4dade8ef28f56b50c4bd4 \
-    --hash=sha256:c30d6808d1cd3defd56a7bd2d587d13e53b5f55de6cf587f035bcbb56bc3f37b
+rich==10.13.0 \
+    --hash=sha256:96d15285b64dbf8154e0717298d2fdfdbbe03da26a392632c23820068f06c3b3 \
+    --hash=sha256:d80fc76f34d819c481a48f73ec9ac396bed3bd6a16ecd57f9e0654cd89a8fb56
     # via fontbakery
 rstr==3.0.0 \
     --hash=sha256:991dc613509e6c69bee088b122e5c46eea6238079e4e6d1865bf4fafea0cda33 \
