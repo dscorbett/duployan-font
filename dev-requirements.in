@@ -14,4 +14,4 @@
 
 -r requirements.in
 fontbakery == 0.8.3
-packaging >= 20.5, < 22
+packaging >= 20.5, <= 21.2
