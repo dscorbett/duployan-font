@@ -17,6 +17,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import os
 import re
 import subprocess
@@ -28,6 +29,7 @@ import fontTools.otlLib.builder
 import fontTools.ttLib
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
+import fontv.libfv
 
 import duployan
 import fonttools_patches
@@ -37,8 +39,13 @@ VERSION_PREFIX = 'Version '
 
 def build_font(options, font):
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
-        os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
-            ['git', 'log', '-1', '--format=%ct'], encoding='utf-8').rstrip()
+        try:
+            os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
+                    ['git', 'log', '-1', '--format=%ct'],
+                    encoding='utf-8',
+                ).rstrip()
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            os.environ['SOURCE_DATE_EPOCH'] = '0'
     font.selection.all()
     font.correctReferences()
     font.selection.none()
@@ -102,17 +109,32 @@ def set_unique_id(names, vendor, noto):
             postscript_name = name.string
     unique_id_record.string = f'{version};{vendor};{postscript_name}'
 
-def set_version_name(names, version, noto):
-    for name in names:
-        if name.nameID == 5:
-            if noto:
-                name.string = f'{VERSION_PREFIX}{version:.03f}'
-            else:
+def set_version_name(tt_font, noto):
+    version = tt_font['head'].fontRevision
+    if noto:
+        fontv_version = fontv.libfv.FontVersion(tt_font)
+        fontv_version.set_version_number(f'{version:.03f}')
+        try:
+            fontv_version.set_state_git_commit_sha1(development=True)
+        except OSError:
+            fontv_version.set_development_status()
+        fontv_version.write_version_string()
+    else:
+        for name in tt_font['name'].names:
+            if name.nameID == 5:
+                timestamp_format = '%Y%m%dT%H%M%SZ'
                 os.environ['TZ'] = 'UTC'
-                git_date = subprocess.check_output(['git', 'log', '-1', '--date=format-local:%Y%m%dT%H%M%SZ', '--format=%cd'], encoding='utf-8').rstrip()
-                git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-                name.string = f'{VERSION_PREFIX}{version}.0-alpha+{git_date}.{git_hash}'
-            break
+                try:
+                    git_date = subprocess.check_output(
+                            ['git', 'log', '-1', f'--date=format-local:{timestamp_format}', '--format=%cd'],
+                            encoding='utf-8',
+                        ).rstrip()
+                    git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
+                    metadata = f'{git_date}.{git_hash}'
+                except (FileNotFoundError, subprocess.CalledProcessError):
+                    metadata = datetime.datetime.fromtimestamp(int(os.environ["SOURCE_DATE_EPOCH"]), datetime.timezone.utc).strftime(timestamp_format)
+                name.string = f'{VERSION_PREFIX}{version}.0-alpha+{metadata}'
+                break
 
 def set_cff_data(names, cff):
     for name in names:
@@ -185,7 +207,7 @@ def tweak_font(options, builder):
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
-        set_version_name(tt_font['name'].names, tt_font['head'].fontRevision, options.noto)
+        set_version_name(tt_font, options.noto)
         set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID, options.noto)
         set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
 
