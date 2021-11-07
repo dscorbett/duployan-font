@@ -4334,7 +4334,6 @@ class Builder:
         enclosing_circle = Circle(180, 180, clockwise=False)
         masculine_ordinal_indicator = Complex([(625.5, Space(90, margins=False)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270, margins=False)), (105, Space(180, margins=False)), (0.42, Line(0, stretchy=False))])
         multiplication = Complex([(1, Line(315, stretchy=False)), (0.5, Line(135, stretchy=False), False), (0.5, Line(225, stretchy=False)), (1, Line(45, stretchy=False))])
-        greater_than_overlapping_less_than = Complex([(1, greater_than), (math.hypot(500 * math.cos(math.radians(27)), 1000 * math.sin(math.radians(27))), Space(360 - math.degrees(math.atan2(2 * math.sin(math.radians(27)), math.cos(math.radians(27)))), margins=False)), (1, less_than)])
         grave = Line(150, stretchy=False)
         acute = Line(45, stretchy=False)
         circumflex = Complex([(1, Line(25, stretchy=False)), (1, Line(335, stretchy=False))])
@@ -4520,7 +4519,6 @@ class Builder:
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2620, skull_and_crossbones, 1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
-            Schema(0x2AA4, greater_than_overlapping_less_than, 2, Type.NON_JOINING),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
             Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
