@@ -64,7 +64,7 @@ def munge(output, regular, incomplete):
         output = GLYPH_POSITION_PATTERN.sub('', output)
     return output
 
-def print_diff(actual_output, expected_output, color):
+def print_diff(code_points, options, actual_output, expected_output, color):
     if color:
         highlighted_actual_output = []
         highlighted_expected_output = []
@@ -93,6 +93,7 @@ def print_diff(actual_output, expected_output, color):
         actual_output = ''.join(highlighted_actual_output)
         expected_output = ''.join(highlighted_expected_output)
     print()
+    print(f'Input:    {code_points}:{options}')
     print('Actual:   ' + actual_output)
     print('Expected: ' + expected_output)
 
@@ -125,7 +126,7 @@ def run_test(font, line, png_file, color, incomplete, view_all):
     )
     if not passed or view_all:
         if not passed:
-            print_diff(actual_output, expected_output, color)
+            print_diff(code_points, options, actual_output, expected_output, color)
         if not CI:
             os.makedirs(os.path.dirname(png_file), exist_ok=True)
             png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
