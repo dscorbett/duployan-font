@@ -1988,6 +1988,7 @@ class Circle(Shape):
                 angle_in = angle_out
         if angle_out is None:
             angle_out = angle_in
+        is_reversed = self.reversed and self.role != CircleRole.LEADER
         clockwise_from_adjacent_curve = (
             context_in.clockwise
                 if context_in.clockwise is not None
@@ -1998,7 +1999,9 @@ class Circle(Shape):
             nonlocal clockwise
             nonlocal angle_in
             nonlocal angle_out
-            if (context_in.ignorable_for_topography and (context_in.clockwise == clockwise) != context_in.diphthong_start
+            if self.role == CircleRole.LEADER:
+                clockwise = self.clockwise
+            elif (context_in.ignorable_for_topography and (context_in.clockwise == clockwise) != context_in.diphthong_start
                 or context_out.ignorable_for_topography and (context_out.clockwise == clockwise) != context_out.diphthong_end
             ):
                 clockwise = not clockwise
@@ -2014,7 +2017,7 @@ class Circle(Shape):
                 angle_in = (angle_in - 180) % 360
                 angle_out = (angle_out - 180) % 360
         if angle_in == angle_out:
-            clockwise = (clockwise_from_adjacent_curve != self.reversed
+            clockwise = (clockwise_from_adjacent_curve != is_reversed
                 if clockwise_from_adjacent_curve is not None
                 else self.clockwise
             )
@@ -2031,10 +2034,10 @@ class Circle(Shape):
             clockwise_from_adjacent_curve
                 if forms_loop_next_to_curve and clockwise_from_adjacent_curve is not None
                 else clockwise_ignoring_curvature)
-        clockwise = clockwise_ignoring_reversal != self.reversed
+        clockwise = clockwise_ignoring_reversal != is_reversed
         flop()
         if angle_in == angle_out:
-            clockwise = (clockwise_from_adjacent_curve != self.reversed
+            clockwise = (clockwise_from_adjacent_curve != is_reversed
                 if clockwise_from_adjacent_curve is not None
                 else self.clockwise
             )
@@ -2043,16 +2046,16 @@ class Circle(Shape):
                 angle_out=angle_out,
                 clockwise=clockwise,
             )
-        if self.role != CircleRole.INDEPENDENT and (self.pinned or not self.reversed):
+        if self.role != CircleRole.INDEPENDENT and (self.pinned or not is_reversed):
             return self.clone(
                 angle_in=angle_in,
                 angle_out=angle_in if self.role == CircleRole.LEADER else angle_out,
                 clockwise=clockwise,
             )
         elif clockwise_ignoring_reversal == clockwise_ignoring_curvature:
-            if self.reversed:
+            if is_reversed:
                 if da != 180:
-                    return Curve(
+                    return Curve( ###
                         angle_in,
                         (angle_out + 180) % 360,
                         clockwise=clockwise,
@@ -2075,9 +2078,9 @@ class Circle(Shape):
                     long=True,
                 )
         else:
-            if self.reversed:
+            if is_reversed:
                 if da != 180:
-                    return Curve(
+                    return Curve( ###
                         angle_in,
                         angle_out,
                         clockwise=clockwise,
