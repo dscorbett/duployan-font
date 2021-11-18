@@ -38,8 +38,9 @@
 1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@120,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3716,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4742,0|_@4862,0]
 
 # Single medial curves may require flipping to avoid overlap, but the encoding
-# model does not allow that, so they get dotted circles. Some orienting
-# sequences might also need flipping, but they do not get dotted circles.
-1BC03 1BC46 0307 1BC19::[u1BC03.t@120,0|u1BC46.i.0p180@620,0|uni0307.dot_above@670,305|uni25CC.dotted_circle@840,0|u1BC19.m@1946,0|_@2066,0]
-1BC02 1BC47 0323 1BC03::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|uni0323.dot_below@220,-205|uni25CC.dotted_circle@440,0|u1BC03.t@1246,0|_@1866,0]
+# model does not allow that. They get glyphs with early exit anchor points
+# instead of dotted circles. Some orienting sequences might also need flipping,
+# but nothing happens for them.
+1BC03 1BC46 0307 1BC19::[u1BC03.t@120,620|u1BC46.i.0p180.ee@620,620|uni0307.dot_above@670,925|u1BC19.m@720,0|_@840,0]
+1BC02 1BC47 0323 1BC03::[u1BC02.p@320,0|u1BC46.i.270n90.ee@320,-100|uni0323.dot_below@220,-205|u1BC03.t@220,-100|_@840,0]
 1BC02 1BC47 1BC47 1BC03::[u1BC02.p@520,0|u1BC46.i.270n90@520,-100|u1BC46.i.90p270@320,0|u1BC03.t@120,0|_@740,0]

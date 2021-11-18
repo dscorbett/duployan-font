@@ -1351,9 +1351,11 @@ class Curve(Shape):
         reversed_circle=False,
         overlap_angle=None,
         secondary=None,
-        would_flip=None,
+        would_flip=False,
+        early_exit=False,
     ):
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
+        assert would_flip or not early_exit, 'An early exit is not needed if the curve would not flip'
         self.angle_in = angle_in
         self.angle_out = angle_out
         self.clockwise = clockwise
@@ -1365,6 +1367,7 @@ class Curve(Shape):
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
         self.secondary = clockwise if secondary is None else secondary
         self.would_flip = would_flip
+        self.early_exit = early_exit
 
     def clone(
         self,
@@ -1380,6 +1383,7 @@ class Curve(Shape):
         overlap_angle=CLONE_DEFAULT,
         secondary=CLONE_DEFAULT,
         would_flip=CLONE_DEFAULT,
+        early_exit=CLONE_DEFAULT,
     ):
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1393,6 +1397,7 @@ class Curve(Shape):
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
             would_flip=self.would_flip if would_flip is CLONE_DEFAULT else would_flip,
+            early_exit=self.early_exit if early_exit is CLONE_DEFAULT else early_exit,
         )
 
     def __str__(self):
@@ -1416,6 +1421,7 @@ class Curve(Shape):
             self.relative_stretch,
             self.reversed_circle,
             self.overlap_angle,
+            self.early_exit,
         )
 
     @staticmethod
@@ -1534,6 +1540,10 @@ class Curve(Shape):
             pen.lineTo(swash_endpoint)
             exit = rect(min(r, abs(swash_length)), math.radians(self.angle_out))
             exit = (p3[0] + exit[0], p3[1] + exit[1])
+        elif self.early_exit:
+            # TODO: Track the precise output angle instead of assuming that the exit
+            # should be halfway along the curve.
+            exit = rect(r, math.radians(a1 + da / 2))
         else:
             exit = p3
         if diphthong_1:
@@ -3388,6 +3398,8 @@ class Schema:
                     name += '.subs'
                 else:
                     name += '.dnom'
+        if isinstance(self.path, Curve) and self.path.early_exit:
+            name += '.ee'
         if not cps and isinstance(self.path, Space):
             name += f'''.{
                     int(self.size * math.cos(math.radians(self.path.angle)))
@@ -5809,10 +5821,10 @@ class Builder:
             'dflt',
             mark_filtering_set='all',
         )
-        dotted_circle = next(s for s in schemas if s.cmap == 0x25CC)
         for schema in new_schemas:
             if isinstance(schema.path, Curve) and schema.path.would_flip:
                 classes['i'].append(schema)
+                classes['o'].append(schema.clone(path=schema.path.clone(early_exit=True)))
             elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
                 classes['root_parent_edge'].append(schema)
                 classes['all'].append(schema)
@@ -5821,8 +5833,8 @@ class Builder:
             ):
                 classes['tail'].append(schema)
                 classes['all'].append(schema)
-        add_rule(lookup, Rule('i', 'root_parent_edge', 'tail', lookups=[None]))
-        add_rule(lookup, Rule('i', 'root_parent_edge', [], [dotted_circle, 'root_parent_edge']))
+        add_rule(lookup, Rule([], 'i', ['root_parent_edge', 'tail'], lookups=[None]))
+        add_rule(lookup, Rule([], 'i', 'root_parent_edge', 'o'))
         return [lookup]
 
     def _unignore_noninitial_orienting_sequences(self, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
