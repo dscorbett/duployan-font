@@ -28,11 +28,11 @@ FONTS = $(addprefix $(FONT_PREFIX),$(addsuffix $(FONT_SUFFIX),$(STYLES)))
 .PHONY: all
 all: $(FONTS)
 
-$(FONT_PREFIX)Regular.otf: font/Duployan.fea font/*.py
-	font/build.py --fea $< $(NOTO) --output $@
+$(FONT_PREFIX)Regular.otf: sources/Duployan.fea sources/*.py
+	sources/build.py --fea $< $(NOTO) --output $@
 
-$(FONT_PREFIX)Bold.otf: font/Duployan.fea font/*.py
-	font/build.py --bold --fea $< $(NOTO) --output $@
+$(FONT_PREFIX)Bold.otf: sources/Duployan.fea sources/*.py
+	sources/build.py --bold --fea $< $(NOTO) --output $@
 
 .PHONY: clean
 clean:
