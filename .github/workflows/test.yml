@@ -117,3 +117,11 @@ jobs:
       - name: Test
         if: matrix.skip-check == ''
         run: make -j "NOTO=${{ matrix.noto }}" check
+      - name: Commit and push
+        if: matrix.noto != '' && github.ref_name == github.event.repository.default_branch && contains(github.event.repository.name, 'Noto')
+        run: |
+          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config --local user.name 'github-actions[bot]'
+          git add -f fonts
+          git commit -m 'Automatically build the fonts'
+          git push
