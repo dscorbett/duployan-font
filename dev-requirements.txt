@@ -183,14 +183,14 @@ dehinter==4.0.0 \
     --hash=sha256:4510ff196caf179052ba578fe43e557024f6d6ce52952920e13e7e6eef74d768 \
     --hash=sha256:51e05cefbf5339f219fa4e0e23c8b95d049a541f83e60b36d4d502ce3d7674ac
     # via fontbakery
-font-v==1.0.5 \
-    --hash=sha256:5542d83656be4bd5cf44da2512fef99ba376788345a06bbba5a0d8dda6034351 \
-    --hash=sha256:561f4adca51f1f5a7bb2c558da04e7c35fb9f40ffba9020ecf8c06168e153c5d
+font-v==2.0.0 \
+    --hash=sha256:78f0403619566ffd6da403e20fd26f2532116d48b64296676da51497b4c0d449 \
+    --hash=sha256:ad25984b0bcafb892287b7dff204d3fff1a28c268fbcf10ed81dbbaff72e6a81
     # via
     #   -r requirements.in
     #   fontbakery
-fontbakery==0.8.3 \
-    --hash=sha256:ab366fb9884034b946b69d2405bf93493cacf3ba891bc2538c8caa722f263be3
+fontbakery==0.8.4 \
+    --hash=sha256:a39717c89e985c2770ab7ac1bed64be8a07d0f1fc5e20e457ccbb78fc5bbce07
     # via -r dev-requirements.in
 fontmath==0.8.1 \
     --hash=sha256:12ddfd0aa2014d70c2371edab3abf188e6757484223b9586e12545b94bce71ac \
@@ -558,7 +558,7 @@ pip==21.3.1 \
     --hash=sha256:deaf32dcd9ab821e359cd8330786bcd077604b5c5730c0b096eda46f95c24a2d \
     --hash=sha256:fd11ba3d0fdb4c07fbc5ecbba0b1b719809420f25038f8ee3cd913d3faa3033a
     # via pip-api
-setuptools==59.1.1 \
-    --hash=sha256:94ee891f4759150cded601a6beb6b08400413aefd0267b692f3f8c6e0bb238e7 \
-    --hash=sha256:fb537610c2dfe77b5896e3ee53dd53fbdd9adc48076c8f28cee3a30fb59a5038
+setuptools==59.2.0 \
+    --hash=sha256:157d21de9d055ab9e8ea3186d91e7f4f865e11f42deafa952d90842671fc2576 \
+    --hash=sha256:4adde3d1e1c89bde1c643c64d89cdd94cbfd8c75252ee459d4500bccb9c7d05d
     # via fs

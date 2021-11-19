@@ -13,5 +13,5 @@
 # limitations under the License.
 
 -r requirements.in
-fontbakery == 0.8.3
+fontbakery == 0.8.4
 packaging >= 20.5, <= 21.3
