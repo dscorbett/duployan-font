@@ -192,7 +192,7 @@ def tweak_font(options, builder):
 
         if options.noto:
             set_noto_values(tt_font)
-        else:
+        elif 'CFF ' in tt_font:
             tt_font['CFF '].cff[0].Notice = ''
 
         tt_font['OS/2'].usWinAscent = max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax)
@@ -210,7 +210,8 @@ def tweak_font(options, builder):
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_version_name(tt_font, options.noto)
         set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID, options.noto)
-        set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
+        if 'CFF ' in tt_font:
+            set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
 
         add_meta(tt_font)
 

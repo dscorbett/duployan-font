@@ -21,30 +21,38 @@ ifdef NOTO
 else
     FONT_FAMILY_NAME = Duployan
 endif
-FONT_PREFIX = font/$(FONT_FAMILY_NAME)-
-FONT_SUFFIX = .otf
-FONTS = $(addprefix $(FONT_PREFIX),$(addsuffix $(FONT_SUFFIX),$(STYLES)))
+SUFFIXES = otf ttf
+FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 
 .PHONY: all
 all: $(FONTS)
 
-$(FONT_PREFIX)Regular.otf: sources/Duployan.fea sources/*.py
+.PHONY: otf
+otf: $(filter %.otf,$(FONTS))
+
+.PHONY: ttf
+ttf: $(filter %.ttf,$(FONTS))
+
+$(foreach suffix,$(SUFFIXES),fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-Regular.$(suffix)): sources/Duployan.fea sources/*.py
 	sources/build.py --fea $< $(NOTO) --output $@
 
-$(FONT_PREFIX)Bold.otf: sources/Duployan.fea sources/*.py
+$(foreach suffix,$(SUFFIXES),fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-Bold.$(suffix)): sources/Duployan.fea sources/*.py
 	sources/build.py --bold --fea $< $(NOTO) --output $@
 
 .PHONY: clean
 clean:
 	$(RM) -r $(FONTS) tests/failed
 
-.PHONY: $(addprefix check-,$(STYLES))
-$(addprefix check-,$(STYLES)): check-%: $(FONT_PREFIX)%$(FONT_SUFFIX)
+.PHONY: $(addprefix check-,$(FONTS))
+$(addprefix check-,$(FONTS)): check-%: %
 	tests/run-tests.py $(CHECK_ARGS) $< tests/*.test
 
+.PHONY: $(addprefix fontbakery-,$(SUFFIXES))
+$(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
+	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml $(filter %.$*,$(FONTS))
+
 .PHONY: check
-check: $(addprefix check-,$(STYLES))
-	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml $(FONTS)
+check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES))
 
 .PHONY: hb-shape
 hb-shape:
