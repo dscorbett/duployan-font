@@ -50,7 +50,7 @@ def build_font(options, font):
     font.correctReferences()
     font.selection.none()
     flags = ['no-hints', 'omit-instructions', 'opentype']
-    os.makedirs(os.path.dirname(options.output), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.realpath(options.output)), exist_ok=True)
     font.generate(options.output, flags=flags)
 
 def generate_feature_string(font, lookup):
