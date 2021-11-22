@@ -22,9 +22,9 @@ font-v==2.0.0 \
     --hash=sha256:78f0403619566ffd6da403e20fd26f2532116d48b64296676da51497b4c0d449 \
     --hash=sha256:ad25984b0bcafb892287b7dff204d3fff1a28c268fbcf10ed81dbbaff72e6a81
     # via -r requirements.in
-fonttools==4.28.1 \
-    --hash=sha256:68071406009e7ef6a5fdcd85d95975cd6963867bb226f2b786bfffe15d1959ef \
-    --hash=sha256:8c8f84131bf04f3b1dcf99b9763cec35c347164ab6ad006e18d2f99fcab05529
+fonttools==4.28.2 \
+    --hash=sha256:dca694331af74c8ad47acc5171e57f6b78fac5692bf050f2ab572964577ac0dd \
+    --hash=sha256:eff1da7ea274c54cb8842853005a139f711646cbf6f1bcfb6c9b86a627f35ff0
     # via
     #   -r requirements.in
     #   font-v

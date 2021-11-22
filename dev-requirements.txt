@@ -204,9 +204,9 @@ fontpens==0.2.4 \
     --hash=sha256:a6d9a14573b3450f3313d69523f9006028c21fc7aef5d35333b87aab7f2b41fd \
     --hash=sha256:cdef727e49b54ac6228f8fa087ee539258f7b0a6f0accb63cbf31d4bfc437ce7
     # via defcon
-fonttools[lxml,ufo,unicode]==4.28.1 \
-    --hash=sha256:68071406009e7ef6a5fdcd85d95975cd6963867bb226f2b786bfffe15d1959ef \
-    --hash=sha256:8c8f84131bf04f3b1dcf99b9763cec35c347164ab6ad006e18d2f99fcab05529
+fonttools[lxml,ufo,unicode]==4.28.2 \
+    --hash=sha256:dca694331af74c8ad47acc5171e57f6b78fac5692bf050f2ab572964577ac0dd \
+    --hash=sha256:eff1da7ea274c54cb8842853005a139f711646cbf6f1bcfb6c9b86a627f35ff0
     # via
     #   -r requirements.in
     #   babelfont
