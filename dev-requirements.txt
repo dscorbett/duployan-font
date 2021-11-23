@@ -172,6 +172,26 @@ commonmark==0.9.1 \
     --hash=sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60 \
     --hash=sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9
     # via rich
+cu2qu==1.6.7.post1 \
+    --hash=sha256:22065d8491f971c6a4c6afe8cca24bdb75ea9a863f1709f3fe54258f5c22f4fe \
+    --hash=sha256:2d4ab5d8e84eb5f84acd6920d985b49de1d8eee5b57371afa472836807239365 \
+    --hash=sha256:3ec2fce44f7a265023fdaa094ab80da4180fe25935c3c11a18ffe677fa42f8f3 \
+    --hash=sha256:4806dc0a0c98153eb48ff4e6320581b97c0015d08fff5415c102e27a1af8a2d1 \
+    --hash=sha256:5fc1620156983c41f15be52574ddb13f80e2c8185b35aa5e9fcc03473d1f65f6 \
+    --hash=sha256:659057d91b6f8afe3d75525b2555a64f5efc51eb84c0c3a3a73a2808ed62504f \
+    --hash=sha256:885988713beee1a17c2b5586d19029422112fcdb3d38b6190b76fefb8ca8bb6d \
+    --hash=sha256:8c982f11de0151f41da83df4a4f75207380301c0356fb7a3322f0db74e16e6f4 \
+    --hash=sha256:9612c71947e6b35002157d44ebb10009b2c6b96e756915bb73ef618ac5c8cb0a \
+    --hash=sha256:a108487328b6c10b5b25cecc2f4f4337570c2ce3d694696604c8286d34238e3b \
+    --hash=sha256:c45fa047a3142cdfdfb00cba4d3e827a1b096a02c54600a3d199d392dbd90e7d \
+    --hash=sha256:c93619ba635427f42373077f52711bf3a253ec9080da2a9b80652037d6c0f987 \
+    --hash=sha256:d0edf3e02ad092efee6a6bbb2649482a2c26b33626decf0dd595f9197c9a3bad \
+    --hash=sha256:d95ccf87599a3b4ed22ab94603e449a91eb03ec211179f19ee91f54d7a2c67b2 \
+    --hash=sha256:dfb1c1abb012e6b0bfdefdfdbc2a7ae5d268a5923e56cf0416c439025316955f \
+    --hash=sha256:e6650526b4b9ac786c937cf4babf4b2f88dc9a2b2dfa931f1f2d386ad1c16c47 \
+    --hash=sha256:eb4b8d3154a1812bdabab69950175f7c3e017a10b12fc7178640997c5edec71c \
+    --hash=sha256:faed09723cad8e714d3326a225e8d00376b4620de9b07b5980fb4c41c8fff688
+    # via otf2ttf
 defcon[pens]==0.9.0 \
     --hash=sha256:140f51da51e9630a9fa11dfd34376c4e29785fdb0bddc2e371df5b36bec17b76 \
     --hash=sha256:cd9fee7c82e6122858fde9727928b13e534974c7157f77caeebc967dab3fd08e
@@ -212,6 +232,7 @@ fonttools[lxml,ufo,unicode]==4.28.2 \
     #   babelfont
     #   booleanoperations
     #   collidoscope
+    #   cu2qu
     #   defcon
     #   dehinter
     #   font-v
@@ -219,6 +240,7 @@ fonttools[lxml,ufo,unicode]==4.28.2 \
     #   fontmath
     #   fontparts
     #   glyphslib
+    #   otf2ttf
     #   ufolib2
     #   ufolint
     #   vharfbuzz
@@ -356,6 +378,10 @@ opentypespec==1.8.4 \
     --hash=sha256:03621635fed0d04345fa7b97837de31f992fa6619aeefcca0e75e342248dbde2 \
     --hash=sha256:0c25af728c2ffa71ec817f12805570c103725063e10b4941b34b70a2d2e26d17
     # via fontbakery
+otf2ttf==0.2 \
+    --hash=sha256:6a384863512b0ea1764a681afd6b94921491b893854aadba9e7e01969f401b16 \
+    --hash=sha256:d74e91b1a5650b3ca405f4cad7db942515d797a5ddb11d1e113f947975ad9e18
+    # via -r requirements.in
 packaging==21.3 \
     --hash=sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb \
     --hash=sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522

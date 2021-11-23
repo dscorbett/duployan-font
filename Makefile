@@ -33,11 +33,15 @@ otf: $(filter %.otf,$(FONTS))
 .PHONY: ttf
 ttf: $(filter %.ttf,$(FONTS))
 
-$(foreach suffix,$(SUFFIXES),fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-Regular.$(suffix)): sources/Duployan.fea sources/*.py
+fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
 	sources/build.py --fea $< $(NOTO) --output $@
 
-$(foreach suffix,$(SUFFIXES),fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-Bold.$(suffix)): sources/Duployan.fea sources/*.py
+fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
 	sources/build.py --bold --fea $< $(NOTO) --output $@
+
+$(addprefix fonts/ttf/unhinted/instance_ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/ttf/unhinted/instance_ttf/%.ttf: fonts/otf/unhinted/instance_otf/%.otf
+	mkdir -p "$$(dirname "$@")"
+	otf2ttf --output "$@" --overwrite "$<"
 
 .PHONY: clean
 clean:
