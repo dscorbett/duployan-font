@@ -16,10 +16,14 @@
 STYLES = Regular Bold
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
+    VERSION = 3.000
+    RELEASE =
     CHECK_ARGS = --incomplete
     override NOTO = --noto
 else
     FONT_FAMILY_NAME = Duployan
+    VERSION = 1.0
+    RELEASE =
 endif
 SUFFIXES = otf ttf
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
@@ -34,10 +38,10 @@ otf: $(filter %.otf,$(FONTS))
 ttf: $(filter %.ttf,$(FONTS))
 
 fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
-	sources/build.py --fea $< $(NOTO) --output $@
+	sources/build.py --fea $< $(NOTO) --output $@ $(RELEASE) --version $(VERSION)
 
 fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
-	sources/build.py --bold --fea $< $(NOTO) --output $@
+	sources/build.py --bold --fea $< $(NOTO) --output $@ $(RELEASE) --version $(VERSION)
 
 $(addprefix fonts/ttf/unhinted/instance_ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/ttf/unhinted/instance_ttf/%.ttf: fonts/otf/unhinted/instance_otf/%.otf
 	mkdir -p "$$(dirname "$@")"

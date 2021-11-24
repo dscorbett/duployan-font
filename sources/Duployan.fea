@@ -11,10 +11,6 @@ table OS/2 {
     Vendor "    ";
 } OS/2;
 
-table head {
-    FontRevision 1.000;
-} head;
-
 table name {
     nameid 0 "Copyright 2018-2019 David Corbett.\000A
 Copyright 2019-2021 Google LLC. All Rights Reserved.";

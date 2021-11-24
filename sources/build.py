@@ -63,7 +63,6 @@ def patch_fonttools():
 
 def set_noto_values(tt_font):
     tt_font['OS/2'].achVendID = 'GOOG'
-    tt_font['head'].fontRevision = 3.0
     for name in tt_font['name'].names:
         if name.nameID == 0:
             name.string = name.string.replace('\n', ' ')
@@ -109,31 +108,36 @@ def set_unique_id(names, vendor, noto):
             postscript_name = name.string
     unique_id_record.string = f'{version};{vendor};{postscript_name}'
 
-def set_version_name(tt_font, noto):
-    version = tt_font['head'].fontRevision
+def set_version(tt_font, noto, version, release):
+    tt_font['head'].fontRevision = version
     if noto:
         fontv_version = fontv.libfv.FontVersion(tt_font)
         fontv_version.set_version_number(f'{version:.03f}')
-        try:
-            fontv_version.set_state_git_commit_sha1(development=True)
-        except OSError:
-            fontv_version.set_development_status()
+        if not release:
+            try:
+                fontv_version.set_state_git_commit_sha1(development=True)
+            except OSError:
+                fontv_version.set_development_status()
         fontv_version.write_version_string()
     else:
         for name in tt_font['name'].names:
             if name.nameID == 5:
-                timestamp_format = '%Y%m%dT%H%M%SZ'
-                os.environ['TZ'] = 'UTC'
-                try:
-                    git_date = subprocess.check_output(
-                            ['git', 'log', '-1', f'--date=format-local:{timestamp_format}', '--format=%cd'],
-                            encoding='utf-8',
-                        ).rstrip()
-                    git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-                    metadata = f'{git_date}.{git_hash}'
-                except (FileNotFoundError, subprocess.CalledProcessError):
-                    metadata = datetime.datetime.fromtimestamp(int(os.environ["SOURCE_DATE_EPOCH"]), datetime.timezone.utc).strftime(timestamp_format)
-                name.string = f'{VERSION_PREFIX}{version}.0-alpha+{metadata}'
+                if release:
+                    release_suffix = ''
+                else:
+                    timestamp_format = '%Y%m%dT%H%M%SZ'
+                    os.environ['TZ'] = 'UTC'
+                    try:
+                        git_date = subprocess.check_output(
+                                ['git', 'log', '-1', f'--date=format-local:{timestamp_format}', '--format=%cd'],
+                                encoding='utf-8',
+                            ).rstrip()
+                        git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
+                        metadata = f'{git_date}.{git_hash}'
+                    except (FileNotFoundError, subprocess.CalledProcessError):
+                        metadata = datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.timezone.utc).strftime(timestamp_format)
+                    release_suffix = f'-alpha+{metadata}'
+                name.string = f'{VERSION_PREFIX}{version}.0{release_suffix}'
                 break
 
 def set_cff_data(names, cff):
@@ -207,7 +211,7 @@ def tweak_font(options, builder):
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
-        set_version_name(tt_font, options.noto)
+        set_version(tt_font, options.noto, options.version, options.release)
         set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID, options.noto)
         if 'CFF ' in tt_font:
             set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
@@ -234,6 +238,8 @@ if __name__ == '__main__':
     parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
     parser.add_argument('--noto', action='store_true', help='Build Noto Sans Duployan.')
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
+    parser.add_argument('--release', action='store_true', help='Set the version number as appropriate for a stable release, as opposed to an alpha.')
+    parser.add_argument('--version', type=float, required=True, help='The version number.')
     args = parser.parse_args()
     make_font(args)
 
