@@ -113,7 +113,7 @@ jobs:
       - name: Install requirements
         run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
-        run: make -j "NOTO=${{ matrix.noto }}"
+        run: make -B -j "NOTO=${{ matrix.noto }}"
       - name: Test
         if: matrix.skip-check == ''
         run: make -j "NOTO=${{ matrix.noto }}" check
