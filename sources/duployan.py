@@ -33,6 +33,7 @@ import fontTools.misc.transform
 import fontTools.otlLib.builder
 
 import sifting
+from utils import *
 
 DEFAULT_SIDE_BEARING = 85
 CAP_HEIGHT = 714
@@ -88,146 +89,12 @@ CURSIVE_ANCHORS = [
     CURSIVE_ANCHOR,
 ]
 ALL_ANCHORS = MARK_ANCHORS + CURSIVE_ANCHORS
-CLONE_DEFAULT = object()
 MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
 WIDTH_MARKER_RADIX = 4
 WIDTH_MARKER_PLACES = 7
 NO_PHASE_INDEX = -1
-CURVE_OFFSET = 75
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
-
-def mkmk(anchor):
-    return f'mkmk_{anchor}'
-
-class GlyphClass:
-    BLOCKER = 'baseglyph'
-    JOINER = 'baseligature'
-    MARK = 'mark'
-
-class Type(enum.Enum):
-    JOINING = enum.auto()
-    ORIENTING = enum.auto()
-    NON_JOINING = enum.auto()
-
-class Context:
-    def __init__(
-        self,
-        angle=None,
-        clockwise=None,
-        *,
-        minor=False,
-        ignorable_for_topography=False,
-        diphthong_start=False,
-        diphthong_end=False,
-    ):
-        assert clockwise is not None or not ignorable_for_topography
-        self.angle = float(angle) if angle is not None else None
-        self.clockwise = clockwise
-        self.minor = minor
-        self.ignorable_for_topography = ignorable_for_topography
-        self.diphthong_start = diphthong_start
-        self.diphthong_end = diphthong_end
-
-    def clone(
-        self,
-        *,
-        angle=CLONE_DEFAULT,
-        clockwise=CLONE_DEFAULT,
-        minor=CLONE_DEFAULT,
-        ignorable_for_topography=CLONE_DEFAULT,
-        diphthong_start=CLONE_DEFAULT,
-        diphthong_end=CLONE_DEFAULT,
-    ):
-        return type(self)(
-            self.angle if angle is CLONE_DEFAULT else angle,
-            self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            minor=self.minor if minor is CLONE_DEFAULT else minor,
-            ignorable_for_topography=self.ignorable_for_topography if ignorable_for_topography is CLONE_DEFAULT else ignorable_for_topography,
-            diphthong_start=self.diphthong_start if diphthong_start is CLONE_DEFAULT else diphthong_start,
-            diphthong_end=self.diphthong_end if diphthong_end is CLONE_DEFAULT else diphthong_end,
-        )
-
-    def __repr__(self):
-        return f'''Context({
-                self.angle
-            }, {
-                self.clockwise
-            }, minor={
-                self.minor
-            }, ignorable_for_topography={
-                self.ignorable_for_topography
-            }, diphthong_start={
-                self.diphthong_start
-            }, diphthong_end={
-                self.diphthong_end
-            })'''
-
-    def __str__(self):
-        if self.angle is None:
-            return ''
-        return f'''{
-            self.angle
-        }{
-            '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
-        }{
-            '.minor' if self.minor else ''
-        }{
-            '.ori' if self.ignorable_for_topography else ''
-        }{
-            '.diph' if self.diphthong_start or self.diphthong_end else ''
-        }{
-            '1' if self.diphthong_start else ''
-        }{
-            '2' if self.diphthong_end else ''
-        }'''
-
-    def __eq__(self, other):
-        return (
-            self.angle == other.angle
-            and self.clockwise == other.clockwise
-            and self.minor == other.minor
-            and self.ignorable_for_topography == other.ignorable_for_topography
-            and self.diphthong_start == other.diphthong_start
-            and self.diphthong_end == other.diphthong_end
-        )
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return (
-            hash(self.angle)
-            ^ hash(self.clockwise)
-            ^ hash(self.minor)
-            ^ hash(self.ignorable_for_topography)
-            ^ hash(self.diphthong_start)
-            ^ hash(self.diphthong_end)
-        )
-
-    def reversed(self):
-        return self.clone(
-            angle=None if self.angle is None else (self.angle + 180) % 360,
-            clockwise=None if self.clockwise is None else not self.clockwise,
-        )
-
-    def has_clockwise_loop_to(self, other):
-        if self.angle is None or other.angle is None:
-            return False
-        angle_in = self.angle
-        angle_out = other.angle
-        if self.clockwise:
-            angle_in += CURVE_OFFSET
-        elif self.clockwise == False:
-            angle_in -= CURVE_OFFSET
-        if other.clockwise:
-            angle_out -= CURVE_OFFSET
-        elif other.clockwise == False:
-            angle_out += CURVE_OFFSET
-        da = abs(angle_out - angle_in)
-        return da % 180 != 0 and (da >= 180) != (angle_out > angle_in)
-
-NO_CONTEXT = Context()
 
 def rect(r, theta):
     return (r * math.cos(theta), r * math.sin(theta))
