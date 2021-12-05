@@ -16,8 +16,8 @@
 STYLES = Regular Bold
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
-    VERSION = 3.000
-    RELEASE = --release
+    VERSION = 3.001
+    RELEASE =
     CHECK_ARGS = --incomplete
     override NOTO = --noto
 else
