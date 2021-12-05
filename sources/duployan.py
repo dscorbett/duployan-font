@@ -32,6 +32,8 @@ import fontTools.feaLib.parser
 import fontTools.misc.transform
 import fontTools.otlLib.builder
 
+import sifting
+
 DEFAULT_SIDE_BEARING = 85
 CAP_HEIGHT = 714
 BRACKET_HEIGHT = 1.27 * CAP_HEIGHT
@@ -4106,102 +4108,6 @@ class PrefixView:
     def items(self):
         return self._delegate.items()
 
-class Grouper:
-    def __init__(self, groups):
-        self._groups = []
-        self._inverted = {}
-        for group in groups:
-            if len(group) > 1:
-                self.add(group)
-
-    def groups(self):
-        return list(self._groups)
-
-    def group_of(self, item):
-        return self._inverted.get(item)
-
-    def add(self, group):
-        self._groups.append(group)
-        for item in group:
-            self._inverted[item] = group
-
-    def remove(self, group):
-        self._groups.remove(group)
-        for item in group:
-            del self._inverted[item]
-
-    def remove_item(self, group, item):
-        group.remove(item)
-        del self._inverted[item]
-        if len(group) == 1:
-            self.remove(group)
-
-    def remove_items(self, minuend, subtrahend):
-        for item in subtrahend:
-            try:
-                self.remove_item(minuend, item)
-            except ValueError:
-                pass
-
-def group_schemas(schemas):
-    group_dict = collections.defaultdict(list)
-    for schema in schemas:
-        group_dict[schema.group].append(schema)
-    return Grouper(group_dict.values())
-
-def sift_groups_in_lookup(grouper, lookup, classes, named_lookups_with_phases):
-    for rule in lookup.rules:
-        sift_groups(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)
-        sift_groups(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases)
-        sift_groups(grouper, rule, rule.inputs, classes, named_lookups_with_phases)
-
-def sift_groups(grouper, rule, target_part, classes, named_lookups_with_phases):
-    for s in target_part:
-        if isinstance(s, str):
-            cls = classes[s]
-            cls_intersection = set(cls).intersection
-            for group in grouper.groups():
-                intersection_set = cls_intersection(group)
-                if overlap := len(intersection_set):
-                    if overlap == len(group):
-                        intersection = group
-                    else:
-                        grouper.remove_items(group, intersection_set)
-                        if overlap != 1:
-                            intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
-                            grouper.add(intersection)
-                    if overlap != 1 and target_part is rule.inputs:
-                        if rule.outputs is not None:
-                            for output in rule.outputs:
-                                if isinstance(output, str) and len(output := classes[output]) != 1:
-                                    grouper.remove(intersection)
-                                    new_groups = collections.defaultdict(list)
-                                    for input_schema, output_schema in zip(cls, output):
-                                        if input_schema in intersection_set:
-                                            key = id(grouper.group_of(output_schema) or output_schema)
-                                            new_groups[key].append(input_schema)
-                                    new_intersection = None
-                                    for schema in intersection:
-                                        new_group = new_groups.get(id(schema))
-                                        if new_group and schema in new_group:
-                                            if new_intersection is None:
-                                                new_intersection = new_group
-                                            else:
-                                                new_intersection += new_group
-                                                new_group *= 0
-                                    for new_group in new_groups.values():
-                                        if len(new_group) > 1:
-                                            grouper.add([*dict.fromkeys(new_group)])
-                        elif rule.lookups is not None:
-                            for lookup in rule.lookups:
-                                if lookup is not None:
-                                    sift_groups_in_lookup(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases)
-        else:
-            for group in grouper.groups():
-                if s in group:
-                    grouper.remove_item(group, s)
-                    break
-
 def rename_schemas(grouper, phase_index):
     for group in grouper.groups():
         if not any(map(lambda s: s.phase_index >= phase_index, group)):
@@ -6084,7 +5990,7 @@ class Builder:
             {'DFLT', 'dupl'},
             'dflt',
         )
-        grouper = group_schemas(new_schemas)
+        grouper = sifting.group_schemas(new_schemas)
         for group in grouper.groups():
             group.sort(key=Schema.sort_key)
             group_iter = iter(group)
@@ -7379,7 +7285,7 @@ class Builder:
         return named_lookup_asts
 
     def _merge_schemas(self, schemas, lookups_with_phases, classes, named_lookups_with_phases):
-        grouper = group_schemas(schemas)
+        grouper = sifting.group_schemas(schemas)
         previous_phase = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
@@ -7387,7 +7293,7 @@ class Builder:
             previous_phase = phase
             prefix_classes = PrefixView(phase, classes)
             prefix_named_lookups_with_phases = PrefixView(phase, named_lookups_with_phases)
-            sift_groups_in_lookup(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
+            sifting.sift_groups(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
         rename_schemas(grouper, NO_PHASE_INDEX)
 
     def augment(self):
