@@ -42,13 +42,13 @@ cu2qu==1.6.7.post1 \
     --hash=sha256:eb4b8d3154a1812bdabab69950175f7c3e017a10b12fc7178640997c5edec71c \
     --hash=sha256:faed09723cad8e714d3326a225e8d00376b4620de9b07b5980fb4c41c8fff688
     # via otf2ttf
-font-v==2.0.0 \
-    --hash=sha256:78f0403619566ffd6da403e20fd26f2532116d48b64296676da51497b4c0d449 \
-    --hash=sha256:ad25984b0bcafb892287b7dff204d3fff1a28c268fbcf10ed81dbbaff72e6a81
+font-v==2.1.0 \
+    --hash=sha256:5c7dca0604a7ddf04633502c792364f3e1027d8fce4e44ffb8014ae38466bdd0 \
+    --hash=sha256:a53372afbbec290f244065b7d969a7f84d22716a6d361c44b95448c3c0c716a6
     # via -r requirements.in
-fonttools[ufo]==4.28.2 \
-    --hash=sha256:dca694331af74c8ad47acc5171e57f6b78fac5692bf050f2ab572964577ac0dd \
-    --hash=sha256:eff1da7ea274c54cb8842853005a139f711646cbf6f1bcfb6c9b86a627f35ff0
+fonttools[ufo]==4.28.3 \
+    --hash=sha256:ca6ecc67e5a5620d31754f92147f22f48fd5461fd3fafe6afe031aa9ee079b0f \
+    --hash=sha256:edb48922873d3fda489ab400bd40888ac239ae8070b53f494b839bcdff0d01f6
     # via
     #   -r requirements.in
     #   cu2qu
@@ -82,13 +82,13 @@ smmap==5.0.0 \
     --hash=sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94 \
     --hash=sha256:c840e62059cd3be204b0c9c9f74be2c09d5648eddd4580d9314c3ecde0b30936
     # via gitdb
-typing-extensions==4.0.0 \
-    --hash=sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed \
-    --hash=sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9
+typing-extensions==4.0.1 \
+    --hash=sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e \
+    --hash=sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b
     # via gitpython
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==59.2.0 \
-    --hash=sha256:157d21de9d055ab9e8ea3186d91e7f4f865e11f42deafa952d90842671fc2576 \
-    --hash=sha256:4adde3d1e1c89bde1c643c64d89cdd94cbfd8c75252ee459d4500bccb9c7d05d
+setuptools==59.5.0 \
+    --hash=sha256:6d10741ff20b89cd8c6a536ee9dc90d3002dec0226c78fb98605bfb9ef8a7adf \
+    --hash=sha256:d144f85102f999444d06f9c0e8c737fd0194f10f2f7e5fdb77573f6e2fa4fad0
     # via fs
