@@ -103,7 +103,7 @@ jobs:
         run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
       - name: Install dev requirements
         if: matrix.skip-check == ''
-        run: pip install --upgrade --upgrade-strategy eager -r dev-requirements.txt
+        run: pip install --no-deps --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Prepare oldest requirements
         if: matrix.requirements == 'oldest'
         run: |
@@ -112,7 +112,7 @@ jobs:
         if: matrix.requirements == 'newest'
         run: cp requirements.in requirements.txt
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r requirements.txt
+        run: pip install --no-deps --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
         run: make -B -j "NOTO=${{ matrix.noto }}"
       - name: Test
