@@ -46,9 +46,9 @@ font-v==2.1.0 \
     --hash=sha256:5c7dca0604a7ddf04633502c792364f3e1027d8fce4e44ffb8014ae38466bdd0 \
     --hash=sha256:a53372afbbec290f244065b7d969a7f84d22716a6d361c44b95448c3c0c716a6
     # via -r requirements.in
-fonttools[ufo]==4.28.3 \
-    --hash=sha256:ca6ecc67e5a5620d31754f92147f22f48fd5461fd3fafe6afe031aa9ee079b0f \
-    --hash=sha256:edb48922873d3fda489ab400bd40888ac239ae8070b53f494b839bcdff0d01f6
+fonttools[ufo]==4.28.4 \
+    --hash=sha256:581a682a7102a41421e7e484303572c565c1b8e52b1cc9fecd3c159dbe9a02f4 \
+    --hash=sha256:9934e3587dd5abf4e7f1d7176bcf0373db3f0ed728edf79791a9d2a7e664aac9
     # via
     #   -r requirements.in
     #   cu2qu
@@ -88,7 +88,7 @@ typing-extensions==4.0.1 \
     # via gitpython
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==59.5.0 \
-    --hash=sha256:6d10741ff20b89cd8c6a536ee9dc90d3002dec0226c78fb98605bfb9ef8a7adf \
-    --hash=sha256:d144f85102f999444d06f9c0e8c737fd0194f10f2f7e5fdb77573f6e2fa4fad0
+setuptools==59.6.0 \
+    --hash=sha256:22c7348c6d2976a52632c67f7ab0cdf40147db7789f9aed18734643fe9cf3373 \
+    --hash=sha256:4ce92f1e1f8f01233ee9952c04f6b81d1e02939d6e1b488428154974a4d0783e
     # via fs
