@@ -113,10 +113,16 @@ jobs:
         if: matrix.requirements == 'oldest'
         run: |
           ./get-old-requirements.py --input requirements.in --output requirements.txt
+      - name: Make a virtual environment for building
+        run: python -m venv build-venv
       - name: Install requirements
-        run: pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r requirements.txt
+        run: |
+          . build-venv/bin/activate
+          pip install ${{ matrix.requirements == 'frozen' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
-        run: make -B -j "NOTO=${{ matrix.noto }}"
+        run: |
+          . build-venv/bin/activate
+          make -B -j "NOTO=${{ matrix.noto }}"
       - name: Test
         if: matrix.skip-check == ''
         run: make -j "NOTO=${{ matrix.noto }}" check
