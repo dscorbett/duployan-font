@@ -29,7 +29,6 @@ import fontTools.otlLib.builder
 import fontTools.ttLib
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.ttFont
-import fontv.libfv
 
 import duployan
 import fonttools_patches
@@ -111,6 +110,8 @@ def set_unique_id(names, vendor, noto):
 def set_version(tt_font, noto, version, release):
     tt_font['head'].fontRevision = version
     if noto:
+        os.environ['GIT_PYTHON_REFRESH'] = 'warn'
+        import fontv.libfv
         fontv_version = fontv.libfv.FontVersion(tt_font)
         fontv_version.set_version_number(f'{version:.03f}')
         if not release:
