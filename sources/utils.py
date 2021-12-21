@@ -17,9 +17,14 @@ __all__ = [
     'CLONE_DEFAULT',
     'CURVE_OFFSET',
     'Context',
+    'EPSILON',
     'GlyphClass',
+    'MAX_TREE_DEPTH',
+    'MAX_TREE_WIDTH',
     'NO_CONTEXT',
     'Type',
+    'WIDTH_MARKER_PLACES',
+    'WIDTH_MARKER_RADIX',
     'mkmk',
 ]
 
@@ -31,6 +36,24 @@ CLONE_DEFAULT = object()
 
 
 CURVE_OFFSET = 75
+
+
+DEFAULT_SIDE_BEARING = 85
+
+
+EPSILON = 1e-5
+
+
+MAX_TREE_DEPTH = 3
+
+
+MAX_TREE_WIDTH = 2
+
+
+WIDTH_MARKER_PLACES = 7
+
+
+WIDTH_MARKER_RADIX = 4
 
 
 def mkmk(anchor):
