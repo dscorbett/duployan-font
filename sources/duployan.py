@@ -33,7 +33,13 @@ import fontTools.misc.transform
 import fontTools.otlLib.builder
 
 import sifting
-from utils import *
+from utils import CLONE_DEFAULT
+from utils import CURVE_OFFSET
+from utils import Context
+from utils import GlyphClass
+from utils import NO_CONTEXT
+from utils import Type
+from utils import mkmk
 
 DEFAULT_SIDE_BEARING = 85
 CAP_HEIGHT = 714
