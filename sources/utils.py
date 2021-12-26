@@ -14,6 +14,7 @@
 # limitations under the License.
 
 __all__ = [
+    'CAP_HEIGHT',
     'CLONE_DEFAULT',
     'CURVE_OFFSET',
     'Context',
@@ -30,6 +31,9 @@ __all__ = [
 
 
 import enum
+
+
+CAP_HEIGHT = 714
 
 
 CLONE_DEFAULT = object()
