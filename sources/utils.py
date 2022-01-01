@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2019-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 # limitations under the License.
 
 __all__ = [
+    'BRACKET_DEPTH',
+    'BRACKET_HEIGHT',
     'CAP_HEIGHT',
     'CLONE_DEFAULT',
     'CURVE_OFFSET',
@@ -22,7 +24,13 @@ __all__ = [
     'GlyphClass',
     'MAX_TREE_DEPTH',
     'MAX_TREE_WIDTH',
+    'MINIMUM_STROKE_GAP',
     'NO_CONTEXT',
+    'OrderedSet',
+    'PrefixView',
+    'REGULAR_LIGHT_LINE',
+    'SHADING_FACTOR',
+    'STRIKEOUT_POSITION',
     'Type',
     'WIDTH_MARKER_PLACES',
     'WIDTH_MARKER_RADIX',
@@ -34,6 +42,12 @@ import enum
 
 
 CAP_HEIGHT = 714
+
+
+BRACKET_DEPTH = -0.27 * CAP_HEIGHT
+
+
+BRACKET_HEIGHT = 1.27 * CAP_HEIGHT
 
 
 CLONE_DEFAULT = object()
@@ -54,10 +68,25 @@ MAX_TREE_DEPTH = 3
 MAX_TREE_WIDTH = 2
 
 
+MINIMUM_STROKE_GAP = 70
+
+
+REGULAR_LIGHT_LINE = 70
+
+
+SHADING_FACTOR = 12 / 7
+
+
+STRIKEOUT_POSITION = 258
+
+
 WIDTH_MARKER_PLACES = 7
 
 
 WIDTH_MARKER_RADIX = 4
+
+
+assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
 
 def mkmk(anchor):
@@ -195,3 +224,46 @@ class Context:
 
 
 NO_CONTEXT = Context()
+
+
+class OrderedSet(dict):
+    def __init__(self, iterable=None, /):
+        super().__init__()
+        if iterable:
+            for item in iterable:
+                self.add(item)
+
+    def add(self, item, /):
+        self[item] = None
+
+    def remove(self, item, /):
+        self.pop(item, None)
+
+    def sorted(self, /, *, key=None, reverse=False):
+        return sorted(self.keys(), key=key, reverse=reverse)
+
+
+class PrefixView:
+    def __init__(self, source, delegate):
+        self.prefix = f'{source.__name__}..'
+        self._delegate = delegate
+
+    def _prefixed(self, key):
+        is_global = key.startswith('global..')
+        assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'
+        return key if is_global else self.prefix + key
+
+    def __getitem__(self, key, /):
+        return self._delegate[self._prefixed(key)]
+
+    def __setitem__(self, key, value, /):
+        self._delegate[self._prefixed(key)] = value
+
+    def __contains__(self, item, /):
+        return self._prefixed(item) in self._delegate
+
+    def keys(self):
+        return self._delegate.keys()
+
+    def items(self):
+        return self._delegate.items()
