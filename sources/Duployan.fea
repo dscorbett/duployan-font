@@ -1,5 +1,5 @@
 # Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).
-# Copyright (c) 2018-2021, Google LLC.
+# Copyright (c) 2018-2022, Google LLC.
 #
 # This Font Software is licensed under the SIL Open Font License, Version 1.1.
 
@@ -13,12 +13,12 @@ table OS/2 {
 
 table name {
     nameid 0 "Copyright 2018-2019 David Corbett.\000A
-Copyright 2019-2021 Google LLC. All Rights Reserved.";
+Copyright 2019-2022 Google LLC. All Rights Reserved.";
     nameid 8 "David Corbett";
     nameid 9 "David Corbett";
     nameid 10 "Designed by David Corbett";
     nameid 13 "Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).\000A
-Copyright (c) 2019-2021, Google LLC.\000A
+Copyright (c) 2019-2022, Google LLC.\000A
 \000A
 This Font Software is licensed under the SIL Open Font License, Version 1.1.\000A
 This license is copied below, and is also available with a FAQ at:\000A
