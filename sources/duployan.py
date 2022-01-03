@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2019-2021 Google LLC
+# Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ __all__ = ['Builder']
 
 import collections
 import enum
-import functools
 import itertools
 import io
 import math
@@ -33,10 +32,7 @@ import fontTools.misc.transform
 import fontTools.otlLib.builder
 
 import anchors
-from phases import FreezableList
 from phases import Lookup
-from phases import Rule
-from phases import add_rule
 import phases.main
 import phases.marker
 import phases.middle
@@ -102,7 +98,6 @@ from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
-from utils import OrderedSet
 from utils import PrefixView
 from utils import REGULAR_LIGHT_LINE
 from utils import SHADING_FACTOR
@@ -551,74 +546,6 @@ class Builder:
                 )
             ]
 
-    def _run_phases(self, all_input_schemas, phases, all_classes=None):
-        all_schemas = OrderedSet(all_input_schemas)
-        all_input_schemas = OrderedSet(all_input_schemas)
-        all_lookups_with_phases = []
-        if all_classes is None:
-            all_classes = collections.defaultdict(FreezableList)
-        all_named_lookups_with_phases = {}
-        for phase_index, phase in enumerate(phases):
-            schema.CURRENT_PHASE_INDEX = phase_index
-            all_output_schemas = OrderedSet()
-            autochthonous_schemas = OrderedSet()
-            original_input_schemas = OrderedSet(all_input_schemas)
-            new_input_schemas = OrderedSet(all_input_schemas)
-            output_schemas = OrderedSet(all_input_schemas)
-            classes = PrefixView(phase, all_classes)
-            named_lookups = PrefixView(phase, {})
-            lookups = None
-            while new_input_schemas:
-                output_lookups = phase(
-                    self,
-                    original_input_schemas,
-                    all_input_schemas,
-                    new_input_schemas,
-                    classes,
-                    named_lookups,
-                    functools.partial(
-                        add_rule,
-                        autochthonous_schemas,
-                        output_schemas,
-                        classes,
-                        named_lookups,
-                     ),
-                 )
-                if lookups is None:
-                    lookups = output_lookups
-                else:
-                    assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
-                    for i, lookup in enumerate(lookups):
-                        lookup.extend(output_lookups[i])
-                if len(output_lookups) == 1:
-                    might_have_feedback = False
-                    for rule in (lookup := output_lookups[0]).rules:
-                        if rule.contexts_out if lookup.reversed else rule.contexts_in:
-                            might_have_feedback = True
-                            break
-                else:
-                    might_have_feedback = True
-                for output_schema in output_schemas:
-                    all_output_schemas.add(output_schema)
-                new_input_schemas = OrderedSet()
-                if might_have_feedback:
-                    for output_schema in output_schemas:
-                        if output_schema not in all_input_schemas:
-                            all_input_schemas.add(output_schema)
-                            autochthonous_schemas.add(output_schema)
-                            new_input_schemas.add(output_schema)
-            all_input_schemas = all_output_schemas
-            all_schemas |= all_input_schemas
-            all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
-            all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
-        return (
-            all_schemas,
-            all_input_schemas,
-            all_lookups_with_phases,
-            all_classes,
-            all_named_lookups_with_phases,
-        )
-
     def _add_lookup(
         self,
         feature_tag,
@@ -939,7 +866,7 @@ class Builder:
             lookups_with_phases,
             classes,
             named_lookups_with_phases,
-        ) = self._run_phases(self._schemas, self._phases)
+        ) = phases.run_phases(self, self._schemas, self._phases)
         self._merge_schemas(schemas, lookups_with_phases, classes, named_lookups_with_phases)
         class_asts = self.convert_classes(classes)
         named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
@@ -949,7 +876,7 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = self._run_phases([schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
+        ) = phases.run_phases(self, [schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
@@ -968,7 +895,7 @@ class Builder:
             more_lookups_with_phases,
             more_classes,
             more_named_lookups_with_phases,
-        ) = self._run_phases([*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
+        ) = phases.run_phases(self, [*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         for schema in schemas:
             if schema.glyph is None:

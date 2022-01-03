@@ -1,5 +1,5 @@
 # Copyright 2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -520,6 +520,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
+        # TODO: `prepending` is a hack.
         prepending=True,
     )
     carry_schema = None

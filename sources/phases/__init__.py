@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,50 +13,163 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""The phase system.
+
+A phase is a function that generates a sequence of lookups. It takes the
+schemas from the previous phase, does some phase-specific computation,
+and produces some lookups. If the lookups are GSUB lookups, this may
+change the set of schemas that the next phase will handle.
+
+A phase is run iteratively until its output is stable. That means the
+output schemas of one iteration may be the input schemas of the next
+iteration. See `run_phases` for what stability entails.
+
+The parameters of a phase are as follows, though the specific parameter
+names don’t matter.
+
+1. ``builder``: A ``Builder``.
+
+2. ``original_schemas``: An iterable containing all the schemas that
+   existed before this phase was ever run. This is always a subset of
+   ``schemas``.
+
+3. ``schemas``: An iterable containing all the schemas that are inputs
+   to the current iteration of this phase.
+
+4. ``new_schemas``: An iterable containing all the schemas that have not
+   been passed to previous iterations of this phase. This is always a
+   subset of ``schemas``. This is equal to ``original_schemas`` on the
+   first iteration.
+
+5. ``classes``: The dictionary of all the font’s glyph classes, wrapped
+   in a `PrefixView` whose prefix uniquely identifies this phase among
+   all phases. The keys are arbitrary strings that can serve as valid
+   FEA class names. Some global (i.e. not phase-specific) keys are
+   defined in the ``anchors`` module. The values are lists of schemas.
+   ``classes`` is a `collections.defaultdict` whose default value is an
+   empty list.
+
+6. ``named_lookups``: The dictionary of all the font’s named lookups,
+   wrapped in a `PrefixView` whose prefix uniquely identifies this phase
+   among all phases. The keys are arbitrary strings that can serve as
+   valid FEA lookup names. The values are named `Lookup`\ s.
+
+7. ``add_rule``: A function that this phase should call to add a rule to
+   a lookup. It takes two arguments: a `Lookup` and a `Rule`. The lookup
+   can be anonymous or named.
+
+The return value of a phase is a list of lookups. The lists returned
+from all iterations of the same phase must contain the same number of
+lookups. Rules in a lookup returned from a non-first iteration are
+merged with the lookup at the same index from the previous iteration. In
+other words, the first iteration defines how many anonymous lookups the
+phase generates, and subsequent iterations can only add more rules to
+those lookups. (It is always possible to create new named lookups in
+later iterations.)
+
+A phase should never delete or remove anything from a class or named
+lookup from a previous iteration of the same phase.
+
+Any call to ``add_rule`` may freeze some of the classes and named
+lookups used in the rule, meaning that no more schemas can be added to
+such classes and no more rules can be added to such named lookups. This
+restriction is necessary to verify that a certain optimization related
+to tracking output schemas is valid.
+
+..
+    TODO: Document the exact circumstances of freezing a class or named
+    lookup.
+
+This module does not define any phases. Phases are defined in the other
+modules in this package.
+"""
+
+
 __all__ = [
-    'FreezableList',
     'Lookup',
     'Rule',
-    'add_rule',
+    'run_phases',
 ]
 
 
+import collections
 import itertools
+import functools
 
 
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
 
 
+import schema
 from utils import GlyphClass
+from utils import OrderedSet
+from utils import PrefixView
 
 
-class FreezableList:
+class _FreezableList:
+    """A list that can be frozen, making it immutable.
+
+    This is not a `list` in the Python sense, but it is analogous.
+    """
     def __init__(self):
         self._delegate = []
 
     def freeze(self):
+        """Makes this list immutable.
+        """
         self._delegate = tuple(self._delegate)
 
     def __iter__(self):
+        """Returns an iterator over this list.
+        """
         return iter(self._delegate)
 
     def __len__(self):
+        """Returns the length of this list.
+        """
         return len(self._delegate)
 
     def insert(self, index, object, /):
+        """Inserts something into this list.
+
+        Args:
+            index (int): The index to insert `object` at in the same
+                manner as `list.insert`.
+            object: The element to insert.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
         try:
             self._delegate.insert(index, object)
         except AttributeError:
             raise ValueError('Inserting into a frozen list') from None
 
     def append(self, object, /):
+        """Appends something to this list.
+
+        Args:
+            object: The element to append.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
         try:
             self._delegate.append(object)
         except AttributeError:
             raise ValueError('Appending to a frozen list') from None
 
     def extend(self, iterable, /):
+        """Extends this list.
+
+        Args:
+            iterable (Iterable[Any]): The iterable containing the
+                elements to append to this list.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
         try:
             self._delegate.extend(iterable)
         except AttributeError:
@@ -64,6 +177,41 @@ class FreezableList:
 
 
 class Rule:
+    """One or more OpenType Layout rules.
+
+    A `Rule` has attributes to support both GSUB and GPOS rules, but a
+    single `Rule` can’t have non-``None`` GSUB and GPOS attributes.
+
+    The various sequence attributes contain schemas and strings. Strings
+    represent classes. `lookups` contains strings representing named
+    lookups. A rule that uses a class is therefore only interpretable in
+    the context of something that maps class and lookup names to their
+    meanings.
+
+    A `Rule` can represent multiple OpenType Layout rules in two ways.
+    First, it actually represents a sequence of FEA rules (see
+    `to_asts`). Second, each FEA rule can represent multiple OpenType
+    Layout rules.
+
+    Attributes:
+        contexts_in (List[Schema | str]): The backtrack sequence.
+        inputs (List[Schema | str]): The input sequence.
+        contexts_out (List[Schema | str]): The lookahead sequence.
+        outputs (Optional[List[Schema | str]]): The output sequence, if
+            a GSUB rule.
+        lookups (Optional[List[Optional[str]]]): The names of the named
+            lookups used by this rule, if any, with one element per
+            element of `outputs`. An element of `lookups` may be
+            ``None`` if there is no named lookup to apply at that
+            position. Named lookups are applied in increasing order by
+            index.
+        x_placements (Optional[List[float]): The x placements to apply,
+            if any and if a GPOS rule, with one element per element of
+            `inputs`.
+        x_advances (Optional[List[float]): The x advances to apply, if
+            any and if a GPOS rule, with one element per element of
+            `inputs`.
+    """
     def __init__(
         self,
         a1,
@@ -76,6 +224,34 @@ class Rule:
         x_placements=None,
         x_advances=None,
     ):
+        """Initializes this `Rule`.
+
+        As a convenient shorthand, a non-contextual GSUB rule can be
+        initialized with the input and output sequences as the first two
+        arguments. The full form for a GSUB rule interprets the first
+        four arguments as the backtrack, input, lookahead, and output
+        sequences. There is no similar shorthand for GPOS rules.
+
+        Another shorthand is that a sequence containing just a class can
+        be specified as just the class name, rather than as a list
+        containing only that class name.
+
+        Args:
+            a1 (str | List[Schema | str]): The backtrack sequence, or
+                the input sequence in the shorthand form.
+            a2 (str | List[Schema | str]): The input sequence, or the
+                output sequence in the shorthand form.
+            a3 (Optional[str | List[Schema | str]]): The lookahead
+                sequence, if using the full form.
+            a4 (Optional[str | List[Schema | str]]): The output
+                sequence.
+            lookups (Optional[List[Optional[str]]]): The ``lookups``
+                attribute.
+            x_placements (Optional[List[float]): The ``x_placements``
+                attribute.
+            x_advances (Optional[List[float]): The ``x_advances``
+                attribute.
+        """
         def _l(glyphs):
             return [glyphs] if isinstance(glyphs, str) else glyphs
         if a4 is None and lookups is None and x_advances is None:
@@ -104,6 +280,35 @@ class Rule:
                 assert len(x_advances) == len(self.inputs), f'There must be one x advance (or None) per input glyph ({len(x_advances)} != {len(self.inputs)})'
 
     def to_asts(self, class_asts, named_lookup_asts, in_contextual_lookup, in_multiple_lookup, in_reverse_lookup):
+        """Converts this rule to fontTools feaLib ASTs.
+
+        A `Rule` usually represents a single feaLib statement AST, but
+        it may desugar to multiple statement ASTs if FEA syntax is
+        missing a necessary feature.
+
+        ..
+            TODO: Document that syntactic sugar.
+
+        Args:
+            class_asts (Mapping[str,
+                fontTools.feaLib.ast.GlyphClassDefinition]): A map to
+                glyph classes from their names.
+            named_lookup_asts (Mapping[str,
+                fontTools.feaLib.ast.LookupBlock]): A map to named
+                lookup ASTs from their names.
+            in_contextual_lookup (bool): Whether this rule is in a
+                contextual lookup.
+            in_multiple_lookup (bool): Whether this rule is in a
+                multiple substitution lookup. This disambiguates a rule
+                with a single input and a single output between a single
+                substitution rule and a multiple substitution rule,
+                which have different ASTs but otherwise look identical.
+            in_reverse_lookup (bool): Whether this rule is in a reverse
+                lookup.
+
+        Returns:
+            A list of fontTools feaLib ASTs corresponding to this rule.
+        """
         def glyph_to_ast(glyph, unrolling_index=None):
             if isinstance(glyph, str):
                 if unrolling_index is not None:
@@ -234,13 +439,52 @@ class Rule:
                 )]
 
     def is_contextual(self):
+        """Returns whether this rule is contextual.
+        """
         return bool(self.contexts_in or self.contexts_out)
 
     def is_multiple(self):
+        """Returns whether this rule can only appear in a multiple
+        substitution lookup.
+        """
         return len(self.inputs) == 1 and self.outputs is not None and len(self.outputs) != 1
 
 
+# TODO: The only reason this is public is for `KNOWN_SCRIPTS`. Refactor.
 class Lookup:
+    """An OpenType Layout lookup.
+
+    If `feature` and `language` are ``None`` and ``scripts`` is empty,
+    this is a named lookup. Otherwise, it is an anonymous lookup
+    directly associated with a feature.
+
+    Class attributes:
+        KNOWN_SCRIPTS (List[str]): The list of strings that this class
+            can handle.
+
+    Attributes:
+        feature (Optional[str]): This lookup’s feature tag, if
+            anonymous.
+        scripts (List[str]): This lookup’s script tags. A named lookup
+            has an empty script tag list.
+        required (bool): Whether the shaper is guaranteed to apply this
+            lookup, regardless of which script the itemizer chooses.
+            This ignores the fact that it is technically possible to
+            disable any feature; there are some features that are not
+            *meant* to be disabled.
+        language (Optional[str]): This lookup’s language system tag, if
+            anonymous.
+        flags (int): The lookup flags.
+        mark_filtering_set (Optional[str]): The name of the glyph class
+            used for the mark filtering set, if any.
+        reversed (bool): Whether this lookup is reversed. (The only
+            reversed lookup type is the reverse chaining contextual
+            single substitution, but this would cover other reversed
+            lookup types if they existed.)
+        prepending (bool): Whether new rules should be added to the
+            beginning instead of the end.
+        rules (_FreezableList[Rule]): The list of rules.
+    """
     _DISCRETIONARY_FEATURES = {
         'afrc',
         'calt',
@@ -307,6 +551,21 @@ class Lookup:
             reversed=False,
             prepending=False,
     ):
+        """Initializes this `Lookup`.
+
+        Args:
+            feature (Optional[str]): The ``feature`` attribute.
+            scripts (Optional[List[str]]): The ``scripts`` attribute, or
+                ``None`` as a shorthand for ``[]``.
+            language (Optional[str]): The ``language`` attribute.
+            flags (int): The ``flags`` attribute, except that the
+                ``UseMarkFilteringSet`` flag must not be set, even if
+                there is a mark filtering set.
+            mark_filtering_set (Optional[str]): The
+                ``mark_filtering_set`` attribute.
+            reversed (bool): The ``reversed`` attribute.
+            prepending (bool): The ``prepending`` attribute.
+        """
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
@@ -328,7 +587,7 @@ class Lookup:
         self.mark_filtering_set = mark_filtering_set
         self.reversed = reversed
         self.prepending = prepending
-        self.rules = FreezableList()
+        self.rules = _FreezableList()
         assert (feature is None) == (not scripts) == (language is None), 'Not clear whether this is a named or a normal lookup'
         for script in scripts:
             if feature in self._DISCRETIONARY_FEATURES:
@@ -347,9 +606,31 @@ class Lookup:
         self.required = next(iter(self.required))
 
     def to_asts(self, class_asts, named_lookup_asts, name):
+        """Converts this lookup to fontTools feaLib ASTs.
+
+        Args:
+            class_asts (Mapping[str,
+                fontTools.feaLib.ast.GlyphClassDefinition]): A map to
+                glyph classes from their names.
+            named_lookup_asts (Mapping[str,
+                fontTools.feaLib.ast.LookupBlock]): A map to named
+                lookup ASTs from their names.
+            name (str | int): The name of this lookup, if it is a named
+                lookup, or else an arbitrary number uniquely identifying
+                this lookup among all anonymous lookups.
+
+        Returns:
+            A list of one or two fontTools feaLib ASTs corresponding to
+            this lookup. The first AST is always a
+            `fontTools.feaLib.ast.LookupBlock`. If this is an anonymous
+            lookup, the second AST is a
+            `fontTools.feaLib.ast.FeatureBlock`.
+        """
+        named_lookup = self.feature is None
+        assert named_lookup == isinstance(name, str)
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
-        if isinstance(name, str):
+        if named_lookup:
             lookup_block = fontTools.feaLib.ast.LookupBlock(name)
             asts = [lookup_block]
         else:
@@ -373,12 +654,34 @@ class Lookup:
         return asts
 
     def freeze(self):
+        """Freezes the list of rules.
+        """
         self.rules.freeze()
 
     def append(self, rule):
+        """Adds a rule to the end of the list of rules.
+
+        This method ignores ``prepending``.
+
+        Raises:
+            ValueError: If the list of rules is frozen.
+        """
         self.rules.append(rule)
 
     def extend(self, other):
+        """Extends this lookup with rules from another lookup.
+
+        If prepending, `other`’s rules are added to the front of the
+        list, ending up in reverse order from how they are in `other`.
+        Otherwise, they are added to the end, ending up in the same
+        order.
+
+        The lookups must agree in their features, scripts, and
+        languages, or lack thereof, and in whether they prepend.
+
+        Args:
+            other (Lookup): A lookup.
+        """
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
         assert self.scripts == other.scripts, f'''Incompatible script sets: {{{
                 ', '.join(f"'{script}'" for script in self.scripts)
@@ -395,7 +698,30 @@ class Lookup:
                 self.append(rule)
 
 
-def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule, track_possible_outputs=True):
+def _add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, lookup, rule, track_possible_outputs=True):
+    """Adds a rule to a lookup.
+
+    It only makes sense to call this function in the context of a phase
+    iteration. The phase is implicit.
+
+    Args:
+        autochthonous_schemas (Iterable[Schema]): All the schemas ever
+            created in the current phase.
+        output_schemas (List[Schema]): All the schemas that could
+            possibly be the output of rule generated by this phase. This
+            function may add or remove schemas from the list.
+        classes (Mapping[str, _FreezableList[str]]): A mapping to glyph
+            classes from their names. This function may freeze any class
+            but not otherwise modify it.
+        named_lookups (Mapping[str, _FreezableList[Lookup]]): A mapping
+            to named lookups from their names. This function may freeze
+            any named lookup but not otherwise modify it.
+        rule (Rule): The rule to add.
+        track_possible_outputs (bool): Whether to allow removing schemas
+            from `output_schemas`. Tracking is usually the right thing
+            to do, but it can sometimes cause a crash in fontTools, so
+            it can be disabled.
+    """
     def ignored(schema):
         glyph_class = schema.glyph_class
         return (
@@ -503,3 +829,99 @@ def add_rule(autochthonous_schemas, output_schemas, classes, named_lookups, look
             return False
 
     register_output_schemas(rule)
+
+
+def run_phases(builder, all_input_schemas, phases, all_classes=None):
+    """Runs a sequence of phases.
+
+    Args:
+        builder (Builder): The source of everything.
+        all_input_schemas (Iterable[Schema]): The input schemas for the
+            first iteration of the first phase.
+        phases (Iterable[Phase]): The phases to run.
+        all_classes (Optional[collections.defaultdict[str,
+            _FreezableList[Rule]]): The font’s global mapping to classes
+            from their names. If ``None``, this method starts with a new
+            empty mapping.
+
+    Returns:
+        A tuple of five elements.
+
+        1. An iterable of all the schemas input to or output from any
+           phase.
+        2. An iterable of the output schemas of the last phase.
+        3. A list of 2-tuples of each lookup along with the phase that
+           generated it.
+        4. The font’s global mapping to classes from their names.
+        5. A mapping from named lookups’ names to 2-tuples of named
+           lookups and their generating phases.
+    """
+    all_schemas = OrderedSet(all_input_schemas)
+    all_input_schemas = OrderedSet(all_input_schemas)
+    all_lookups_with_phases = []
+    if all_classes is None:
+        all_classes = collections.defaultdict(_FreezableList)
+    all_named_lookups_with_phases = {}
+    for phase_index, phase in enumerate(phases):
+        schema.CURRENT_PHASE_INDEX = phase_index
+        all_output_schemas = OrderedSet()
+        autochthonous_schemas = OrderedSet()
+        original_input_schemas = OrderedSet(all_input_schemas)
+        new_input_schemas = OrderedSet(all_input_schemas)
+        output_schemas = OrderedSet(all_input_schemas)
+        classes = PrefixView(phase, all_classes)
+        named_lookups = PrefixView(phase, {})
+        lookups = None
+        while new_input_schemas:
+            output_lookups = phase(
+                # TODO: `builder` is only used to check which phase generated a schema,
+                # and only in a few phases. Refactor them so this doesn’t need to pass
+                # the whole `Builder` around.
+                builder,
+                original_input_schemas,
+                all_input_schemas,
+                new_input_schemas,
+                classes,
+                named_lookups,
+                functools.partial(
+                    _add_rule,
+                    autochthonous_schemas,
+                    output_schemas,
+                    classes,
+                    named_lookups,
+                 ),
+             )
+            if lookups is None:
+                lookups = output_lookups
+            else:
+                assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
+                for i, lookup in enumerate(lookups):
+                    lookup.extend(output_lookups[i])
+            if len(output_lookups) == 1:
+                might_have_feedback = False
+                for rule in (lookup := output_lookups[0]).rules:
+                    if rule.contexts_out if lookup.reversed else rule.contexts_in:
+                        might_have_feedback = True
+                        break
+            else:
+                might_have_feedback = True
+            for output_schema in output_schemas:
+                all_output_schemas.add(output_schema)
+            new_input_schemas = OrderedSet()
+            if might_have_feedback:
+                for output_schema in output_schemas:
+                    if output_schema not in all_input_schemas:
+                        all_input_schemas.add(output_schema)
+                        autochthonous_schemas.add(output_schema)
+                        new_input_schemas.add(output_schema)
+        all_input_schemas = all_output_schemas
+        all_schemas |= all_input_schemas
+        all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
+        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
+    return (
+        all_schemas,
+        all_input_schemas,
+        all_lookups_with_phases,
+        all_classes,
+        all_named_lookups_with_phases,
+    )
