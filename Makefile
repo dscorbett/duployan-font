@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
 
 .PHONY: mypy
 mypy:
-	mypy --ignore-missing-imports --no-implicit-optional --show-error-codes --warn-redundant-casts --warn-unused-ignores sources
+	mypy --ignore-missing-imports --no-implicit-optional --show-error-codes --warn-redundant-casts --warn-unused-ignores get-old-requirements.py sources tests
 
 .PHONY: check
 check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES)) mypy
