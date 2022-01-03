@@ -59,8 +59,12 @@ $(addprefix check-,$(FONTS)): check-%: %
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
 	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml $(filter %.$*,$(FONTS))
 
+.PHONY: mypy
+mypy:
+	mypy --ignore-missing-imports --no-implicit-optional --show-error-codes --warn-redundant-casts --warn-unused-ignores sources
+
 .PHONY: check
-check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES))
+check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES)) mypy
 
 .PHONY: hb-shape
 hb-shape:
