@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2019-2021 Google LLC
+# Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import fontTools.otlLib.builder
 from . import Lookup
 from . import Rule
 import anchors
+import phases
 from schema import Ignorability
 from schema import MAX_DOUBLE_MARKS
 from schema import Schema
@@ -258,10 +259,10 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
     classes['base'].append(valid_letter_overlap)
     add_rule(lookup, Rule(['base'], [continuing_overlap], [], [valid_continuing_overlap]))
     classes['base'].append(valid_continuing_overlap)
-    classes[anchors.CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
-    classes[anchors.INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
-    classes[anchors.CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
-    classes[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
+    classes[phases.CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
+    classes[phases.INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
+    classes[phases.CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
+    classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(valid_continuing_overlap)
     return [lookup]
 
 
@@ -272,11 +273,11 @@ def add_parent_edges(builder, original_schemas, schemas, new_schemas, classes, n
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
-        if root_parent_edge not in classes[anchors.CHILD_EDGE_CLASSES[child_index]]:
-            classes[anchors.CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
+        if root_parent_edge not in classes[phases.CHILD_EDGE_CLASSES[child_index]]:
+            classes[phases.CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
         for layer_index in range(MAX_TREE_DEPTH):
-            if root_parent_edge not in classes[anchors.INTER_EDGE_CLASSES[layer_index][child_index]]:
-                classes[anchors.INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
+            if root_parent_edge not in classes[phases.INTER_EDGE_CLASSES[layer_index][child_index]]:
+                classes[phases.INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
             classes['root' if schema.path.can_be_child(schema.size) else 'root_only'].append(schema)
@@ -527,22 +528,22 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
                 lineage[-1] = (lineage[-1][0] + 1, 0)
                 if lineage[-1][0] <= MAX_TREE_WIDTH:
                     new_child_edge = get_child_edge(lineage)
-                    classes[anchors.CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
-                    classes[anchors.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[phases.CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[phases.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
                     add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
                 lineage = list(edge.path.lineage)
                 lineage[-1] = (1, lineage[-1][0])
                 new_parent_edge = get_parent_edge(lineage)
-                classes[anchors.PARENT_EDGE_CLASS].append(new_parent_edge)
-                classes[anchors.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                classes[phases.PARENT_EDGE_CLASS].append(new_parent_edge)
+                classes[phases.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
                 add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
             elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
                 lineage = list(edge.path.lineage)
                 if len(lineage) < MAX_TREE_DEPTH:
                     lineage.append((1, lineage[-1][0]))
                     new_child_edge = get_child_edge(lineage)
-                    classes[anchors.CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
-                    classes[anchors.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[phases.CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
+                    classes[phases.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_child_edge)
                     add_rule(lookup, Rule([edge], [default_child_edge], [], [new_child_edge]))
                 lineage = list(edge.path.lineage)
                 while lineage and lineage[-1][0] == lineage[-1][1]:
@@ -551,8 +552,8 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
                     lineage[-1] = (lineage[-1][0] + 1, lineage[-1][1])
                     if lineage[-1][0] <= MAX_TREE_WIDTH:
                         new_parent_edge = get_parent_edge(lineage)
-                        classes[anchors.PARENT_EDGE_CLASS].append(new_parent_edge)
-                        classes[anchors.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
+                        classes[phases.PARENT_EDGE_CLASS].append(new_parent_edge)
+                        classes[phases.INTER_EDGE_CLASSES[len(lineage) - 1][lineage[-1][0] - 1]].append(new_parent_edge)
                         add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
     return [lookup]
 
@@ -697,9 +698,9 @@ def make_mark_variants_of_children(builder, original_schemas, schemas, new_schem
             continue
         child = child_to_be.clone(cmap=None, child=True)
         classes['child'].append(child)
-        classes[anchors.PARENT_EDGE_CLASS].append(child)
+        classes[phases.PARENT_EDGE_CLASS].append(child)
         for child_index in range(MAX_TREE_WIDTH):
-            classes[anchors.CHILD_EDGE_CLASSES[child_index]].append(child)
+            classes[phases.CHILD_EDGE_CLASSES[child_index]].append(child)
     add_rule(lookup, Rule('all', 'child_to_be', [], 'child'))
     return [lookup]
 
@@ -1005,7 +1006,7 @@ def join_with_previous(builder, original_schemas, schemas, new_schemas, classes,
                 classes['i2'].append(schema)
                 classes['o2'].append(context_in)
                 contexts_in.add(context_in)
-    classes['all'].extend(classes[anchors.CONTINUING_OVERLAP_CLASS])
+    classes['all'].extend(classes[phases.CONTINUING_OVERLAP_CLASS])
     add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
     for j, context_in in enumerate(contexts_in):
         for i, target_schema in enumerate(classes['i']):
@@ -1126,13 +1127,13 @@ def join_with_next(builder, original_schemas, schemas, new_schemas, classes, nam
         'rclt',
         {'DFLT', 'dupl'},
         'dflt',
-        mark_filtering_set=anchors.CONTINUING_OVERLAP_CLASS,
+        mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
     )
     lookup = Lookup(
         'rclt',
         {'DFLT', 'dupl'},
         'dflt',
-        mark_filtering_set=anchors.CONTINUING_OVERLAP_CLASS,
+        mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
         reversed=True,
     )
     post_lookup = Lookup(
@@ -1155,7 +1156,7 @@ def join_with_next(builder, original_schemas, schemas, new_schemas, classes, nam
                 if isinstance(schema.path, Line) and schema.path.secant:
                     classes['secant_i'].append(schema)
                     classes['secant_o'].append(schema)
-        continuing_overlap = next(iter(classes[anchors.CONTINUING_OVERLAP_CLASS]))
+        continuing_overlap = next(iter(classes[phases.CONTINUING_OVERLAP_CLASS]))
         continuing_overlap_after_secant = Schema(None, ContinuingOverlapS(), 0)
         classes['continuing_overlap_after_secant'].append(continuing_overlap_after_secant)
         add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))

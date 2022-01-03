@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,17 +21,11 @@ __all__ = [
     'ALL_MKMK',
     'BELOW',
     'CHILD_EDGES',
-    'CHILD_EDGE_CLASSES',
     'CONTINUING_OVERLAP',
-    'CONTINUING_OVERLAP_CLASS',
-    'CONTINUING_OVERLAP_OR_HUB_CLASS',
     'CURSIVE',
-    'HUB_CLASS',
     'INTER_EDGES',
-    'INTER_EDGE_CLASSES',
     'MIDDLE',
     'PARENT_EDGE',
-    'PARENT_EDGE_CLASS',
     'POST_HUB_CONTINUING_OVERLAP',
     'POST_HUB_CURSIVE',
     'PRE_HUB_CONTINUING_OVERLAP',
@@ -115,21 +109,3 @@ ALL_CURSIVE = [
 
 
 ALL = ALL_MARK + ALL_CURSIVE
-
-
-PARENT_EDGE_CLASS = 'global..pe'
-
-
-CHILD_EDGE_CLASSES = [f'global..ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
-
-
-INTER_EDGE_CLASSES = [[f'global..edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
-
-
-HUB_CLASS = 'global..hub'
-
-
-CONTINUING_OVERLAP_CLASS = 'global..cont'
-
-
-CONTINUING_OVERLAP_OR_HUB_CLASS = 'global..cont_or_hub'

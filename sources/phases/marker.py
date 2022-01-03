@@ -44,6 +44,7 @@ import fontTools.otlLib.builder
 from . import Lookup
 from . import Rule
 import anchors
+import phases
 from schema import MAX_HUB_PRIORITY
 from schema import Schema
 from shapes import AnchorWidthDigit
@@ -281,8 +282,8 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         hub = next((s for s in schemas if isinstance(s.path, Hub) and s.path.priority == hub_priority), None)
         if hub is None:
             hub = Schema(None, Hub(hub_priority), 0)
-            classes[anchors.HUB_CLASS].append(hub)
-            classes[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
+            classes[phases.HUB_CLASS].append(hub)
+            classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
         hubs[hub_priority] = [hub]
     end = Schema(None, End(), 0)
     mark_anchor_selectors = {}
@@ -853,8 +854,8 @@ def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_sche
             classes['secant'].append(schema)
     for hub in hubs:
         initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))
-        classes[anchors.HUB_CLASS].append(initial_secant_hub)
-        classes[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
+        classes[phases.HUB_CLASS].append(initial_secant_hub)
+        classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
         add_rule(lookup, Rule(
             ['secant'],
             [hub],

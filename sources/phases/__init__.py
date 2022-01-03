@@ -45,9 +45,8 @@ names don’t matter.
    in a `PrefixView` whose prefix uniquely identifies this phase among
    all phases. The keys are arbitrary strings that can serve as valid
    FEA class names. Some global (i.e. not phase-specific) keys are
-   defined in the ``anchors`` module. The values are lists of schemas.
-   ``classes`` is a `collections.defaultdict` whose default value is an
-   empty list.
+   defined in this module. The values are lists of schemas. ``classes``
+   is a `collections.defaultdict` whose default value is an empty list.
 
 6. ``named_lookups``: The dictionary of all the font’s named lookups,
    wrapped in a `PrefixView` whose prefix uniquely identifies this phase
@@ -86,7 +85,13 @@ modules in this package.
 
 
 __all__ = [
+    'CHILD_EDGE_CLASSES',
+    'CONTINUING_OVERLAP_CLASS',
+    'CONTINUING_OVERLAP_OR_HUB_CLASS',
+    'HUB_CLASS',
+    'INTER_EDGE_CLASSES',
     'Lookup',
+    'PARENT_EDGE_CLASS',
     'Rule',
     'run_phases',
 ]
@@ -103,8 +108,41 @@ import fontTools.otlLib.builder
 
 import schema
 from utils import GlyphClass
+from utils import MAX_TREE_DEPTH
+from utils import MAX_TREE_WIDTH
 from utils import OrderedSet
 from utils import PrefixView
+
+
+# TODO: Document the edge class name constants better with reference to
+# `categorize_edges`.
+#: The name of the glyph class containing all parent edges and all
+#: children. This is used to connect parent edges with children while
+#: ignoring other marks.
+PARENT_EDGE_CLASS = 'global..pe'
+
+
+#: A list of the names of the glyph classes used to connect children
+#: with child edges while ignoring other marks.
+CHILD_EDGE_CLASSES = [f'global..ce{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
+
+
+#: A list of lists of the names of glyph classes connecting child edges
+#: with parent edges while ignoring other marks.
+INTER_EDGE_CLASSES = [[f'global..edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
+
+
+#: The name of the glyph class containing all valid continuing overlaps.
+CONTINUING_OVERLAP_CLASS = 'global..cont'
+
+
+#: The name of the glyph class containing all hubs.
+HUB_CLASS = 'global..hub'
+
+
+#: The name of the glyph class that is the union of the classes named by
+#: `CONTINUING_OVERLAP_CLASS` and `HUB_CLASS`.
+CONTINUING_OVERLAP_OR_HUB_CLASS = 'global..cont_or_hub'
 
 
 class _FreezableList:

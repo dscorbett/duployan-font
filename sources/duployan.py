@@ -582,7 +582,7 @@ class Builder:
                 'abvm',
                 anchors.PARENT_EDGE,
                 flags=0,
-                mark_filtering_set=class_asts[anchors.PARENT_EDGE_CLASS],
+                mark_filtering_set=class_asts[phases.PARENT_EDGE_CLASS],
             )
         for layer_index in range(MAX_TREE_DEPTH):
             if layer_index < 2:
@@ -591,50 +591,50 @@ class Builder:
                             'blwm',
                             anchors.CHILD_EDGES[layer_index][child_index],
                             flags=0,
-                            mark_filtering_set=class_asts[anchors.CHILD_EDGE_CLASSES[child_index]],
+                            mark_filtering_set=class_asts[phases.CHILD_EDGE_CLASSES[child_index]],
                         )
             for child_index in range(MAX_TREE_WIDTH):
                 self._add_lookup(
                     'mkmk',
                     anchors.INTER_EDGES[layer_index][child_index],
                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-                    mark_filtering_set=class_asts[anchors.INTER_EDGE_CLASSES[layer_index][child_index]],
+                    mark_filtering_set=class_asts[phases.INTER_EDGE_CLASSES[layer_index][child_index]],
                 )
         self._add_lookup(
             'curs',
             anchors.CONTINUING_OVERLAP,
             flags=0,
-            mark_filtering_set=class_asts[anchors.HUB_CLASS],
+            mark_filtering_set=class_asts[phases.HUB_CLASS],
         )
         self._add_lookup(
             'curs',
             anchors.CURSIVE,
             flags=0,
-            mark_filtering_set=class_asts[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
         self._add_lookup(
             'curs',
             anchors.PRE_HUB_CONTINUING_OVERLAP,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[anchors.HUB_CLASS],
+            mark_filtering_set=class_asts[phases.HUB_CLASS],
         )
         self._add_lookup(
             'curs',
             anchors.POST_HUB_CONTINUING_OVERLAP,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[anchors.HUB_CLASS],
+            mark_filtering_set=class_asts[phases.HUB_CLASS],
         )
         self._add_lookup(
             'curs',
             anchors.PRE_HUB_CURSIVE,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
         self._add_lookup(
             'curs',
             anchors.POST_HUB_CURSIVE,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[anchors.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
         )
         for anchor in anchors.ALL_MARK:
             self._add_lookup(
