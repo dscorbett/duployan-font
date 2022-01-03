@@ -39,6 +39,9 @@ __all__ = [
 
 
 import enum
+from typing import Iterable
+from typing import Optional
+from typing import TypeVar
 
 
 CAP_HEIGHT = 714
@@ -226,20 +229,27 @@ class Context:
 NO_CONTEXT = Context()
 
 
-class OrderedSet(dict):
-    def __init__(self, iterable=None, /):
+_T = TypeVar('_T')
+
+
+class OrderedSet(dict[_T, None]):
+    def __init__(
+        self,
+        iterable: Optional[Iterable[_T]] = None,
+        /,
+    ) -> None:
         super().__init__()
         if iterable:
             for item in iterable:
                 self.add(item)
 
-    def add(self, item, /):
+    def add(self, item: _T, /) -> None:
         self[item] = None
 
-    def remove(self, item, /):
+    def remove(self, item: _T, /) -> None:
         self.pop(item, None)
 
-    def sorted(self, /, *, key=None, reverse=False):
+    def sorted(self, /, *, key=None, reverse: bool = False) -> list[_T]:
         return sorted(self.keys(), key=key, reverse=reverse)
 
 

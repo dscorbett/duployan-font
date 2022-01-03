@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'Ignorability',
     'MAX_DOUBLE_MARKS',
@@ -22,6 +25,7 @@ __all__ = [
 ]
 
 
+from collections.abc import MutableMapping
 import enum
 import functools
 import math
@@ -118,7 +122,7 @@ class Schema:
         (r'__zwj__', '___'),
         (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
     ]]
-    _canonical_names = {}
+    _canonical_names: MutableMapping[str, Schema] = {}
 
     def __init__(
             self,
