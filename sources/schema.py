@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,15 +25,27 @@ __all__ = [
 ]
 
 
+from collections.abc import Mapping
 from collections.abc import MutableMapping
+from collections.abc import Sequence
 import enum
 import functools
 import math
 import re
+import typing
+from typing import Any
+from typing import Callable
+from typing import ClassVar
+from typing import Final
+from typing import Iterable
+from typing import Optional
+from typing import Tuple
+from typing import Union
 import unicodedata
 
 
 import fontTools.agl
+import fontforge
 
 
 from shapes import ChildEdge
@@ -44,25 +56,27 @@ from shapes import InvalidStep
 from shapes import Line
 from shapes import Notdef
 from shapes import Ou
+from shapes import Shape
 from shapes import Space
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
+from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
 from utils import NO_CONTEXT
 from utils import Type
 
 
-NO_PHASE_INDEX = -1
+NO_PHASE_INDEX: Final[int] = -1
 
 
-CURRENT_PHASE_INDEX = NO_PHASE_INDEX
+CURRENT_PHASE_INDEX: int = NO_PHASE_INDEX
 
 
-MAX_DOUBLE_MARKS = 3
+MAX_DOUBLE_MARKS: Final[int] = 3
 
 
-MAX_HUB_PRIORITY = 2
+MAX_HUB_PRIORITY: Final[int] = 2
 
 
 class Ignorability(enum.Enum):
@@ -72,9 +86,9 @@ class Ignorability(enum.Enum):
 
 
 class Schema:
-    _MAX_GLYPH_NAME_LENGTH = 63 - 2 - 4
-    _COLLAPSIBLE_UNI_NAME = re.compile(r'(?<=uni[0-9A-F]{4})_uni(?=[0-9A-F]{4})')
-    _CHARACTER_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
+    _MAX_GLYPH_NAME_LENGTH: ClassVar[int] = 63 - 2 - 4
+    _COLLAPSIBLE_UNI_NAME: ClassVar[re.Pattern[str]] = re.compile(r'(?<=uni[0-9A-F]{4})_uni(?=[0-9A-F]{4})')
+    _CHARACTER_NAME_SUBSTITUTIONS: ClassVar[Iterable[Tuple[re.Pattern[str], Any]]] = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
@@ -118,39 +132,39 @@ class Schema:
         (r'.+', lambda m: m.group(0).lower()),
         (r'[ -]+', '_'),
     ]]
-    _SEQUENCE_NAME_SUBSTITUTIONS = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
+    _SEQUENCE_NAME_SUBSTITUTIONS: ClassVar[Sequence[Tuple[re.Pattern[str], Any]]] = [(re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in [
         (r'__zwj__', '___'),
         (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
     ]]
-    _canonical_names: MutableMapping[str, Schema] = {}
+    _canonical_names: MutableMapping[str, list[Schema]] = {}
 
     def __init__(
             self,
-            cmap,
-            path,
-            size,
-            joining_type=Type.JOINING,
+            cmap: Optional[int],
+            path: Shape,
+            size: float,
+            joining_type: Type = Type.JOINING,
             *,
-            side_bearing=DEFAULT_SIDE_BEARING,
-            y_min=0,
-            y_max=None,
-            child=False,
-            can_lead_orienting_sequence=None,
-            ignored_for_topography=False,
-            anchor=None,
-            widthless=None,
-            marks=None,
-            ignorability=Ignorability.DEFAULT_NO,
-            encirclable=False,
-            shading_allowed=True,
-            context_in=None,
-            context_out=None,
-            diphthong_1=False,
-            diphthong_2=False,
-            base_angle=None,
-            cps=None,
-            original_shape=None,
-    ):
+            side_bearing: float = DEFAULT_SIDE_BEARING,
+            y_min: Optional[float] = 0,
+            y_max: Optional[float] = None,
+            child: bool = False,
+            can_lead_orienting_sequence: Optional[bool] = None,
+            ignored_for_topography: bool = False,
+            anchor: Optional[str] = None,
+            widthless: Optional[bool] = None,
+            marks: Optional[Sequence[Schema]] = None,
+            ignorability: Ignorability = Ignorability.DEFAULT_NO,
+            encirclable: bool = False,
+            shading_allowed: bool = True,
+            context_in: Optional[Context] = None,
+            context_out: Optional[Context] = None,
+            diphthong_1: bool = False,
+            diphthong_2: bool = False,
+            base_angle: Optional[float] = None,
+            cps: Optional[Sequence[int]] = None,
+            original_shape: Optional[typing.Type[Shape]] = None,
+    ) -> None:
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
         self.cmap = cmap
@@ -177,10 +191,10 @@ class Schema:
         self.cps = cps or ([] if cmap is None else [cmap])
         self.original_shape = original_shape or type(path)
         self.phase_index = CURRENT_PHASE_INDEX
-        self._glyph_name = None
-        self._canonical_schema = self
-        self._lookalike_group = [self]
-        self.glyph = None
+        self._glyph_name: Optional[str] = None
+        self._canonical_schema: Schema = self
+        self._lookalike_group: Sequence[Schema] = [self]
+        self.glyph: Optional[fontforge.glyph] = None
 
     def sort_key(self):
         cmap_string = '' if self.cmap is None else chr(self.cmap)
@@ -249,7 +263,7 @@ class Schema:
             original_shape=self.original_shape if original_shape is CLONE_DEFAULT else original_shape,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<Schema {}>'.format(', '.join(map(str, [
             self._calculate_name(),
             self.cmap and f'{self.cmap:04X}',
@@ -263,7 +277,7 @@ class Schema:
         ])))
 
     @functools.cached_property
-    def diacritic_angles(self):
+    def diacritic_angles(self) -> Mapping[str, float]:
         return self.path.calculate_diacritic_angles()
 
     @functools.cached_property
@@ -281,7 +295,7 @@ class Schema:
         )
 
     @functools.cached_property
-    def might_need_width_markers(self):
+    def might_need_width_markers(self) -> bool:
         return not (
                 self.ignored_for_topography or self.widthless
             ) and (
@@ -290,7 +304,7 @@ class Schema:
             )
 
     @functools.cached_property
-    def group(self):
+    def group(self) -> Any:
         if self.ignored_for_topography:
             return (
                 self.ignorability == Ignorability.DEFAULT_YES,
@@ -332,42 +346,42 @@ class Schema:
         )
 
     @property
-    def canonical_schema(self):
+    def canonical_schema(self) -> Schema:
         return self._canonical_schema
 
     @canonical_schema.setter
-    def canonical_schema(self, canonical_schema):
+    def canonical_schema(self, canonical_schema: Schema) -> None:
         assert self._canonical_schema is self
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
     @canonical_schema.deleter
-    def canonical_schema(self):
+    def canonical_schema(self) -> None:
         del self._canonical_schema
 
     @property
-    def lookalike_group(self):
+    def lookalike_group(self) -> Sequence[Schema]:
         return self._lookalike_group
 
     @lookalike_group.setter
-    def lookalike_group(self, lookalike_group):
+    def lookalike_group(self, lookalike_group: Sequence[Schema]) -> None:
         assert len(self._lookalike_group) == 1 and self._lookalike_group[0] is self
         self._lookalike_group = lookalike_group
 
     @lookalike_group.deleter
-    def lookalike_group(self):
+    def lookalike_group(self) -> None:
         del self._lookalike_group
 
     @staticmethod
-    def _agl_name(cp):
+    def _agl_name(cp: int) -> Optional[str]:
         return fontTools.agl.UV2AGL[cp] if cp <= 0x7F else None
 
     @staticmethod
-    def _u_name(cp):
+    def _u_name(cp: int) -> str:
         return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
 
     @classmethod
-    def _readable_name(cls, cp):
+    def _readable_name(cls, cp: int) -> str:
         try:
             name = unicodedata.name(chr(cp))
         except ValueError:
@@ -376,12 +390,12 @@ class Schema:
             name = regex.sub(repl, name)
         return name
 
-    def _calculate_name(self):
+    def _calculate_name(self) -> str:
         cps = self.cps
         if cps:
             first_component_implies_type = False
             try:
-                name = '_'.join(map(self._agl_name, cps))
+                name = '_'.join(map(self._agl_name, cps))  # type: ignore[arg-type]
             except (KeyError, TypeError):
                 name = '_'.join(map(self._u_name, cps))
                 name = self._COLLAPSIBLE_UNI_NAME.sub('', name)
@@ -412,6 +426,7 @@ class Schema:
             name += '.frac'
         if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
             if self.y_min is None:
+                assert self.y_max is not None
                 if self.y_max > CAP_HEIGHT:
                     name += '.sups'
                 else:
@@ -468,7 +483,7 @@ class Schema:
             }>'''
         return name
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._glyph_name is None:
             if self is not (canonical := self._canonical_schema):
                 self._glyph_name = str(canonical)
@@ -485,13 +500,13 @@ class Schema:
                 self._glyph_name = name
         return self._glyph_name
 
-    def max_double_marks(self):
+    def max_double_marks(self) -> int:
         return (0
             if self.glyph_class != GlyphClass.JOINER
             else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
 
     @functools.cached_property
-    def pseudo_cursive(self):
+    def pseudo_cursive(self) -> bool:
         return self.glyph_class == GlyphClass.JOINER and self.path.is_pseudo_cursive(self.size)
 
     @functools.cached_property
@@ -511,18 +526,18 @@ class Schema:
             or self.path.stretch
         )
 
-    def can_be_ignored_for_topography(self):
+    def can_be_ignored_for_topography(self) -> bool:
         return (isinstance(self.path, (Circle, Ou))
             or isinstance(self.path, Curve) and not self.path.hook
         )
 
     def contextualize(
         self,
-        context_in,
-        context_out,
+        context_in: Context,
+        context_out: Context,
         *,
-        ignore_dependent_schemas=True,
-    ):
+        ignore_dependent_schemas: bool = True,
+    ) -> Schema:
         assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep)
         ignored_for_topography = (
             ignore_dependent_schemas
@@ -552,7 +567,7 @@ class Schema:
             context_out=None if ignored_for_topography else context_out,
         )
 
-    def path_context_in(self):
+    def path_context_in(self) -> Context:
         context_in = self.path.context_in()
         ignorable_for_topography = (
                 self.glyph_class == GlyphClass.JOINER
@@ -565,7 +580,7 @@ class Schema:
             diphthong_end=self.diphthong_2,
         )
 
-    def path_context_out(self):
+    def path_context_out(self) -> Context:
         context_out = self.path.context_out()
         ignorable_for_topography = (
             self.glyph_class == GlyphClass.JOINER
@@ -578,15 +593,15 @@ class Schema:
             diphthong_end=self.diphthong_2,
         )
 
-    def rotate_diacritic(self, context):
+    def rotate_diacritic(self, context) -> Schema:
         return self.clone(
             cmap=None,
-            path=self.path.rotate_diacritic(context),
+            path=self.path.rotate_diacritic(context),  # type: ignore[attr-defined]
             base_angle=context.angle,
         )
 
     @functools.cached_property
-    def hub_priority(self):
+    def hub_priority(self) -> int:
         if self.glyph_class != GlyphClass.JOINER:
             return -1
         priority = self.path.hub_priority(self.size)

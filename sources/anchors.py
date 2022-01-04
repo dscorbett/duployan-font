@@ -36,38 +36,43 @@ __all__ = [
 ]
 
 
+from collections.abc import Sequence
+from typing import Final
+from typing import Iterable
+
+
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 
 
-PARENT_EDGE = 'pe'
+PARENT_EDGE: Final[str] = 'pe'
 
 
-CHILD_EDGES = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
+CHILD_EDGES: Final[Sequence[Sequence[str]]] = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
 
 
-INTER_EDGES = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
+INTER_EDGES: Final[Sequence[Sequence[str]]] = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
 
 
-RELATIVE_1 = 'rel1'
+RELATIVE_1: Final[str] = 'rel1'
 
 
-RELATIVE_2 = 'rel2'
+RELATIVE_2: Final[str] = 'rel2'
 
 
-MIDDLE = 'mid'
+MIDDLE: Final[str] = 'mid'
 
 
-ABOVE = 'abv'
+ABOVE: Final[str] = 'abv'
 
 
-BELOW = 'blw'
+BELOW: Final[str] = 'blw'
 
 
-SECANT = 'sec'
+SECANT: Final[str] = 'sec'
 
 
-ALL_MKMK = [
+ALL_MKMK: Final[list[str]] = [
     RELATIVE_1,
     RELATIVE_2,
     MIDDLE,
@@ -76,30 +81,30 @@ ALL_MKMK = [
 ]
 
 
-ALL_MARK = ALL_MKMK + [
+ALL_MARK: Final[list[str]] = ALL_MKMK + [
     SECANT,
 ]
 
 
-PRE_HUB_CONTINUING_OVERLAP = 'hub1cont'
+PRE_HUB_CONTINUING_OVERLAP: Final[str] = 'hub1cont'
 
 
-POST_HUB_CONTINUING_OVERLAP = 'hub2cont'
+POST_HUB_CONTINUING_OVERLAP: Final[str] = 'hub2cont'
 
 
-CONTINUING_OVERLAP = 'cont'
+CONTINUING_OVERLAP: Final[str] = 'cont'
 
 
-PRE_HUB_CURSIVE = 'hub1cursive'
+PRE_HUB_CURSIVE: Final[str] = 'hub1cursive'
 
 
-POST_HUB_CURSIVE = 'hub2cursive'
+POST_HUB_CURSIVE: Final[str] = 'hub2cursive'
 
 
-CURSIVE = 'cursive'
+CURSIVE: Final[str] = 'cursive'
 
 
-ALL_CURSIVE = [
+ALL_CURSIVE: Final[list[str]] = [
     # The hub cursive anchors are intentionally skipped here: they are
     # duplicates of the standard cursive anchors used only to finagle the
     # baseline glyph into the root of the cursive attachment tree.
@@ -108,4 +113,4 @@ ALL_CURSIVE = [
 ]
 
 
-ALL = ALL_MARK + ALL_CURSIVE
+ALL: Final[Iterable[str]] = ALL_MARK + ALL_CURSIVE

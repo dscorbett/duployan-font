@@ -1,5 +1,5 @@
 # Copyright 2018-2019 David Corbett
-# Copyright 2019-2021 Google LLC
+# Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,8 +62,9 @@ __all__ = [
 
 
 import collections
-import math
 import enum
+import math
+from typing import Optional
 
 
 import fontTools.misc.transform
@@ -168,7 +169,7 @@ class Shape:
         return {}
 
     @staticmethod
-    def guaranteed_glyph_class():
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return None
 
 
