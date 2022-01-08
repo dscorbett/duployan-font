@@ -2914,6 +2914,7 @@ class TangentHook(Complex):
 
     @staticmethod
     def override_noninitial_context(c: Context) -> Context:
+        assert c.angle is not None
         return Context(
             None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             not (90 < c.angle < 315),
@@ -2921,6 +2922,7 @@ class TangentHook(Complex):
 
     @staticmethod
     def override_initial_context(c: Context) -> Context:
+        assert c.angle is not None
         return Context(
             None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             90 < c.angle < 315,

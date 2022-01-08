@@ -999,7 +999,7 @@ def run_phases(
         new_input_schemas = OrderedSet(all_input_schemas)
         output_schemas = OrderedSet(all_input_schemas)
         classes = PrefixView(phase, all_classes)
-        named_lookups = PrefixView(phase, {})
+        named_lookups: PrefixView[Lookup] = PrefixView(phase, {})
         lookups: Optional[Sequence[Lookup]] = None
         while new_input_schemas:
             output_lookups = phase(

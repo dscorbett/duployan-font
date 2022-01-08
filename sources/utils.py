@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'BRACKET_DEPTH',
     'BRACKET_HEIGHT',
@@ -38,61 +41,68 @@ __all__ = [
 ]
 
 
+from collections.abc import Collection
+from collections.abc import ItemsView
+from collections.abc import MutableMapping
 import enum
+from typing import Callable
+from typing import ClassVar
+from typing import Final
+from typing import Generic
 from typing import Iterable
 from typing import Optional
 from typing import TypeVar
 
 
-CAP_HEIGHT = 714
+CAP_HEIGHT: Final[float] = 714
 
 
-BRACKET_DEPTH = -0.27 * CAP_HEIGHT
+BRACKET_DEPTH: Final[float] = -0.27 * CAP_HEIGHT
 
 
-BRACKET_HEIGHT = 1.27 * CAP_HEIGHT
+BRACKET_HEIGHT: Final[float] = 1.27 * CAP_HEIGHT
 
 
 CLONE_DEFAULT = object()
 
 
-CURVE_OFFSET = 75
+CURVE_OFFSET: Final[float] = 75
 
 
-DEFAULT_SIDE_BEARING = 85
+DEFAULT_SIDE_BEARING: Final[float] = 85
 
 
-EPSILON = 1e-5
+EPSILON: Final[float] = 1e-5
 
 
-MAX_TREE_DEPTH = 3
+MAX_TREE_DEPTH: Final[int] = 3
 
 
-MAX_TREE_WIDTH = 2
+MAX_TREE_WIDTH: Final[int] = 2
 
 
-MINIMUM_STROKE_GAP = 70
+MINIMUM_STROKE_GAP: Final[float] = 70
 
 
-REGULAR_LIGHT_LINE = 70
+REGULAR_LIGHT_LINE: Final[float] = 70
 
 
-SHADING_FACTOR = 12 / 7
+SHADING_FACTOR: Final[float] = 12 / 7
 
 
-STRIKEOUT_POSITION = 258
+STRIKEOUT_POSITION: Final[float] = 258
 
 
-WIDTH_MARKER_PLACES = 7
+WIDTH_MARKER_PLACES: Final[int] = 7
 
 
-WIDTH_MARKER_RADIX = 4
+WIDTH_MARKER_RADIX: Final[int] = 4
 
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
 
-def mkmk(anchor):
+def mkmk(anchor: str) -> str:
     return f'mkmk_{anchor}'
 
 
@@ -111,21 +121,21 @@ class Type(enum.Enum):
 class Context:
     def __init__(
         self,
-        angle=None,
-        clockwise=None,
+        angle: Optional[float] = None,
+        clockwise: Optional[bool] = None,
         *,
-        minor=False,
-        ignorable_for_topography=False,
-        diphthong_start=False,
-        diphthong_end=False,
-    ):
+        minor: bool = False,
+        ignorable_for_topography: bool = False,
+        diphthong_start: bool = False,
+        diphthong_end: bool = False,
+    ) -> None:
         assert clockwise is not None or not ignorable_for_topography
-        self.angle = float(angle) if angle is not None else None
-        self.clockwise = clockwise
-        self.minor = minor
-        self.ignorable_for_topography = ignorable_for_topography
-        self.diphthong_start = diphthong_start
-        self.diphthong_end = diphthong_end
+        self.angle: Final = float(angle) if angle is not None else None
+        self.clockwise: Final = clockwise
+        self.minor: Final = minor
+        self.ignorable_for_topography: Final = ignorable_for_topography
+        self.diphthong_start: Final = diphthong_start
+        self.diphthong_end: Final = diphthong_end
 
     def clone(
         self,
@@ -180,9 +190,10 @@ class Context:
             '2' if self.diphthong_end else ''
         }'''
 
-    def __eq__(self, other):
-        return (
-            self.angle == other.angle
+    def __eq__(self, other: object) -> bool:
+        return (isinstance(self, type(other))
+            and isinstance(other, type(self))
+            and self.angle == other.angle
             and self.clockwise == other.clockwise
             and self.minor == other.minor
             and self.ignorable_for_topography == other.ignorable_for_topography
@@ -190,10 +201,10 @@ class Context:
             and self.diphthong_end == other.diphthong_end
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return (
             hash(self.angle)
             ^ hash(self.clockwise)
@@ -203,13 +214,13 @@ class Context:
             ^ hash(self.diphthong_end)
         )
 
-    def reversed(self):
+    def reversed(self) -> Context:
         return self.clone(
             angle=None if self.angle is None else (self.angle + 180) % 360,
             clockwise=None if self.clockwise is None else not self.clockwise,
         )
 
-    def has_clockwise_loop_to(self, other):
+    def has_clockwise_loop_to(self, other: Context) -> bool:
         if self.angle is None or other.angle is None:
             return False
         angle_in = self.angle
@@ -226,7 +237,7 @@ class Context:
         return da % 180 != 0 and (da >= 180) != (angle_out > angle_in)
 
 
-NO_CONTEXT = Context()
+NO_CONTEXT: Final[Context] = Context()
 
 
 _T = TypeVar('_T')
@@ -253,27 +264,27 @@ class OrderedSet(dict[_T, None]):
         return sorted(self.keys(), key=key, reverse=reverse)
 
 
-class PrefixView:
-    def __init__(self, source, delegate):
-        self.prefix = f'{source.__name__}..'
-        self._delegate = delegate
+class PrefixView(Generic[_T]):
+    def __init__(self, source: Callable, delegate: MutableMapping[str, _T]) -> None:
+        self.prefix: Final = f'{source.__name__}..'
+        self._delegate: Final = delegate
 
-    def _prefixed(self, key):
+    def _prefixed(self, key: str) -> str:
         is_global = key.startswith('global..')
         assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'
         return key if is_global else self.prefix + key
 
-    def __getitem__(self, key, /):
+    def __getitem__(self, key: str, /) -> _T:
         return self._delegate[self._prefixed(key)]
 
-    def __setitem__(self, key, value, /):
+    def __setitem__(self, key: str, value: _T, /) -> None:
         self._delegate[self._prefixed(key)] = value
 
-    def __contains__(self, item, /):
+    def __contains__(self, item: str, /) -> bool:
         return self._prefixed(item) in self._delegate
 
-    def keys(self):
+    def keys(self) -> Collection[str]:
         return self._delegate.keys()
 
-    def items(self):
+    def items(self) -> ItemsView[str, _T]:
         return self._delegate.items()
