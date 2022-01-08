@@ -1,5 +1,5 @@
 # Copyright 2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,39 +21,60 @@ __all__ = [
 
 
 import collections
+from collections.abc import Collection
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import MutableSequence
+from collections.abc import Sequence
+from typing import Any
+from typing import Generic
+from typing import Optional
+from typing import TypeVar
+from typing import Tuple
+from typing import Union
 
 
-class Grouper:
-    def __init__(self, groups):
-        self._groups = []
-        self._inverted = {}
+import phases
+from schema import Schema
+
+
+_Group = MutableSequence
+
+
+_T = TypeVar('_T')
+
+
+class Grouper(Generic[_T]):
+    def __init__(self, groups: Collection[_Group[_T]]):
+        self._groups: MutableSequence[_Group[_T]] = []
+        self._inverted: MutableMapping[_T, _Group] = {}
         for group in groups:
             if len(group) > 1:
                 self.add(group)
 
-    def groups(self):
+    def groups(self) -> Sequence[_Group[_T]]:
         return list(self._groups)
 
-    def group_of(self, item):
+    def group_of(self, item: _T) -> Optional[_Group[_T]]:
         return self._inverted.get(item)
 
-    def add(self, group):
+    def add(self, group: _Group[_T]) -> None:
         self._groups.append(group)
         for item in group:
             self._inverted[item] = group
 
-    def remove(self, group):
+    def remove(self, group: _Group[_T]) -> None:
         self._groups.remove(group)
         for item in group:
             del self._inverted[item]
 
-    def remove_item(self, group, item):
+    def remove_item(self, group: _Group[_T], item: _T) -> None:
         group.remove(item)
         del self._inverted[item]
         if len(group) == 1:
             self.remove(group)
 
-    def remove_items(self, minuend, subtrahend):
+    def remove_items(self, minuend: _Group[_T], subtrahend: Collection[_T]):
         for item in subtrahend:
             try:
                 self.remove_item(minuend, item)
@@ -61,14 +82,20 @@ class Grouper:
                 pass
 
 
-def group_schemas(schemas):
+def group_schemas(schemas: Collection[Schema]) -> Grouper[Schema]:
     group_dict = collections.defaultdict(list)
     for schema in schemas:
         group_dict[schema.group].append(schema)
     return Grouper(group_dict.values())
 
 
-def _sift_groups_in_rule_part(grouper, rule, target_part, classes, named_lookups_with_phases):
+def _sift_groups_in_rule_part(
+    grouper: Grouper[Schema],
+    rule: phases.Rule,
+    target_part: Sequence[Union[Schema, str]],
+    classes: Mapping[str, Collection[Schema]],
+    named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+) -> None:
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
@@ -86,10 +113,10 @@ def _sift_groups_in_rule_part(grouper, rule, target_part, classes, named_lookups
                     if overlap != 1 and target_part is rule.inputs:
                         if rule.outputs is not None:
                             for output in rule.outputs:
-                                if isinstance(output, str) and len(output := classes[output]) != 1:
+                                if isinstance(output, str) and len(output_class := classes[output]) != 1:
                                     grouper.remove(intersection)
                                     new_groups = collections.defaultdict(list)
-                                    for input_schema, output_schema in zip(cls, output):
+                                    for input_schema, output_schema in zip(cls, output_class):
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
@@ -116,8 +143,14 @@ def _sift_groups_in_rule_part(grouper, rule, target_part, classes, named_lookups
                     break
 
 
-def sift_groups(grouper, lookup, classes, named_lookups_with_phases):
+def sift_groups(
+    grouper: Grouper[Schema],
+    lookup: phases.Lookup,
+    classes: Mapping[str, Collection[Schema]],
+    named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+) -> None:
     for rule in lookup.rules:
         _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)
+        assert rule.contexts_out is not None
         _sift_groups_in_rule_part(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases)
         _sift_groups_in_rule_part(grouper, rule, rule.inputs, classes, named_lookups_with_phases)
