@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'AnchorWidthDigit',
     'Bound',
@@ -62,9 +65,19 @@ __all__ = [
 
 
 import collections
+from collections.abc import Mapping
+from collections.abc import MutableSequence
+from collections.abc import Sequence
 import enum
 import math
+import typing
+from typing import Any
+from typing import Callable
+from typing import Final
+from typing import Literal
 from typing import Optional
+from typing import Tuple
+from typing import Union
 
 
 import fontTools.misc.transform
@@ -85,87 +98,87 @@ from utils import WIDTH_MARKER_RADIX
 from utils import mkmk
 
 
-LINE_FACTOR = 500
+LINE_FACTOR: Final[float] = 500
 
 
-RADIUS = 50
+RADIUS: Final[float] = 50
 
 
-def _rect(r, theta):
+def _rect(r: float, theta: float) -> Tuple[float, float]:
     return (r * math.cos(theta), r * math.sin(theta))
 
 
 class Shape:
-    def clone(self):
+    def clone(self) -> Shape:
         raise NotImplementedError
 
-    def name_in_sfd(self):
+    def name_in_sfd(self) -> Optional[str]:
         return None
 
-    def __str__(self):
+    def __str__(self) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def name_implies_type():
+    def name_implies_type() -> bool:
         return False
 
     def group(self):
         return str(self)
 
-    def invisible(self):
+    def invisible(self) -> bool:
         return False
 
     @staticmethod
-    def can_take_secant():
+    def can_take_secant() -> bool:
         return False
 
-    def hub_priority(self, size):
+    def hub_priority(self, size) -> int:
         return 0 if self.invisible() else -1
 
     def draw(
             self,
-            glyph,
-            pen,
-            stroke_width,
-            light_line,
-            stroke_gap,
-            size,
-            anchor,
-            joining_type,
-            child,
-            initial_circle_diphthong,
-            final_circle_diphthong,
-            diphthong_1,
-            diphthong_2,
-    ):
+            glyph: fontforge.glyph,
+            pen: fontforge.glyphPen,
+            stroke_width: float,
+            light_line: bool,
+            stroke_gap: float,
+            size: float,
+            anchor: Optional[str],
+            joining_type: Type,
+            child: bool,
+            initial_circle_diphthong: bool,
+            final_circle_diphthong: bool,
+            diphthong_1: bool,
+            diphthong_2: bool,
+    ) -> None:
         if not self.invisible():
             raise NotImplementedError
 
-    def can_be_child(self, size):
+    def can_be_child(self, size: float) -> bool:
         return False
 
-    def max_tree_width(self, size):
+    def max_tree_width(self, size: float) -> int:
         return 0
 
-    def max_double_marks(self, size, joining_type, marks):
+    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence) -> int:
         return 0
 
-    def is_pseudo_cursive(self, size):
+    def is_pseudo_cursive(self, size: float) -> bool:
         return False
 
-    def is_shadable(self):
+    def is_shadable(self) -> bool:
         return False
 
-    def contextualize(self, context_in, context_out):
+    def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         raise NotImplementedError
 
-    def context_in(self):
+    def context_in(self) -> Context:
         raise NotImplementedError
 
-    def context_out(self):
+    def context_out(self) -> Context:
         raise NotImplementedError
 
-    def calculate_diacritic_angles(self):
+    def calculate_diacritic_angles(self) -> Mapping[str, float]:
         return {}
 
     @staticmethod
@@ -174,7 +187,7 @@ class Shape:
 
 
 class SFDGlyphWrapper(Shape):
-    def __init__(self, sfd_name):
+    def __init__(self, sfd_name: str) -> None:
         self.sfd_name = sfd_name
 
     def clone(
@@ -203,9 +216,9 @@ class SFDGlyphWrapper(Shape):
 class ContextMarker(Shape):
     def __init__(
         self,
-        is_context_in,
-        context,
-    ):
+        is_context_in: bool,
+        context: Context,
+    ) -> None:
         self.is_context_in = is_context_in
         self.context = context
 
@@ -274,10 +287,10 @@ class Start(Shape):
 class Hub(Shape):
     def __init__(
         self,
-        priority,
+        priority: int,
         *,
-        initial_secant=False,
-    ):
+        initial_secant: bool = False,
+    ) -> None:
         self.priority = priority
         self.initial_secant = initial_secant
 
@@ -387,11 +400,9 @@ class DigitStatus(enum.Enum):
 
 
 class EntryWidthDigit(Shape):
-    def __init__(self, place, digit):
-        self.place = int(place)
-        self.digit = int(digit)
-        assert self.place == place, place
-        assert self.digit == digit, digit
+    def __init__(self, place: int, digit: int) -> None:
+        self.place = place
+        self.digit = digit
 
     def __str__(self):
         return f'idx.{self.digit}e{self.place}'
@@ -409,11 +420,9 @@ class EntryWidthDigit(Shape):
 
 
 class LeftBoundDigit(Shape):
-    def __init__(self, place, digit, status=DigitStatus.NORMAL):
-        self.place = int(place)
-        self.digit = int(digit)
-        assert self.place == place, place
-        assert self.digit == digit, digit
+    def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
+        self.place = place
+        self.digit = digit
         self.status = status
 
     def __str__(self):
@@ -436,11 +445,9 @@ class LeftBoundDigit(Shape):
 
 
 class RightBoundDigit(Shape):
-    def __init__(self, place, digit, status=DigitStatus.NORMAL):
-        self.place = int(place)
-        self.digit = int(digit)
-        assert self.place == place, place
-        assert self.digit == digit, digit
+    def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
+        self.place = place
+        self.digit = digit
         self.status = status
 
     def __str__(self):
@@ -463,11 +470,9 @@ class RightBoundDigit(Shape):
 
 
 class AnchorWidthDigit(Shape):
-    def __init__(self, place, digit, status=DigitStatus.NORMAL):
-        self.place = int(place)
-        self.digit = int(digit)
-        assert self.place == place, place
-        assert self.digit == digit, digit
+    def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
+        self.place = place
+        self.digit = digit
         self.status = status
 
     def __str__(self):
@@ -490,7 +495,11 @@ class AnchorWidthDigit(Shape):
 
 
 class WidthNumber(Shape):
-    def __init__(self, digit_path, width):
+    def __init__(
+        self,
+        digit_path: Union[typing.Type[AnchorWidthDigit], typing.Type[EntryWidthDigit], typing.Type[LeftBoundDigit], typing.Type[RightBoundDigit]],
+        width: int,
+    ) -> None:
         self.digit_path = digit_path
         self.width = width
 
@@ -510,17 +519,20 @@ class WidthNumber(Shape):
     def guaranteed_glyph_class():
         return GlyphClass.MARK
 
-    def to_digits(self, register_width_marker):
-        digits = [None] * WIDTH_MARKER_PLACES
+    def to_digits(
+        self,
+        register_width_marker: Callable[[Union[typing.Type[AnchorWidthDigit], typing.Type[EntryWidthDigit], typing.Type[LeftBoundDigit], typing.Type[RightBoundDigit]], int, int], Any],
+    ) -> Sequence:
+        digits = []
         quotient = self.width
         for i in range(WIDTH_MARKER_PLACES):
             quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-            digits[i] = register_width_marker(self.digit_path, i, remainder)
+            digits.append(register_width_marker(self.digit_path, i, remainder))
         return digits
 
 
 class MarkAnchorSelector(Shape):
-    def __init__(self, index):
+    def __init__(self, index: int):
         self.index = index
 
     def __str__(self):
@@ -539,7 +551,7 @@ class MarkAnchorSelector(Shape):
 
 
 class GlyphClassSelector(Shape):
-    def __init__(self, glyph_class):
+    def __init__(self, glyph_class: GlyphClass):
         self.glyph_class = glyph_class
 
     def __str__(self):
@@ -620,9 +632,9 @@ class Notdef(Shape):
 class Space(Shape):
     def __init__(
         self,
-        angle,
+        angle: float,
         *,
-        margins=False,
+        margins: bool = False,
     ):
         self.angle = angle
         self.margins = margins
@@ -749,7 +761,7 @@ class ValidDTLS(Shape):
 
 
 class ChildEdge(Shape):
-    def __init__(self, lineage):
+    def __init__(self, lineage: Sequence[Tuple[int, int]]) -> None:
         self.lineage = lineage
 
     def clone(
@@ -835,7 +847,7 @@ class ContinuingOverlap(ContinuingOverlapS):
 
 
 class ParentEdge(Shape):
-    def __init__(self, lineage):
+    def __init__(self, lineage: Sequence[Tuple[int, int]]) -> None:
         self.lineage = lineage
 
     def clone(
@@ -908,8 +920,8 @@ class Dot(Shape):
     def __init__(
         self,
         *,
-        centered=False,
-    ):
+        centered: bool = False,
+    ) -> None:
         self.centered = centered
 
     def clone(
@@ -974,16 +986,16 @@ class Dot(Shape):
 class Line(Shape):
     def __init__(
         self,
-        angle,
+        angle: float,
         *,
-        minor=False,
-        stretchy=False,
-        secant=None,
-        secant_curvature_offset=45,
-        dots=None,
-        final_tick=False,
-        original_angle=None,
-    ):
+        minor: bool = False,
+        stretchy: bool = False,
+        secant: Optional[float] = None,
+        secant_curvature_offset: float = 45,
+        dots: Optional[int] = None,
+        final_tick: bool = False,
+        original_angle: Optional[float] = None,
+    ) -> None:
         self.angle = angle
         self.minor = minor
         self.stretchy = stretchy
@@ -1053,7 +1065,7 @@ class Line(Shape):
             return 0
         return -1
 
-    def _get_length(self, size):
+    def _get_length(self, size: float) -> int:
         if self.stretchy:
             length_denominator = abs(math.sin(math.radians(self.angle if self.original_angle is None else self.original_angle)))
             if length_denominator < EPSILON:
@@ -1226,27 +1238,27 @@ class Line(Shape):
             anchors.SECANT: angle,
         }
 
-    def reversed(self):
+    def reversed(self) -> Line:
         return self.clone(angle=(self.angle + 180) % 360)
 
 
 class Curve(Shape):
     def __init__(
         self,
-        angle_in,
-        angle_out,
+        angle_in: float,
+        angle_out: float,
         *,
-        clockwise,
-        stretch=0,
-        long=False,
-        relative_stretch=True,
-        hook=False,
-        reversed_circle=False,
-        overlap_angle=None,
-        secondary=None,
-        would_flip=False,
-        early_exit=False,
-    ):
+        clockwise: bool,
+        stretch: float = 0,
+        long: bool = False,
+        relative_stretch: bool = True,
+        hook: bool = False,
+        reversed_circle: bool = False,
+        overlap_angle: Optional[float] = None,
+        secondary: Optional[bool] = None,
+        would_flip: bool = False,
+        early_exit: bool = False,
+    ) -> None:
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         assert would_flip or not early_exit, 'An early exit is not needed if the curve would not flip'
         self.angle_in = angle_in
@@ -1324,7 +1336,11 @@ class Curve(Shape):
     def hub_priority(self, size):
         return 0 if size >= 6 else 1
 
-    def _get_normalized_angles(self, diphthong_1=False, diphthong_2=False):
+    def _get_normalized_angles(
+        self,
+        diphthong_1: bool = False,
+        diphthong_2: bool = False,
+    ) -> Tuple[float, float]:
         angle_in = self.angle_in
         angle_out = self.angle_out
         if diphthong_1:
@@ -1339,7 +1355,13 @@ class Curve(Shape):
         a2 = (90 if self.clockwise else -90) + angle_out
         return a1, a2
 
-    def _get_normalized_angles_and_da(self, diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong):
+    def _get_normalized_angles_and_da(
+        self,
+        diphthong_1: bool,
+        diphthong_2: bool,
+        final_circle_diphthong: bool,
+        initial_circle_diphthong: bool,
+    ) -> Tuple[float, float, float]:
         a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
         if final_circle_diphthong:
             a2 = a1
@@ -1347,10 +1369,17 @@ class Curve(Shape):
             a1 = a2
         return a1, a2, a2 - a1 or 360
 
-    def get_da(self):
+    def get_da(self) -> float:
         return self._get_normalized_angles_and_da(False, False, False, False)[2]
 
-    def _get_angle_to_overlap_point(self, a1, a2, *, is_entry):
+    def _get_angle_to_overlap_point(
+        self,
+        a1: float,
+        a2: float,
+        *,
+        is_entry: bool,
+    ) -> float:
+        assert self.overlap_angle is not None
         angle_to_overlap_point = self.overlap_angle
         angle_at_overlap_point = (angle_to_overlap_point - (90 if self.clockwise else -90))
         if (not self.in_degree_range(
@@ -1539,7 +1568,7 @@ class Curve(Shape):
         return True
 
     @staticmethod
-    def in_degree_range(key, start, stop, clockwise):
+    def in_degree_range(key: float, start: float, stop: float, clockwise: bool) -> bool:
         if clockwise:
             start, stop = stop, start
         if start <= stop:
@@ -1559,7 +1588,11 @@ class Curve(Shape):
             angle_out = (angle_in + da) % 360
         flips = 0
 
-        def flip():
+        candidate_clockwise: bool
+        candidate_angle_in: float
+        candidate_angle_out: float
+
+        def flip() -> None:
             nonlocal candidate_clockwise
             nonlocal candidate_angle_in
             nonlocal candidate_angle_out
@@ -1664,7 +1697,7 @@ class Curve(Shape):
             anchors.SECANT: self.angle_out % 180,
         }
 
-    def reversed(self):
+    def reversed(self) -> Curve:
         return self.clone(
             angle_in=(self.angle_out + 180) % 360,
             angle_out=(self.angle_in + 180) % 360,
@@ -1681,15 +1714,15 @@ class CircleRole(enum.Enum):
 class Circle(Shape):
     def __init__(
         self,
-        angle_in,
-        angle_out,
+        angle_in: float,
+        angle_out: float,
         *,
-        clockwise,
-        reversed=False,
-        pinned=False,
-        stretch=0,
-        long=False,
-        role=CircleRole.INDEPENDENT,
+        clockwise: bool,
+        reversed: bool = False,
+        pinned: bool = False,
+        stretch: float = 0,
+        long: bool = False,
+        role: CircleRole = CircleRole.INDEPENDENT,
     ):
         self.angle_in = angle_in
         self.angle_out = angle_out
@@ -1903,7 +1936,9 @@ class Circle(Shape):
                 if context_in.angle == context_out.angle
                 else context_out.clockwise)
 
-        def flop():
+        clockwise: bool
+
+        def flop() -> None:
             nonlocal clockwise
             nonlocal angle_in
             nonlocal angle_out
@@ -2025,7 +2060,7 @@ class Circle(Shape):
     def context_out(self):
         return Context(self.angle_out, self.clockwise)
 
-    def as_reversed(self):
+    def as_reversed(self) -> Circle:
         return self.clone(
             angle_in=(self.angle_out + 180) % 360,
             angle_out=(self.angle_in + 180) % 360,
@@ -2034,14 +2069,23 @@ class Circle(Shape):
         )
 
 
+_AnchorType = Union[Literal['base'], Literal['basemark'], Literal['entry'], Literal['exit'], Literal['ligature'], Literal['mark']]
+
+
+_Instructions = Sequence[Union[Callable[[Context], Context], Union[Tuple[float, Shape], Tuple[float, Shape, bool]]]]
+
+
+_Point = Tuple[float, float]
+
+
 class Complex(Shape):
     def __init__(
         self,
-        instructions,
+        instructions: _Instructions,
         *,
-        hook=False,
-        maximum_tree_width=0,
-        _final_rotation=0,
+        hook: bool = False,
+        maximum_tree_width: int = 0,
+        _final_rotation: float = 0,
     ):
         self.instructions = instructions
         self.hook = hook
@@ -2083,43 +2127,49 @@ class Complex(Shape):
         return first_component.hub_priority(first_scalar * size)
 
     class Proxy:
-        def __init__(self):
-            self.anchor_points = collections.defaultdict(list)
+        def __init__(self) -> None:
+            self.anchor_points: collections.defaultdict[Tuple[str, _AnchorType], MutableSequence[_Point]] = collections.defaultdict(list)
             self.contour = fontforge.contour()
 
-        def addAnchorPoint(self, anchor_class_name, anchor_type, x, y):
+        def addAnchorPoint(
+            self,
+            anchor_class_name: str,
+            anchor_type: _AnchorType,
+            x: float,
+            y: float,
+        ) -> None:
             self.anchor_points[(anchor_class_name, anchor_type)].append((x, y))
 
-        def stroke(self, *args):
+        def stroke(self, *args) -> None:
             pass
 
-        def boundingBox(self):
+        def boundingBox(self) -> Tuple[float, float, float, float]:
             return self.contour.boundingBox()
 
-        def transform(self, matrix, *args):
+        def transform(self, matrix: Tuple[float, float, float, float, float, float], *args) -> None:
             for anchor, points in self.anchor_points.items():
                 for i, x_y in enumerate(points):
                     new_point = fontforge.point(*x_y).transform(matrix)
                     self.anchor_points[anchor][i] = (new_point.x, new_point.y)
             self.contour.transform(matrix)
 
-        def moveTo(self, x_y):
+        def moveTo(self, x_y: _Point) -> None:
             if not self.contour:
                 self.contour.moveTo(*x_y)
 
-        def lineTo(self, x_y):
+        def lineTo(self, x_y: _Point) -> None:
             self.contour.lineTo(*x_y)
 
-        def curveTo(self, cp1, cp2, x_y):
+        def curveTo(self, cp1: _Point, cp2: _Point, x_y: _Point) -> None:
             self.contour.cubicTo(cp1, cp2, x_y)
 
-        def endPath(self):
+        def endPath(self) -> None:
             pass
 
-        def removeOverlap(self):
+        def removeOverlap(self) -> None:
             pass
 
-        def get_crossing_point(self, component):
+        def get_crossing_point(self, component: Union[Curve, Circle]) -> _Point:
             entry_list = self.anchor_points[(anchors.CURSIVE, 'entry')]
             assert len(entry_list) == 1
             if component.angle_in == component.angle_out:
@@ -2153,9 +2203,16 @@ class Complex(Shape):
             py = asy + ady * u
             return px, py
 
-    def draw_to_proxy(self, pen, stroke_width, light_line, stroke_gap, size):
+    def draw_to_proxy(
+        self,
+        pen: fontforge.glyphPen,
+        stroke_width: float,
+        light_line: bool,
+        stroke_gap: float,
+        size: float,
+    ) -> Tuple[bool, collections.defaultdict[Tuple[str, _AnchorType], list[_Point]]]:
         first_is_invisible = None
-        singular_anchor_points = collections.defaultdict(list)
+        singular_anchor_points: collections.defaultdict[Tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
         for op in self.instructions:
             if callable(op):
                 continue
@@ -2192,13 +2249,14 @@ class Complex(Shape):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not (skip_drawing and skip_drawing[0]):
                 proxy.contour.draw(pen)
+        assert first_is_invisible is not None
         return (
             first_is_invisible,
             singular_anchor_points,
         )
 
     @staticmethod
-    def _remove_bad_contours(glyph):
+    def _remove_bad_contours(glyph: fontforge.glyph) -> None:
         if not hasattr(glyph, 'foreground'):
             # This `Complex` is nested within another `Complex`. The outermost one
             # will remove all the bad contours.
@@ -2213,7 +2271,7 @@ class Complex(Shape):
                 del foreground[bad_index]
             glyph.foreground = foreground
 
-    def enter_on_first_path(self):
+    def enter_on_first_path(self) -> bool:
         return True
 
     def draw(
@@ -2372,8 +2430,8 @@ class InvalidOverlap(Complex):
     def __init__(
         self,
         *,
-        continuing,
-        instructions,
+        continuing: bool,
+        instructions: _Instructions,
     ):
         super().__init__(instructions)
         self.continuing = continuing
@@ -2395,7 +2453,11 @@ class InvalidOverlap(Complex):
 
 
 class InvalidStep(Complex):
-    def __init__(self, angle, instructions):
+    def __init__(
+        self,
+        angle: float,
+        instructions: _Instructions,
+    ):
         super().__init__(instructions)
         self.angle = angle
 
@@ -2441,10 +2503,10 @@ class RomanianU(Complex):
 class Ou(Complex):
     def __init__(
         self,
-        instructions,
-        role=CircleRole.INDEPENDENT,
-        _initial=False,
-        _isolated=True,
+        instructions: _Instructions,
+        role: CircleRole = CircleRole.INDEPENDENT,
+        _initial: bool = False,
+        _isolated: bool = True,
     ):
         super().__init__(instructions, hook=True)
         self.role = role
@@ -2572,18 +2634,20 @@ class Ou(Complex):
             rv = self.context_in()
             return rv.clone(angle=(rv.angle + 180) % 360)
 
-    def as_reversed(self):
-        circle_path = self.instructions[0][1]
-        curve_path = self.instructions[2][1]
+    def as_reversed(self) -> Ou:
+        circle_path = self.instructions[0][1]  # type: ignore[index]
+        curve_path = self.instructions[2][1]  # type: ignore[index]
+        assert isinstance(circle_path, Circle)
+        assert isinstance(curve_path, Curve)
         intermediate_angle = (circle_path.angle_in - circle_path.angle_out) % 360
         return self.clone(instructions=[
-            (self.instructions[0][0], circle_path.clone(
+            (self.instructions[0][0], circle_path.clone(  # type: ignore[index]
                 angle_in=(circle_path.angle_in + 180) % 360,
                 angle_out=intermediate_angle,
                 clockwise=not circle_path.clockwise,
             )),
             self.instructions[1],
-            (self.instructions[2][0], curve_path.clone(
+            (self.instructions[2][0], curve_path.clone(  # type: ignore[index]
                 angle_in=intermediate_angle,
                 clockwise=not curve_path.clockwise,
             )),
@@ -2593,10 +2657,10 @@ class Ou(Complex):
 class SeparateAffix(Complex):
     def __init__(
         self,
-        instructions,
+        instructions: _Instructions,
         *,
-        low=False,
-        tight=False,
+        low: bool = False,
+        tight: bool = False,
     ):
         super().__init__(instructions)
         self.low = low
@@ -2687,7 +2751,7 @@ class SeparateAffix(Complex):
 class Wa(Complex):
     def __init__(
         self,
-        instructions,
+        instructions: _Instructions,
     ):
         super().__init__(instructions)
 
@@ -2785,9 +2849,9 @@ class Wa(Complex):
                 ])
         return self.clone(instructions=instructions)
 
-    def as_reversed(self):
+    def as_reversed(self) -> Wa:
         return self.clone(
-            instructions=[op if callable(op) else (op[0], op[1].as_reversed(), *op[2:]) for op in self.instructions],
+            instructions=[op if callable(op) else (op[0], op[1].as_reversed(), *op[2:]) for op in self.instructions],  # type: ignore[attr-defined]
         )
 
 
@@ -2813,7 +2877,7 @@ class Wi(Complex):
             return self.as_reversed()
         return self
 
-    def as_reversed(self):
+    def as_reversed(self) -> Wi:
         first_callable = True
         return self.clone(
             instructions=[
@@ -2839,9 +2903,9 @@ class Wi(Complex):
 class TangentHook(Complex):
     def __init__(
         self,
-        instructions,
+        instructions: _Instructions,
         *,
-        _initial=False,
+        _initial: bool = False,
     ):
         while callable(instructions[0]):
             instructions = instructions[1:]
@@ -2849,14 +2913,14 @@ class TangentHook(Complex):
         self._initial = _initial
 
     @staticmethod
-    def override_noninitial_context(c):
+    def override_noninitial_context(c: Context) -> Context:
         return Context(
             None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             not (90 < c.angle < 315),
         )
 
     @staticmethod
-    def override_initial_context(c):
+    def override_initial_context(c: Context) -> Context:
         return Context(
             None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             90 < c.angle < 315,
