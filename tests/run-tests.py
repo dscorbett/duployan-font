@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,17 +22,40 @@ import os
 import re
 import subprocess
 import sys
+from typing import Generator
+from typing import Literal
+from typing import Tuple
+from typing import Union
+
 
 CI = os.getenv('CI') == 'true'
+
+
 DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
+
+
 GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
+
+
 NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
-SPACE_NAME_COMPONENT_PATTERN = re.compile('(?<=[\[|])(?:uni00A0|uni200[0-9A]|uni202F|uni205F|uni3000)(?![0-9A-Za-z_])')
+
+
+SPACE_NAME_COMPONENT_PATTERN = re.compile(r'(?<=[\[|])(?:uni00A0|uni200[0-9A]|uni202F|uni205F|uni3000)(?![0-9A-Za-z_])')
+
+
 FULL_FONT_CODE_POINTS = [0x034F]
+
+
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
+
+
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)')
 
-def parse_color(color):
+
+_Color = Union[Literal['auto'], Literal['no'], Literal['yes']]
+
+
+def parse_color(color: _Color) -> bool:
     if color == 'auto':
         return CI or sys.stdout.isatty()
     if color == 'no':
@@ -41,7 +64,8 @@ def parse_color(color):
         return True
     raise ValueError(f'Invalid --color value: {color}')
 
-def parse_json(s):
+
+def parse_json(s: str) -> Generator[str, None, None]:
     x = 0
     y = 0
     for glyph in json.loads(s):
@@ -57,14 +81,22 @@ def parse_json(s):
         y += int(glyph['ay'])
     yield f'_@{x},{y}'
 
-def munge(output, regular, incomplete):
+
+def munge(output: str, regular: bool, incomplete: bool) -> str:
     if incomplete:
         output = UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
     if not regular:
         output = GLYPH_POSITION_PATTERN.sub('', output)
     return output
 
-def print_diff(code_points, options, actual_output, expected_output, color):
+
+def print_diff(
+    code_points: str,
+    options: str,
+    actual_output: str,
+    expected_output: str,
+    color: bool,
+) -> None:
     if color:
         highlighted_actual_output = []
         highlighted_expected_output = []
@@ -97,7 +129,15 @@ def print_diff(code_points, options, actual_output, expected_output, color):
     print('Actual:   ' + actual_output)
     print('Expected: ' + expected_output)
 
-def run_test(font, line, png_file, color, incomplete, view_all):
+
+def run_test(
+    font: str,
+    line: str,
+    png_file: str,
+    color: bool,
+    incomplete: bool,
+    view_all: bool,
+) -> Tuple[bool, str]:
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         [
@@ -118,7 +158,7 @@ def run_test(font, line, png_file, color, incomplete, view_all):
     actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
     regular = font.endswith('-Regular.otf')
     passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
-        or incomplete and (
+        or incomplete and bool(
             NOTDEF_PATTERN.search(actual_output)
             or SPACE_NAME_COMPONENT_PATTERN.search(expected_output)
             or any(int(cp, 16) in FULL_FONT_CODE_POINTS for cp in code_points.split())
@@ -151,8 +191,10 @@ def run_test(font, line, png_file, color, incomplete, view_all):
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE)
             p.wait()
+            assert p.stderr is not None
             print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
     return (passed, ':'.join([code_points, options, actual_output]))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run shaping tests.')
@@ -191,4 +233,3 @@ if __name__ == '__main__':
         passed_all = passed_all and passed_file
     if not passed_all:
         sys.exit(1)
-
