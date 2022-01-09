@@ -2,7 +2,7 @@
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
 # Copyright 2018-2019 David Corbett
-# Copyright 2020-2021 Google LLC
+# Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,16 @@
 # limitations under the License.
 
 import argparse
+from collections.abc import Collection
 import datetime
 import os
 import re
 import subprocess
 import tempfile
+from typing import Any
 
 import fontforge
+import fontTools.cffLib
 import fontTools.misc.timeTools
 import fontTools.otlLib.builder
 import fontTools.ttLib
@@ -34,10 +37,14 @@ import duployan
 import fonttools_patches
 import utils
 
+
 LEADING_ZEROS = re.compile('(?<= )0+')
+
+
 VERSION_PREFIX = 'Version '
 
-def build_font(options, font):
+
+def build_font(options: argparse.Namespace, font: fontforge.font) -> None:
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         try:
             os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
@@ -53,15 +60,18 @@ def build_font(options, font):
     os.makedirs(os.path.dirname(os.path.realpath(options.output)), exist_ok=True)
     font.generate(options.output, flags=flags)
 
-def generate_feature_string(font, lookup):
+
+def generate_feature_string(font: fontforge.font, lookup: str) -> str:
     with tempfile.NamedTemporaryFile() as fea_file:
         font.generateFeatureFile(fea_file.name, lookup)
         return fea_file.read().decode('utf-8')
 
-def patch_fonttools():
+
+def patch_fonttools() -> None:
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
 
-def set_noto_values(tt_font):
+
+def set_noto_values(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
     tt_font['OS/2'].achVendID = 'GOOG'
     for name in tt_font['name'].names:
         if name.nameID == 0:
@@ -73,7 +83,8 @@ def set_noto_values(tt_font):
     tt_font['name'].addMultilingualName({'en': 'Noto is a trademark of Google LLC'}, None, 7, mac=False)
     tt_font['name'].addMultilingualName({'en': 'http://www.google.com/get/noto/'}, None, 11, mac=False)
 
-def filter_map_name(name):
+
+def filter_map_name(name: Any) -> Any:
     if name.platformID != 3 or name.platEncID != 1:
         return None
     if isinstance(name.string, bytes):
@@ -83,7 +94,8 @@ def filter_map_name(name):
     name.string = name.string.strip()
     return name
 
-def set_subfamily_name(names, bold):
+
+def set_subfamily_name(names: Collection[Any], bold: bool) -> None:
     for name in names:
         if name.nameID == 1:
             family_name = name.string
@@ -98,7 +110,8 @@ def set_subfamily_name(names, bold):
     postscript_name_record.string = re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', family_name)
     postscript_name_record.string += f'-{subfamily_name_record.string}'
 
-def set_unique_id(names, vendor, noto):
+
+def set_unique_id(names: Collection[Any], vendor: str) -> None:
     for name in names:
         if name.nameID == 3:
             unique_id_record = name
@@ -108,7 +121,13 @@ def set_unique_id(names, vendor, noto):
             postscript_name = name.string
     unique_id_record.string = f'{version};{vendor};{postscript_name}'
 
-def set_version(tt_font, noto, version, release):
+
+def set_version(
+    tt_font: fontTools.ttLib.ttFont.TTFont,
+    noto: bool,
+    version: float,
+    release: bool,
+) -> None:
     tt_font['head'].fontRevision = version
     if noto:
         os.environ['GIT_PYTHON_REFRESH'] = 'warn'
@@ -142,7 +161,8 @@ def set_version(tt_font, noto, version, release):
                 name.string = f'{VERSION_PREFIX}{version}.0{release_suffix}'
                 break
 
-def set_cff_data(names, cff):
+
+def set_cff_data(names: Collection[Any], cff: fontTools.cffLib.CFFFontSet) -> None:
     for name in names:
         if name.nameID == 0:
             cff[0].Copyright = name.string
@@ -159,12 +179,14 @@ def set_cff_data(names, cff):
         elif name.nameID == 7:
             cff[0].Notice = name.string
 
-def add_meta(tt_font):
+
+def add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
     meta = tt_font['meta'] = fontTools.ttLib.newTable('meta')
     meta.data['dlng'] = 'Dupl'
     meta.data['slng'] = 'Dupl'
 
-def tweak_font(options, builder):
+
+def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
     with fontTools.ttLib.ttFont.TTFont(options.output, recalcBBoxes=False) as tt_font:
         # Remove the FontForge timestamp table.
         if 'FFTM' in tt_font:
@@ -214,7 +236,7 @@ def tweak_font(options, builder):
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_version(tt_font, options.noto, options.version, options.release)
-        set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID, options.noto)
+        set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID)
         if 'CFF ' in tt_font:
             set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
 
@@ -222,7 +244,8 @@ def tweak_font(options, builder):
 
         tt_font.save(options.output)
 
-def make_font(options):
+
+def make_font(options: argparse.Namespace) -> None:
     font = fontforge.font()
     font.familyname = 'Duployan'
     font.fontname = font.familyname
@@ -234,6 +257,7 @@ def make_font(options):
     patch_fonttools()
     tweak_font(options, builder)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
     parser.add_argument('--bold', action='store_true', help='Make a bold font.')
@@ -244,4 +268,3 @@ if __name__ == '__main__':
     parser.add_argument('--version', type=float, required=True, help='The version number.')
     args = parser.parse_args()
     make_font(args)
-
