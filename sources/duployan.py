@@ -15,13 +15,25 @@
 
 __all__ = ['Builder']
 
+
 import collections
+from collections.abc import Collection
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import MutableSequence
+from collections.abc import Sequence
 import enum
 import itertools
 import io
 import math
 import re
+from typing import Any
+from typing import Final
+from typing import Optional
+from typing import Tuple
+from typing import cast
 import unicodedata
+
 
 import fontforge
 import fontTools.agl
@@ -30,6 +42,8 @@ import fontTools.feaLib.builder
 import fontTools.feaLib.parser
 import fontTools.misc.transform
 import fontTools.otlLib.builder
+import fontTools.ttLib.ttFont
+
 
 import anchors
 from phases import Lookup
@@ -106,7 +120,8 @@ from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
 from utils import mkmk
 
-def rename_schemas(grouper, phase_index):
+
+def rename_schemas(grouper: sifting.Grouper, phase_index: int) -> None:
     for group in grouper.groups():
         if not any(map(lambda s: s.phase_index >= phase_index, group)):
             continue
@@ -120,35 +135,33 @@ def rename_schemas(grouper, phase_index):
                 if grouper.group_of(schema):
                     grouper.remove_item(group, schema)
 
+
 class Builder:
-    def __init__(self, font, bold, noto):
-        self.font = font
-        self._fea = fontTools.feaLib.ast.FeatureFile()
-        self._anchors = {}
+    def __init__(self, font: fontforge.font, bold: bool, noto: bool) -> None:
+        self.font: Final = font
+        self._fea: Final = fontTools.feaLib.ast.FeatureFile()
+        self._anchors: MutableMapping[str, fontTools.feaLib.ast.LookupBlock] = {}
         self._initialize_phases(noto)
         self.light_line = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line = SHADING_FACTOR * self.light_line
         self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
-        code_points = collections.defaultdict(int)
+        code_points: collections.defaultdict[int, int] = collections.defaultdict(int)
         self._initialize_schemas(noto, self.light_line, self.stroke_gap)
         for schema in self._schemas:
             if schema.cmap is not None:
                 code_points[schema.cmap] += 1
-        for glyph in font.glyphs():
-            if glyph.unicode != -1 and glyph.unicode not in code_points:
-                self._schemas.append(Schema(glyph.unicode, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING))
-        code_points = {cp: count for cp, count in code_points.items() if count > 1}
-        assert not code_points, ('Duplicate code points:\n    '
-            + '\n    '.join(map(hex, sorted(code_points.keys()))))
+        duplicate_code_points = {cp: count for cp, count in code_points.items() if count > 1}
+        assert not duplicate_code_points, ('Duplicate code points:\n    '
+            + '\n    '.join(map(hex, sorted(duplicate_code_points.keys()))))
 
-    def _initialize_phases(self, noto):
+    def _initialize_phases(self, noto: bool) -> None:
         self._phases = phases.main.PHASE_LIST
         if noto:
             self._phases = [p for p in self._phases if p is not phases.main.reversed_circle_kludge]
         self._middle_phases = phases.middle.PHASE_LIST
         self._marker_phases = phases.marker.PHASE_LIST
 
-    def _initialize_schemas(self, noto, light_line, stroke_gap):
+    def _initialize_schemas(self, noto: bool, light_line: float, stroke_gap: float) -> None:
         notdef = Notdef()
         space = Space(0, margins=True)
         h = Dot()
@@ -180,8 +193,8 @@ class Builder:
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
         right_guillemet = [*reversed(left_guillemet)]
-        left_guillemet += [(op[0], op[1].reversed(), True) for op in left_guillemet]
-        right_guillemet += [(op[0], op[1].reversed(), True) for op in right_guillemet]
+        left_guillemet += [(op[0], op[1].reversed(), True) for op in left_guillemet]  # type: ignore[misc]
+        right_guillemet += [(op[0], op[1].reversed(), True) for op in right_guillemet]  # type: ignore[misc]
         left_double_guillemet = Complex([guillemet_vertical_space, *left_guillemet, guillemet_horizontal_space, *left_guillemet])
         right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
@@ -211,9 +224,9 @@ class Builder:
         cross_knob_line_factor = 0.42
         cross_knob_factor = cross_knob_line_factor * LINE_FACTOR / RADIUS
         cross_knob_instructions = [(cross_knob_line_factor, Line(270), True), (cross_knob_factor, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True), (cross_knob_factor / 2, Circle(180, 180, clockwise=True)), (cross_knob_line_factor / 2, Line(90), True)]
-        cross_pommy = Complex([*cross_knob_instructions, (3 + 2 * cross_knob_line_factor, Line(270)), *cross_knob_instructions, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), *cross_knob_instructions, (2 + 2 * cross_knob_line_factor, Line(0)), *cross_knob_instructions])
+        cross_pommy = Complex([*cross_knob_instructions, (3 + 2 * cross_knob_line_factor, Line(270)), *cross_knob_instructions, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), *cross_knob_instructions, (2 + 2 * cross_knob_line_factor, Line(0)), *cross_knob_instructions])  # type: ignore[list-item]
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
-        sacred_heart = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232)), (0.904, Line(128)), (3.528, Curve(128, 335, clockwise=True, stretch=0.036, long=True)), (3.528, Curve(335, 318, clockwise=True, stretch=0.346, long=True)), (7.5, Space(0)), (1, cross.instructions[0][1].reversed(), True), *[(op[0] / 3, op[1]) for op in cross.instructions]])
+        sacred_heart = Complex([(3.528, Curve(42, 25, clockwise=True, stretch=0.346, long=True)), (3.528, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (0.904, Line(232)), (0.904, Line(128)), (3.528, Curve(128, 335, clockwise=True, stretch=0.036, long=True)), (3.528, Curve(335, 318, clockwise=True, stretch=0.346, long=True)), (7.5, Space(0)), (1, cross.instructions[0][1].reversed(), True), *[(op[0] / 3, op[1]) for op in cross.instructions]])  # type: ignore[index, union-attr]
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270, stretchy=True)
         p_reverse = Line(90, stretchy=True)
@@ -271,7 +284,7 @@ class Builder:
         high_vertical_secant = Line(90, secant=1 / 3)
         rtl_secant = Line(240, secant=0.5, secant_curvature_offset=55)
         ltr_secant = Line(310, secant=0.5, secant_curvature_offset=55)
-        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270)), lambda c: Context((c.angle + 180) % 360), (0.5, Line(90))], hook=True)
+        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270)), lambda c: Context((cast(float, c.angle) + 180) % 360), (0.5, Line(90))], hook=True)
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
         tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
@@ -296,12 +309,12 @@ class Builder:
         low_arrow = SeparateAffix([(0.4, Line(0)), (0.4, Line(240))], low=True)
         likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90)), (0.5, p), (math.hypot(125, 125), Space(135)), (0.5, Line(0))])
         dotted_square = [(152, Space(270)), (0.26 - light_line / 1000, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.26 - light_line / 1000, Line(90)), (0.26 - light_line / 1000, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.26 - light_line / 1000, Line(0)), (0.26 - light_line / 1000, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.26 - light_line / 1000, Line(270)), (0.26 - light_line / 1000, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.26 - light_line / 1000, Line(180))]
-        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])
+        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, relative_stretch=False)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, relative_stretch=False)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, relative_stretch=False)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, relative_stretch=False))])  # type: ignore[list-item]
         chinook_period = Complex([(100, Space(90)), (1, Line(0)), (179, Space(90)), (1, Line(180))])
-        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])
-        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])
-        down_step = InvalidStep(270, dotted_square + [(444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])
-        up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
+        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])  # type: ignore[list-item]
+        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])  # type: ignore[list-item]
+        down_step = InvalidStep(270, dotted_square + [(444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])  # type: ignore[list-item]
+        up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])  # type: ignore[list-item]
         line = Line(0)
 
         dot_1 = Schema(None, h, 1, anchor=anchors.RELATIVE_1)
@@ -548,12 +561,12 @@ class Builder:
 
     def _add_lookup(
         self,
-        feature_tag,
-        anchor_class_name,
+        feature_tag: str,
+        anchor_class_name: str,
         *,
-        flags,
-        mark_filtering_set=None,
-    ):
+        flags: int,
+        mark_filtering_set: Optional[fontTools.feaLib.ast.GlyphClassDefinition] = None,
+    ) -> None:
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
@@ -575,7 +588,7 @@ class Builder:
             feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
         self._fea.statements.append(feature)
 
-    def _add_lookups(self, class_asts):
+    def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
         parent_edge_lookup = None
         child_edge_lookups = [None] * MAX_TREE_WIDTH
         self._add_lookup(
@@ -650,7 +663,7 @@ class Builder:
                 mark_filtering_set=class_asts[f'global..{mkmk(anchor)}'],
             )
 
-    def _add_altuni(self, uni, glyph_name):
+    def _add_altuni(self, uni: int, glyph_name: str) -> fontforge.glyph:
         glyph = self.font[glyph_name]
         if uni != -1:
             if glyph.unicode == -1:
@@ -663,7 +676,7 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    def _draw_glyph(self, glyph, schema, scalar=1):
+    def _draw_glyph(self, glyph: fontforge.glyph, schema: Schema, scalar: float = 1) -> None:
         assert not schema.marks
         pen = glyph.glyphPen()
         invisible = schema.path.invisible()
@@ -715,7 +728,7 @@ class Builder:
         else:
             glyph.right_side_bearing = scalar * schema.side_bearing
 
-    def _create_glyph(self, schema, *, drawing):
+    def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
         if schema.path.name_in_sfd():
             return self.font[schema.path.name_in_sfd()]
         glyph_name = str(schema)
@@ -731,16 +744,16 @@ class Builder:
             glyph.width = glyph.width
         return glyph
 
-    def _create_marker(self, schema):
+    def _create_marker(self, schema: Schema) -> None:
         assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
         glyph = self._create_glyph(schema, drawing=True)
         glyph.width = 0
 
-    def _complete_gpos(self):
-        mark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        base_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        basemark_positions = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        cursive_positions = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
+    def _complete_gpos(self) -> None:
+        mark_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        base_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        basemark_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        cursive_positions: collections.defaultdict[str, collections.defaultdict[str, MutableSequence[Optional[fontTools.feaLib.ast.Anchor]]]] = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
         for glyph in self.font.glyphs():
             for anchor_class_name, type, x, y in glyph.anchorPoints:
                 x = round(x)
@@ -780,7 +793,7 @@ class Builder:
                     fontTools.feaLib.ast.GlyphName(glyph_name),
                     *entry_exit))
 
-    def _recreate_gdef(self):
+    def _recreate_gdef(self) -> None:
         bases = []
         marks = []
         ligatures = []
@@ -801,16 +814,16 @@ class Builder:
         self._fea.statements.append(gdef)
 
     @staticmethod
-    def _glyph_to_schema(glyph):
-        if glyph.temporary is None:
-            schema = Schema(glyph.unicode if glyph.unicode != -1 else None, SFDGlyphWrapper(glyph.glyphname), 0, Type.NON_JOINING)
-        else:
-            schema = glyph.temporary
-            glyph.temporary = None
+    def _glyph_to_schema(glyph) -> Schema:
+        schema = glyph.temporary
+        glyph.temporary = None
         schema.glyph = glyph
         return schema
 
-    def convert_classes(self, classes):
+    def convert_classes(
+        self,
+        classes: Mapping[str, Collection[Schema]],
+    ) -> dict[str, fontTools.feaLib.ast.GlyphClassDefinition]:
         class_asts = {}
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
@@ -821,8 +834,12 @@ class Builder:
             class_asts[name] = class_ast
         return class_asts
 
-    def convert_named_lookups(self, named_lookups_with_phases, class_asts):
-        named_lookup_asts = {}
+    def convert_named_lookups(
+        self,
+        named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+        class_asts: MutableMapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+    ) -> dict[str, fontTools.feaLib.ast.LookupBlock]:
+        named_lookup_asts: dict[str, fontTools.feaLib.ast.LookupBlock] = {}
         named_lookups_to_do = [*named_lookups_with_phases.keys()]
         while named_lookups_to_do:
             new_named_lookups_to_do = []
@@ -847,7 +864,13 @@ class Builder:
             named_lookups_to_do = new_named_lookups_to_do
         return named_lookup_asts
 
-    def _merge_schemas(self, schemas, lookups_with_phases, classes, named_lookups_with_phases):
+    def _merge_schemas(
+        self,
+        schemas: Collection[Schema],
+        lookups_with_phases: Sequence[Tuple[Lookup, Any]],
+        classes: MutableMapping[str, Collection[Schema]],
+        named_lookups_with_phases: MutableMapping[str, Tuple[Lookup, Any]],
+    ) -> None:
         grouper = sifting.group_schemas(schemas)
         previous_phase = None
         for lookup, phase in reversed(lookups_with_phases):
@@ -859,7 +882,7 @@ class Builder:
             sifting.sift_groups(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
         rename_schemas(grouper, NO_PHASE_INDEX)
 
-    def augment(self):
+    def augment(self) -> None:
         (
             schemas,
             output_schemas,
@@ -910,7 +933,11 @@ class Builder:
         self.font.round()
         self.font.simplify(3, ('smoothcurves',))
 
-    def merge_features(self, tt_font, old_fea):
+    def merge_features(
+        self,
+        tt_font: fontTools.ttLib.ttFont.TTFont,
+        old_fea: str,
+    ) -> None:
         self._fea.statements.extend(
             fontTools.feaLib.parser.Parser(
                 io.StringIO(old_fea),
@@ -922,4 +949,3 @@ class Builder:
                 tt_font,
                 self._fea,
                 ['GDEF', 'GPOS', 'GSUB'])
-

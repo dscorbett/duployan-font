@@ -140,7 +140,7 @@ class Shape:
             glyph: fontforge.glyph,
             pen: fontforge.glyphPen,
             stroke_width: float,
-            light_line: bool,
+            light_line: float,
             stroke_gap: float,
             size: float,
             anchor: Optional[str],
@@ -150,9 +150,10 @@ class Shape:
             final_circle_diphthong: bool,
             diphthong_1: bool,
             diphthong_2: bool,
-    ) -> None:
+    ) -> bool:
         if not self.invisible():
             raise NotImplementedError
+        return False
 
     def can_be_child(self, size: float) -> bool:
         return False
@@ -330,13 +331,14 @@ class Hub(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         if self.initial_secant:
             glyph.addAnchorPoint(anchors.PRE_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'exit', 0, 0)
         else:
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -369,8 +371,9 @@ class End(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -614,7 +617,7 @@ class Notdef(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.lineTo((stroke_width / 2, 663 + stroke_width / 2))
@@ -623,6 +626,7 @@ class Notdef(Shape):
         pen.lineTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -680,7 +684,7 @@ class Space(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -692,6 +696,7 @@ class Space(Shape):
                 fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
                 ('round',),
             )
+        return False
 
     def can_be_child(self, size):
         return size == 0 and self.angle == 0 and not self.margins
@@ -731,13 +736,14 @@ class Bound(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         stroke_width = 75
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
         pen.moveTo((stroke_width / 2, 639 + stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -798,11 +804,12 @@ class ChildEdge(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(anchors.CHILD_EDGES[min(1, layer_index)][child_index], 'mark', 0, 0)
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -834,8 +841,8 @@ class ContinuingOverlapS(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
-        pass
+    ) -> bool:
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -888,12 +895,13 @@ class ParentEdge(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
             glyph.addAnchorPoint(anchors.PARENT_EDGE, 'basemark', 0, 0)
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
+        return False
 
     @staticmethod
     def guaranteed_glyph_class():
@@ -957,7 +965,7 @@ class Dot(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         assert not child
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -969,6 +977,7 @@ class Dot(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
+        return False
 
     def is_pseudo_cursive(self, size):
         return True
@@ -1089,9 +1098,9 @@ class Line(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         end_y = 0
-        length = self._get_length(size)
+        length: float = self._get_length(size)
         pen.moveTo((0, 0))
         if self.dots:
             dot_interval = length / (self.dots - 1)
@@ -1160,6 +1169,7 @@ class Line(Shape):
             x_center = (x_max + x_min) / 2
             glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
             glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
+        return False
 
     def can_be_child(self, size):
         return not (self.secant or self.dots)
@@ -1430,7 +1440,7 @@ class Curve(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         a1, a2, da = self._get_normalized_angles_and_da(diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong)
         r = int(RADIUS * size)
         beziers_needed = int(math.ceil(abs(da) / 90))
@@ -1550,6 +1560,7 @@ class Curve(Shape):
             x_center = (x_max + x_min) / 2
             glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_gap)
             glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - stroke_gap)
+        return False
 
     def can_be_child(self, size):
         a1, a2 = self._get_normalized_angles()
@@ -1809,7 +1820,7 @@ class Circle(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         angle_in = self.angle_in
         angle_out = self.angle_out
         if (diphthong_1 or diphthong_2) and angle_in == angle_out:
@@ -1835,7 +1846,7 @@ class Circle(Shape):
                     diphthong_1,
                     diphthong_2,
                 )
-            return
+            return False
         if diphthong_1:
             angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
         if diphthong_2:
@@ -1908,6 +1919,7 @@ class Circle(Shape):
         x_center = (x_max + x_min) / 2
         glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_gap)
         glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - stroke_gap)
+        return False
 
     def can_be_child(self, size):
         return True
@@ -2289,7 +2301,7 @@ class Complex(Shape):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         (
             first_is_invisible,
             singular_anchor_points,
@@ -2557,26 +2569,29 @@ class Ou(Complex):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
+        drawer: Union[super, Complex]
         if self.role != CircleRole.LEADER or self._isolated:
             drawer = super()
         else:
             circle_op = self.instructions[2 if self._initial else 0]
-            circle_path = circle_op[1]
+            circle_path = circle_op[1]  # type: ignore[index]
+            assert isinstance(circle_path, (Circle, Curve))
             clockwise = circle_path.clockwise
             curve_op = self.instructions[0 if self._initial else 2]
-            curve_path = curve_op[1]
+            curve_path = curve_op[1]  # type: ignore[index]
+            assert isinstance(curve_path, Curve)
             curve_da = curve_path.angle_out - curve_path.angle_in
             if self._initial:
                 angle_out = circle_path.angle_out
                 intermediate_angle = (angle_out + curve_da) % 360
                 instructions = [
-                    (curve_op[0], curve_path.clone(
+                    (curve_op[0], curve_path.clone(  # type: ignore[index]
                         angle_in=angle_out,
                         angle_out=intermediate_angle,
                         clockwise=clockwise,
                     )),
-                    (circle_op[0], Curve(
+                    (circle_op[0], Curve(  # type: ignore[index]
                         angle_in=intermediate_angle,
                         angle_out=angle_out,
                         clockwise=clockwise,
@@ -2586,19 +2601,19 @@ class Ou(Complex):
                 angle_in = circle_path.angle_in
                 intermediate_angle = (angle_in - curve_da) % 360
                 instructions = [
-                    (circle_op[0], Curve(
+                    (circle_op[0], Curve(  # type: ignore[index]
                         angle_in=angle_in,
                         angle_out=intermediate_angle,
                         clockwise=clockwise,
                     )),
-                    (curve_op[0], curve_path.clone(
+                    (curve_op[0], curve_path.clone(  # type: ignore[index]
                         angle_in=intermediate_angle,
                         angle_out=angle_in,
                         clockwise=clockwise,
                     )),
                 ]
             drawer = Complex(instructions=instructions)
-        drawer.draw(
+        drawer.draw(  # type: ignore[union-attr]
             glyph,
             pen,
             stroke_width,
@@ -2613,6 +2628,7 @@ class Ou(Complex):
             diphthong_1,
             diphthong_2,
         )
+        return False
 
     def contextualize(self, context_in, context_out):
         return super().contextualize(context_in, context_out).clone(
@@ -2704,7 +2720,7 @@ class SeparateAffix(Complex):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         super().draw(
             glyph,
             pen,
@@ -2734,6 +2750,7 @@ class SeparateAffix(Complex):
             entry_x, exit_x = exit_x, entry_x
         glyph.addAnchorPoint(anchors.CURSIVE, 'entry', entry_x, cursive_y)
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', exit_x, cursive_y)
+        return False
 
     def is_pseudo_cursive(self, size):
         return True
@@ -2979,7 +2996,7 @@ class XShape(Complex):
             final_circle_diphthong,
             diphthong_1,
             diphthong_2,
-    ):
+    ) -> bool:
         super().draw(
             glyph,
             pen,
@@ -3008,6 +3025,7 @@ class XShape(Complex):
         glyph.addAnchorPoint(anchors.CURSIVE, 'entry', x_avg, y_avg)
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', x_avg, y_avg)
         glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', x_avg, y_avg)
+        return False
 
     def is_pseudo_cursive(self, size):
         return True

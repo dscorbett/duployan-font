@@ -38,7 +38,7 @@ import phases
 from schema import Schema
 
 
-_Group = MutableSequence
+_Group = list
 
 
 _T = TypeVar('_T')

@@ -43,6 +43,8 @@ __all__ = [
 
 from collections.abc import Collection
 from collections.abc import ItemsView
+from collections.abc import KeysView
+from collections.abc import Mapping
 from collections.abc import MutableMapping
 import enum
 from typing import Callable
@@ -50,6 +52,7 @@ from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import Iterable
+from typing import Iterator
 from typing import Optional
 from typing import TypeVar
 
@@ -264,7 +267,7 @@ class OrderedSet(dict[_T, None]):
         return sorted(self.keys(), key=key, reverse=reverse)
 
 
-class PrefixView(Generic[_T]):
+class PrefixView(Generic[_T], Mapping[str, _T]):
     def __init__(self, source: Callable, delegate: MutableMapping[str, _T]) -> None:
         self.prefix: Final = f'{source.__name__}..'
         self._delegate: Final = delegate
@@ -280,10 +283,16 @@ class PrefixView(Generic[_T]):
     def __setitem__(self, key: str, value: _T, /) -> None:
         self._delegate[self._prefixed(key)] = value
 
-    def __contains__(self, item: str, /) -> bool:
-        return self._prefixed(item) in self._delegate
+    def __contains__(self, item: object, /) -> bool:
+        return isinstance(item, str) and self._prefixed(item) in self._delegate
 
-    def keys(self) -> Collection[str]:
+    def __iter__(self, /) -> Iterator[str]:
+        return iter(self._delegate)
+
+    def __len__(self, /) -> int:
+        return len(self._delegate)
+
+    def keys(self) -> KeysView[str]:
         return self._delegate.keys()
 
     def items(self) -> ItemsView[str, _T]:

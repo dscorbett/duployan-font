@@ -101,6 +101,7 @@ __all__ = [
 
 
 import collections
+from collections.abc import Collection
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
@@ -168,7 +169,7 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class _FreezableList(Generic[_T]):
+class _FreezableList(Generic[_T], Collection[_T]):
     """A list that can be frozen, making it immutable.
 
     This is not a `list` in the Python sense, but it is analogous.
@@ -181,6 +182,14 @@ class _FreezableList(Generic[_T]):
         """Makes this list immutable.
         """
         self._delegate = tuple(self._delegate)
+
+    def __contains__(self, key: object, /) -> bool:
+        """Returns whether this list contains an object.
+
+        Args:
+            key: An object to search for.
+        """
+        return key in self._delegate
 
     def __iter__(self) -> Iterator[_T]:
         """Returns an iterator over this list.
@@ -955,13 +964,13 @@ def run_phases(
     builder,
     all_input_schemas: Iterable[schema.Schema],
     phases: Iterable,
-    all_classes: Optional[collections.defaultdict[str, _FreezableList[Rule]]] = None,
+    all_classes: Optional[collections.defaultdict[str, Collection[schema.Schema]]] = None,
 ) -> Tuple[
-    Iterable[schema.Schema],
+    OrderedSet[schema.Schema],
     Iterable[schema.Schema],
     MutableSequence[Tuple[Lookup, Any]],
-    collections.defaultdict[str, _FreezableList[Rule]],
-    Mapping[str, Tuple[Lookup, Any]],
+    collections.defaultdict[str, Collection[schema.Schema]],
+    MutableMapping[str, Tuple[Lookup, Any]],
 ]:
     """Runs a sequence of phases.
 
