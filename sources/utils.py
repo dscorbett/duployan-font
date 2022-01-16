@@ -345,9 +345,9 @@ class Context:
         }'''
 
     def __eq__(self, other: object) -> bool:
-        return (isinstance(self, type(other))
-            and isinstance(other, type(self))
-            and self.angle == other.angle
+        if not (isinstance(self, type(other)) and isinstance(other, type(self))):
+            return NotImplemented
+        return (self.angle == other.angle
             and self.clockwise == other.clockwise
             and self.minor == other.minor
             and self.ignorable_for_topography == other.ignorable_for_topography
@@ -356,7 +356,8 @@ class Context:
         )
 
     def __ne__(self, other: object) -> bool:
-        return not self == other
+        eq = self == other
+        return eq if eq is NotImplemented else not eq
 
     def __hash__(self) -> int:
         return (
