@@ -500,7 +500,7 @@ class AnchorWidthDigit(Shape):
 class WidthNumber(Shape):
     def __init__(
         self,
-        digit_path: Union[typing.Type[AnchorWidthDigit], typing.Type[EntryWidthDigit], typing.Type[LeftBoundDigit], typing.Type[RightBoundDigit]],
+        digit_path: Union[type[AnchorWidthDigit], type[EntryWidthDigit], type[LeftBoundDigit], type[RightBoundDigit]],
         width: int,
     ) -> None:
         self.digit_path = digit_path
@@ -524,7 +524,7 @@ class WidthNumber(Shape):
 
     def to_digits(
         self,
-        register_width_marker: Callable[[Union[typing.Type[AnchorWidthDigit], typing.Type[EntryWidthDigit], typing.Type[LeftBoundDigit], typing.Type[RightBoundDigit]], int, int], Any],
+        register_width_marker: Callable[[Union[type[AnchorWidthDigit], type[EntryWidthDigit], type[LeftBoundDigit], type[RightBoundDigit]], int, int], Any],
     ) -> Sequence:
         digits = []
         quotient = self.width

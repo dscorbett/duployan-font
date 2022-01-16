@@ -163,7 +163,7 @@ class Schema:
             diphthong_2: bool = False,
             base_angle: Optional[float] = None,
             cps: Optional[Sequence[int]] = None,
-            original_shape: Optional[typing.Type[Shape]] = None,
+            original_shape: Optional[type[Shape]] = None,
     ) -> None:
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
