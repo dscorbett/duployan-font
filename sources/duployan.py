@@ -103,7 +103,6 @@ from utils import BRACKET_DEPTH
 from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
-from utils import CURVE_OFFSET
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import EPSILON
