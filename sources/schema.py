@@ -695,7 +695,7 @@ class Schema:
                 name = ''
             else:
                 name = f'dupl.{type(self.path).__name__}'
-        if first_component_implies_type or self.path.name_in_sfd() or (
+        if first_component_implies_type or (
             self.cmap is None
             and (
                 self.joining_type == Type.ORIENTING

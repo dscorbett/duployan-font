@@ -728,8 +728,6 @@ class Builder:
             glyph.right_side_bearing = scalar * schema.side_bearing
 
     def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
-        if schema.path.name_in_sfd():
-            return self.font[schema.path.name_in_sfd()]
         glyph_name = str(schema)
         uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
@@ -907,10 +905,6 @@ class Builder:
                 schema,
                 drawing=schema in output_schemas and schema in more_output_schemas and not schema.ignored_for_topography,
             )
-        for schema in schemas:
-            if name_in_sfd := schema.path.name_in_sfd():
-                self.font[name_in_sfd].temporary = schema
-                self.font[name_in_sfd].glyphname = str(schema)
         (
             schemas,
             _,

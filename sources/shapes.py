@@ -50,7 +50,6 @@ __all__ = [
     'RightBoundDigit',
     'RomanianU',
     'RootOnlyParentEdge',
-    'SFDGlyphWrapper',
     'SeparateAffix',
     'Shape',
     'Space',
@@ -111,9 +110,6 @@ def _rect(r: float, theta: float) -> Tuple[float, float]:
 class Shape:
     def clone(self) -> Shape:
         raise NotImplementedError
-
-    def name_in_sfd(self) -> Optional[str]:
-        return None
 
     def __str__(self) -> str:
         raise NotImplementedError
@@ -185,33 +181,6 @@ class Shape:
     @staticmethod
     def guaranteed_glyph_class() -> Optional[str]:
         return None
-
-
-class SFDGlyphWrapper(Shape):
-    def __init__(self, sfd_name: str) -> None:
-        self.sfd_name = sfd_name
-
-    def clone(
-        self,
-        *,
-        sfd_name=CLONE_DEFAULT,
-    ):
-        return type(self)(
-            self.sfd_name if sfd_name is CLONE_DEFAULT else sfd_name,
-        )
-
-    def __str__(self):
-        return ''
-
-    def group(self):
-        return self.sfd_name
-
-    def name_in_sfd(self):
-        return self.sfd_name
-
-    @staticmethod
-    def guaranteed_glyph_class():
-        return GlyphClass.BLOCKER
 
 
 class ContextMarker(Shape):
