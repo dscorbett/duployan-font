@@ -183,7 +183,7 @@ class Shape:
         return {}
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class() -> Optional[str]:
         return None
 
 

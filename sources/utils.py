@@ -170,15 +170,15 @@ class GlyphClass:
     attribute of a ``fontforge.glyph`` object.
     """
 
-    #: The class of a spacing character that does not participate in
-    #: cursive joining.
+    #: The class of a spacing glyph that does not participate in cursive
+    #: joining.
     BLOCKER: ClassVar[str] = 'baseglyph'
 
-    #: The class of a spacing character that participates in cursive
+    #: The class of a spacing glyph that participates in cursive
     #: joining.
     JOINER: ClassVar[str] = 'baseligature'
 
-    #: The class of a mark character.
+    #: The class of a mark glyph.
     MARK: ClassVar[str] = 'mark'
 
 
