@@ -46,9 +46,9 @@ font-v==2.1.0 \
     --hash=sha256:5c7dca0604a7ddf04633502c792364f3e1027d8fce4e44ffb8014ae38466bdd0 \
     --hash=sha256:a53372afbbec290f244065b7d969a7f84d22716a6d361c44b95448c3c0c716a6
     # via -r requirements.in
-fonttools[ufo]==4.28.5 \
-    --hash=sha256:545c05d0f7903a863c2020e07b8f0a57517f2c40d940bded77076397872d14ca \
-    --hash=sha256:edf251d5d2cc0580d5f72de4621c338d8c66c5f61abb50cf486640f73c8194d5
+fonttools[ufo]==4.29.0 \
+    --hash=sha256:ed9496e5650b977a697c50ac99c8e8331f9eae3f99e5ae649623359103306dfe \
+    --hash=sha256:f4834250db2c9855c3385459579dbb5cdf74349ab059ea0e619359b65ae72037
     # via
     #   -r requirements.in
     #   cu2qu
@@ -62,9 +62,9 @@ gitdb==4.0.9 \
     --hash=sha256:8033ad4e853066ba6ca92050b9df2f89301b8fc8bf7e9324d412a63f8bf1a8fd \
     --hash=sha256:bac2fd45c0a1c9cf619e63a90d62bdc63892ef92387424b855792a6cabe789aa
     # via gitpython
-gitpython==3.1.24 \
-    --hash=sha256:dc0a7f2f697657acc8d7f89033e8b1ea94dd90356b2983bca89dc8d2ab3cc647 \
-    --hash=sha256:df83fdf5e684fef7c6ee2c02fc68a5ceb7e7e759d08b694088d0cacb4eba59e5
+gitpython==3.1.26 \
+    --hash=sha256:26ac35c212d1f7b16036361ca5cff3ec66e11753a0d677fb6c48fa4e1a9dd8d6 \
+    --hash=sha256:fc8868f63a2e6d268fb25f481995ba185a85a66fcad126f039323ff6635669ee
     # via font-v
 otf2ttf==0.2 \
     --hash=sha256:6a384863512b0ea1764a681afd6b94921491b893854aadba9e7e01969f401b16 \
@@ -82,13 +82,9 @@ smmap==5.0.0 \
     --hash=sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94 \
     --hash=sha256:c840e62059cd3be204b0c9c9f74be2c09d5648eddd4580d9314c3ecde0b30936
     # via gitdb
-typing-extensions==4.0.1 \
-    --hash=sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e \
-    --hash=sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b
-    # via gitpython
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==60.2.0 \
-    --hash=sha256:5c89b1a14a67ac5f0956f1cb0aeb7d1d3f4c8ba4e4e1ab7bf1af4933f9a2f0fe \
-    --hash=sha256:675fcebecb43c32eb930481abf907619137547f4336206e4d673180242e1a278
+setuptools==60.5.0 \
+    --hash=sha256:2404879cda71495fc4d5cbc445ed52fdaddf352b36e40be8dcc63147cb4edabe \
+    --hash=sha256:68eb94073fc486091447fcb0501efd6560a0e5a1839ba249e5ff3c4c93f05f90
     # via fs
