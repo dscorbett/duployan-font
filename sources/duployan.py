@@ -689,6 +689,8 @@ class Builder:
             schema.anchor,
             schema.joining_type,
             schema.child,
+            # TODO: `isinstance(schema.path, Circle)` is redundant. The
+            # shape can check that itself.
             schema.context_in == NO_CONTEXT and schema.diphthong_1 and isinstance(schema.path, Circle),
             schema.context_out == NO_CONTEXT and schema.diphthong_2 and isinstance(schema.path, Circle),
             schema.diphthong_1,

@@ -549,7 +549,7 @@ class Schema:
                 self.y_max,
             )
         if isinstance(self.path, Circle) and (self.diphthong_1 or self.diphthong_2):
-            path_group = (
+            path_group: Hashable = (
                 self.path.angle_in,
                 self.path.angle_out,
                 self.path.clockwise,
@@ -950,6 +950,8 @@ class Schema:
     @functools.cached_property
     def hub_priority(self) -> int:
         """Returns this schema’s hub priority.
+
+        See ``shapes.Hub``.
         """
         if self.glyph_class != GlyphClass.JOINER:
             return -1
