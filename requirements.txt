@@ -46,17 +46,17 @@ font-v==2.1.0 \
     --hash=sha256:5c7dca0604a7ddf04633502c792364f3e1027d8fce4e44ffb8014ae38466bdd0 \
     --hash=sha256:a53372afbbec290f244065b7d969a7f84d22716a6d361c44b95448c3c0c716a6
     # via -r requirements.in
-fonttools[ufo]==4.29.0 \
-    --hash=sha256:ed9496e5650b977a697c50ac99c8e8331f9eae3f99e5ae649623359103306dfe \
-    --hash=sha256:f4834250db2c9855c3385459579dbb5cdf74349ab059ea0e619359b65ae72037
+fonttools[ufo]==4.29.1 \
+    --hash=sha256:1933415e0fbdf068815cb1baaa1f159e17830215f7e8624e5731122761627557 \
+    --hash=sha256:2b18a172120e32128a80efee04cff487d5d140fe7d817deb648b2eee023a40e4
     # via
     #   -r requirements.in
     #   cu2qu
     #   font-v
     #   otf2ttf
-fs==2.4.14 \
-    --hash=sha256:9555dc2bc58c58cac03478ac7e9f622d29fe2d20a4384c24c90ab50de2c7b36c \
-    --hash=sha256:b298013377f51125b3d7f0c86920de4e3e2d4a83731bd5caf1f1e5bddabe7798
+fs==2.4.15 \
+    --hash=sha256:86fbd7268edc365e5f120c4871addf2a0a899049625c35fe579910339296d13d \
+    --hash=sha256:b09d02c311f4add1e6e2b75724c450eafcfeecc917579224ca8ad21dacd0a182
     # via fonttools
 gitdb==4.0.9 \
     --hash=sha256:8033ad4e853066ba6ca92050b9df2f89301b8fc8bf7e9324d412a63f8bf1a8fd \
@@ -84,7 +84,7 @@ smmap==5.0.0 \
     # via gitdb
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==60.5.0 \
-    --hash=sha256:2404879cda71495fc4d5cbc445ed52fdaddf352b36e40be8dcc63147cb4edabe \
-    --hash=sha256:68eb94073fc486091447fcb0501efd6560a0e5a1839ba249e5ff3c4c93f05f90
+setuptools==60.8.1 \
+    --hash=sha256:07e97e2f1e5607d240454e98c75c7004560ac8417ca5ae1dbaa50811cb6cc95c \
+    --hash=sha256:23aad87cc27f4ae704079618c1d117a71bd43d41e355f0698c35f6b1c796d26c
     # via fs
