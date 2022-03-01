@@ -62,9 +62,9 @@ gitdb==4.0.9 \
     --hash=sha256:8033ad4e853066ba6ca92050b9df2f89301b8fc8bf7e9324d412a63f8bf1a8fd \
     --hash=sha256:bac2fd45c0a1c9cf619e63a90d62bdc63892ef92387424b855792a6cabe789aa
     # via gitpython
-gitpython==3.1.26 \
-    --hash=sha256:26ac35c212d1f7b16036361ca5cff3ec66e11753a0d677fb6c48fa4e1a9dd8d6 \
-    --hash=sha256:fc8868f63a2e6d268fb25f481995ba185a85a66fcad126f039323ff6635669ee
+gitpython==3.1.27 \
+    --hash=sha256:1c885ce809e8ba2d88a29befeb385fcea06338d3640712b59ca623c220bb5704 \
+    --hash=sha256:5b68b000463593e05ff2b261acff0ff0972df8ab1b70d3cdbd41b546c8b8fc3d
     # via font-v
 otf2ttf==0.2 \
     --hash=sha256:6a384863512b0ea1764a681afd6b94921491b893854aadba9e7e01969f401b16 \
@@ -84,7 +84,7 @@ smmap==5.0.0 \
     # via gitdb
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==60.8.1 \
-    --hash=sha256:07e97e2f1e5607d240454e98c75c7004560ac8417ca5ae1dbaa50811cb6cc95c \
-    --hash=sha256:23aad87cc27f4ae704079618c1d117a71bd43d41e355f0698c35f6b1c796d26c
+setuptools==60.9.3 \
+    --hash=sha256:2347b2b432c891a863acadca2da9ac101eae6169b1d3dfee2ec605ecd50dbfe5 \
+    --hash=sha256:e4f30b9f84e5ab3decf945113119649fec09c1fc3507c6ebffec75646c56e62b
     # via fs
