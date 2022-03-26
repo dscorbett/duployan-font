@@ -721,8 +721,6 @@ class Schema:
                     name += '.subs'
                 else:
                     name += '.dnom'
-        if isinstance(self.path, Curve) and self.path.early_exit:
-            name += '.ee'
         if not cps and isinstance(self.path, Space):
             name += f'''.{
                     int(self.size * math.cos(math.radians(self.path.angle)))
@@ -742,14 +740,9 @@ class Schema:
         if isinstance(self.path, Curve) and self.path.overlap_angle is not None:
             name += f'.{int(self.path.overlap_angle)}'
         if self.widthless:
-            name += '.psts'
+            name += '.wl'
         if self.ignored_for_topography:
-            name += '.dependent'
-        if (isinstance(self.path, Circle)
-            and self.path.role != CircleRole.INDEPENDENT
-            and self.path.angle_in != self.path.angle_out
-        ):
-            name += '.circle'
+            name += '.skip'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             if name and first_component_implies_type:
                 name = f'.{name}'

@@ -1827,6 +1827,8 @@ class Curve(Shape):
                 int(self.angle_out)
             }{
                 'r' if self.reversed_circle else ''
+            }{
+                '.ee' if self.early_exit else ''
             }'''
 
     def group(self) -> Hashable:
@@ -2349,6 +2351,8 @@ class Circle(Shape):
                 int(angle_out)
             }{
                 'r' if self.reversed and self.angle_in != self.angle_out else ''
+            }{
+                '.circle' if self.role != CircleRole.INDEPENDENT and self.angle_in != self.angle_out else ''
             }'''
 
     def group(self) -> Hashable:
