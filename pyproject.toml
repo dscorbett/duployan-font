@@ -1,4 +1,3 @@
-# Copyright 2021-2022 Google LLC
 # Copyright 2022 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
--r requirements.in
-fontbakery >= 0.8.5, <= 0.8.8
-packaging >= 20.5, <= 21.3
-mypy >= 0.940, <= 0.942
+[tool.mypy]
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "fontTools.*",
+    "fontforge.*",
+    "fontv.*",
+]
+ignore_missing_imports = true

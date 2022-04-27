@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import io
 import math
 import re
 from typing import Any
+from typing import Callable
 from typing import Final
 from typing import Optional
 from typing import Tuple
@@ -871,7 +872,7 @@ class Builder:
         named_lookups_with_phases: MutableMapping[str, Tuple[Lookup, Any]],
     ) -> None:
         grouper = sifting.group_schemas(schemas)
-        previous_phase = None
+        previous_phase: Optional[Callable] = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
                 rename_schemas(grouper, self._phases.index(previous_phase))

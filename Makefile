@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,11 +57,11 @@ $(addprefix check-,$(FONTS)): check-%: %
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml $(filter %.$*,$(FONTS))
+	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml --full-lists $(filter %.$*,$(FONTS))
 
 .PHONY: mypy
 mypy:
-	mypy --ignore-missing-imports --no-implicit-optional --show-error-codes --warn-redundant-casts --warn-unused-ignores get-old-requirements.py sources tests
+	mypy get-old-requirements.py sources tests
 
 .PHONY: check
 check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES)) mypy

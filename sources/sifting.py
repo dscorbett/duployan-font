@@ -1,4 +1,4 @@
-# Copyright 2019 David Corbett
+# Copyright 2019, 2022 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -120,7 +120,7 @@ def _sift_groups_in_rule_part(
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
-                                    new_intersection = None
+                                    new_intersection: Optional[MutableSequence[Schema]] = None
                                     for schema in intersection:
                                         new_group = new_groups.get(id(schema))
                                         if new_group and schema in new_group:

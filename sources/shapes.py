@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -787,7 +787,7 @@ class WidthNumber(Shape, Generic[_D]):
     def to_digits(
         self,
         register_width_marker: Callable[[type[_D], int, int], _D],
-    ) -> Sequence:
+    ) -> Sequence[_D]:
         """Converts this number to a sequence of digits.
 
         Args:
@@ -971,7 +971,7 @@ class Space(Shape):
     ):
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
-            self.margins if margins is CLONE_DEFAULT else margins,
+            margins=self.margins if margins is CLONE_DEFAULT else margins,
         )
 
     def __str__(self) -> str:
@@ -3103,7 +3103,7 @@ class Complex(Shape):
         forced_context = None
         for i, op in enumerate(self.instructions):
             if callable(op):
-                forced_context = op(forced_context or (context_out if initial_hook else context_in))
+                forced_context = op(context_out if initial_hook else context_in)
                 if forced_context.ignorable_for_topography:
                     forced_context = forced_context.clone(ignorable_for_topography=False)
                 instructions.append(op)
@@ -3612,7 +3612,7 @@ class Wa(Complex):
         size: float,
     ) -> Tuple[bool, collections.defaultdict[Tuple[str, _AnchorType], list[_Point]]]:
         first_is_invisible = None
-        last_crossing_point = None
+        last_crossing_point: Optional[_Point] = None
         singular_anchor_points = collections.defaultdict(list)
         for op in self.instructions:
             assert not callable(op)
@@ -3794,7 +3794,7 @@ class TangentHook(Complex):
     def _override_noninitial_context(c: Context) -> Context:
         assert c.angle is not None
         return Context(
-            None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
+            (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             not (90 < c.angle < 315),
         )
 
@@ -3802,7 +3802,7 @@ class TangentHook(Complex):
     def _override_initial_context(c: Context) -> Context:
         assert c.angle is not None
         return Context(
-            None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
+            (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360,
             90 < c.angle < 315,
         )
 

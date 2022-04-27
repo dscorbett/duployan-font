@@ -1,4 +1,5 @@
 # Copyright 2021 Google LLC
+# Copyright 2022 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +22,9 @@ exclude_checks = [
 ascent-mismatch = "WARN"
 sTypoAscender-mismatch = "WARN"
 usWinAscent-mismatch = "WARN"
+
+[overrides."com.google.fonts/check/gsub5_gpos7"]
+has-gsub5 = "PASS"
 
 [overrides."com.google.fonts/check/valid_glyphnames"]
 legacy-long-names = "PASS"
