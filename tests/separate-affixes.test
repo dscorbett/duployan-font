@@ -1,4 +1,5 @@
 # Copyright 2021 Google LLC
+# Copyright 2022 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,3 +61,10 @@
 1BC90 1BC82 1BC02::[u1BC90.low_acute@85,89|u1BC82.high_grave@401,735|u1BC02.p@717,0|_@837,0]
 1BC90 1BC92 1BC02::[u1BC90.low_acute@85,89|u1BC92.low_grave@401,89|u1BC02.p@847,0|_@967,0]
 1BC94 1BC94 1BC02::[u1BC94.low_dot@85,265|u1BC94.low_dot@225,265|u1BC02.p@495,0|_@615,0]
+
+# Even if the base letter has room for the affix to nestle within, the affix
+# should stay somewhat separate, to maintain the general left-to-right reading
+# direction.
+1BC90 1BC0D 1BC03::[u1BC90.low_acute@85,-311|u1BC0D.d_s.tick@401,0|u1BC03.t@1901,0|_@2521,0]
+1BC90 1BC31::[u1BC90.low_acute@85,729|u1BC31.j_n_s@401,0|_@1221,0]
+1BC90 1BC36::[u1BC90.low_acute@85,-11|u1BC36.t_s@401,0|_@921,0]

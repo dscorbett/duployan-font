@@ -152,8 +152,8 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
 
     marker = get_shim(0, 0)
 
-    def round_with_base(number, base, minimum):
-        return max(minimum, base * round(number / base), key=abs)
+    def round_with_base(number, base, minimum, key=None):
+        return max(minimum, base * round(number / base), key=key)
 
     for pseudo_cursive_index, (pseudo_cursive_class_name, (
         pseudo_cursive_is_space,
@@ -188,7 +188,7 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
                 if exit_is_pseudo_cursive:
                     shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][5]
                 shim_width = round_with_base(shim_width, rounding_base, MINIMUM_STROKE_GAP)
-                shim_height = round_with_base(shim_height, rounding_base, 0)
+                shim_height = round_with_base(shim_height, rounding_base, 0, abs)
                 e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
                 classes[e_class].append(e_schema)
                 if e_class not in e_classes:
