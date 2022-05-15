@@ -219,6 +219,9 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
         'dflt',
         mark_filtering_set='overlap',
     )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    named_lookups['validate'] = Lookup(None, None, None)
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
@@ -248,17 +251,17 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
     classes['overlap'].append(valid_letter_overlap)
     classes['overlap'].append(valid_continuing_overlap)
     add_rule(lookup, Rule('invalid', 'invalid', [], lookups=[None]))
-    add_rule(lookup, Rule('valid', 'invalid', [], 'valid'))
+    add_rule(named_lookups['validate'], Rule('invalid', 'valid'))
+    add_rule(lookup, Rule('valid', 'invalid', [], lookups=['validate']))
     for i in range(global_max_tree_width - 2):
         add_rule(lookup, Rule([], [letter_overlap], [*[letter_overlap] * i, continuing_overlap, 'invalid'], lookups=[None]))
     if global_max_tree_width > 1:
         add_rule(lookup, Rule([], [continuing_overlap], 'invalid', lookups=[None]))
     for max_tree_width, new_class in new_classes.items():
         add_rule(lookup, Rule([new_class], 'invalid', ['invalid'] * max_tree_width, lookups=[None]))
-    add_rule(lookup, Rule(['base'], [letter_overlap], [], [valid_letter_overlap]))
     classes['base'].append(valid_letter_overlap)
-    add_rule(lookup, Rule(['base'], [continuing_overlap], [], [valid_continuing_overlap]))
     classes['base'].append(valid_continuing_overlap)
+    add_rule(lookup, Rule('base', 'invalid', [], lookups=['validate']))
     classes[phases.CHILD_EDGE_CLASSES[0]].append(valid_letter_overlap)
     classes[phases.INTER_EDGE_CLASSES[0][0]].append(valid_letter_overlap)
     classes[phases.CONTINUING_OVERLAP_CLASS].append(valid_continuing_overlap)
