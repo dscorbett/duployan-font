@@ -543,7 +543,7 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
                 add_rule(lookup, Rule([edge], [default_parent_edge], [], [new_parent_edge]))
             elif isinstance(edge.path, ParentEdge) and edge.path.lineage:
                 lineage = list(edge.path.lineage)
-                if len(lineage) < MAX_TREE_DEPTH:
+                if len(lineage) < MAX_TREE_DEPTH - 1:
                     lineage.append((1, lineage[-1][0]))
                     new_child_edge = get_child_edge(lineage)
                     classes[phases.CHILD_EDGE_CLASSES[lineage[-1][0] - 1]].append(new_child_edge)
