@@ -416,9 +416,15 @@ def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, class
             classes['secant'].append(schema)
             zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
             guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
-            guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
-            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], [dtls, valid_continuing_overlap, guideline]))
-            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], [valid_continuing_overlap, guideline]))
+            lookup_name = f'add_guideline_{guideline_angle}'
+            if lookup_name not in named_lookups:
+                guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
+                named_lookups[f'{lookup_name}_and_dtls'] = Lookup(None, None, None)
+                named_lookups[lookup_name] = Lookup(None, None, None)
+                add_rule(named_lookups[f'{lookup_name}_and_dtls'], Rule([invalid_continuing_overlap], [dtls, valid_continuing_overlap, guideline]))
+                add_rule(named_lookups[lookup_name], Rule([invalid_continuing_overlap], [valid_continuing_overlap, guideline]))
+            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], lookups=[f'{lookup_name}_and_dtls']))
+            add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [], lookups=[lookup_name]))
     add_rule(named_lookups['prepend_zwnj'], Rule('secant', [zwnj, 'secant']))
     add_rule(lookup, Rule([], 'secant', [], lookups=['prepend_zwnj']))
     return [lookup]
