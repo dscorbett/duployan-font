@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -231,7 +231,7 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
             else:
                 letter_overlap = schema
         elif not schema.anchor:
-            if max_tree_width := schema.path.max_tree_width(schema.size):
+            if max_tree_width := schema.max_tree_width():
                 if max_tree_width > global_max_tree_width:
                     global_max_tree_width = max_tree_width
                 classes['base'].append(schema)
@@ -444,7 +444,7 @@ def add_placeholders_for_missing_children(builder, original_schemas, schemas, ne
         elif isinstance(schema.path, ContinuingOverlap):
             classes['valid_final_overlap'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
-            and (max_tree_width := schema.path.max_tree_width(schema.size)) > 1
+            and (max_tree_width := schema.max_tree_width()) > 1
         ):
             new_class = f'base_{max_tree_width}'
             classes[new_class].append(schema)
@@ -644,7 +644,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
             elif not schema.path.invisible():
                 classes['all'].append(schema)
         elif schema.glyph_class == GlyphClass.JOINER:
-            if schema.path.max_tree_width(schema.size) == 0:
+            if schema.max_tree_width() == 0:
                 continue
             if (isinstance(schema.path, Line)
                 and (schema.size == 1 or schema.cps == [0x1BC07])
@@ -652,7 +652,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
                 and not schema.path.dots
             ):
                 angle = schema.path.angle
-                max_tree_width = schema.path.max_tree_width(schema.size)
+                max_tree_width = schema.max_tree_width()
                 line_class = f'line_{angle}_{max_tree_width}'
                 classes['line'].append(schema)
                 classes[line_class].append(schema)
@@ -670,7 +670,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
     for curve in classes['curve']:
         if curve in new_schemas:
             for line_class, (angle, _) in line_classes.items():
-                for width in range(1, curve.path.max_tree_width(curve.size) + 1):
+                for width in range(1, curve.max_tree_width() + 1):
                     add_rule(lookup, Rule(
                         [],
                         [curve],

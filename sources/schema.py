@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,7 @@ from utils import CLONE_DEFAULT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
+from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import Type
 
@@ -175,6 +176,9 @@ class Schema:
         ignorability: The ignorability of this schema’s character.
         encirclable: Whether this schema’s character is attested with a
             following U+20DD COMBINING ENCLOSING CIRCLE.
+        maximum_tree_width: The maximum width of a shorthand overlap
+            sequence following this schema. The true maximum width may
+            be lower, depending on this schema’s shape and size.
         shading_allowed: Whether this schema may be followed by U+1BC9D
             DUPLOYAN THICK LETTER SELECTOR. Some characters for which
             shading is attested nevertheless have this attribute set to
@@ -324,6 +328,7 @@ class Schema:
             marks: Optional[Sequence[Schema]] = None,
             ignorability: Ignorability = Ignorability.DEFAULT_NO,
             encirclable: bool = False,
+            maximum_tree_width: int = MAX_TREE_WIDTH,
             shading_allowed: bool = True,
             context_in: Optional[Context] = None,
             context_out: Optional[Context] = None,
@@ -355,6 +360,7 @@ class Schema:
                 attribute to an empty sequence.
             ignorability: The ``ignorability`` attribute.
             encirclable: The ``encirclable`` attribute.
+            maximum_tree_width: The ``maximum_tree_width`` attribute.
             shading_allowed: The ``shading_allowed`` attribute.
             context_in: The ``context_in`` attribute, or ``None`` to set
                 the attribute to `NO_CONTEXT`.
@@ -386,6 +392,7 @@ class Schema:
         self.marks = marks or []
         self.ignorability = ignorability
         self.encirclable = encirclable
+        self.maximum_tree_width = maximum_tree_width
         self.shading_allowed = shading_allowed
         self.context_in = context_in or NO_CONTEXT
         self.context_out = context_out or NO_CONTEXT
@@ -440,6 +447,7 @@ class Schema:
         marks=CLONE_DEFAULT,
         ignorability=CLONE_DEFAULT,
         encirclable=CLONE_DEFAULT,
+        maximum_tree_width=CLONE_DEFAULT,
         shading_allowed=CLONE_DEFAULT,
         context_in=CLONE_DEFAULT,
         context_out=CLONE_DEFAULT,
@@ -465,6 +473,7 @@ class Schema:
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             ignorability=self.ignorability if ignorability is CLONE_DEFAULT else ignorability,
             encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
+            maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
             context_out=self.context_out if context_out is CLONE_DEFAULT else context_out,
@@ -794,6 +803,12 @@ class Schema:
                     self._canonical_names[name] = [self]
                 self._glyph_name = name
         return self._glyph_name
+
+    def max_tree_width(self) -> int:
+        """Returns the maximum width of a shorthand overlap sequence
+        following this schema.
+        """
+        return min(self.maximum_tree_width, self.path.max_tree_width(self.size))
 
     def max_double_marks(self) -> int:
         """Returns the maximum number of consecutive instances of
