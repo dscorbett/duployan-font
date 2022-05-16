@@ -488,7 +488,7 @@ def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, c
         match schema.path:
             case EntryWidthDigit():
                 classes['all'].append(schema)
-                classes[str(schema.path.place)].append(schema)
+                classes['idx'].append(schema)
                 if schema.path.digit == 0:
                     zeros[schema.path.place] = schema
             case ContinuingOverlap():
@@ -499,13 +499,13 @@ def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, c
             add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
     add_rule(lookup, Rule(
         [continuing_overlap],
-        [*map(str, range(WIDTH_MARKER_PLACES))],
+        ['idx'] * WIDTH_MARKER_PLACES,
         [],
         lookups=[None] * WIDTH_MARKER_PLACES,
     ))
     add_rule(lookup, Rule(
         [],
-        [*map(str, range(WIDTH_MARKER_PLACES))],
+        ['idx'] * WIDTH_MARKER_PLACES,
         [],
         lookups=['zero'] * WIDTH_MARKER_PLACES,
     ))
