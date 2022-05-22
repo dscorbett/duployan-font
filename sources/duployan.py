@@ -735,6 +735,7 @@ class Builder:
         uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
             return self._add_altuni(uni, glyph_name)
+        assert uni not in self.font, f'Duplicate code point: {hex(uni)}'
         glyph = self.font.createChar(uni, glyph_name)
         glyph.glyphclass = schema.glyph_class
         glyph.temporary = schema
