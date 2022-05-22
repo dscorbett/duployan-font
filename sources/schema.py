@@ -548,7 +548,7 @@ class Schema:
         A group is like a hash, but instead of being an uninterpretable
         number, it may be any hashable value. Two schemas with equal
         groups represent glyphs that are interchangeable for all
-        purposes except perhaps for OpenType Layout.
+        purposes except perhaps for GSUB.
         """
         if self.ignored_for_topography:
             return (
