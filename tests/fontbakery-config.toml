@@ -15,7 +15,12 @@
 
 exclude_checks = [
     "com.google.fonts/check/family/win_ascent_and_descent",
+    "com.google.fonts/check/fontbakery_version",
     "com.google.fonts/check/gpos_kerning_info",
+    "com.google.fonts/check/hmtx/comma_period",
+    "com.google.fonts/check/hmtx/encoded_latin_digits",
+    "com.google.fonts/check/hmtx/whitespace_advances",
+    "com.google.fonts/check/vertical_metrics",
 ]
 
 [overrides."com.google.fonts/check/family/vertical_metrics"]
@@ -23,8 +28,20 @@ ascent-mismatch = "WARN"
 sTypoAscender-mismatch = "WARN"
 usWinAscent-mismatch = "WARN"
 
-[overrides."com.google.fonts/check/gsub5_gpos7"]
-has-gsub5 = "PASS"
-
 [overrides."com.google.fonts/check/valid_glyphnames"]
 legacy-long-names = "PASS"
+
+#ifndef NOTO
+[overrides."com.google.fonts/check/cmap/alien_codepoints"]
+pua-encoded = "PASS"
+
+[overrides."com.google.fonts/check/name/line_breaks"]
+line-break = "PASS"
+
+[overrides."com.google.fonts/check/name/noto_trademark"]
+bad-trademark = "PASS"
+no-trademark = "PASS"
+
+[overrides."com.google.fonts/check/os2/noto_vendor"]
+bad-vendor-id = "PASS"
+#endif

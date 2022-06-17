@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+SHELL=/bin/bash
+
 STYLES = Regular Bold
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
@@ -57,7 +59,7 @@ $(addprefix check-,$(FONTS)): check-%: %
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --auto-jobs --configuration tests/fontbakery-config.toml --full-lists $(filter %.$*,$(FONTS))
+	fontbakery check-notofonts --auto-jobs --configuration <(unifdef $(if $(NOTO),-DNOTO) -t tests/fontbakery-config.toml) --full-lists $(filter %.$*,$(FONTS))
 
 .PHONY: mypy
 mypy:
