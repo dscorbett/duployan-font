@@ -16,4 +16,4 @@
 -r requirements.in
 fontbakery == 0.8.9
 packaging >= 20.5, <= 21.3
-mypy >= 0.940, <= 0.942
+mypy >= 0.950, <= 0.961

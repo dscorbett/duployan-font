@@ -1071,10 +1071,10 @@ def run_phases(
                         autochthonous_schemas.add(output_schema)
                         new_input_schemas.add(output_schema)
         all_input_schemas = all_output_schemas
-        all_schemas |= all_input_schemas  # type: ignore[misc]
+        all_schemas |= all_input_schemas
         assert lookups is not None
         all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
-        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())  # type: ignore[arg-type]
+        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
     return (
         all_schemas,
         all_input_schemas,
