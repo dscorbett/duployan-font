@@ -30,6 +30,9 @@ endif
 SUFFIXES = otf ttf
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 
+BUILD = sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
+UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
+
 .PHONY: all
 all: $(FONTS)
 
@@ -40,10 +43,10 @@ otf: $(filter %.otf,$(FONTS))
 ttf: $(filter %.ttf,$(FONTS))
 
 fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
-	sources/build.py --fea $< $(NOTO) --output $@ $(RELEASE) --version $(VERSION)
+	$(BUILD) --fea <($(UNIFDEF) $<) --output $@
 
 fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
-	sources/build.py --bold --fea $< $(NOTO) --output $@ $(RELEASE) --version $(VERSION)
+	$(BUILD) --bold --fea <($(UNIFDEF) $<) --output $@
 
 $(addprefix fonts/ttf/unhinted/instance_ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/ttf/unhinted/instance_ttf/%.ttf: fonts/otf/unhinted/instance_otf/%.otf
 	mkdir -p "$$(dirname "$@")"
@@ -59,7 +62,7 @@ $(addprefix check-,$(FONTS)): check-%: %
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --auto-jobs --configuration <(unifdef $(if $(NOTO),-DNOTO) -t tests/fontbakery-config.toml) --full-lists $(filter %.$*,$(FONTS))
+	fontbakery check-notofonts --auto-jobs --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists $(filter %.$*,$(FONTS))
 
 .PHONY: mypy
 mypy:

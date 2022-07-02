@@ -8,16 +8,30 @@ table OS/2 {
     TypoLineGap 0;
     winAscent 1139;
     winDescent 1340;
+#ifdef NOTO
+    Vendor "GOOG";
+#else
     Vendor "    ";
+#endif
 } OS/2;
 
 table name {
     nameid 0 "Copyright 2018-2019, 2022 David Corbett.\000A
 Copyright 2019-2022 Google LLC. All Rights Reserved.";
+#ifdef NOTO
+    nameid 1 "Noto Sans Duployan";
+    nameid 7 "Noto is a trademark of Google LLC";
+#else
+    nameid 1 "Duployan";
+#endif
     nameid 8 "David Corbett";
     nameid 9 "David Corbett";
     nameid 10 "Designed by David Corbett";
-    nameid 13 "Copyright (c) 2018-2019, David Corbett (corbett.dav@northeastern.edu).\000A
+#ifdef NOTO
+    nameid 11 "http://www.google.com/get/noto/";
+    nameid 13 "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL";
+#else
+    nameid 13 "Copyright (c) 2018-2019, 2022, David Corbett (corbett.dav@northeastern.edu).\000A
 Copyright (c) 2019-2022, Google LLC.\000A
 \000A
 This Font Software is licensed under the SIL Open Font License, Version 1.1.\000A
@@ -111,6 +125,7 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\000A
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\000A
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\000A
 OTHER DEALINGS IN THE FONT SOFTWARE.";
-    nameid 14 "http://scripts.sil.org/OFL";
+#endif
+    nameid 14 "https://scripts.sil.org/OFL";
 } name;
 

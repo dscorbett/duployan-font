@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,20 +68,8 @@ def generate_feature_string(font: fontforge.font, lookup: str) -> str:
 
 
 def patch_fonttools() -> None:
+    fontTools.feaLib.parser.Parser.parse_nameid_ = fonttools_patches.parse_nameid_
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
-
-
-def set_noto_values(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
-    tt_font['OS/2'].achVendID = 'GOOG'
-    for name in tt_font['name'].names:
-        if name.nameID == 0:
-            name.string = name.string.replace('\n', ' ')
-        elif name.nameID == 1:
-            name.string = 'Noto Sans Duployan'
-        elif name.nameID == 13:
-            name.string = 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.'
-    tt_font['name'].addMultilingualName({'en': 'Noto is a trademark of Google LLC'}, None, 7, mac=False)
-    tt_font['name'].addMultilingualName({'en': 'http://www.google.com/get/noto/'}, None, 11, mac=False)
 
 
 def filter_map_name(name: Any) -> Any:
@@ -218,7 +206,8 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
         tt_font['name'].names = [*filter(None, map(filter_map_name, tt_font['name'].names))]
 
         if options.noto:
-            set_noto_values(tt_font)
+            for name in tt_font['name'].names:
+                name.string = name.string.replace('\n', ' ')
         elif 'CFF ' in tt_font:
             tt_font['CFF '].cff[0].Notice = ''
 
@@ -247,9 +236,6 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
 
 def make_font(options: argparse.Namespace) -> None:
     font = fontforge.font()
-    font.familyname = 'Duployan'
-    font.fontname = font.familyname
-    font.fullname = font.familyname
     font.encoding = 'UnicodeFull'
     builder = duployan.Builder(font, options.bold, options.noto)
     builder.augment()

@@ -24,6 +24,7 @@ The prerequisites are:
 * GNU Make
 * Python 3.10 or later
 * FontForge 20190801 with Python 3 extensions
+* unifdef
 
 To build Noto Sans Duployan, run:
 
@@ -49,7 +50,7 @@ To only build fonts with cubic Bézier curves, append `SUFFIXES=otf`.
 
 The prerequisites are:
 
-* HarfBuzz 2.7.3 or later
+* HarfBuzz 4.1.0 or later
 
 To test the fonts, run:
 
