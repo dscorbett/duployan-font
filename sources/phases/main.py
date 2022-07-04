@@ -356,8 +356,6 @@ def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas,
     for older_sibling_count in range(MAX_TREE_WIDTH - 1, -1, -1):
         # A continuing overlap not at the top level must be licensed by an
         # ancestral continuing overlap.
-        # TODO: Optimization: All but the youngest child can use
-        # `valid_letter_overlap` instead of `'valid'`.
         for subtrees in _make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
             for older_sibling_count_of_continuing_overlap in range(MAX_TREE_WIDTH):
                 add_rule(lookup, Rule(
