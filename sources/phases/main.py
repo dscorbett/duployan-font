@@ -377,8 +377,6 @@ def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas,
                 ))
         # Anything valid needs to be explicitly kept valid, since there might
         # not be enough context to tell that an invalid overlap is invalid.
-        # TODO: Optimization: The last subtree can just be one node instead of
-        # the full subtree.
         for subtrees in _make_trees(node, 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count + 1]):
             add_rule(lookup, Rule(
                 [valid_letter_overlap] * older_sibling_count if older_sibling_count else [node],
