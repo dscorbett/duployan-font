@@ -57,8 +57,13 @@ __all__ = [
 
 
 import collections
+from collections.abc import MutableSequence
+from collections.abc import Sequence
 import functools
 import itertools
+from typing import Iterable
+from typing import Optional
+from typing import TypeVar
 
 
 import fontTools.otlLib.builder
@@ -289,7 +294,20 @@ def add_parent_edges(builder, original_schemas, schemas, new_schemas, classes, n
     return [lookup]
 
 
-def _make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None):
+_E = TypeVar('_E')
+
+
+_N = TypeVar('_N')
+
+
+def _make_trees(
+    node: _N,
+    edge: _E,
+    maximum_depth: int,
+    *,
+    top_widths: Optional[Iterable[int]] = None,
+    prefix_depth: Optional[int] = None,
+) -> Sequence[Sequence[_E | _N]]:
     if maximum_depth <= 0:
         return []
     trees = []
@@ -297,7 +315,7 @@ def _make_trees(node, edge, maximum_depth, *, top_widths=None, prefix_depth=None
         subtrees = _make_trees(node, edge, maximum_depth - 1)
         for width in range(MAX_TREE_WIDTH + 1) if top_widths is None else top_widths:
             for index_set in itertools.product(range(len(subtrees)), repeat=width):
-                tree = [node, *[edge] * width] if top_widths is None else []
+                tree: MutableSequence[_E | _N] = [node, *[edge] * width] if top_widths is None else []
                 for i in index_set:
                     tree.extend(subtrees[i])
                 trees.append(tree)
