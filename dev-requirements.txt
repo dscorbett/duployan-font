@@ -117,7 +117,7 @@ glyphtools==0.8.0
     # via collidoscope
 idna==3.3
     # via requests
-lxml==4.9.0
+lxml==4.9.1
     # via
     #   fontbakery
     #   fonttools
