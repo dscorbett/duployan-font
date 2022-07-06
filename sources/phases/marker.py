@@ -339,6 +339,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             ))
         return width_number
 
+    schemas_needing_width_markers = []
     rules_to_add = []
     for schema in new_schemas:
         if schema not in original_schemas:
@@ -375,58 +376,60 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             entry_xs.setdefault(anchors.CONTINUING_OVERLAP, entry_xs[anchors.CURSIVE])
             exit_xs.setdefault(anchors.CONTINUING_OVERLAP, exit_xs[anchors.CURSIVE])
             start_x = entry_xs[anchors.CURSIVE if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
-            if schema.glyph is None:
-                x_min = x_max = 0
-            else:
-                x_min, _, x_max, _ = schema.glyph.boundingBox()
-            if x_min == x_max == 0:
-                x_min = entry_xs[anchors.CURSIVE]
-                x_max = exit_xs[anchors.CURSIVE]
-            if schema.glyph_class == GlyphClass.MARK:
-                mark_anchor_selector = [get_mark_anchor_selector(schema)]
-            else:
-                mark_anchor_selector = []
-            glyph_class_selector = get_glyph_class_selector(schema)
-            widths = []
-            for width, digit_path in [
-                (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], EntryWidthDigit),
-                (x_min - start_x, LeftBoundDigit),
-                (x_max - start_x, RightBoundDigit),
-                *[
-                    (
-                        exit_xs[anchor] - start_x if anchor in exit_xs else 0,
-                        AnchorWidthDigit,
-                    ) for anchor in anchors.ALL_MARK
-                ],
-                *[
-                    (
-                        exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
-                        AnchorWidthDigit,
-                    ) for anchor in anchors.ALL_CURSIVE
-                ],
-            ]:
-                assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    if width >= 0
-                    else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
-                    ), f'Glyph {schema} is too wide: {width} units'
-                widths.append(get_width_number(digit_path, width))
-            lookup = lookups[rule_count % lookups_per_position]
-            rule_count += 1
-            rules_to_add.append((
-                widths,
-                (lambda widths,
-                        lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, schema=schema:
-                    add_rule(lookup, Rule([schema], [
-                        start,
-                        glyph_class_selector,
-                        *mark_anchor_selector,
-                        *hubs[schema.hub_priority],
-                        schema,
-                        *widths,
-                        end,
-                    ]))
-                ),
-            ))
+            schemas_needing_width_markers.append((schema, entry_xs, exit_xs, start_x))
+    for schema, entry_xs, exit_xs, start_x in schemas_needing_width_markers:
+        if schema.glyph is None:
+            x_min = x_max = 0
+        else:
+            x_min, _, x_max, _ = schema.glyph.boundingBox()
+        if x_min == x_max == 0:
+            x_min = entry_xs[anchors.CURSIVE]
+            x_max = exit_xs[anchors.CURSIVE]
+        if schema.glyph_class == GlyphClass.MARK:
+            mark_anchor_selector = [get_mark_anchor_selector(schema)]
+        else:
+            mark_anchor_selector = []
+        glyph_class_selector = get_glyph_class_selector(schema)
+        widths = []
+        for width, digit_path in [
+            (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], EntryWidthDigit),
+            (x_min - start_x, LeftBoundDigit),
+            (x_max - start_x, RightBoundDigit),
+            *[
+                (
+                    exit_xs[anchor] - start_x if anchor in exit_xs else 0,
+                    AnchorWidthDigit,
+                ) for anchor in anchors.ALL_MARK
+            ],
+            *[
+                (
+                    exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
+                    AnchorWidthDigit,
+                ) for anchor in anchors.ALL_CURSIVE
+            ],
+        ]:
+            assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                if width >= 0
+                else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                ), f'Glyph {schema} is too wide: {width} units'
+            widths.append(get_width_number(digit_path, width))
+        lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
+        rule_count += 1
+        rules_to_add.append((
+            widths,
+            (lambda widths,
+                    lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, schema=schema:
+                add_rule(lookup, Rule([schema], [
+                    start,
+                    glyph_class_selector,
+                    *mark_anchor_selector,
+                    *hubs[schema.hub_priority],
+                    schema,
+                    *widths,
+                    end,
+                ]))
+            ),
+        ))
     for widths, rule_to_add in rules_to_add:
         final_widths = []
         for width in widths:
@@ -435,7 +438,6 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             else:
                 final_widths.extend(width.to_digits(functools.partial(register_width_marker, path_to_markers[width.digit_path])))
         rule_to_add(final_widths)
-        rule_count -= 1
     return [
         *lookups,
         digit_expansion_lookup,
