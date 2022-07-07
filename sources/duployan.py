@@ -918,7 +918,7 @@ class Builder:
             more_named_lookups_with_phases,
         ) = phases.run_phases(self, [*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
         lookups_with_phases += more_lookups_with_phases
-        for schema in schemas:
+        for schema in schemas.sorted(key=lambda schema: schema.id):
             if schema.glyph is None:
                 self._create_marker(schema)
         class_asts |= self.convert_classes(more_classes)

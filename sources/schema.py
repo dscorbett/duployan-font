@@ -202,6 +202,9 @@ class Schema:
         original_shape: The type of the `path` attribute of the original
             schema from which this schema is derived through some number
             of phases.
+        id: This schema’s ID. A schema ID uniquely identifies a schema.
+            It is like Python’s ``id`` except that schemas IDs have a
+            total ordering.
         phase_index: The phase index for the phase in which this schema
             was generated. See `CURRENT_PHASE_INDEX`.
         glyph: The cached FontForge glyph generated for this schema, or
@@ -310,6 +313,9 @@ class Schema:
     #: sequences of all the schemas that share that name.
     _canonical_names: MutableMapping[str, MutableSequence[Schema]] = {}
 
+    #: The ID of the next `Schema` to be initialized.
+    _next_id: ClassVar[int] = 0
+
     def __init__(
             self,
             cmap: Optional[int],
@@ -339,6 +345,9 @@ class Schema:
             original_shape: Optional[type[Shape]] = None,
     ) -> None:
         """Initializes this `Schema`.
+
+        This `Schema`’s ID is initialized to `Schema._next_id`, which is
+        then incremented.
 
         Args:
             cmap: The ``cmap`` attribute.
@@ -401,6 +410,8 @@ class Schema:
         self.base_angle = base_angle
         self.cps = cps or ([] if cmap is None else [cmap])
         self.original_shape = original_shape or type(path)
+        self.id = Schema._next_id
+        Schema._next_id += 1
         self.phase_index = CURRENT_PHASE_INDEX
         self._glyph_name: Optional[str] = None
         self._canonical_schema: Schema = self

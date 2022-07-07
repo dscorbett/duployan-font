@@ -1,4 +1,4 @@
-# Copyright 2019 David Corbett
+# Copyright 2019, 2022 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,13 +66,13 @@ from shapes import RightBoundDigit
 from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
-from shapes import WIDTH_MARKER_PLACES
-from shapes import WIDTH_MARKER_RADIX
 from shapes import WidthNumber
 from utils import GlyphClass
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
+from utils import WIDTH_MARKER_PLACES
+from utils import WIDTH_MARKER_RADIX
 
 
 def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
@@ -339,6 +339,10 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             ))
         return width_number
 
+    for digit_path, width_markers in path_to_markers.items():
+        for place in range(WIDTH_MARKER_PLACES):
+            for digit in range(WIDTH_MARKER_RADIX):
+                register_width_marker(width_markers, digit_path, place, digit)
     schemas_needing_width_markers = []
     rules_to_add = []
     for schema in new_schemas:
