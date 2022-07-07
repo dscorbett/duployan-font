@@ -68,7 +68,6 @@ def generate_feature_string(font: fontforge.font, lookup: str) -> str:
 
 
 def patch_fonttools() -> None:
-    fontTools.feaLib.parser.Parser.parse_nameid_ = fonttools_patches.parse_nameid_
     fontTools.ttLib.tables.otBase.BaseTTXConverter.compile = fonttools_patches.compile
 
 

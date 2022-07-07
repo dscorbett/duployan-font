@@ -2,7 +2,6 @@
 #
 # Copyright (c) 2017 Just van Rossum
 # Copyright (c) 2020-2021 Google LLC
-# Copyright (c) 2022 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import fontTools.feaLib.error
-import fontTools.feaLib.parser
 import fontTools.ttLib.tables.otBase
 import fontTools.ttLib.tables.otTables
 
@@ -48,15 +45,3 @@ def compile(self, font, *args, **kwargs):
                     lookup.SubTable[si] = ext_subtable
     self.table.compile(writer, font)
     return writer.getAllData()
-
-
-def parse_nameid_(self, *args, **kwargs):
-    assert self.cur_token_ == 'nameid', self.cur_token_
-    location, name_id = self.cur_token_location_, self.expect_any_number_()
-    if name_id > 32767:
-        raise fontTools.feaLib.error.FeatureLibError('Name id value cannot be greater than 32767', self.cur_token_location_)
-    if name_id in {2, 6}:
-        fontTools.feaLib.parser.log.warning(f'Name id {name_id} cannot be set from the feature file. Ignoring record')
-        self.parse_name_()  # Skip to the next record
-        return None
-    return self.ast.NameRecord(name_id, *self.parse_name_(), location=location)
