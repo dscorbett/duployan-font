@@ -526,15 +526,17 @@ class Schema:
         return self.clone(cmap=None, marks=None) if self.marks else self
 
     @functools.cached_property
-    def glyph_class(self) -> str:
+    def glyph_class(self) -> GlyphClass:
         """Returns the glyph class of the glyph this schema represents.
         """
-        return self.path.guaranteed_glyph_class() or (
-            GlyphClass.MARK
-                if self.anchor or self.child or self.ignored_for_topography
-                else GlyphClass.BLOCKER
-                if self.joining_type == Type.NON_JOINING
-                else GlyphClass.JOINER
+        guaranteed_glyph_class = self.path.guaranteed_glyph_class()
+        return (guaranteed_glyph_class
+            if guaranteed_glyph_class is not None
+            else GlyphClass.MARK
+            if self.anchor or self.child or self.ignored_for_topography
+            else GlyphClass.BLOCKER
+            if self.joining_type == Type.NON_JOINING
+            else GlyphClass.JOINER
         )
 
     @functools.cached_property

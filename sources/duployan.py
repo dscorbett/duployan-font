@@ -737,7 +737,7 @@ class Builder:
             return self._add_altuni(uni, glyph_name)
         assert uni not in self.font, f'Duplicate code point: {hex(uni)}'
         glyph = self.font.createChar(uni, glyph_name)
-        glyph.glyphclass = schema.glyph_class
+        glyph.glyphclass = schema.glyph_class.value
         glyph.temporary = schema
         if drawing:
             self._draw_glyph(glyph, schema)
@@ -801,11 +801,11 @@ class Builder:
         ligatures = []
         for glyph in self.font.glyphs():
             match glyph.glyphclass:
-                case GlyphClass.BLOCKER:
+                case GlyphClass.BLOCKER.value:
                     bases.append(glyph.glyphname)
-                case GlyphClass.MARK:
+                case GlyphClass.MARK.value:
                     marks.append(glyph.glyphname)
-                case GlyphClass.JOINER:
+                case GlyphClass.JOINER.value:
                     ligatures.append(glyph.glyphname)
         gdef = fontTools.feaLib.ast.TableBlock('GDEF')
         gdef.statements.append(fontTools.feaLib.ast.GlyphClassDefStatement(

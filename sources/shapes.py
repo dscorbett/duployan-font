@@ -307,7 +307,7 @@ class Shape:
         return {}
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         """Returns the glyph class that any schema with this shape is
         guaranteed to have, or ``None`` if there is no guarantee.
         """
@@ -362,7 +362,7 @@ class ContextMarker(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -388,7 +388,7 @@ class Dummy(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -407,7 +407,7 @@ class Start(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -495,7 +495,7 @@ class Hub(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -533,7 +533,7 @@ class End(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -552,7 +552,7 @@ class Carry(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -606,7 +606,7 @@ class EntryWidthDigit(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -650,7 +650,7 @@ class LeftBoundDigit(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -694,7 +694,7 @@ class RightBoundDigit(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -738,7 +738,7 @@ class AnchorWidthDigit(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -781,7 +781,7 @@ class WidthNumber(Shape, Generic[_D]):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
     def to_digits(
@@ -835,7 +835,7 @@ class MarkAnchorSelector(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -855,7 +855,7 @@ class GlyphClassSelector(Shape):
         self.glyph_class = glyph_class
 
     def __str__(self) -> str:
-        return f'gc.{self.glyph_class}'
+        return f'gc.{self.glyph_class.value}'
 
     @staticmethod
     def name_implies_type() -> bool:
@@ -865,7 +865,7 @@ class GlyphClassSelector(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -884,7 +884,7 @@ class InitialSecantMarker(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -933,7 +933,7 @@ class Notdef(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -1073,7 +1073,7 @@ class Bound(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -1095,7 +1095,7 @@ class ValidDTLS(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1168,7 +1168,7 @@ class ChildEdge(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1210,7 +1210,7 @@ class ContinuingOverlapS(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1285,7 +1285,7 @@ class ParentEdge(Shape):
         return False
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1305,7 +1305,7 @@ class RootOnlyParentEdge(Shape):
         return True
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -3172,7 +3172,7 @@ class InvalidDTLS(Complex):
         return NO_CONTEXT
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -3211,7 +3211,7 @@ class InvalidOverlap(Complex):
         )
 
     @staticmethod
-    def guaranteed_glyph_class() -> Optional[str]:
+    def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 

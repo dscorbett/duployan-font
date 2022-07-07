@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2022 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,10 +163,10 @@ def mkmk(anchor: str) -> str:
     return f'mkmk_{anchor}'
 
 
-class GlyphClass:
-    """A namespace for glyph class constants.
+class GlyphClass(enum.Enum):
+    """A glyph class.
 
-    The constants’ values are all valid values for the ``glyphclass``
+    The members’ values are all valid values for the ``glyphclass``
     attribute of a ``fontforge.glyph`` object.
     """
 

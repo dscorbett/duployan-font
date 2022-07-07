@@ -288,24 +288,28 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     end = Schema(None, End(), 0)
     mark_anchor_selectors = {}
 
+    def register_mark_anchor_selector(index):
+        if index in mark_anchor_selectors:
+            return mark_anchor_selectors[index]
+        return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
+
     def get_mark_anchor_selector(schema):
         only_anchor_class_name = None
         for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
             if type == 'mark' and anchor_class_name in anchors.ALL_MARK:
                 assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
-        index = anchors.ALL_MARK.index(only_anchor_class_name)
-        if index in mark_anchor_selectors:
-            return mark_anchor_selectors[index]
-        return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
+        return register_mark_anchor_selector(anchors.ALL_MARK.index(only_anchor_class_name))
 
     glyph_class_selectors = {}
 
-    def get_glyph_class_selector(schema):
-        glyph_class = schema.glyph_class
+    def register_glyph_class_selector(glyph_class):
         if glyph_class in glyph_class_selectors:
             return glyph_class_selectors[glyph_class]
         return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
+
+    def get_glyph_class_selector(schema):
+        return register_glyph_class_selector(schema.glyph_class)
 
     def register_width_marker(width_markers, digit_path, *args):
         if args not in width_markers:
@@ -339,6 +343,10 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             ))
         return width_number
 
+    for anchor_index in range(len(anchors.ALL_MARK)):
+        register_mark_anchor_selector(anchor_index)
+    for glyph_class in GlyphClass.__members__.values():
+        register_glyph_class_selector(glyph_class)
     for digit_path, width_markers in path_to_markers.items():
         for place in range(WIDTH_MARKER_PLACES):
             for digit in range(WIDTH_MARKER_RADIX):
