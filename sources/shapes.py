@@ -855,7 +855,7 @@ class GlyphClassSelector(Shape):
         self.glyph_class = glyph_class
 
     def __str__(self) -> str:
-        return f'gc.{self.glyph_class.value}'
+        return f'gc.{self.glyph_class.name}'
 
     @staticmethod
     def name_implies_type() -> bool:
