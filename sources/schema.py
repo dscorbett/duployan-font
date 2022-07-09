@@ -415,7 +415,7 @@ class Schema:
         self._lookalike_group: Collection[Schema] = [self]
         self.glyph: Optional[fontforge.glyph] = None
 
-    def sort_key(self):
+    def sort_key(self) -> Any:
         """Returns a sortable key representing this schema.
 
         This is used to decide which schema among many mergeable schemas
