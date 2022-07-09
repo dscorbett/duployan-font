@@ -272,9 +272,9 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     anchor_width_markers = {}
     path_to_markers = {
         EntryWidthDigit: entry_width_markers,
+        AnchorWidthDigit: anchor_width_markers,
         LeftBoundDigit: left_bound_markers,
         RightBoundDigit: right_bound_markers,
-        AnchorWidthDigit: anchor_width_markers,
     }
     start = Schema(None, Start(), 0)
     hubs = {-1: []}
@@ -343,14 +343,6 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             ))
         return width_number
 
-    for anchor_index in range(len(anchors.ALL_MARK)):
-        register_mark_anchor_selector(anchor_index)
-    for glyph_class in GlyphClass.__members__.values():
-        register_glyph_class_selector(glyph_class)
-    for digit_path, width_markers in path_to_markers.items():
-        for place in range(WIDTH_MARKER_PLACES):
-            for digit in range(WIDTH_MARKER_RADIX):
-                register_width_marker(width_markers, digit_path, place, digit)
     schemas_needing_width_markers = []
     rules_to_add = []
     for schema in new_schemas:
@@ -598,6 +590,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                 if schema in new_schemas:
                     classes['all'].append(schema)
                     classes[f'idx_{schema.path.place}'].append(schema)
+                    classes[f'iadx_{schema.path.place}'].append(schema)
             case LeftBoundDigit():
                 left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
                 original_left_digit_schemas.append(schema)
@@ -616,6 +609,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                 if schema in new_schemas:
                     classes['all'].append(schema)
                     classes[f'adx_{schema.path.place}'].append(schema)
+                    classes[f'iadx_{schema.path.place}'].append(schema)
             case Dummy():
                 dummy = schema
             case MarkAnchorSelector():
@@ -747,10 +741,10 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                             if augend_letter == 'i' and addend_letter == 'a':
                                 context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.JOINER, context_in_lookup_name))
                             context_in_lookup_context_in.append(augend_schema)
-                            context_in_lookup_context_in.extend([f'{augend_letter}dx_{augend_schema.path.place}'] * augend_skip_backtrack)
+                            context_in_lookup_context_in.extend([f'iadx_{augend_schema.path.place}'] * augend_skip_backtrack)
                             if augend_letter == 'a' and addend_letter == 'a':
                                 context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
-                                context_in_lookup_context_in.append(f'idx_{augend_schema.path.place}')
+                                context_in_lookup_context_in.append(f'iadx_{augend_schema.path.place}')
                             elif augend_skip_backtrack == 1:
                                 context_in_lookup_context_in.append(continuing_overlap)
                             elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
@@ -758,7 +752,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                                     len(anchors.ALL) - augend_skip_backtrack - 1,
                                     context_in_lookup_name,
                                 ))
-                            context_in_lookup_context_in.extend([f'{addend_letter}dx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)
+                            context_in_lookup_context_in.extend([f'iadx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)
                             add_rule(named_lookups[context_in_lookup_name], Rule(
                                 context_in_lookup_context_in,
                                 [addend_schema],
