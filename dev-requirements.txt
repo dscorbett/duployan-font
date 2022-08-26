@@ -54,9 +54,7 @@ commandlines==0.4.1
 commonmark==0.9.1
     # via rich
 cu2qu==1.6.7.post1
-    # via
-    #   otf2ttf
-    #   ufo2ft
+    # via ufo2ft
 defcon[pens]==0.10.2
     # via
     #   babelfont
@@ -94,7 +92,6 @@ fonttools[lxml,ufo,unicode]==4.37.1
     #   fontparts
     #   glyphsets
     #   glyphslib
-    #   otf2ttf
     #   ufo2ft
     #   ufolib2
     #   ufolint
@@ -136,8 +133,6 @@ opentype-sanitizer==8.2.1
     # via fontbakery
 opentypespec==1.8.4
     # via fontbakery
-otf2ttf==0.2
-    # via -r requirements.in
 packaging==21.3
     # via
     #   -r dev-requirements.in

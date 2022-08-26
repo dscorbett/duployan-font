@@ -15,4 +15,3 @@
 
 font-v ~= 2.1
 fonttools ~= 4.34
-otf2ttf == 0.2

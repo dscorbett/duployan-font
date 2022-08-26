@@ -50,7 +50,7 @@ fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.f
 
 $(addprefix fonts/ttf/unhinted/instance_ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/ttf/unhinted/instance_ttf/%.ttf: fonts/otf/unhinted/instance_otf/%.otf
 	mkdir -p "$$(dirname "$@")"
-	otf2ttf --output "$@" --overwrite "$<"
+	sources/otf2ttf.py --output "$@" --overwrite "$<"
 
 .PHONY: clean
 clean:
