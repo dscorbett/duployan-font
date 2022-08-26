@@ -14,6 +14,6 @@
 # limitations under the License.
 
 -r requirements.in
-fontbakery == 0.8.9
+fontbakery[freetype] >= 0.8.9, <= 0.8.10
 packaging >= 20.5, <= 21.3
-mypy >= 0.950, <= 0.961
+mypy >= 0.950, <= 0.971

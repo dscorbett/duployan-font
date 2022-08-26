@@ -24,7 +24,7 @@ cu2qu==1.6.7.post1
     # via otf2ttf
 font-v==2.1.0
     # via -r requirements.in
-fonttools[ufo]==4.34.2
+fonttools[ufo]==4.37.1
     # via
     #   -r requirements.in
     #   cu2qu
@@ -44,5 +44,5 @@ smmap==5.0.0
     # via gitdb
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==63.1.0
+setuptools==65.3.0
     # via fs
