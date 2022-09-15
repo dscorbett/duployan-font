@@ -37,7 +37,7 @@ booleanoperations==0.9.0
     # via
     #   fontparts
     #   ufo2ft
-certifi==2022.6.15
+certifi==2022.9.14
     # via requests
 cffi==1.15.1
     # via cmarkgfm
@@ -71,12 +71,13 @@ fontbakery[freetype]==0.8.10
     # via -r dev-requirements.in
 fontmath==0.9.2
     # via fontparts
-fontparts==0.10.7
+fontparts==0.10.8
     # via babelfont
 fontpens==0.2.4
     # via defcon
 fonttools[lxml,ufo,unicode]==4.37.1
     # via
+    #   -c dev-constraints.txt
     #   -r requirements.in
     #   axisregistry
     #   babelfont
@@ -115,7 +116,7 @@ glyphslib==6.0.7
     #   glyphtools
 glyphtools==0.8.0
     # via collidoscope
-idna==3.3
+idna==3.4
     # via requests
 lxml==4.9.1
     # via
@@ -125,11 +126,11 @@ mypy==0.971
     # via -r dev-requirements.in
 mypy-extensions==0.4.3
     # via mypy
-numpy==1.23.2
+numpy==1.23.3
     # via glyphtools
 openstep-plist==0.3.0
     # via glyphslib
-opentype-sanitizer==8.2.1
+opentype-sanitizer==9.0.0
     # via fontbakery
 opentypespec==1.8.4
     # via fontbakery
