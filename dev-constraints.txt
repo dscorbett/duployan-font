@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fonttools <= 4.37.1
+beziers >= 0.5
+fonttools >= 4.35
