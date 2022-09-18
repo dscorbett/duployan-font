@@ -3,6 +3,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
+# Copyright (c) 2022 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -136,7 +137,8 @@ def main(args=None):
                                         extension='.ttf',
                                         overWrite=options.overwrite)
 
-        font = TTFont(path, fontNumber=options.face_index)
+        font = TTFont(
+            path, fontNumber=options.face_index, recalcTimestamp=False)
         otf_to_ttf(font,
                    post_format=options.post_format,
                    max_err=options.max_error,
