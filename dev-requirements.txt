@@ -76,7 +76,7 @@ fontparts==0.10.8
     # via babelfont
 fontpens==0.2.4
     # via defcon
-fonttools[lxml,ufo,unicode]==4.37.2
+fonttools[lxml,ufo,unicode]==4.37.3
     # via
     #   -c dev-constraints.txt
     #   -r requirements.in

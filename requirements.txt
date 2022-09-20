@@ -20,7 +20,7 @@
 #
 font-v==2.1.0
     # via -r requirements.in
-fonttools==4.37.2
+fonttools==4.37.3
     # via
     #   -r requirements.in
     #   font-v
