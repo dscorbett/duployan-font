@@ -20,13 +20,13 @@
 #
 font-v==2.1.0
     # via -r requirements.in
-fonttools==4.37.3
+fonttools==4.38.0
     # via
     #   -r requirements.in
     #   font-v
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.27
+gitpython==3.1.29
     # via font-v
 smmap==5.0.0
     # via gitdb

@@ -17,7 +17,7 @@ name: Main workflow
 on: push
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: 4.1.0
+  HARFBUZZ_VERSION: 5.3.1
   PYTHON_VERSION: '3.10'
 jobs:
   main:
@@ -38,13 +38,13 @@ jobs:
           - requirements: frozen
             skip-check: skip-check
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Cache FontForge
         id: cache-fontforge
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
           path: fontforge
@@ -91,7 +91,7 @@ jobs:
       - name: Cache HarfBuzz
         if: matrix.skip-check == ''
         id: cache-harfbuzz
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}
           path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
@@ -158,7 +158,7 @@ jobs:
           git push
       - name: Upload build artifacts
         if: steps.push-or-upload.outputs.upload-name
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.push-or-upload.outputs.upload-name }}
           path: fonts
