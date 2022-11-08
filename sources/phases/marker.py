@@ -1023,13 +1023,18 @@ def dist(builder, original_schemas, schemas, new_schemas, classes, named_lookups
                 or isinstance(schema.path, RightBoundDigit)
                 or isinstance(schema.path, AnchorWidthDigit))
                 and schema.path.status == DigitStatus.DONE):
+            place = schema.path.place
             digit = schema.path.digit
-            if schema.path.place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
+            if isinstance(schema.path, LeftBoundDigit):
+                digit = WIDTH_MARKER_RADIX - 1 - digit
+                if place == 0:
+                    digit += 1
+            if place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
                 digit -= WIDTH_MARKER_RADIX
-            x_advance = digit * WIDTH_MARKER_RADIX ** schema.path.place
-            if not isinstance(schema.path, RightBoundDigit):
+            x_advance = digit * WIDTH_MARKER_RADIX ** place
+            if isinstance(schema.path, AnchorWidthDigit):
                 x_advance = -x_advance
-            if schema.path.place == 0 and not isinstance(schema.path, AnchorWidthDigit):
+            elif place == 0:
                 x_advance += DEFAULT_SIDE_BEARING
             if x_advance:
                 add_rule(lookup, Rule([], [schema], [], x_advances=[x_advance]))

@@ -192,19 +192,22 @@ The width glyphs with fully capitalized names represent actual widths to add in
 a single positioning lookup.
 For example, `_.RDX.2E3` represents a width of 2 × 4<sup>3</sup>, i.e. 128,
 so a 'dist' lookup adds 128 units to it.
-Left bound widths and anchor widths are treated as their opposites:
-'dist' would add −128 units for `_.LDX.2E3`.
+Left bound widths are treated as their complements:
+'dist' would add 64 units for `_.LDX.2E3`, i.e. (3 − 2) × 4<sup>3</sup>.
+Anchor widths are treated as their opposites:
+'dist' would add −128 units for `_.ADX.2E3`.
 
 High values for the most significant digits indicate negative numbers.
 They are interpreted as the above values plus (or, for right bound widths,
 minus) <var>base</var><sup><var>places</var></sup>.
 High values are those in the top half of possible digit values;
 for base 4, that means 2 and 3.
-For example, `_.RDX.2E6` gets −8192 units and `_.LDX.2E6` gets 8192 units.
+For example, `_.RDX.2E6` gets −8192 units.
+`_.LDX.1E6` also gets −8192 units, because 1 is the complement of 2.
 
 The least significant digits of the left and right bound widths have 85 units
 added to them to account for the side bearings;
-thus `_.LDX.1E0` gets 84 units and `_.RDX.1E0` gets 86 units.
+thus `_.LDX.1E0` gets 88 units and `_.RDX.1E0` gets 86 units.
 
 ## Design rationales
 
