@@ -102,7 +102,6 @@ jobs:
         if: matrix.skip-check == ''
         run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
       - name: Install unifdef
-        if: matrix.skip-check == ''
         run: |
           sudo apt-get -qy --no-install-recommends install unifdef
       - name: Prepare newest requirements
