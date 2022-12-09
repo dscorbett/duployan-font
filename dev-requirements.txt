@@ -37,7 +37,7 @@ beziers==0.5.0
     #   glyphtools
 booleanoperations==0.9.0
     # via ufo2ft
-certifi==2022.9.24
+certifi==2022.12.7
     # via requests
 cffi==1.15.1
     # via cmarkgfm
@@ -179,8 +179,6 @@ stringbrewer==0.0.1
     # via fontbakery
 toml==0.10.2
     # via fontbakery
-tomli==2.0.1
-    # via mypy
 typing-extensions==4.4.0
     # via mypy
 ufo2ft==2.29.0
@@ -196,9 +194,7 @@ uharfbuzz==0.32.0
     #   collidoscope
     #   vharfbuzz
 unicodedata2==15.0.0
-    # via
-    #   fontbakery
-    #   fonttools
+    # via fontbakery
 urllib3==1.26.12
     # via requests
 vharfbuzz==0.1.4
