@@ -22,11 +22,8 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
-import enum
-import itertools
 import io
 import math
-import re
 from typing import Any
 from typing import Callable
 from typing import Final

@@ -163,7 +163,8 @@ def mkmk(anchor: str) -> str:
     return f'mkmk_{anchor}'
 
 
-class GlyphClass(enum.Enum):
+@enum.unique
+class GlyphClass(enum.StrEnum):
     """A glyph class.
 
     The members’ values are all valid values for the ``glyphclass``

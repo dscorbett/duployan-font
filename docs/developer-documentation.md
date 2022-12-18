@@ -22,7 +22,7 @@ limitations under the License.
 The prerequisites are:
 
 * GNU Make
-* Python 3.10 or later
+* Python 3.11 or later
 * FontForge 20190801 with Python 3 extensions
 * unifdef
 
@@ -50,7 +50,7 @@ To only build fonts with cubic Bézier curves, append `SUFFIXES=otf`.
 
 The prerequisites are:
 
-* HarfBuzz 5.3.1 or later
+* HarfBuzz 6.0.0 or later
 
 To test the fonts, run:
 

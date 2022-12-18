@@ -16,5 +16,5 @@
 -r requirements.in
 -c dev-constraints.txt
 fontbakery[freetype] >= 0.8.5, <= 0.8.10
-packaging >= 20.5, <= 21.3
+packaging == 22.0
 mypy >= 0.981, <= 0.982

@@ -17,8 +17,8 @@ name: Main workflow
 on: push
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: 5.3.1
-  PYTHON_VERSION: '3.10'
+  HARFBUZZ_VERSION: 6.0.0
+  PYTHON_VERSION: 3.11
 jobs:
   main:
     runs-on: ubuntu-22.04
