@@ -15,17 +15,15 @@
 # limitations under the License.
 
 import argparse
-import collections
-from collections.abc import Container
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Sequence
-from collections.abc import Set
 import importlib.metadata
 import json
-import re
+from typing import Optional
 import urllib.request
 
+import packaging.markers
 import packaging.requirements
 import packaging.specifiers
 import packaging.version
@@ -46,35 +44,37 @@ def parse_constraints(lines: Sequence[str]) -> Mapping[str, packaging.specifiers
     return constraints
 
 
-def get_extra_requirements(
-    package_name: str,
-    relevant_extras: Container[str],
-) -> Mapping[str, packaging.specifiers.SpecifierSet]:
-    metadata = importlib.metadata.metadata(package_name)
-    required_dists = metadata.get_all('Requires-Dist')
-    extra_requirements: MutableMapping[str, packaging.specifiers.SpecifierSet] = collections.defaultdict(packaging.specifiers.SpecifierSet)
-    for extra in metadata.get_all('Provides-Extra'):
-        if extra not in relevant_extras:
-            continue
-        for required_dist in required_dists:
-            if match := re.search(fr"(\S+) \(([^);]+)\).*;.*\bextra *== *'{re.escape(extra)}'", required_dist):
-                extra_requirements[match.group(1)] &= packaging.specifiers.SpecifierSet(match.group(2))
-    return extra_requirements
+def add_required_dists(
+    requirements: MutableMapping[str, packaging.specifiers.SpecifierSet],
+    required_dists: Sequence[str],
+    constraints: Mapping[str, packaging.specifiers.SpecifierSet],
+    extra: Optional[str] = None,
+) -> None:
+    for required_dist in required_dists:
+        requirement = packaging.requirements.Requirement(required_dist)
+        if ((marker := requirement.marker) is None
+            or marker.evaluate(environment=None if extra is None else {'extra': extra})
+        ):
+            add_requirement(requirements, requirement, constraints)
 
 
 def add_requirement(
     requirements: MutableMapping[str, packaging.specifiers.SpecifierSet],
-    requirement_name: str,
-    requirement_specifier: packaging.specifiers.SpecifierSet,
-    requirement_extras: Set[str],
+    requirement: packaging.requirements.Requirement,
     constraints: Mapping[str, packaging.specifiers.SpecifierSet],
 ) -> None:
-    if requirement_name not in requirements:
-        requirements[requirement_name] = constraints.get(requirement_name, packaging.specifiers.SpecifierSet())
-    requirements[requirement_name] &= requirement_specifier
-    if requirement_extras:
-        for extra_requirement in get_extra_requirements(requirement_name, requirement_extras).items():
-            add_requirement(requirements, *extra_requirement, set(), constraints)
+    if requirement.name not in requirements:
+        requirements[requirement.name] = constraints.get(requirement.name, packaging.specifiers.SpecifierSet())
+    requirements[requirement.name] &= requirement.specifier
+    metadata = importlib.metadata.metadata(requirement.name)
+    required_dists = metadata.get_all('Requires-Dist')
+    if required_dists:
+        add_required_dists(requirements, required_dists, constraints)
+        if requirement.extras:
+            for extra in metadata.get_all('Provides-Extra'):
+                if extra not in requirement.extras:
+                    continue
+                add_required_dists(requirements, required_dists, constraints, extra)
 
 
 def parse_requirements(
@@ -87,7 +87,7 @@ def parse_requirements(
             requirement = packaging.requirements.Requirement(line)
         except packaging.requirements.InvalidRequirement:
             continue
-        add_requirement(requirements, requirement.name, requirement.specifier, requirement.extras, constraints)
+        add_requirement(requirements, requirement, constraints)
     return requirements
 
 
