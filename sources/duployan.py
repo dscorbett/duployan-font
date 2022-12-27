@@ -186,6 +186,10 @@ class Builder:
         greater_than = Complex([(1, Line(27)), (1, Line(153))])
         left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
         right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
+        left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])
+        right_ceiling = Complex([(2.059, Line(90)), (0.45, Line(180))])
+        left_floor = Complex([(0.45, Line(180)), (2.059, Line(90))])
+        right_floor = Complex([(0.45, Line(0)), (2.059, Line(90))])
         guillemet_vertical_space = (75, Space(90))
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
@@ -381,6 +385,10 @@ class Builder:
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x20DD, enclosing_circle, 10, anchor=anchors.MIDDLE),
+            Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x2309, right_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x230B, right_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2620, skull_and_crossbones, 1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
