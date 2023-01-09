@@ -1,5 +1,5 @@
 # Copyright 2021-2022 Google LLC
-# Copyright 2022 David Corbett
+# Copyright 2022-2023 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,5 +16,5 @@
 -r requirements.in
 -c dev-constraints.txt
 fontbakery[freetype] >= 0.8.5, <= 0.8.10
-packaging == 22.0
+packaging >= 22.0, <= 23.0
 mypy >= 0.981, <= 0.982
