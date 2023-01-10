@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ else
     RELEASE =
 endif
 SUFFIXES = otf ttf
-FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(suffix)/unhinted/instance_$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
+FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 
 BUILD = sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
@@ -42,13 +42,13 @@ otf: $(filter %.otf,$(FONTS))
 .PHONY: ttf
 ttf: $(filter %.ttf,$(FONTS))
 
-fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
+fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
 	$(BUILD) --fea <($(UNIFDEF) $<) --output $@
 
-fonts/otf/unhinted/instance_otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
+fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
 	$(BUILD) --bold --fea <($(UNIFDEF) $<) --output $@
 
-$(addprefix fonts/ttf/unhinted/instance_ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/ttf/unhinted/instance_ttf/%.ttf: fonts/otf/unhinted/instance_otf/%.otf
+$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
 	mkdir -p "$$(dirname "$@")"
 	sources/otf2ttf.py --output "$@" --overwrite "$<"
 
