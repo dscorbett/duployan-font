@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,7 @@ import math
 import typing
 from typing import Any
 from typing import Callable
+from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import Literal
@@ -1317,6 +1318,11 @@ class Dot(Shape):
             center of the dot, as opposed to at the bottom.
     """
 
+    #: The factor by which to scale the nominal stroke width to get the
+    #: actual stroke width. A standalone dot should normally be scaled
+    #: up lest it be hard to see at small font sizes.
+    SCALAR: ClassVar[float] = 2 ** 0.5
+
     def __init__(
         self,
         *,
@@ -1365,6 +1371,7 @@ class Dot(Shape):
     ) -> bool:
         assert pen
         assert not child
+        stroke_width *= self.SCALAR ** (size - 1)
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', stroke_width, 'round')
@@ -1598,11 +1605,11 @@ class Line(Shape):
                     glyph.addAnchorPoint(anchor_name(anchors.SECANT), base, child_interval * (max_tree_width + 1), 0)
             if size == 2 and 0 < self.angle <= 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2 - (light_line + stroke_gap), -(stroke_width + light_line) / 2)
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2 + light_line + stroke_gap, -(stroke_width + light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2 + light_line + stroke_gap, -(stroke_width + Dot.SCALAR * light_line) / 2)
             else:
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2, (stroke_width + light_line) / 2)
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2, -(stroke_width + light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2, (stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
             glyph.addAnchorPoint(anchor_name(anchors.MIDDLE), base, length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -2059,13 +2066,13 @@ class Curve(Shape):
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
                 )
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(self.angle_in)))
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
             else:
                 glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base,
                     *(_rect(0, 0) if abs(da) > 180 else _rect(
-                        min(stroke_width, r - (stroke_width / 2 + stroke_gap + light_line / 2)),
+                        min(stroke_width, r - (stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2)),
                         math.radians(relative_mark_angle))))
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(relative_mark_angle)))
+                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
         if not anchor:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
@@ -2480,9 +2487,9 @@ class Circle(Shape):
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians(angle_in)))
+            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(angle_in)))
         else:
-            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + light_line / 2, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         if diphthong_1 or diphthong_2:
             glyph.removeOverlap()

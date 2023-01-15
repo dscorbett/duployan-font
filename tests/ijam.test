@@ -1,4 +1,4 @@
-# Copyright 2019 David Corbett
+# Copyright 2019, 2023 David Corbett
 # Copyright 2019-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 1BC4E::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|dupl.Line.0.rel2@132,-240|_@440,0]
-1BC03 1BC4E::[u1BC03.t@120,200|u1BC46.i.0n180@620,0|dupl.Line.90.rel2@860,12|_@980,0]
-1BC04 1BC4E::[u1BC04.f@120,0|u1BC47.e.300n120@408,-150|dupl.Line.30.rel2@365,-302|_@637,0]
-1BC05 1BC4E::[u1BC05.k@691,0|u1BC47.e.240n60@403,-50|dupl.Line.150.rel2@272,-202|_@811,0]
-1BC06 1BC4E::[u1BC06.l@120,0|u1BC47.e.45n225@620,359|dupl.Line.135.rel2@922,537|_@1042,0]
+1BC02 1BC4E::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|dupl.Line.0.rel2@132,-254|_@440,0]
+1BC03 1BC4E::[u1BC03.t@120,200|u1BC46.i.0n180@620,0|dupl.Line.90.rel2@874,12|_@994,0]
+1BC04 1BC4E::[u1BC04.f@120,0|u1BC47.e.300n120@408,-150|dupl.Line.30.rel2@373,-314|_@645,0]
+1BC05 1BC4E::[u1BC05.k@698,0|u1BC47.e.240n60@410,-50|dupl.Line.150.rel2@272,-214|_@818,0]
+1BC06 1BC4E::[u1BC06.l@120,0|u1BC47.e.45n225@620,359|dupl.Line.135.rel2@933,548|_@1053,0]
 
 1BC1D::[u1BC19.m@532,0|u1BC9E.double@120,360|_@652,0]
 1BC1E::[u1BC1A.n@120,0|u1BC9E.double@308,360|_@653,0]

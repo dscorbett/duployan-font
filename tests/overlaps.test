@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2022 David Corbett
+# Copyright 2022-2023 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 1BCA1 1BC02::[u1BCA1.continuing_overlap@0,0|u1BC02.p@1248,0|_@1368,0]
 
 # Each letter has a limit on how many controls it can support.
-1BC00 1BCA0 1BC02::[u1BC00.h@120,0|u1BCA0.letter_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
-1BC00 1BCA1 1BC02::[u1BC00.h@120,0|u1BCA1.continuing_overlap@240,0|u1BC02.p@1488,0|_@1608,0]
+1BC00 1BCA0 1BC02::[u1BC00.h@134,0|u1BCA0.letter_overlap@268,0|u1BC02.p@1516,0|_@1636,0]
+1BC00 1BCA1 1BC02::[u1BC00.h@134,0|u1BCA1.continuing_overlap@268,0|u1BC02.p@1516,0|_@1636,0]
 1BC02 1BCA0 1BC08::[u1BC02.p@370,0|u1BC08.d@120,167|_@1240,0]
 1BC03 1BCA0 1BCA0 1BC02 1BC04::[u1BC03.t@120,0|u1BCA0.letter_overlap@740,0|u1BCA0.letter_overlap@1868,0|u1BC02.p@3116,0|u1BC04.f@3116,-500|_@3524,0]
 1BC03 1BCA0 1BCA1 1BC02 1BC04::[u1BC03.t@120,0|u1BCA0.letter_overlap@740,0|u1BCA1.continuing_overlap@1868,0|u1BC02.p@3116,0|u1BC04.f@3116,-500|_@3524,0]
@@ -79,7 +79,7 @@
 1BC08 1BCA0 1BCA0 1BC28 1BCA0 1BC03 1BC08 1BCA0 1BC02 1BCA0 1BC03::[u1BC08.d@120,0|u1BCA0.letter_overlap@1240,0|u1BCA0.letter_overlap@2368,0|u1BC28.n_s@3616,0|u1BC03.t.sub@3795,360|u1BC08.d@3616,0|u1BC02.p@4366,-333|u1BC03.t@4199,-166|_@4819,0]
 
 # Marks do not block trees.
-1BC25 0302 1BCA1 1BC04::[u1BC1C.s@120,0|dupl.Dot.rel1@480,300|uni0302.circumflex@269,405|u1BC04.f@564,-293|_@972,0]
+1BC25 0302 1BCA1 1BC04::[u1BC1C.s@120,0|dupl.Dot.rel1@480,286|uni0302.circumflex@269,405|u1BC04.f@564,-293|_@972,0]
 
 # U+003D EQUALS SIGN is a valid root, but does not have other tree or
 # cursive behavior.
