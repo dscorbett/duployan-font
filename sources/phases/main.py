@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,7 @@ __all__ = [
     'make_widthless_variants_of_marks',
     'prepare_for_secondary_diphthong_ligature',
     'promote_final_letter_overlap_to_continuing_overlap',
+    'remove_dot_from_nonmedial_romanian_u',
     'reposition_chinook_jargon_overlap_points',
     'reposition_stenographic_period',
     'reversed_circle_kludge',
@@ -84,6 +85,7 @@ from shapes import ContextMarker
 from shapes import ContinuingOverlap
 from shapes import ContinuingOverlapS
 from shapes import Curve
+from shapes import Dot
 from shapes import InitialSecantMarker
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
@@ -1409,6 +1411,24 @@ def unignore_initial_orienting_sequences(builder, original_schemas, schemas, new
     return [lookup]
 
 
+def remove_dot_from_nonmedial_romanian_u(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+    lookup = Lookup(
+        'rclt',
+        'dupl',
+        'dflt',
+        mark_filtering_set='dot',
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if schema.cps == [0x1BC56] and isinstance(schema.path, RomanianU):
+            classes['nonmedial_romanian_u'].append(schema)
+        elif schema.anchor == anchors.RELATIVE_1 and isinstance(schema.path, Dot):
+            classes['dot'].append(schema)
+    add_rule(lookup, Rule('nonmedial_romanian_u', 'dot', [], []))
+    return [lookup]
+
+
 def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
@@ -1610,6 +1630,7 @@ PHASE_LIST = [
     thwart_what_would_flip,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
+    remove_dot_from_nonmedial_romanian_u,
     join_double_marks,
     rotate_diacritics,
     shade,

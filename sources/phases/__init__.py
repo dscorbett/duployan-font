@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -471,7 +471,7 @@ class Rule:
             else:
                 assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
                 input = self.inputs[0]
-                if isinstance(input, str) and any(isinstance(output, str) for output in self.outputs):
+                if isinstance(input, str) and (not self.outputs or any(isinstance(output, str) for output in self.outputs)):
                     # Allow classes in multiple substitution output by unrolling all uses of
                     # the class in parallel with the input class.
                     asts = []
