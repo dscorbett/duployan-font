@@ -162,7 +162,6 @@ class Builder:
         notdef = Notdef()
         space = Space(0, margins=True)
         h = Dot()
-        h_op = ((Dot.SCALAR - 1) * light_line / 2 / RADIUS, Circle(0, 0, clockwise=False))
         exclamation = Complex([(2, h), (244, Space(90)), (1.109, Line(90))])
         dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, relative_stretch=False)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, relative_stretch=False)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, relative_stretch=False)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, relative_stretch=False)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
         asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), False), (0.467, Line(126)), (0.467, Line(306), False), (0.467, Line(54)), (0.467, Line(234), False), (0.467, Line(342))])
@@ -179,8 +178,8 @@ class Builder:
         seven = Complex([(0.818, Line(0)), (1.36, Line(246))])
         eight = Complex([(2.88, Curve(180, 90, clockwise=True)), (2.88, Curve(90, 270, clockwise=True)), (2.88, Curve(270, 180, clockwise=True)), (3.16, Curve(180, 270, clockwise=False)), (3.16, Curve(270, 90, clockwise=False)), (3.16, Curve(90, 180, clockwise=False))])
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
-        colon = Complex([h_op, (481, Space(90)), h_op])
-        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (423, Space(90)), h_op])
+        colon = Complex([(2, h), (408, Space(90)), (2, h)])
+        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (388, Space(90)), (2, h)])
         question = Complex([(2, h), (244, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
         less_than = Complex([(1, Line(153)), (1, Line(27))])
         equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
@@ -209,14 +208,14 @@ class Builder:
         circumflex = Complex([(1, Line(25)), (1, Line(335))])
         macron = Line(0)
         breve = Curve(270, 90, clockwise=False, stretch=0.2)
-        diaeresis = Complex([h_op, (Dot.SCALAR * 10 / 7 * light_line, Space(0)), h_op])
+        diaeresis = Complex([(2, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (2, h)])
         caron = Complex([(1, Line(335)), (1, Line(25))])
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
         high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
         high_right_quote = Complex([(742, Space(90)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
         low_right_quote = Complex([(35, Space(0)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-        ellipsis = Complex([h_op, (196, Space(0)), h_op, (196, Space(0)), h_op])
+        ellipsis = Complex([(2, h), (196, Space(0)), (2, h), (196, Space(0)), (2, h)])
         nnbsp = Space(0)
         dotted_circle = Complex([(33, Space(90)), (1, h), (446, Space(90)), (1, h), (223, Space(270)), (223, Space(60)), (1, h), (446, Space(240)), (1, h), (223, Space(60)), (223, Space(30)), (1, h), (446, Space(210)), (1, h), (223, Space(30)), (223, Space(0)), (1, h), (446, Space(180)), (1, h), (223, Space(0)), (223, Space(330)), (1, h), (446, Space(150)), (1, h), (223, Space(330)), (223, Space(300)), (1, h), (446, Space(120)), (1, h)])
         skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 0.55, Space(270)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0.5, Circle(180, 180, clockwise=False)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 0.3, Space(270)), (1, h), (150, Space(160)), (1, h), (150, Space(340)), (150, Space(20)), (1, h), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), False), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
@@ -294,7 +293,7 @@ class Builder:
         high_tight_acute = SeparateAffix([(0.5, Line(45))], tight=True)
         high_grave = SeparateAffix([(0.5, Line(315))])
         high_long_grave = SeparateAffix([(0.4, Line(300)), (0.75, Line(0))])
-        high_dot = SeparateAffix([h_op])
+        high_dot = SeparateAffix([(2, h)])
         high_circle = SeparateAffix([(2, Circle(0, 0, clockwise=False))])
         high_line = SeparateAffix([(0.5, Line(0))])
         high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / LINE_FACTOR, Line(315)), (2, Curve(315, 90, clockwise=False))])
@@ -345,7 +344,7 @@ class Builder:
             Schema(0x0037, seven, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x0038, eight, 1.064, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x0039, nine, 1.021, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
-            Schema(0x003A, colon, 0.856, Type.NON_JOINING, encirclable=True, shading_allowed=False),
+            Schema(0x003A, colon, 1, Type.NON_JOINING, encirclable=True, shading_allowed=False),
             Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x003C, less_than, 2, Type.NON_JOINING, shading_allowed=False),
             Schema(0x003D, equal, 1),
