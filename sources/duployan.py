@@ -319,6 +319,7 @@ class Builder:
         up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
         line = Line(0)
 
+        small_dot_1 = Schema(None, h, 1, anchor=anchors.RELATIVE_1)
         dot_1 = Schema(None, h, 2, anchor=anchors.RELATIVE_1)
         dot_2 = Schema(None, h, 2, anchor=anchors.RELATIVE_2)
         line_2 = Schema(None, line, 0.35, Type.ORIENTING, anchor=anchors.RELATIVE_2)
@@ -493,17 +494,17 @@ class Builder:
             Schema(0x1BC53, s_t, 6, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
             Schema(0x1BC54, u_n, 3, shading_allowed=False),
             Schema(0x1BC55, long_u, 2, shading_allowed=False),
-            Schema(0x1BC56, romanian_u, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC56, romanian_u, 3, Type.ORIENTING, marks=[small_dot_1], shading_allowed=False),
             Schema(0x1BC57, uh, 2, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC58, uh, 2, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC58, uh, 2, Type.ORIENTING, marks=[small_dot_1], shading_allowed=False),
             Schema(0x1BC59, uh, 2, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
-            Schema(0x1BC5A, o, 3, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC5A, o, 3, Type.ORIENTING, marks=[small_dot_1], shading_allowed=False),
             Schema(0x1BC5B, ou, 3, Type.ORIENTING, can_lead_orienting_sequence=True, shading_allowed=False),
             Schema(0x1BC5C, wa, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5D, wo, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5E, wi, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0x1BC5F, wei, 1, Type.ORIENTING, shading_allowed=False),
-            Schema(0x1BC60, wo, 1, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+            Schema(0x1BC60, wo, 1, Type.ORIENTING, marks=[small_dot_1], shading_allowed=False),
             Schema(0x1BC61, s_t, 3.2, can_lead_orienting_sequence=True),
             Schema(0x1BC62, s_n, 3.2, Type.ORIENTING),
             Schema(0x1BC63, t_s, 3.2, can_lead_orienting_sequence=True),
