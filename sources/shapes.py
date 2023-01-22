@@ -81,6 +81,7 @@ from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import Literal
+from typing import LiteralString
 from typing import Optional
 from typing import Tuple
 from typing import TypeVar
@@ -2794,7 +2795,8 @@ class Complex(Shape):
             """Initializes this `Proxy`.
             """
             self.anchor_points: collections.defaultdict[Tuple[str, _AnchorType], MutableSequence[_Point]] = collections.defaultdict(list)
-            self._contour = fontforge.contour()
+            self._layer = fontforge.layer()
+            self._layer += fontforge.contour()
 
         def addAnchorPoint(
             self,
@@ -2813,18 +2815,28 @@ class Complex(Shape):
             """
             self.anchor_points[(anchor_class_name, anchor_type)].append((x, y))
 
-        def stroke(self, *args: Any) -> None:
-            """Ignores `fontforge.glyph.stroke`.
+        def stroke(
+            self,
+            nib_type: LiteralString,
+            width_or_contour: float,
+            *args: float | str | Tuple[str, ...],
+            **kwargs: bool | float | str,
+        ) -> None:
+            """Simulates `fontforge.glyph.stroke`.
 
             Args:
-                args: Anything. The arguments are ignored. All components
-                    in a compound shape use the same stroke.
+                nib_type: The first argument.
+                width_or_contour: The ``width`` or ``contour`` argument,
+                    depending on `stroke_type`.
+                args: Further arguments.
+                kwargs: Further keyword arguments.
             """
+            self._layer.stroke(nib_type, width_or_contour, *args, **kwargs)
 
         def boundingBox(self) -> Tuple[float, float, float, float]:
             """Simulates `fontforge.glyph.boundingBox`.
             """
-            return self._contour.boundingBox()
+            return self._layer.boundingBox()
 
         def draw(self, pen: fontforge.glyphPen) -> None:
             """Draws the collected data to a FontForge glyph.
@@ -2832,7 +2844,7 @@ class Complex(Shape):
             Args:
                 pen: The pen to draw with.
             """
-            self._contour.draw(pen)
+            self._layer.draw(pen)
 
         def transform(self, matrix: Tuple[float, float, float, float, float, float], *args: Any) -> None:
             """Simulates `fontforge.glyph.transform`.
@@ -2845,18 +2857,16 @@ class Complex(Shape):
                 for i, x_y in enumerate(points):
                     new_point = fontforge.point(*x_y).transform(matrix)
                     self.anchor_points[anchor][i] = (new_point.x, new_point.y)
-            self._contour.transform(matrix)
+            self._layer.transform(matrix)
 
         def moveTo(self, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.moveTo`.
 
-            Nothing happens if some pen data has already been collected.
-
             Args:
                 x_y: The ``(x, y)`` argument.
             """
-            if not self._contour:
-                self._contour.moveTo(*x_y)
+            for contour in self._layer:
+                contour.moveTo(*x_y)
 
         def lineTo(self, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.lineTo`.
@@ -2864,7 +2874,8 @@ class Complex(Shape):
             Args:
                 x_y: The ``(x, y)`` argument.
             """
-            self._contour.lineTo(*x_y)
+            for contour in self._layer:
+                contour.lineTo(*x_y)
 
         def curveTo(self, cp1: _Point, cp2: _Point, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.curveTo`.
@@ -2874,7 +2885,8 @@ class Complex(Shape):
                 cp2: The ``(cp2.x, cp2.y)`` argument.
                 x_y: The ``(x, y)`` argument.
             """
-            self._contour.cubicTo(cp1, cp2, x_y)
+            for contour in self._layer:
+                contour.cubicTo(cp1, cp2, x_y)
 
         def endPath(self) -> None:
             """Ignores `fontforge.glyphPen.endPath`.
@@ -3013,7 +3025,7 @@ class Complex(Shape):
         bad_indices = []
         foreground = glyph.foreground
         for contour_index, contour in enumerate(foreground):
-            if not contour.closed and len(contour) == 2 and contour[0] == contour[1]:
+            if not contour.closed:
                 bad_indices.append(contour_index)
         if bad_indices:
             for bad_index in reversed(bad_indices):
@@ -3048,7 +3060,6 @@ class Complex(Shape):
             first_is_invisible,
             singular_anchor_points,
         ) = self.draw_to_proxy(pen, stroke_width, light_line, stroke_gap, size)
-        glyph.stroke('circular', stroke_width, 'round')
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
