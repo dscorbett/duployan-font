@@ -935,7 +935,10 @@ class Builder:
         self._add_lookups(class_asts)
         self.font.selection.all()
         self.font.round()
-        self.font.simplify(3, ('smoothcurves',))
+        self.font.simplify(3, (
+            'setstarttoextremum',
+            'smoothcurves',
+        ))
 
     def merge_features(
         self,
