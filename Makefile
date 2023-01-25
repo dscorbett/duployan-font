@@ -64,12 +64,15 @@ $(addprefix check-,$(FONTS)): check-%: %
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
 	fontbakery check-notofonts --auto-jobs --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists $(filter %.$*,$(FONTS))
 
+.PHONY: fontbakery
+fontbakery: $(addprefix fontbakery-,$(SUFFIXES))
+
 .PHONY: mypy
 mypy:
 	mypy get-old-requirements.py sources tests
 
 .PHONY: check
-check: $(addprefix check-,$(FONTS)) $(addprefix fontbakery-,$(SUFFIXES)) mypy
+check: $(addprefix check-,$(FONTS)) fontbakery mypy
 
 .PHONY: hb-shape
 hb-shape:
