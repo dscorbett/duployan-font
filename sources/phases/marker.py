@@ -209,7 +209,7 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
 
 def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
-        'rclt',
+        'rlig',
         {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='i',

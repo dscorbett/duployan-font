@@ -3,7 +3,7 @@ Copyright: Copyright 2018-2019, 2022-2023 David Corbett
   Copyright 2019-2022 Google LLC
 License: Apache-2.0
 
-Files: fonts/*.otf fonts/*.ttf sources/*.fea
+Files: *.otf *.ttf sources/*.fea
 Copyright: Copyright (c) 2018-2019, 2022-2023, David Corbett (corbett.dav@northeastern.edu).
   Copyright (c) 2018-2022, Google LLC.
 License: OFL-1.1

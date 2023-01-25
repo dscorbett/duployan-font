@@ -132,7 +132,7 @@ def reversed_circle_kludge(builder, original_schemas, schemas, new_schemas, clas
 
 def validate_shading(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
-        'rclt',
+        'rlig',
         'dupl',
         'dflt',
         mark_filtering_set='independent_mark',
@@ -153,7 +153,7 @@ def validate_shading(builder, original_schemas, schemas, new_schemas, classes, n
 
 def validate_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
-        'rclt',
+        'rlig',
         'dupl',
         'dflt',
         mark_filtering_set='double_mark',
@@ -1253,7 +1253,7 @@ def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, sche
 
 def ligate_diphthongs(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
-        'rlig',
+        'rclt',
         {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='ignored_for_topography',
@@ -1434,7 +1434,7 @@ def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, 
 
 def rotate_diacritics(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
-        'rclt',
+        'rlig',
         {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
@@ -1502,17 +1502,17 @@ def shade(builder, original_schemas, schemas, new_schemas, classes, named_lookup
 
 def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_slash = Lookup(
-        'rclt',
+        'rlig',
         {'DFLT', 'dupl'},
         'dflt',
     )
     lookup_dnom = Lookup(
-        'rclt',
+        'rlig',
         {'DFLT', 'dupl'},
         'dflt',
     )
     lookup_numr = Lookup(
-        'rclt',
+        'rlig',
         {'DFLT', 'dupl'},
         'dflt',
         reversed=True,
@@ -1554,7 +1554,7 @@ def create_superscripts_and_subscripts(builder, original_schemas, schemas, new_s
 
 
 def make_widthless_variants_of_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('rlig', {'DFLT', 'dupl'}, 'dflt')
     first_iteration = 'i' not in classes
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.MARK:

@@ -52,13 +52,40 @@ $(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuf
 	mkdir -p "$$(dirname "$@")"
 	sources/otf2ttf.py --output "$@" --overwrite "$<"
 
+subset-fonts/%.subset-glyphs.txt: fonts/%
+	mkdir -p "$$(dirname "$@")"
+	ttx -o - -q -t GlyphOrder "$<" \
+	| grep '<GlyphID ' \
+	| cut -f4 -d'"' \
+	| grep '^[^_]\|^_u1BC9D\.dtls$$' \
+	| grep -v '^u1BC7[0-7]\..*\.' \
+	>"$@"
+
+subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
+	pyftsubset \
+		--glyph-names \
+		--glyphs-file="$(word 2,$^)" \
+		--layout-features+=subs,sups \
+		--layout-features-=curs,rclt \
+		--no-layout-closure \
+		--output-file="$@" \
+		--passthrough-tables \
+		"$<"
+
 .PHONY: clean
 clean:
-	$(RM) -r $(FONTS) tests/failed
+	$(RM) -r $(FONTS) $(addprefix subset-,$(FONTS)) tests/failed
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
 	tests/run-tests.py $(CHECK_ARGS) $< tests/*.test
+
+.PHONY: $(addprefix check-subset-,$(FONTS))
+$(addprefix check-subset-,$(FONTS)): check-subset-%: subset-%
+	tests/run-tests.py $(CHECK_ARGS) $< tests/*.subset-test
+
+.PHONY: check-subset
+check-subset: $(addprefix check-subset-,$(FONTS))
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
@@ -72,7 +99,7 @@ mypy:
 	mypy get-old-requirements.py sources tests
 
 .PHONY: check
-check: $(addprefix check-,$(FONTS)) fontbakery mypy
+check: $(addprefix check-,$(FONTS)) check-subset fontbakery mypy
 
 .PHONY: hb-shape
 hb-shape:
