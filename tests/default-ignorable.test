@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2023 David Corbett
 # Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-1BC02 200C 1BC03::[u1BC02.p@120,0|uni200C.zwnj@240,0|u1BC03.t@360,0|_@980,0]
-1BC02 200D 1BC46::[u1BC02.p@120,0|u1BC46.i.270p90@120,-100|_@440,0]
+1BC02 200C 1BC03::[u1BC02.p@0,0|uni200C.zwnj@240,0|u1BC03.t@240,0|_@980,0]
+1BC02 200D 1BC46::[u1BC02.p@0,0|u1BC46.i.270p90@0,-100|_@440,0]

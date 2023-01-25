@@ -702,17 +702,15 @@ class Builder:
             schema.diphthong_1,
             schema.diphthong_2,
         )
-        if schema.joining_type == Type.NON_JOINING:
-            glyph.left_side_bearing = int(scalar * schema.side_bearing)
-        else:
+        if schema.joining_type != Type.NON_JOINING:
             entry_x = next(
                 (x for anchor_class_name, type, x, _ in glyph.anchorPoints
                     if anchor_class_name == anchors.CURSIVE and type == 'entry'),
                 0,
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
         if not floating:
-            _, y_min, _, y_max = glyph.boundingBox()
             if y_min != y_max:
                 if schema.y_min is not None:
                     if schema.y_max is not None:
@@ -733,7 +731,10 @@ class Builder:
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
-            glyph.right_side_bearing = int(scalar * schema.side_bearing)
+            side_bearing = int(scalar * schema.side_bearing)
+            glyph.right_side_bearing = side_bearing
+            if x_min != x_max:
+                glyph.left_side_bearing = side_bearing
 
     def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
         glyph_name = str(schema)

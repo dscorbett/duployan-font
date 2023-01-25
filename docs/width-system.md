@@ -1,5 +1,5 @@
 <!--
-Copyright 2022 David Corbett
+Copyright 2022-2023 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -252,17 +252,17 @@ as long as the extra width always totalled 85.
 
 As described [above](#background-and-motivation), side bearings depend on the
 initial and final cursive glyphs in the usual OpenType width system.
-In this font, the cursive entry point is always placed at x=0, so the initial
-glyph does not interfere with the font’s own width system.
-Cursive glyphs do have positive advance widths, though, which means the final
+Cursive glyphs have positive advance widths, which means the final
 cursive glyph’s advance width would be added to the total calculated right bound
 width.
 To avoid that problem, an invisible zero-width cursive glyph named `_.END` is
 added at the end of the stenogram.
 That is half the purpose of `_.END`; the other is to mark the final letter.
+Similarly, `_.START` is an invisible zero-width cursive glyph added at the start
+of the stenogram that suppresses the left side bearing of the initial letter.
 The point of giving these glyphs advance widths that are never actually used is
 to make debugging substitution rules more convenient in FontForge’s UI.
-Since the `_.END` glyph has to exist anyway,
+Since the `_.START` and `_.END` glyphs have to exist anyway,
 it does not make the font too much more complex.
 
 ## Caveats

@@ -1,4 +1,4 @@
-# Copyright 2019, 2022 David Corbett
+# Copyright 2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -276,16 +276,19 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         LeftBoundDigit: left_bound_markers,
         RightBoundDigit: right_bound_markers,
     }
-    start = Schema(None, Start(), 0)
+    start = next((s for s in schemas if isinstance(s.path, Start)), None)
+    if start is None:
+        start = Schema(None, Start(), 0)
+        classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(start)
     hubs = {-1: []}
     for hub_priority in range(0, MAX_HUB_PRIORITY + 1):
         hub = next((s for s in schemas if isinstance(s.path, Hub) and s.path.priority == hub_priority), None)
         if hub is None:
-            hub = Schema(None, Hub(hub_priority), 0)
+            hub = Schema(None, Hub(hub_priority), 0, side_bearing=0)
             classes[phases.HUB_CLASS].append(hub)
             classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
         hubs[hub_priority] = [hub]
-    end = Schema(None, End(), 0)
+    end = Schema(None, End(), 0, side_bearing=0)
     mark_anchor_selectors = {}
 
     def register_mark_anchor_selector(index):

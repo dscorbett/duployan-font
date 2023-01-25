@@ -408,6 +408,25 @@ class Start(Shape):
     def invisible(self) -> bool:
         return True
 
+    def draw(
+            self,
+            glyph: fontforge.glyph,
+            pen: fontforge.glyphPen | Literal[False],
+            stroke_width: float,
+            light_line: float,
+            stroke_gap: float,
+            size: float,
+            anchor: Optional[str],
+            joining_type: Type,
+            child: bool,
+            initial_circle_diphthong: bool,
+            final_circle_diphthong: bool,
+            diphthong_1: bool,
+            diphthong_2: bool,
+    ) -> bool:
+        glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
+        return False
+
     @staticmethod
     def guaranteed_glyph_class() -> Optional[GlyphClass]:
         return GlyphClass.MARK
@@ -1177,7 +1196,7 @@ class ChildEdge(Shape):
 class ContinuingOverlapS(Shape):
     """A marker for a continuing edge pointing from a glyph to its child
     in an overlap tree.
-    
+
     This corresponds to an instance of U+1BCA1 SHORTHAND FORMAT
     CONTINUING OVERLAP, to an instance of U+1BCA0 SHORTHAND FORMAT
     LETTER OVERLAP promoted to U+1BCA1, or to a glyph inserted after an

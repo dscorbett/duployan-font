@@ -14,34 +14,34 @@
 # limitations under the License.
 
 # Overlong sequences of semicircles
-1BC46 0307 1BC46::[u1BC46.i@220,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i@1246,0|_@1366,0]
-1BC47 0323 1BC46::[u1BC47.e@120,0|uni0323.dot_below@220,-119|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|_@1466,0]
-1BC02 1BC47 0323 1BC46::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|uni0323.dot_below@220,-219|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|_@1466,0]
-1BC46 0307 1BC47 1BC02::[u1BC46.i@220,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1346,500|u1BC02.p@1146,0|_@1466,0]
-1BC02 1BC47 1BC46 1BC47::[u1BC02.p@320,0|u1BC46.i.270n90@320,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|u1BC46.i.0n180@1346,-200|_@1566,0]
-1BC47 1BC46 1BC47 1BC02::[u1BC47.e@120,0|uni25CC.dotted_circle@440,0|u1BC46.i@1346,0|uni25CC.dotted_circle@1466,0|u1BC46.i.90p270@2472,500|u1BC02.p@2272,0|_@2592,0]
+1BC46 0307 1BC46::[u1BC46.i@0,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i@1026,0|_@1366,0]
+1BC47 0323 1BC46::[u1BC47.e@0,0|uni0323.dot_below@220,-119|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
+1BC02 1BC47 0323 1BC46::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni0323.dot_below@220,-219|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
+1BC46 0307 1BC47 1BC02::[u1BC46.i@0,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1026,500|u1BC02.p@1026,0|_@1466,0]
+1BC02 1BC47 1BC46 1BC47::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|u1BC46.i.0n180@1226,-200|_@1566,0]
+1BC47 1BC46 1BC47 1BC02::[u1BC47.e@0,0|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|uni25CC.dotted_circle@1466,0|u1BC46.i.90p270@2152,500|u1BC02.p@2152,0|_@2592,0]
 
 # Overlong sequences of medium quarter-circles
-1BC51 1BC51 1BC51 1BC51::[u1BC51.u@120,0|u1BC51.u.0p90@420,0|u1BC51.u.90p180@720,300|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
-1BC52 1BC51 1BC51 1BC51::[u1BC52.eu@720,0|u1BC51.u.180n90@420,0|u1BC51.u.90n0@120,300|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
-1BC02 1BC52 1BC51 1BC51 1BC51::[u1BC02.p@720,0|u1BC51.u.270n180@720,-300|u1BC51.u.180n90@420,-300|u1BC51.u.90n0@120,0|uni25CC.dotted_circle@840,0|u1BC51.u@1646,0|_@2066,0]
-1BC51 1BC51 1BC51 1BC52 1BC02::[u1BC51.u@120,0|u1BC51.u.0p90@420,0|u1BC51.u.90p180@720,300|uni25CC.dotted_circle@840,0|u1BC51.u.180p270@1946,0|u1BC02.p@1646,-500|_@2066,0]
+1BC51 1BC51 1BC51 1BC51::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC51.u.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
+1BC52 1BC51 1BC51 1BC51::[u1BC52.eu@300,0|u1BC51.u.180n90@0,0|u1BC51.u.90n0@0,300|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
+1BC02 1BC52 1BC51 1BC51 1BC51::[u1BC02.p@600,0|u1BC51.u.270n180@300,-300|u1BC51.u.180n90@0,-300|u1BC51.u.90n0@0,0|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
+1BC51 1BC51 1BC51 1BC52 1BC02::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC51.u.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC51.u.180p270@1526,0|u1BC02.p@1526,-500|_@2066,0]
 
 # Overlong sequences of small quarter-circles
-1BC64 1BC64 1BC64 1BC64::[u1BC64.nasal_a@120,0|u1BC62.nasal_o.0n270@280,0|u1BC62.nasal_o.270n180@440,-160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
-1BC62 1BC64 1BC64 1BC64::[u1BC62.nasal_o@280,0|u1BC62.nasal_o.90p180@440,160|u1BC62.nasal_o.180p270@280,160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
-1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@440,0|u1BC62.nasal_o.270n180@440,-160|u1BC62.nasal_o.180n90@280,-160|u1BC62.nasal_o.90n0@120,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1366,0|_@1646,0]
-1BC64 1BC64 1BC64 1BC62 1BC02::[u1BC64.nasal_a@120,0|u1BC62.nasal_o.0n270@280,0|u1BC62.nasal_o.270n180@440,-160|uni25CC.dotted_circle@560,0|u1BC62.nasal_o.180p270@1526,500|u1BC02.p@1366,0|_@1646,0]
+1BC64 1BC64 1BC64 1BC64::[u1BC64.nasal_a@0,0|u1BC62.nasal_o.0n270@160,0|u1BC62.nasal_o.270n180@160,-160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
+1BC62 1BC64 1BC64 1BC64::[u1BC62.nasal_o@160,0|u1BC62.nasal_o.90p180@160,160|u1BC62.nasal_o.180p270@0,160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
+1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@320,0|u1BC62.nasal_o.270n180@160,-160|u1BC62.nasal_o.180n90@0,-160|u1BC62.nasal_o.90n0@0,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
+1BC64 1BC64 1BC64 1BC62 1BC02::[u1BC64.nasal_a@0,0|u1BC62.nasal_o.0n270@160,0|u1BC62.nasal_o.270n180@160,-160|uni25CC.dotted_circle@560,0|u1BC62.nasal_o.180p270@1246,500|u1BC02.p@1246,0|_@1646,0]
 
 # Adjacent curves that would otherwise be an overlong sequence are overlong if
 # they are different nodes in a tree.
-1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@120,0|u1BC46.i.180p0.sub@707,-150|u1BC46.i@957,-150|_@1240,0]
-1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@120,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3716,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4742,0|_@4862,0]
+1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BC46.i.180p0.sub@707,-150|u1BC46.i@737,-150|_@1240,0]
+1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3496,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4522,0|_@4862,0]
 
 # Single medial curves may require flipping to avoid overlap, but the encoding
 # model does not allow that. They get glyphs with early exit anchor points
 # instead of dotted circles. Some orienting sequences might also need flipping,
 # but nothing happens for them.
-1BC03 1BC46 0307 1BC19::[u1BC03.t@120,620|u1BC46.i.0p180.ee@620,620|uni0307.dot_above@670,911|u1BC19.m@720,0|_@840,0]
-1BC02 1BC47 0323 1BC03::[u1BC02.p@320,0|u1BC46.i.270n90.ee@320,-100|uni0323.dot_below@220,-219|u1BC03.t@220,-100|_@840,0]
-1BC02 1BC47 1BC47 1BC03::[u1BC02.p@520,0|u1BC46.i.270n90@520,-100|u1BC46.i.90p270@320,0|u1BC03.t@120,0|_@740,0]
+1BC03 1BC46 0307 1BC19::[u1BC03.t@0,620|u1BC46.i.0p180.ee@500,620|uni0307.dot_above@670,911|u1BC19.m@300,0|_@840,0]
+1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC46.i.270n90.ee@0,-100|uni0323.dot_below@220,-219|u1BC03.t@100,-100|_@840,0]
+1BC02 1BC47 1BC47 1BC03::[u1BC02.p@400,0|u1BC46.i.270n90@200,-100|u1BC46.i.90p270@0,0|u1BC03.t@0,0|_@740,0]
