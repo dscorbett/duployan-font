@@ -3596,9 +3596,10 @@ class SeparateAffix(Complex):
         entry_x, exit_x = x_min, x_max
         if self.tight:
             entry_x, exit_x = exit_x, entry_x
-        glyph.addAnchorPoint(anchors.CURSIVE, 'entry', entry_x, cursive_y)
-        glyph.addAnchorPoint(anchors.CURSIVE, 'exit', exit_x, cursive_y)
-        return False
+        glyph.transform(fontTools.misc.transform.Offset(y=-cursive_y))
+        glyph.addAnchorPoint(anchors.CURSIVE, 'entry', entry_x, 0)
+        glyph.addAnchorPoint(anchors.CURSIVE, 'exit', exit_x, 0)
+        return True
 
     def is_pseudo_cursive(self, size: float) -> bool:
         return True
