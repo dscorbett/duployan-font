@@ -1425,7 +1425,9 @@ class Line(Shape):
         minor: Whether this shape is minor in the sense of `Context`.
         stretchy: Whether the size of this shape refers to the y offset
             between entry and exit as opposed to the stroke length.
-        secant: Whether this is the shape of a secant character.
+        secant: How far along the stroke the secant overlap point is as
+            a proportion of the full stroke length, or ``None`` if this
+            is not a secant.
         secant_curvature_offset: If this shape is a diacritic, the
             offset for a curved base character’s angle. The diacritic is
             rotated as if the base character had a straight context
@@ -1636,12 +1638,21 @@ class Line(Shape):
             ('round',)
         )
         glyph.stroke('circular', stroke_width, 'round')
-        if not anchor and not self.secant:
-            x_min, y_min, x_max, y_max = glyph.boundingBox()
-            x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
-            glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
-        return False
+        floating = False
+        if not anchor:
+            if self.secant is None:
+                x_min, y_min, x_max, y_max = glyph.boundingBox()
+                x_center = (x_max + x_min) / 2
+                glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
+                glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
+            elif self.angle % 90 == 0:
+                floating = True
+                y_offset = 2 * LINE_FACTOR * (2 * self.secant - 1)
+                if self.get_guideline_angle() % 180 == 90:
+                    glyph.transform(fontTools.misc.transform.Offset(y=y_offset + stroke_width / 2))
+                else:
+                    glyph.transform(fontTools.misc.transform.Offset(y=-y_offset - LINE_FACTOR + stroke_width / 2))
+        return floating
 
     def can_be_child(self, size: float) -> bool:
         return not (self.secant or self.dots)
@@ -1726,6 +1737,12 @@ class Line(Shape):
         opposite angle.
         """
         return self.clone(angle=(self.angle + 180) % 360)
+
+    def get_guideline_angle(self) -> float:
+        """Returns the angle of the guideline to display this line on,
+        assuming that this line is a secant.
+        """
+        return 270 if 45 <= (self.angle + 90) % 180 < 135 else 0
 
 
 class Curve(Shape):

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -429,7 +429,7 @@ def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, class
         ):
             classes['secant'].append(schema)
             zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-            guideline_angle = 270 if 45 <= (schema.path.angle + 90) % 180 < 135 else 0
+            guideline_angle = schema.path.get_guideline_angle()
             lookup_name = f'add_guideline_{guideline_angle}'
             if lookup_name not in named_lookups:
                 guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
