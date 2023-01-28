@@ -743,6 +743,7 @@ class Builder:
             return self._add_altuni(uni, glyph_name)
         assert uni not in self.font, f'Duplicate code point: {hex(uni)}'
         glyph = self.font.createChar(uni, glyph_name)
+        glyph.unicode = uni
         glyph.glyphclass = schema.glyph_class.value
         glyph.temporary = schema
         if drawing:
@@ -911,11 +912,17 @@ class Builder:
         lookups_with_phases += more_lookups_with_phases
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
-        for schema in schemas.sorted(key=lambda schema: not (schema in output_schemas and schema in more_output_schemas)):
-            self._create_glyph(
-                schema,
-                drawing=schema in output_schemas and schema in more_output_schemas and not schema.ignored_for_topography,
-            )
+        for schema in schemas.sorted(key=lambda schema: (
+            schema.canonical_schema is not schema,
+            schema.cmap is None and schema.glyph_class == GlyphClass.MARK
+                or str(schema).startswith('_')
+                or not (not schema.ignored_for_topography and schema in output_schemas and schema in more_output_schemas),
+        )):
+            if schema.canonical_schema is schema or schema.cmap is not None:
+                self._create_glyph(
+                    schema,
+                    drawing=not schema.ignored_for_topography and schema in output_schemas and schema in more_output_schemas,
+                )
         (
             schemas,
             _,
