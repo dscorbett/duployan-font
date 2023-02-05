@@ -75,13 +75,6 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 .PHONY: clean
 clean:
 	$(RM) -r $(FONTS) $(addprefix subset-,$(FONTS)) tests/failed
-	for hb in .hb/harfbuzz-*/; \
-	do \
-		if [ -d $$hb ]; \
-		then \
-			$(MAKE) -C $$hb clean; \
-		fi; \
-	done
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
