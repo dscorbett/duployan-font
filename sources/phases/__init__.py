@@ -281,6 +281,63 @@ class Rule:
             with one element per element of `inputs`.
     """
 
+    @overload
+    def __init__(
+        self,
+        a1: Union[str, Sequence[Union[schema.Schema, str]]],
+        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        /,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        a1: Union[str, Sequence[Union[schema.Schema, str]]],
+        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        a3: Union[str, Sequence[Union[schema.Schema, str]]],
+        a4: Union[str, Sequence[Union[schema.Schema, str]]],
+        /,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        a1: Union[str, Sequence[Union[schema.Schema, str]]],
+        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        /,
+        *,
+        lookups: Sequence[Optional[str]],
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        a1: Union[str, Sequence[Union[schema.Schema, str]]],
+        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        /,
+        *,
+        x_placements: Sequence[Optional[float]],
+        x_advances: Optional[Sequence[Optional[float]]],
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        a1: Union[str, Sequence[Union[schema.Schema, str]]],
+        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        /,
+        *,
+        x_advances: Sequence[Optional[float]],
+    ) -> None:
+        ...
+
     def __init__(
         self,
         a1: Union[str, Sequence[Union[schema.Schema, str]]],
@@ -311,7 +368,7 @@ class Rule:
             a2: The input sequence, or the output sequence in the
                 shorthand form.
             a3: The lookahead sequence, if using the full form.
-            a4: The output sequence.
+            a4: The output sequence, if using the full form.
             lookups: The ``lookups`` attribute.
             x_placements: The ``x_placements`` attribute.
             x_advances: The ``x_advances`` attribute.
@@ -546,7 +603,6 @@ class Rule:
         return len(self.inputs) == 1 and self.outputs is not None and len(self.outputs) != 1
 
 
-# TODO: The only reason this is public is for `KNOWN_SCRIPTS`. Refactor.
 class Lookup:
     """An OpenType Layout lookup.
 
@@ -555,7 +611,7 @@ class Lookup:
     directly associated with a feature.
 
     Class attributes:
-        KNOWN_SCRIPTS: The list of strings that this class can handle.
+        KNOWN_SCRIPTS: The list of scripts that this class can handle.
 
     Attributes:
         feature: This lookup’s feature tag, if anonymous.
@@ -604,6 +660,7 @@ class Lookup:
         'tnum',
         'zero',
     }
+
     _REQUIRED_SCRIPT_FEATURES: ClassVar[Mapping[str, Set[str]]] = {
         'DFLT': {
             'abvm',
@@ -632,6 +689,7 @@ class Lookup:
             'rlig',
         },
     }
+
     KNOWN_SCRIPTS: ClassVar[Iterable[str]] = sorted(_REQUIRED_SCRIPT_FEATURES)
 
     @overload
