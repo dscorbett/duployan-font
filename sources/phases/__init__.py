@@ -919,8 +919,7 @@ def _add_rule(
         """
         glyph_class = schema.glyph_class
         return bool(
-            glyph_class == GlyphClass.BLOCKER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_BASE_GLYPHS
-            or glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
+            glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
             or glyph_class == GlyphClass.MARK and (
                 lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS
                 or lookup.mark_filtering_set and schema not in classes[lookup.mark_filtering_set]

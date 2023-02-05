@@ -803,20 +803,17 @@ class Builder:
                     *entry_exit))
 
     def _recreate_gdef(self) -> None:
-        bases = []
         marks = []
         ligatures = []
         for glyph in self.font.glyphs():
             match glyph.glyphclass:
-                case GlyphClass.BLOCKER.value:
-                    bases.append(glyph.glyphname)
                 case GlyphClass.MARK.value:
                     marks.append(glyph.glyphname)
                 case GlyphClass.JOINER.value:
                     ligatures.append(glyph.glyphname)
         gdef = fontTools.feaLib.ast.TableBlock('GDEF')
         gdef.statements.append(fontTools.feaLib.ast.GlyphClassDefStatement(
-            fontTools.feaLib.ast.GlyphClass(bases),
+            None,
             fontTools.feaLib.ast.GlyphClass(marks),
             fontTools.feaLib.ast.GlyphClass(ligatures),
             ()))

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -173,7 +173,7 @@ class GlyphClass(enum.StrEnum):
 
     #: The class of a spacing glyph that does not participate in cursive
     #: joining.
-    BLOCKER: ClassVar[str] = 'baseglyph'
+    BLOCKER: ClassVar[str] = 'noclass'
 
     #: The class of a spacing glyph that participates in cursive
     #: joining.
