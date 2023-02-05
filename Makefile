@@ -75,6 +75,13 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 .PHONY: clean
 clean:
 	$(RM) -r $(FONTS) $(addprefix subset-,$(FONTS)) tests/failed
+	for hb in .hb/harfbuzz-*/; \
+	do \
+		if [ -d $$hb ]; \
+		then \
+			$(MAKE) -C $$hb clean; \
+		fi; \
+	done
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
@@ -101,24 +108,27 @@ mypy:
 .PHONY: check
 check: $(addprefix check-,$(FONTS)) check-subset fontbakery mypy
 
-.PHONY: hb-shape
-hb-shape:
+.hb:
 ifndef HB_VERSION
 	$(error HB_VERSION must be set)
 endif
 	mkdir -p .hb
-	cd .hb && \
-	if [ ! -f harfbuzz-$$HB_VERSION/util/hb-shape ]; \
-	then \
-		if [ ! -d harfbuzz-$$HB_VERSION ]; \
-		then \
-			curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$$HB_VERSION/harfbuzz-$$HB_VERSION.tar.xz \
-			| tar -xJ; \
-		fi && \
-		cd harfbuzz-$$HB_VERSION && \
-		./configure && \
-		$(MAKE) -C util lib hb-shape; \
-	fi
+
+.hb/harfbuzz-$(HB_VERSION): .hb
+	cd $< && \
+	curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$(HB_VERSION)/harfbuzz-$(HB_VERSION).tar.xz \
+	| tar -xJ
+
+.hb/harfbuzz-$(HB_VERSION)/util/Makefile: .hb/harfbuzz-$(HB_VERSION)
+	cd $< && \
+	./configure
+	touch -c $@
+
+.hb/harfbuzz-$(HB_VERSION)/util/hb-%: .hb/harfbuzz-$(HB_VERSION)/util/Makefile
+	$(MAKE) -C $$(dirname $<) lib $$(basename $@)
+
+.PHONY: hb-shape hb-view
+hb-shape hb-view: hb-%: .hb/harfbuzz-$(HB_VERSION)/util/hb-%
 
 .PHONY: $(patsubst %.in,%.txt,$(wildcard *requirements.in))
 $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
