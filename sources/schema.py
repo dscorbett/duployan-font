@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,7 @@ from typing import ClassVar
 from typing import Final
 from typing import Iterable
 from typing import Optional
+from typing import Self
 from typing import Tuple
 from typing import Union
 import unicodedata
@@ -75,6 +76,7 @@ from shapes import Shape
 from shapes import Space
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
+from utils import CloneDefault
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
@@ -472,31 +474,31 @@ class Schema:
     def clone(
         self,
         *,
-        cmap=CLONE_DEFAULT,
-        path=CLONE_DEFAULT,
-        size=CLONE_DEFAULT,
-        joining_type=CLONE_DEFAULT,
-        side_bearing=CLONE_DEFAULT,
-        y_min=CLONE_DEFAULT,
-        y_max=CLONE_DEFAULT,
-        child=CLONE_DEFAULT,
-        can_lead_orienting_sequence=CLONE_DEFAULT,
-        ignored_for_topography=CLONE_DEFAULT,
-        anchor=CLONE_DEFAULT,
-        widthless=CLONE_DEFAULT,
-        marks=CLONE_DEFAULT,
-        ignorability=CLONE_DEFAULT,
-        encirclable=CLONE_DEFAULT,
-        maximum_tree_width=CLONE_DEFAULT,
-        shading_allowed=CLONE_DEFAULT,
-        context_in=CLONE_DEFAULT,
-        context_out=CLONE_DEFAULT,
-        diphthong_1=CLONE_DEFAULT,
-        diphthong_2=CLONE_DEFAULT,
-        base_angle=CLONE_DEFAULT,
-        cps=CLONE_DEFAULT,
-        original_shape=CLONE_DEFAULT,
-    ):
+        cmap: Optional[int] | CloneDefault = CLONE_DEFAULT,
+        path: Shape | CloneDefault = CLONE_DEFAULT,
+        size: float | CloneDefault = CLONE_DEFAULT,
+        joining_type: Type | CloneDefault = CLONE_DEFAULT,
+        side_bearing: float | CloneDefault = CLONE_DEFAULT,
+        y_min: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        y_max: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        child: bool | CloneDefault = CLONE_DEFAULT,
+        can_lead_orienting_sequence: Optional[bool] | CloneDefault = CLONE_DEFAULT,
+        ignored_for_topography: bool | CloneDefault = CLONE_DEFAULT,
+        anchor: Optional[str] | CloneDefault = CLONE_DEFAULT,
+        widthless: bool | CloneDefault = CLONE_DEFAULT,
+        marks: Optional[Sequence[Schema]] | CloneDefault = CLONE_DEFAULT,
+        ignorability: Ignorability | CloneDefault = CLONE_DEFAULT,
+        encirclable: bool | CloneDefault = CLONE_DEFAULT,
+        maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
+        shading_allowed: bool | CloneDefault = CLONE_DEFAULT,
+        context_in: Optional[Context] | CloneDefault = CLONE_DEFAULT,
+        context_out: Optional[Context] | CloneDefault = CLONE_DEFAULT,
+        diphthong_1: bool | CloneDefault = CLONE_DEFAULT,
+        diphthong_2: bool | CloneDefault = CLONE_DEFAULT,
+        base_angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        cps: Optional[Sequence[int]] | CloneDefault = CLONE_DEFAULT,
+        original_shape: Optional[type[Shape]] | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.cmap if cmap is CLONE_DEFAULT else cmap,
             self.path if path is CLONE_DEFAULT else path,
@@ -928,6 +930,7 @@ class Schema:
             and self.can_be_ignored_for_topography()
             and context_in.ignorable_for_topography
         )
+        path: Shape
         if ignored_for_topography:
             if isinstance(self.path, Circle):
                 path = self.path.clone(role=CircleRole.DEPENDENT)

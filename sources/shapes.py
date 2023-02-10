@@ -83,9 +83,11 @@ from typing import Generic
 from typing import Literal
 from typing import LiteralString
 from typing import Optional
+from typing import Self
 from typing import Tuple
 from typing import TypeVar
 from typing import Union
+from typing import cast
 
 
 import fontTools.misc.transform
@@ -96,6 +98,7 @@ import anchors
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
 from utils import CURVE_OFFSET
+from utils import CloneDefault
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import EPSILON
@@ -136,7 +139,7 @@ class Shape:
     relevant to the subclass and would never be called.
     """
 
-    def clone(self) -> Shape:
+    def clone(self) -> Self:
         raise NotImplementedError
 
     def __str__(self) -> str:
@@ -341,9 +344,9 @@ class ContextMarker(Shape):
     def clone(
         self,
         *,
-        is_context_in=CLONE_DEFAULT,
-        context=CLONE_DEFAULT,
-    ):
+        is_context_in: bool | CloneDefault = CLONE_DEFAULT,
+        context: Context | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.is_context_in if is_context_in is CLONE_DEFAULT else is_context_in,
             self.context if context is CLONE_DEFAULT else context,
@@ -473,9 +476,9 @@ class Hub(Shape):
     def clone(
         self,
         *,
-        priority=CLONE_DEFAULT,
-        initial_secant=CLONE_DEFAULT,
-    ):
+        priority: int | CloneDefault = CLONE_DEFAULT,
+        initial_secant: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             priority=self.priority if priority is CLONE_DEFAULT else priority,
             initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
@@ -913,7 +916,7 @@ class Notdef(Shape):
     """The shape of the .notdef glyph.
     """
 
-    def clone(self):
+    def clone(self) -> Self:
         return self
 
     def __str__(self) -> str:
@@ -987,9 +990,9 @@ class Space(Shape):
     def clone(
         self,
         *,
-        angle=CLONE_DEFAULT,
-        margins=CLONE_DEFAULT,
-    ):
+        angle: float | CloneDefault = CLONE_DEFAULT,
+        margins: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             margins=self.margins if margins is CLONE_DEFAULT else margins,
@@ -1059,7 +1062,7 @@ class Bound(Shape):
     The glyph is two squares, one on the baseline and on at cap height.
     """
 
-    def clone(self):
+    def clone(self) -> Self:
         return self
 
     def __str__(self) -> str:
@@ -1150,8 +1153,8 @@ class ChildEdge(Shape):
     def clone(
         self,
         *,
-        lineage=CLONE_DEFAULT,
-    ):
+        lineage: Sequence[Tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
@@ -1203,7 +1206,7 @@ class ContinuingOverlapS(Shape):
     initial secant character.
     """
 
-    def clone(self):
+    def clone(self) -> Self:
         return type(self)()
 
     def __str__(self) -> str:
@@ -1262,8 +1265,8 @@ class ParentEdge(Shape):
     def clone(
         self,
         *,
-        lineage=CLONE_DEFAULT,
-    ):
+        lineage: Sequence[Tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
@@ -1358,9 +1361,9 @@ class Dot(Shape):
     def clone(
         self,
         *,
-        centered=CLONE_DEFAULT,
-    ):
-        return Dot(
+        centered: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
+        return type(self)(
             centered=self.centered if centered is CLONE_DEFAULT else centered,
         )
 
@@ -1479,15 +1482,15 @@ class Line(Shape):
     def clone(
         self,
         *,
-        angle=CLONE_DEFAULT,
-        minor=CLONE_DEFAULT,
-        stretchy=CLONE_DEFAULT,
-        secant=CLONE_DEFAULT,
-        secant_curvature_offset=CLONE_DEFAULT,
-        dots=CLONE_DEFAULT,
-        final_tick=CLONE_DEFAULT,
-        original_angle=CLONE_DEFAULT,
-    ):
+        angle: float | CloneDefault = CLONE_DEFAULT,
+        minor: bool | CloneDefault = CLONE_DEFAULT,
+        stretchy: bool | CloneDefault = CLONE_DEFAULT,
+        secant: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        secant_curvature_offset: float | CloneDefault = CLONE_DEFAULT,
+        dots: Optional[int] | CloneDefault = CLONE_DEFAULT,
+        final_tick: bool | CloneDefault = CLONE_DEFAULT,
+        original_angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             minor=self.minor if minor is CLONE_DEFAULT else minor,
@@ -1679,7 +1682,7 @@ class Line(Shape):
                 if context_out == Context(self.angle):
                     return self.clone(final_tick=True)
             elif context_in != NO_CONTEXT:
-                return self.clone(angle=context_in.angle)
+                return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
         return self
 
     def context_in(self) -> Context:
@@ -1690,7 +1693,7 @@ class Line(Shape):
         # FIXME: This should use the current angle, not the original angle.
         return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
 
-    def rotate_diacritic(self, context: Context) -> Shape:
+    def rotate_diacritic(self, context: Context) -> Self:
         angle = context.angle
         assert angle is not None
         if self.secant:
@@ -1834,19 +1837,19 @@ class Curve(Shape):
     def clone(
         self,
         *,
-        angle_in=CLONE_DEFAULT,
-        angle_out=CLONE_DEFAULT,
-        clockwise=CLONE_DEFAULT,
-        stretch=CLONE_DEFAULT,
-        long=CLONE_DEFAULT,
-        relative_stretch=CLONE_DEFAULT,
-        hook=CLONE_DEFAULT,
-        reversed_circle=CLONE_DEFAULT,
-        overlap_angle=CLONE_DEFAULT,
-        secondary=CLONE_DEFAULT,
-        would_flip=CLONE_DEFAULT,
-        early_exit=CLONE_DEFAULT,
-    ):
+        angle_in: float | CloneDefault = CLONE_DEFAULT,
+        angle_out: float | CloneDefault = CLONE_DEFAULT,
+        clockwise: bool | CloneDefault = CLONE_DEFAULT,
+        stretch: float | CloneDefault = CLONE_DEFAULT,
+        long: bool | CloneDefault = CLONE_DEFAULT,
+        relative_stretch: bool | CloneDefault = CLONE_DEFAULT,
+        hook: bool | CloneDefault = CLONE_DEFAULT,
+        reversed_circle: bool | CloneDefault = CLONE_DEFAULT,
+        overlap_angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        secondary: Optional[bool] | CloneDefault = CLONE_DEFAULT,
+        would_flip: bool | CloneDefault = CLONE_DEFAULT,
+        early_exit: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
@@ -2359,15 +2362,15 @@ class Circle(Shape):
     def clone(
         self,
         *,
-        angle_in=CLONE_DEFAULT,
-        angle_out=CLONE_DEFAULT,
-        clockwise=CLONE_DEFAULT,
-        reversed=CLONE_DEFAULT,
-        pinned=CLONE_DEFAULT,
-        stretch=CLONE_DEFAULT,
-        long=CLONE_DEFAULT,
-        role=CLONE_DEFAULT,
-    ):
+        angle_in: float | CloneDefault = CLONE_DEFAULT,
+        angle_out: float | CloneDefault = CLONE_DEFAULT,
+        clockwise: bool | CloneDefault = CLONE_DEFAULT,
+        reversed: bool | CloneDefault = CLONE_DEFAULT,
+        pinned: bool | CloneDefault = CLONE_DEFAULT,
+        stretch: float | CloneDefault = CLONE_DEFAULT,
+        long: bool | CloneDefault = CLONE_DEFAULT,
+        role: CircleRole | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
@@ -2779,11 +2782,11 @@ class Complex(Shape):
     def clone(
         self,
         *,
-        instructions=CLONE_DEFAULT,
-        hook=CLONE_DEFAULT,
-        maximum_tree_width=CLONE_DEFAULT,
-        _final_rotation=CLONE_DEFAULT,
-    ):
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        hook: bool | CloneDefault = CLONE_DEFAULT,
+        maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
+        _final_rotation: float | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
@@ -3169,7 +3172,7 @@ class Complex(Shape):
                 if forced_context is not None:
                     if isinstance(component, Line):
                         if forced_context != NO_CONTEXT:
-                            component = component.clone(angle=forced_context.angle)
+                            component = component.clone(angle=forced_context.angle)  # type: ignore[arg-type]
                     else:
                         if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
                             component = component.reversed()
@@ -3211,8 +3214,10 @@ class Complex(Shape):
     def context_out(self) -> Context:
         return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
-    def rotate_diacritic(self, context: Context) -> Shape:
-        return self.clone(_final_rotation=context.angle)
+    def rotate_diacritic(self, context: Context) -> Self:
+        angle = context.angle
+        assert angle is not None
+        return self.clone(_final_rotation=angle)
 
 
 class InvalidDTLS(Complex):
@@ -3253,12 +3258,12 @@ class InvalidOverlap(Complex):
         super().__init__(instructions)
         self.continuing = continuing
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        continuing=CLONE_DEFAULT,
-        instructions=CLONE_DEFAULT,
-    ):
+        continuing: bool | CloneDefault = CLONE_DEFAULT,
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -3292,12 +3297,12 @@ class InvalidStep(Complex):
         super().__init__(instructions)
         self.angle = angle
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        angle=CLONE_DEFAULT,
-        instructions=CLONE_DEFAULT,
-    ):
+        angle: float | CloneDefault = CLONE_DEFAULT,
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -3366,14 +3371,14 @@ class Ou(Complex):
         self._initial = _initial
         self._isolated = _isolated
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        instructions=CLONE_DEFAULT,
-        role=CLONE_DEFAULT,
-        _initial=CLONE_DEFAULT,
-        _isolated=CLONE_DEFAULT,
-    ):
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        role: CircleRole | CloneDefault = CLONE_DEFAULT,
+        _initial: bool | CloneDefault = CLONE_DEFAULT,
+        _isolated: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             self.role if role is CLONE_DEFAULT else role,
@@ -3547,13 +3552,13 @@ class SeparateAffix(Complex):
         self.low = low
         self.tight = tight
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        instructions=CLONE_DEFAULT,
-        low=CLONE_DEFAULT,
-        tight=CLONE_DEFAULT,
-    ):
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        low: bool | CloneDefault = CLONE_DEFAULT,
+        tight: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
             low=self.low if low is CLONE_DEFAULT else low,
@@ -3649,11 +3654,11 @@ class Wa(Complex):
         """
         super().__init__(instructions)
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        instructions=CLONE_DEFAULT,
-    ):
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
@@ -3761,7 +3766,7 @@ class Wa(Complex):
         opposite direction.
         """
         return self.clone(
-            instructions=[op if callable(op) else (op[0], op[1].as_reversed(), *op[2:]) for op in self.instructions],  # type: ignore[attr-defined]
+            instructions=[op if callable(op) else (op[0], op[1].as_reversed(), *op[2:]) for op in self.instructions],  # type: ignore[attr-defined, misc]
         )
 
 
@@ -3779,12 +3784,18 @@ class Wi(Complex):
             if curve_index == 1:
                 return super().contextualize(context_in, context_out)
             curve_path = self.clone(instructions=self.instructions[curve_index - 1:]).contextualize(context_in, context_out)
+            assert isinstance(curve_path, Wi)
             assert not callable(self.instructions[0])
-            assert isinstance(self.instructions[0][1], Circle)
-            circle_path = self.instructions[0][1].clone(
-                angle_in=curve_path.instructions[1][1].angle_in,
-                angle_out=curve_path.instructions[1][1].angle_in,
-                clockwise=curve_path.instructions[1][1].clockwise,
+            circle = self.instructions[0][1]
+            assert isinstance(circle, Circle)
+            curve_op = curve_path.instructions[1]
+            assert isinstance(curve_op, tuple)
+            curve = curve_op[1]
+            assert isinstance(curve, Curve)
+            circle_path = circle.clone(
+                angle_in=curve.angle_in,
+                angle_out=curve.angle_in,
+                clockwise=curve.clockwise,
             )
             return self.clone(instructions=[(self.instructions[0][0], circle_path), *curve_path.instructions])
         assert context_out.angle is not None
@@ -3806,7 +3817,7 @@ class Wi(Complex):
         first_callable = True
         return self.clone(
             instructions=[
-                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)
+                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)  # type: ignore[misc]
                         if (first_callable | (first_callable := False))
                         else op
                     )
@@ -3861,12 +3872,12 @@ class TangentHook(Complex):
             90 < c.angle < 315,
         )
 
-    def clone(
+    def clone(  # type: ignore[override]
         self,
         *,
-        instructions=CLONE_DEFAULT,
-        _initial=CLONE_DEFAULT,
-    ):
+        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        _initial: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
             _initial=self._initial if _initial is CLONE_DEFAULT else _initial,
@@ -3893,7 +3904,7 @@ class TangentHook(Complex):
                 )),
             ], _initial=True)
         else:
-            shape = super()
+            shape = cast(Self, super())
         return shape.contextualize(context_in, context_out)
 
 

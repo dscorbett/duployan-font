@@ -17,4 +17,4 @@
 -c dev-constraints.txt
 fontbakery[freetype] >= 0.8.5, <= 0.8.10
 packaging >= 22.0, <= 23.0
-mypy >= 0.981, <= 0.982
+mypy == 1.0.0

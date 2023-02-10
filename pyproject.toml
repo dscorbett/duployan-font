@@ -16,11 +16,12 @@
 enable_error_code = [
     "ignore-without-code",
     "redundant-expr",
+    "redundant-self",
     "truthy-bool",
+    "truthy-iterable",
+    "unused-awaitable",
 ]
-no_implicit_optional = true
 no_implicit_reexport = true
-show_error_codes = true
 strict_equality = true
 warn_redundant_casts = true
 warn_unreachable = true
@@ -33,3 +34,9 @@ module = [
     "fontv.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "fontforge.*",
+]
+follow_imports = "skip"

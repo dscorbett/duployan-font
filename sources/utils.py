@@ -26,6 +26,7 @@ __all__ = [
     'CAP_HEIGHT',
     'CLONE_DEFAULT',
     'CURVE_OFFSET',
+    'CloneDefault',
     'Context',
     'EPSILON',
     'GlyphClass',
@@ -59,6 +60,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import Literal
 from typing import Optional
+from typing import Self
 from typing import TypeVar
 from typing import overload
 
@@ -77,9 +79,16 @@ BRACKET_DEPTH: Final[float] = -0.27 * CAP_HEIGHT
 BRACKET_HEIGHT: Final[float] = 1.27 * CAP_HEIGHT
 
 
+class CloneDefault(enum.Enum):
+    """The type of `CLONE_DEFAULT`.
+    """
+
+    _CLONE_DEFAULT = enum.auto()
+
+
 #: An object that various classes’ ``clone`` methods interpret as the
 #: value of the relevant attribute in the object being cloned.
-CLONE_DEFAULT = object()
+CLONE_DEFAULT: Final = CloneDefault._CLONE_DEFAULT
 
 
 #: The non-negative angle by which to offset the angle at the endpoint
@@ -295,15 +304,15 @@ class Context:
     def clone(
         self,
         *,
-        angle=CLONE_DEFAULT,
-        clockwise=CLONE_DEFAULT,
-        minor=CLONE_DEFAULT,
-        ignorable_for_topography=CLONE_DEFAULT,
-        diphthong_start=CLONE_DEFAULT,
-        diphthong_end=CLONE_DEFAULT,
-    ):
+        angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        clockwise: Optional[bool] | CloneDefault = CLONE_DEFAULT,
+        minor: bool | CloneDefault = CLONE_DEFAULT,
+        ignorable_for_topography: bool | CloneDefault = CLONE_DEFAULT,
+        diphthong_start: bool | CloneDefault = CLONE_DEFAULT,
+        diphthong_end: bool | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
         return type(self)(
-            self.angle if angle is CLONE_DEFAULT else angle,
+            self.angle if angle is CLONE_DEFAULT else angle,  # type: ignore[arg-type]
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             minor=self.minor if minor is CLONE_DEFAULT else minor,
             ignorable_for_topography=self.ignorable_for_topography if ignorable_for_topography is CLONE_DEFAULT else ignorable_for_topography,
