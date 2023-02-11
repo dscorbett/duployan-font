@@ -1,4 +1,4 @@
-# Copyright 2019, 2022 David Corbett
+# Copyright 2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ class Grouper(Generic[_T]):
         if len(group) == 1:
             self.remove(group)
 
-    def remove_items(self, minuend: _Group[_T], subtrahend: Collection[_T]):
+    def remove_items(self, minuend: _Group[_T], subtrahend: Collection[_T]) -> None:
         for item in subtrahend:
             try:
                 self.remove_item(minuend, item)

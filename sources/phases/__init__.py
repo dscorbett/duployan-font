@@ -117,6 +117,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import Optional
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import TypeVar
 from typing import Union
@@ -138,6 +139,10 @@ from utils import OrderedSet
 from utils import PrefixView
 from utils import REQUIRED_SCRIPT_FEATURES
 from utils import cps_to_scripts
+
+
+if TYPE_CHECKING:
+    import duployan
 
 
 # TODO: Document the edge class name constants better with reference to
@@ -935,7 +940,7 @@ def _add_rule(
     lookup: Lookup,
     rule: Rule,
     track_possible_outputs: bool = True,
-):
+) -> None:
     """Adds a rule to a lookup.
 
     It only makes sense to call this function in the context of a phase
@@ -1084,7 +1089,7 @@ def _add_rule(
 
 
 def run_phases(
-    builder,
+    builder: duployan.Builder,
     all_input_schemas: Iterable[schema.Schema],
     phases: Iterable,
     all_classes: Optional[collections.defaultdict[str, Collection[schema.Schema]]] = None,
@@ -1098,7 +1103,7 @@ def run_phases(
     """Runs a sequence of phases.
 
     Args:
-        builder (Builder): The source of everything.
+        builder: The source of everything.
         all_input_schemas: The input schemas for the first iteration of
             the first phase.
         phases (Iterable[Phase]): The phases to run.

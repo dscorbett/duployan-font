@@ -821,7 +821,7 @@ class Builder:
         self._fea.statements.append(gdef)
 
     @staticmethod
-    def _glyph_to_schema(glyph) -> Schema:
+    def _glyph_to_schema(glyph: fontforge.glyph) -> Schema:
         schema = glyph.temporary
         glyph.temporary = None
         schema.glyph = glyph

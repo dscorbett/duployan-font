@@ -546,7 +546,7 @@ class OrderedSet(dict[_T, None]):
         """
         self.pop(item, None)
 
-    def sorted(self, /, *, key=None, reverse: bool = False) -> list[_T]:
+    def sorted(self, /, *, key=None, reverse: bool = False) -> list[_T]:  # type: ignore[no-untyped-def]
         """Returns a sorted list of the elements in this set.
 
         The sort is stable.

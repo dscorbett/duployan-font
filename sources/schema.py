@@ -986,7 +986,7 @@ class Schema:
             diphthong_end=self.diphthong_2,
         )
 
-    def rotate_diacritic(self, context) -> Schema:
+    def rotate_diacritic(self, context: Context) -> Schema:
         """Returns a schema based on this schema but rotated as per the
         given context.
 
