@@ -78,13 +78,11 @@ from utils import WIDTH_MARKER_RADIX
 def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     marker_lookup = Lookup(
         'abvm',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     space_lookup = Lookup(
         'abvm',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reversed=True,
@@ -210,13 +208,11 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
 def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='i',
     )
     dist_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='o',
     )
@@ -261,10 +257,10 @@ def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas
 def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookups_per_position = 6
     lookups = [
-        Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
+        Lookup('dist', 'dflt')
         for _ in range(lookups_per_position)
     ]
-    digit_expansion_lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
+    digit_expansion_lookup = Lookup('dist', 'dflt')
     rule_count = 0
     entry_width_markers = {}
     left_bound_markers = {}
@@ -452,7 +448,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
 
 
 def add_end_markers_for_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('dist', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
     for schema in new_schemas:
         if (schema.glyph is not None
@@ -468,7 +464,6 @@ def add_end_markers_for_marks(builder, original_schemas, schemas, new_schemas, c
 def remove_false_end_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -485,14 +480,13 @@ def remove_false_end_markers(builder, original_schemas, schemas, new_schemas, cl
 def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
     zeros = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
-        named_lookups['zero'] = Lookup(None, None, None)
+        named_lookups['zero'] = Lookup(None, None)
     for schema in schemas:
         match schema.path:
             case EntryWidthDigit():
@@ -529,7 +523,6 @@ class _AlwaysTrueList(list):
 def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
         # TODO: `prepending` is a hack.
@@ -721,11 +714,10 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                                 else [sum_digit_schema, carry_out_schema])
                             sum_lookup_name = str(sum_digit)
                             if sum_lookup_name not in named_lookups:
-                                named_lookups[sum_lookup_name] = Lookup(None, None, None)
+                                named_lookups[sum_lookup_name] = Lookup(None, None)
                             if context_in_lookup_name not in named_lookups:
                                 classes[context_in_lookup_name].append(addend_schema)
                                 named_lookups[context_in_lookup_name] = Lookup(
-                                    None,
                                     None,
                                     None,
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
@@ -769,13 +761,11 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
 def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='ldx',
     )
     named_lookups['ldx_copy'] = Lookup(
-        None,
         None,
         None,
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
@@ -784,13 +774,11 @@ def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, cla
     left_digit_schemas = {}
     right_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='rdx',
     )
     named_lookups['rdx_copy'] = Lookup(
-        None,
         None,
         None,
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
@@ -841,7 +829,6 @@ def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, cla
 def remove_false_start_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -857,7 +844,6 @@ def remove_false_start_markers(builder, original_schemas, schemas, new_schemas, 
 def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        'dupl',
         'dflt',
         mark_filtering_set='all',
         reversed=True,
@@ -885,7 +871,6 @@ def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_sche
 def find_real_hub(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -919,7 +904,7 @@ def find_real_hub(builder, original_schemas, schemas, new_schemas, classes, name
 
 
 def expand_start_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('dist', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
         start,
@@ -931,21 +916,18 @@ def expand_start_markers(builder, original_schemas, schemas, new_schemas, classe
 def mark_maximum_bounds(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     left_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='ldx',
         reversed=True,
     )
     right_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='rdx',
         reversed=True,
     )
     anchor_lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='adx',
         reversed=True,
@@ -984,7 +966,6 @@ def mark_maximum_bounds(builder, original_schemas, schemas, new_schemas, classes
 def copy_maximum_left_bound_to_start(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'dist',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -1020,7 +1001,7 @@ def copy_maximum_left_bound_to_start(builder, original_schemas, schemas, new_sch
 
 
 def dist(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('dist', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:
         if ((isinstance(schema.path, LeftBoundDigit)
                 or isinstance(schema.path, RightBoundDigit)

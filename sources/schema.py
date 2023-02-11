@@ -83,6 +83,7 @@ from utils import GlyphClass
 from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import Type
+from utils import cps_to_scripts
 
 
 #: An integer representing the lack of a phase index. It is less than
@@ -206,9 +207,7 @@ class Schema:
         base_angle: The angle of the shape of the original schema from
             which this schema is derived by `rotate_diacritic`. If this
             schema has not been so derived, the value is ``None``.
-        cps: The code point sequence corresponding to this schema. This
-            doesn’t affect anything critical in the final font (just
-            glyph names), unlike the `cmap` attribute.
+        cps: The code point sequence corresponding to this schema.
         original_shape: The type of the `path` attribute of the original
             schema from which this schema is derived through some number
             of phases.
@@ -594,12 +593,14 @@ class Schema:
         groups represent glyphs that are interchangeable for all
         purposes except perhaps for GSUB.
         """
+        scripts = frozenset(cps_to_scripts(tuple(self.cps)))
         if self.ignored_for_topography:
             return (
                 self.ignorability == Ignorability.DEFAULT_YES,
                 self.side_bearing,
                 self.y_min,
                 self.y_max,
+                scripts,
             )
         if isinstance(self.path, Circle) and (self.diphthong_1 or self.diphthong_2):
             path_group: Hashable = (
@@ -632,6 +633,7 @@ class Schema:
             self.context_out == NO_CONTEXT and self.diphthong_2,
             self.diphthong_1,
             self.diphthong_2,
+            scripts,
         )
 
     @property

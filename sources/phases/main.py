@@ -109,8 +109,8 @@ from utils import mkmk
 
 
 def dont_ignore_default_ignorables(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_1 = Lookup('abvm', {'DFLT', 'dupl'}, 'dflt')
-    lookup_2 = Lookup('abvm', {'DFLT', 'dupl'}, 'dflt')
+    lookup_1 = Lookup('abvm', 'dflt')
+    lookup_2 = Lookup('abvm', 'dflt')
     for schema in schemas:
         if schema.ignorability == Ignorability.OVERRIDDEN_NO:
             add_rule(lookup_1, Rule([schema], [schema, schema]))
@@ -119,7 +119,7 @@ def dont_ignore_default_ignorables(builder, original_schemas, schemas, new_schem
 
 
 def reversed_circle_kludge(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rlig', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
     for schema in new_schemas:
         if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
@@ -133,7 +133,6 @@ def reversed_circle_kludge(builder, original_schemas, schemas, new_schemas, clas
 def validate_shading(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        'dupl',
         'dflt',
         mark_filtering_set='independent_mark',
         reversed=True,
@@ -154,7 +153,6 @@ def validate_shading(builder, original_schemas, schemas, new_schemas, classes, n
 def validate_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        'dupl',
         'dflt',
         mark_filtering_set='double_mark',
     )
@@ -176,7 +174,7 @@ def validate_double_marks(builder, original_schemas, schemas, new_schemas, class
 
 
 def decompose(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt')
+    lookup = Lookup('abvs', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
@@ -186,14 +184,13 @@ def decompose(builder, original_schemas, schemas, new_schemas, classes, named_lo
 def expand_secants(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'abvs',
-        'dupl',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    named_lookups['non_initial_secant'] = Lookup(None, None, None)
+    named_lookups['non_initial_secant'] = Lookup(None, None)
     for schema in new_schemas:
         if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             add_rule(named_lookups['non_initial_secant'], Rule(
@@ -220,13 +217,12 @@ def expand_secants(builder, original_schemas, schemas, new_schemas, classes, nam
 def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='overlap',
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    named_lookups['validate'] = Lookup(None, None, None)
+    named_lookups['validate'] = Lookup(None, None)
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
@@ -275,7 +271,7 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
 
 
 def add_parent_edges(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blwm', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('blwm', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
@@ -339,7 +335,6 @@ def _make_trees(
 def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -413,14 +408,14 @@ def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas,
 
 
 def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('abvs', 'dupl', 'dflt')
+    lookup = Lookup('abvs', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
     initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
-    named_lookups['prepend_zwnj'] = Lookup(None, None, None)
+    named_lookups['prepend_zwnj'] = Lookup(None, None)
     for schema in new_schemas:
         if (isinstance(schema.path, Line)
             and schema.path.secant
@@ -433,8 +428,8 @@ def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, class
             lookup_name = f'add_guideline_{guideline_angle}'
             if lookup_name not in named_lookups:
                 guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
-                named_lookups[f'{lookup_name}_and_dtls'] = Lookup(None, None, None)
-                named_lookups[lookup_name] = Lookup(None, None, None)
+                named_lookups[f'{lookup_name}_and_dtls'] = Lookup(None, None)
+                named_lookups[lookup_name] = Lookup(None, None)
                 add_rule(named_lookups[f'{lookup_name}_and_dtls'], Rule([invalid_continuing_overlap], [dtls, valid_continuing_overlap, guideline]))
                 add_rule(named_lookups[lookup_name], Rule([invalid_continuing_overlap], [valid_continuing_overlap, guideline]))
             add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], lookups=[f'{lookup_name}_and_dtls']))
@@ -447,13 +442,11 @@ def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, class
 def add_placeholders_for_missing_children(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_1 = Lookup(
         'blwm',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='valid_final_overlap',
     )
     lookup_2 = Lookup(
         'blwm',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='valid_final_overlap',
     )
@@ -509,7 +502,6 @@ def add_placeholders_for_missing_children(builder, original_schemas, schemas, ne
 def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'blwm',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -588,7 +580,7 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
 
 
 def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rclt', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('rclt', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
@@ -606,11 +598,10 @@ def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas
             case Line() if schema.path.secant and schema.glyph_class == GlyphClass.MARK:
                 classes['secant_or_root_parent_edge'].append(schema)
     add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
-    named_lookups['promote'] = Lookup(None, None, None)
+    named_lookups['promote'] = Lookup(None, None)
     add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
     for overlap in classes['final_letter_overlap']:
         named_lookups[f'promote_{overlap.path}_and_parent'] = Lookup(
-            None,
             None,
             None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
@@ -635,7 +626,6 @@ def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas
         named_lookups[f'check_and_promote_{overlap.path}'] = Lookup(
             None,
             None,
-            None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='secant_or_root_parent_edge',
         )
@@ -650,7 +640,6 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
     # Jargon abbreviations and a few similar patterns.
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
         reversed=True,
@@ -716,7 +705,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
 
 
 def make_mark_variants_of_children(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('blwm', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('blwm', 'dflt')
     old_child_count = len(classes['child'])
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
@@ -738,7 +727,6 @@ def make_mark_variants_of_children(builder, original_schemas, schemas, new_schem
 def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
@@ -836,7 +824,6 @@ def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schema
 def reposition_stenographic_period(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
     )
     if len(original_schemas) != len(schemas):
@@ -857,7 +844,6 @@ def reposition_stenographic_period(builder, original_schemas, schemas, new_schem
 def disjoin_equals_sign(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
     )
@@ -878,7 +864,6 @@ def disjoin_equals_sign(builder, original_schemas, schemas, new_schemas, classes
 def join_with_next_step(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reversed=True,
@@ -925,7 +910,6 @@ def join_with_next_step(builder, original_schemas, schemas, new_schemas, classes
 def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
@@ -981,7 +965,6 @@ def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schem
 def prepare_for_secondary_diphthong_ligature(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reversed=True,
@@ -1004,12 +987,10 @@ def prepare_for_secondary_diphthong_ligature(builder, original_schemas, schemas,
 def join_with_previous(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_1 = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
     )
     lookup_2 = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
         reversed=True,
@@ -1048,7 +1029,6 @@ def join_with_previous(builder, original_schemas, schemas, new_schemas, classes,
 def unignore_last_orienting_glyph_in_initial_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='i',
     )
@@ -1074,7 +1054,6 @@ def unignore_last_orienting_glyph_in_initial_sequence(builder, original_schemas,
     named_lookups['check_previous'] = Lookup(
         None,
         None,
-        None,
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
@@ -1088,7 +1067,6 @@ def unignore_last_orienting_glyph_in_initial_sequence(builder, original_schemas,
 def ignore_first_orienting_glyph_in_initial_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reversed=True,
@@ -1130,7 +1108,6 @@ def ignore_first_orienting_glyph_in_initial_sequence(builder, original_schemas, 
 def tag_main_glyph_in_orienting_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='dependent',
     )
@@ -1155,20 +1132,17 @@ def tag_main_glyph_in_orienting_sequence(builder, original_schemas, schemas, new
 def join_with_next(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     pre_lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
     )
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
         reversed=True,
     )
     post_lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='continuing_overlap_after_secant',
         reversed=True,
@@ -1222,7 +1196,6 @@ def join_with_next(builder, original_schemas, schemas, new_schemas, classes, nam
 def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='ignored_for_topography',
     )
@@ -1254,7 +1227,6 @@ def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, sche
 def ligate_diphthongs(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='ignored_for_topography',
         reversed=True,
@@ -1307,7 +1279,6 @@ def ligate_diphthongs(builder, original_schemas, schemas, new_schemas, classes, 
 def thwart_what_would_flip(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
     )
@@ -1331,7 +1302,6 @@ def thwart_what_would_flip(builder, original_schemas, schemas, new_schemas, clas
 def unignore_noninitial_orienting_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='i',
     )
@@ -1371,7 +1341,6 @@ def unignore_noninitial_orienting_sequences(builder, original_schemas, schemas, 
 def unignore_initial_orienting_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rclt',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='i',
         reversed=True,
@@ -1412,7 +1381,6 @@ def unignore_initial_orienting_sequences(builder, original_schemas, schemas, new
 def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        'dupl',
         'dflt',
         mark_filtering_set='all',
     )
@@ -1435,7 +1403,6 @@ def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, 
 def rotate_diacritics(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
         mark_filtering_set='all',
         reversed=True,
@@ -1476,7 +1443,6 @@ def rotate_diacritics(builder, original_schemas, schemas, new_schemas, classes, 
 def shade(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        'dupl',
         'dflt',
         mark_filtering_set='independent_mark',
     )
@@ -1503,17 +1469,14 @@ def shade(builder, original_schemas, schemas, new_schemas, classes, named_lookup
 def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup_slash = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
     )
     lookup_dnom = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
     )
     lookup_numr = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
         reversed=True,
     )
@@ -1541,8 +1504,8 @@ def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, c
 
 
 def create_superscripts_and_subscripts(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup_sups = Lookup('sups', {'DFLT', 'dupl'}, 'dflt')
-    lookup_subs = Lookup('subs', {'DFLT', 'dupl'}, 'dflt')
+    lookup_sups = Lookup('sups', 'dflt')
+    lookup_subs = Lookup('subs', 'dflt')
     for schema in new_schemas:
         if schema.cmap in range(0x0030, 0x0039 + 1):
             classes['i'].append(schema)
@@ -1554,7 +1517,7 @@ def create_superscripts_and_subscripts(builder, original_schemas, schemas, new_s
 
 
 def make_widthless_variants_of_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
-    lookup = Lookup('rlig', {'DFLT', 'dupl'}, 'dflt')
+    lookup = Lookup('rlig', 'dflt')
     first_iteration = 'i' not in classes
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.MARK:

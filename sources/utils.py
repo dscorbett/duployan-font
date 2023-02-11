@@ -30,6 +30,7 @@ __all__ = [
     'Context',
     'EPSILON',
     'GlyphClass',
+    'KNOWN_SCRIPTS',
     'MAX_TREE_DEPTH',
     'MAX_TREE_WIDTH',
     'MINIMUM_STROKE_GAP',
@@ -37,11 +38,13 @@ __all__ = [
     'OrderedSet',
     'PrefixView',
     'REGULAR_LIGHT_LINE',
+    'REQUIRED_SCRIPT_FEATURES',
     'SHADING_FACTOR',
     'STRIKEOUT_POSITION',
     'Type',
     'WIDTH_MARKER_PLACES',
     'WIDTH_MARKER_RADIX',
+    'cps_to_scripts',
     'mkmk',
 ]
 
@@ -52,6 +55,7 @@ from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 import enum
+import functools
 from typing import Callable
 from typing import ClassVar
 from typing import Final
@@ -61,8 +65,12 @@ from typing import Iterator
 from typing import Literal
 from typing import Optional
 from typing import Self
+from typing import Set
 from typing import TypeVar
 from typing import overload
+
+
+import uharfbuzz
 
 
 #: The regular font’s cap height.
@@ -160,6 +168,74 @@ WIDTH_MARKER_RADIX: Final[int] = 4
 
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
+
+
+#: A mapping from script tags to the features their shapers are
+#: guaranteed to apply (assuming that no required features are disabled,
+#: which is technically possible but not recommended).
+REQUIRED_SCRIPT_FEATURES: Mapping[str, Set[str]] = {
+    'DFLT': {
+        'abvm',
+        'blwm',
+        'curs',
+        'dist',
+        'locl',
+        'mark',
+        'mkmk',
+        'rclt',
+        'rlig',
+    },
+    'dupl': {
+        'abvm',
+        'abvs',
+        'blwm',
+        'blws',
+        'curs',
+        'dist',
+        'haln',
+        'mark',
+        'mkmk',
+        'pres',
+        'psts',
+        'rclt',
+        'rlig',
+    },
+}
+
+
+#: The list of script tags that can appear in the generated font.
+KNOWN_SCRIPTS: Iterable[str] = sorted(REQUIRED_SCRIPT_FEATURES)
+
+
+@functools.cache
+def cps_to_scripts(cps: tuple[int]) -> Set[str]:
+    """Converts a code point sequence to its set of script tags.
+
+    Args:
+        cps: A code point sequence. It is assumed that the code points
+        all appear in the same item, meaning they have at most one
+        distinct script tag.
+
+    Returns:
+        The set of all script tags such that a rule in a lookup
+        associated with one of those tags could possibly apply to a
+        glyph that corresponds to those code points. The return value is
+        a subset of the full set of known script tags (`KNOWN_SCRIPTS`).
+
+        If `cps` contains only script-neutral code points, the full set
+        is returned; otherwise, the returned set contains a single tag.
+        That single tag is ``'DFLT'`` if `KNOWN_SCRIPTS` does not
+        contain the true specific script tag.
+    """
+    buffer = uharfbuzz.Buffer()
+    buffer.add_codepoints(cps)
+    buffer.guess_segment_properties()
+    if buffer.script is None:
+        return set(KNOWN_SCRIPTS)
+    script = buffer.script.lower()
+    if script not in KNOWN_SCRIPTS:
+        return {'DFLT'}
+    return {script}
 
 
 def mkmk(anchor: str) -> str:

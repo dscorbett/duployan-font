@@ -28,7 +28,6 @@ import sifting
 def merge_lookalikes(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
     lookup = Lookup(
         'rlig',
-        {'DFLT', 'dupl'},
         'dflt',
     )
     grouper = sifting.group_schemas(new_schemas)

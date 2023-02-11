@@ -32,6 +32,7 @@ module = [
     "fontTools.*",
     "fontforge.*",
     "fontv.*",
+    "uharfbuzz.*",
 ]
 ignore_missing_imports = true
 

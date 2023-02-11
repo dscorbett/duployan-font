@@ -105,6 +105,7 @@ from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import EPSILON
 from utils import GlyphClass
+from utils import KNOWN_SCRIPTS
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import MINIMUM_STROKE_GAP
@@ -587,7 +588,7 @@ class Builder:
         self._fea.statements.append(lookup)
         self._anchors[anchor_class_name] = lookup
         feature = fontTools.feaLib.ast.FeatureBlock(feature_tag)
-        for script in Lookup.KNOWN_SCRIPTS:
+        for script in KNOWN_SCRIPTS:
             feature.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
             feature.statements.append(fontTools.feaLib.ast.LanguageStatement('dflt'))
             feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
@@ -854,6 +855,7 @@ class Builder:
                     continue
                 try:
                     named_lookup_ast = lookup.to_asts(
+                        None,
                         PrefixView(phase, class_asts),
                         PrefixView(phase, named_lookup_asts),
                         name,
@@ -933,8 +935,12 @@ class Builder:
                 self._create_marker(schema)
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
+        features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)
+        for lp in lookups_with_phases:
+            if lp[0].feature:
+                features_to_scripts[lp[0].feature] |= lp[0].get_scripts(PrefixView(lp[1], class_asts))
         for i, lp in enumerate(lookups_with_phases):
-            for statement in lp[0].to_asts(PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
+            for statement in lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
                 self._fea.statements.append(statement)
         self._add_lookups(class_asts)
         self.font.selection.all()

@@ -196,7 +196,7 @@ ufolint==1.2.0
     # via fontbakery
 uharfbuzz==0.33.0
     # via
-    #   -c constraints.txt
+    #   -r requirements.in
     #   collidoscope
     #   fonttools
     #   vharfbuzz

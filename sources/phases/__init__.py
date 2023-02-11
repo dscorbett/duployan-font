@@ -124,16 +124,20 @@ from typing import cast
 from typing import overload
 
 
+import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
 
 
 import schema
 from utils import GlyphClass
+from utils import KNOWN_SCRIPTS
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import OrderedSet
 from utils import PrefixView
+from utils import REQUIRED_SCRIPT_FEATURES
+from utils import cps_to_scripts
 
 
 # TODO: Document the edge class name constants better with reference to
@@ -606,26 +610,21 @@ class Rule:
 class Lookup:
     """An OpenType Layout lookup.
 
-    If `feature` and `language` are ``None`` and ``scripts`` is empty,
-    this is a named lookup. Otherwise, it is an anonymous lookup
-    directly associated with a feature.
-
-    Class attributes:
-        KNOWN_SCRIPTS: The list of scripts that this class can handle.
+    If `feature` and `language` are ``None``, this is a named lookup.
+    Otherwise, it is an anonymous lookup directly associated with a
+    feature.
 
     Attributes:
         feature: This lookup’s feature tag, if anonymous.
-        scripts: This lookup’s script tags. A named lookup has an empty
-            script tag list.
+        language: This lookup’s language system tag, if anonymous.
+        flags: The lookup flags.
+        mark_filtering_set: The name of the glyph class used for the
+            mark filtering set, if any.
         required: Whether the shaper is guaranteed to apply this lookup,
             regardless of which script the itemizer chooses. This
             ignores the fact that it is technically possible to disable
             any feature; there are some features that are not *meant* to
             be disabled.
-        language: This lookup’s language system tag, if anonymous.
-        flags: The lookup flags.
-        mark_filtering_set: The name of the glyph class used for the
-            mark filtering set, if any.
         reversed: Whether this lookup is reversed. (The only reversed
             lookup type is the reverse chaining contextual single
             substitution, but this would cover other reversed lookup
@@ -661,42 +660,10 @@ class Lookup:
         'zero',
     }
 
-    _REQUIRED_SCRIPT_FEATURES: ClassVar[Mapping[str, Set[str]]] = {
-        'DFLT': {
-            'abvm',
-            'blwm',
-            'curs',
-            'dist',
-            'locl',
-            'mark',
-            'mkmk',
-            'rclt',
-            'rlig',
-        },
-        'dupl': {
-            'abvm',
-            'abvs',
-            'blwm',
-            'blws',
-            'curs',
-            'dist',
-            'haln',
-            'mark',
-            'mkmk',
-            'pres',
-            'psts',
-            'rclt',
-            'rlig',
-        },
-    }
-
-    KNOWN_SCRIPTS: ClassVar[Iterable[str]] = sorted(_REQUIRED_SCRIPT_FEATURES)
-
     @overload
     def __init__(
             self,
             feature: str,
-            scripts: Union[str, Iterable[str]],
             language: str,
             *,
             flags: int,
@@ -710,7 +677,6 @@ class Lookup:
     def __init__(
             self,
             feature: None,
-            scripts: None,
             language: None,
             *,
             flags: int,
@@ -723,7 +689,6 @@ class Lookup:
     def __init__(
             self,
             feature: Optional[str],
-            scripts: Optional[Union[str, Iterable[str]]],
             language: Optional[str],
             *,
             flags: int = 0,
@@ -735,8 +700,6 @@ class Lookup:
 
         Args:
             feature: The ``feature`` attribute.
-            scripts: The ``scripts`` attribute, or ``None`` as a
-                shorthand for ``[]``.
             language: The ``language`` attribute.
             flags: The ``flags`` attribute, except that the
                 ``UseMarkFilteringSet`` flag must not be set, even if
@@ -750,42 +713,121 @@ class Lookup:
         if mark_filtering_set:
             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         self.feature = feature
-        if scripts is not None:
-            scripts = [scripts] if isinstance(scripts, str) else sorted(scripts)
-            required_set = set()
-        else:
-            scripts = []
-            required_set = {False}
-        self.scripts: Iterable[str] = scripts
         self.language = language
-        for script in self.scripts:
-            assert len(script) == 4, f"Script tag must be 4 characters long: '{script}'"
         assert language is None or len(language) == 4, f"Language tag must be 4 characters long: '{language}'"
         assert feature is None or len(feature) == 4, f"Feature tag must be 4 characters long: '{feature}'"
         self.flags = flags
         self.mark_filtering_set = mark_filtering_set
+        self.required = feature is not None and feature not in self._DISCRETIONARY_FEATURES
         self.reversed = reversed
         self.prepending = prepending
         self.rules: _FreezableList[Rule] = _FreezableList()
-        assert (feature is None) == (not scripts) == (language is None), 'Not clear whether this is a named or a normal lookup'
-        for script in scripts:
-            if feature in self._DISCRETIONARY_FEATURES:
-                required = False
+        assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
+
+    def get_scripts(
+        self,
+        class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+    ) -> Set[str]:
+        """Returns the minimal set of script tags relevant to this
+        lookup.
+
+        Args:
+            class_asts: A map to glyph classes from their names.
+        """
+        def glyph_name_to_scripts(glyph_name: str) -> Set[str]:
+            return cps_to_scripts(tuple(map(ord, fontTools.agl.toUnicode(glyph_name))))
+
+        def class_to_scripts(
+            cls: str,
+            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        ) -> Set[str]:
+            scripts: Set[str] = set()
+            for glyph_name in class_asts[cls].glyphs.glyphs:
+                scripts |= glyph_name_to_scripts(glyph_name)
+            return scripts
+
+        def schema_to_scripts(schema: schema.Schema) -> Set[str]:
+            return cps_to_scripts(tuple(schema.cps))
+
+        def s_to_scripts(
+            s: Union[schema.Schema, str],
+            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        ) -> Set[str]:
+            if isinstance(s, str):
+                return class_to_scripts(s, class_asts)
             else:
-                try:
-                    script_features = self._REQUIRED_SCRIPT_FEATURES[script]
-                except KeyError:
-                    raise ValueError(f"Unrecognized script tag: '{script}'")
-                assert feature in script_features, f"The phase system does not support the feature '{feature}' for the script '{script}'"
-                required = True
-            required_set.add(required)
-        assert len(required_set) == 1, f"""Scripts {{{
-                ', '.join("'{script}'" for script in scripts)
-            }}} disagree about whether the feature '{feature}' is required"""
-        self.required: bool = next(iter(required_set))
+                return schema_to_scripts(s)
+
+        def target_to_scripts(
+            target: Optional[Sequence[Union[schema.Schema, str]]],
+            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        ) -> Set[str]:
+            scripts = set(KNOWN_SCRIPTS)
+            if target:
+                for s in target:
+                    scripts &= s_to_scripts(s, class_asts)
+            assert scripts
+            return scripts
+
+        def rule_to_scripts(
+            rule: Rule,
+            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        ) -> Set[str]:
+            scripts = (target_to_scripts(rule.contexts_in, class_asts)
+                & target_to_scripts(rule.inputs, class_asts)
+                & target_to_scripts(rule.contexts_out, class_asts)
+            )
+            assert scripts
+            return scripts
+
+        scripts = set()
+        for rule in self.rules:
+            scripts |= rule_to_scripts(rule, class_asts)
+        return scripts
+
+    def _get_sorted_scripts(self, features_to_scripts: Mapping[str, Set[str]]) -> Iterable[str]:
+        """Returns the script tags to use for this lookup.
+
+        If this lookup is marked as required, this method validates that
+        all the returned scripts do in fact enable this lookup’s
+        feature.
+
+        Args:
+            features_to_scripts: A mapping from feature tags to sets of
+                script tags. The mapping must contain this lookup’s
+                feature tag.
+        """
+        assert self.feature is not None
+        scripts = sorted(features_to_scripts[self.feature])
+        if self.required:
+            for script in scripts:
+                assert self.feature in REQUIRED_SCRIPT_FEATURES[script], (
+                    f"The phase system does not support the feature '{self.feature}' for the script '{script}'")
+        return scripts
+
+    @overload
+    def to_asts(
+        self,
+        features_to_scripts: None,
+        class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        name: str,
+    ) -> Sequence[fontTools.feaLib.ast.Block]:
+        ...
+
+    @overload
+    def to_asts(
+        self,
+        features_to_scripts: Mapping[str, Set[str]],
+        class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        name: int,
+    ) -> Sequence[fontTools.feaLib.ast.Block]:
+        ...
 
     def to_asts(
         self,
+        features_to_scripts: Optional[Mapping[str, Set[str]]],
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: Union[str, int],
@@ -793,6 +835,13 @@ class Lookup:
         """Converts this lookup to fontTools feaLib ASTs.
 
         Args:
+            features_to_scripts: A mapping from feature tags to sets of
+                script tags, if this lookup is anonymous, or else
+                ``None``. If this is an anonymous lookup, the mapping
+                must contain this lookup’s feature tag. The associated
+                script tags, which must be a superset of
+                ``self.get_scripts(class_asts)``, are used in the second
+                returned AST.
             class_asts: A map to glyph classes from their names.
             named_lookup_asts: A map to named lookup ASTs from their
                 names.
@@ -808,7 +857,7 @@ class Lookup:
             `fontTools.feaLib.ast.FeatureBlock`.
         """
         named_lookup = self.feature is None
-        assert named_lookup == isinstance(name, str)
+        assert named_lookup == isinstance(name, str) == (features_to_scripts is None)
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
         if named_lookup:
@@ -817,7 +866,8 @@ class Lookup:
         else:
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
-            for script in self.scripts:
+            assert features_to_scripts is not None
+            for script in self._get_sorted_scripts(features_to_scripts):
                 feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
                 feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
                 feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
@@ -857,20 +907,18 @@ class Lookup:
         Otherwise, they are added to the end, ending up in the same
         order.
 
-        The lookups must agree in their features, scripts, and
-        languages, or lack thereof, and in whether they prepend.
+        The lookups must agree in their features and languages, or lack
+        thereof, and in whether they prepend, are required, and are
+        reversed.
 
         Args:
             other: A lookup.
         """
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
-        assert self.scripts == other.scripts, f'''Incompatible script sets: {{{
-                ', '.join(f"'{script}'" for script in self.scripts)
-            }}} != {{{
-                ', '.join(f"'{script}'" for script in other.scripts)
-            }}}'''
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
         assert self.prepending == other.prepending, f'Incompatible prepending values: {self.prepending} != {other.prepending}'
+        assert self.required == other.required, f'Incompatible required values: {self.required} != {other.required}'
+        assert self.reversed == other.reversed, f'Incompatible reversed values: {self.reversed} != {other.reversed}'
         if self.prepending:
             for rule in other.rules:
                 self.rules.insert(0, rule)
