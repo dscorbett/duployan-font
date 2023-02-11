@@ -825,7 +825,7 @@ class Builder:
         schema = glyph.temporary
         glyph.temporary = None
         schema.glyph = glyph
-        return schema
+        return cast(Schema, schema)
 
     def convert_classes(
         self,

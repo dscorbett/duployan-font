@@ -2875,7 +2875,7 @@ class Complex(Shape):
         def boundingBox(self) -> Tuple[float, float, float, float]:
             """Simulates `fontforge.glyph.boundingBox`.
             """
-            return self._layer.boundingBox()
+            return cast(Tuple[float, float, float, float], self._layer.boundingBox())
 
         def draw(self, pen: fontforge.glyphPen) -> None:
             """Draws the collected data to a FontForge glyph.
