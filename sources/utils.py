@@ -587,6 +587,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
 
         Args:
             source: A function from which to derive the prefix.
+            delegate: The mapping to wrap.
         """
         self._prefix: Final = f'{source.__name__}..'
         self._delegate: Final = delegate
