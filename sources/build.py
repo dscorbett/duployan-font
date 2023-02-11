@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-# Copyright 2018-2019, 2022 David Corbett
+# Copyright 2018-2019, 2022-2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -208,9 +208,9 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
         tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
         tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
         tt_font['OS/2'].yStrikeoutPosition = utils.STRIKEOUT_POSITION
-        tt_font['OS/2'].yStrikeoutSize = duployan.REGULAR_LIGHT_LINE
+        tt_font['OS/2'].yStrikeoutSize = utils.REGULAR_LIGHT_LINE
         tt_font['post'].underlinePosition = tt_font['OS/2'].sTypoDescender
-        tt_font['post'].underlineThickness = duployan.REGULAR_LIGHT_LINE
+        tt_font['post'].underlineThickness = utils.REGULAR_LIGHT_LINE
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender

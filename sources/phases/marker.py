@@ -50,7 +50,6 @@ from schema import Schema
 from shapes import AnchorWidthDigit
 from shapes import Carry
 from shapes import ContinuingOverlap
-from shapes import DEFAULT_SIDE_BEARING
 from shapes import DigitStatus
 from shapes import Dot
 from shapes import Dummy
@@ -67,6 +66,7 @@ from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
 from shapes import WidthNumber
+from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT

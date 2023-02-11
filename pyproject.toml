@@ -1,4 +1,4 @@
-# Copyright 2022 David Corbett
+# Copyright 2022-2023 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ enable_error_code = [
     "truthy-bool",
 ]
 no_implicit_optional = true
+no_implicit_reexport = true
 show_error_codes = true
 strict_equality = true
 warn_redundant_casts = true
