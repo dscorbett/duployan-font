@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ __all__ = [
 ]
 
 
+from collections.abc import Collection
 from collections.abc import Sequence
 from typing import Final
 from typing import Iterable
@@ -113,4 +114,4 @@ ALL_CURSIVE: Final[list[str]] = [
 ]
 
 
-ALL: Final[Iterable[str]] = ALL_MARK + ALL_CURSIVE
+ALL: Final[Collection[str]] = ALL_MARK + ALL_CURSIVE

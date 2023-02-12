@@ -32,6 +32,7 @@ __all__ = [
     'ContinuingOverlap',
     'ContinuingOverlapS',
     'Curve',
+    'Digit',
     'DigitStatus',
     'Dot',
     'Dummy',
@@ -766,7 +767,10 @@ class AnchorWidthDigit(Shape):
         return GlyphClass.MARK
 
 
-_D = TypeVar('_D', bound=Union[AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit])
+Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
+
+
+_D = TypeVar('_D', bound=Digit)
 
 
 class WidthNumber(Shape, Generic[_D]):

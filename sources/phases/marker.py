@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'PHASE_LIST',
     'add_end_markers_for_marks',
@@ -34,13 +37,22 @@ __all__ = [
 
 
 import collections
+from collections.abc import Collection
 import functools
 import math
+from typing import Any
+from typing import Callable
+from typing import Literal
+from typing import MutableMapping
+from typing import MutableSequence
+from typing import Optional
+from typing import TYPE_CHECKING
 
 
 import fontTools.otlLib.builder
 
 
+from . import FreezableList
 from . import Lookup
 from . import Rule
 import anchors
@@ -49,7 +61,9 @@ from schema import MAX_HUB_PRIORITY
 from schema import Schema
 from shapes import AnchorWidthDigit
 from shapes import Carry
+from shapes import Circle
 from shapes import ContinuingOverlap
+from shapes import Digit
 from shapes import DigitStatus
 from shapes import Dot
 from shapes import Dummy
@@ -71,11 +85,26 @@ from utils import GlyphClass
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
+from utils import PrefixView
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
 
 
-def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+if TYPE_CHECKING:
+    from mypy_extensions import DefaultNamedArg
+
+    from duployan import Builder
+
+
+def add_shims_for_pseudo_cursive(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     marker_lookup = Lookup(
         'abvm',
         'dflt',
@@ -140,7 +169,7 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
                             entry_schemas.append((schema, x, y))
 
     @functools.cache
-    def get_shim(width, height):
+    def get_shim(width: float, height: float) -> Schema:
         return Schema(
             None,
             Space(width and math.degrees(math.atan(height / width)) % 360),
@@ -150,7 +179,7 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
 
     marker = get_shim(0, 0)
 
-    def round_with_base(number, base, minimum, key=None):
+    def round_with_base(number: float, base: int, minimum: float, key=None) -> float:  # type: ignore[no-untyped-def]
         return max(minimum, base * round(number / base), key=key)
 
     for pseudo_cursive_index, (pseudo_cursive_class_name, (
@@ -163,16 +192,17 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
         rounding_base,
     )) in enumerate(pseudo_cursive_info.items()):
         add_rule(marker_lookup, Rule(pseudo_cursive_class_name, [marker, pseudo_cursive_class_name, marker]))
-        exit_classes = {}
-        exit_classes_containing_pseudo_cursive_schemas = set()
-        exit_classes_containing_true_cursive_schemas = set()
-        entry_classes = {}
+        exit_classes: MutableMapping[str, Schema] = {}
+        exit_classes_containing_pseudo_cursive_schemas: set[str] = set()
+        exit_classes_containing_true_cursive_schemas: set[str] = set()
+        entry_classes: MutableMapping[str, Schema] = {}
         for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, height_sign, get_distance_to_edge in [
             ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, -1, lambda bounds, x: bounds[1] - x),
             ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, 1, lambda bounds, x: x - bounds[0]),
         ]:
             for e_schema, x, y in e_schemas:
-                bounds = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
+                assert e_schema.glyph is not None
+                bounds: Optional[tuple[float, float]] = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
                 shim_height = pseudo_cursive_y_offset * height_sign
@@ -205,7 +235,15 @@ def add_shims_for_pseudo_cursive(builder, original_schemas, schemas, new_schemas
     return [marker_lookup, space_lookup]
 
 
-def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def shrink_wrap_enclosing_circle(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -241,6 +279,8 @@ def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas
             dy = max(dy, dx * 0.75)
         elif dx < dy:
             dx = max(dx, dy * 0.75)
+        assert circle_schema is not None
+        assert isinstance(circle_schema.path, Circle)
         new_circle_schema = circle_schema.clone(
             cmap=None,
             path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
@@ -254,7 +294,15 @@ def shrink_wrap_enclosing_circle(builder, original_schemas, schemas, new_schemas
     return [lookup, dist_lookup]
 
 
-def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_width_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookups_per_position = 6
     lookups = [
         Lookup('dist', 'dflt')
@@ -262,10 +310,10 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     ]
     digit_expansion_lookup = Lookup('dist', 'dflt')
     rule_count = 0
-    entry_width_markers = {}
-    left_bound_markers = {}
-    right_bound_markers = {}
-    anchor_width_markers = {}
+    entry_width_markers: MutableMapping[tuple, Schema] = {}
+    left_bound_markers: MutableMapping[tuple, Schema] = {}
+    right_bound_markers: MutableMapping[tuple, Schema] = {}
+    anchor_width_markers: MutableMapping[tuple, Schema] = {}
     path_to_markers = {
         EntryWidthDigit: entry_width_markers,
         AnchorWidthDigit: anchor_width_markers,
@@ -276,7 +324,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     if start is None:
         start = Schema(None, Start(), 0)
         classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(start)
-    hubs = {-1: []}
+    hubs: MutableMapping[int, list[Schema]] = {-1: []}
     for hub_priority in range(0, MAX_HUB_PRIORITY + 1):
         hub = next((s for s in schemas if isinstance(s.path, Hub) and s.path.priority == hub_priority), None)
         if hub is None:
@@ -285,49 +333,51 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
         hubs[hub_priority] = [hub]
     end = Schema(None, End(), 0, side_bearing=0)
-    mark_anchor_selectors = {}
+    mark_anchor_selectors: MutableMapping[int, Schema] = {}
 
-    def register_mark_anchor_selector(index):
+    def register_mark_anchor_selector(index: int) -> Schema:
         if index in mark_anchor_selectors:
             return mark_anchor_selectors[index]
         return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
 
-    def get_mark_anchor_selector(schema):
-        only_anchor_class_name = None
+    def get_mark_anchor_selector(schema: Schema) -> Schema:
+        only_anchor_class_name: Optional[str] = None
+        assert schema.glyph is not None
         for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
             if type == 'mark' and anchor_class_name in anchors.ALL_MARK:
                 assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
+        assert only_anchor_class_name is not None
         return register_mark_anchor_selector(anchors.ALL_MARK.index(only_anchor_class_name))
 
-    glyph_class_selectors = {}
+    glyph_class_selectors: MutableMapping[GlyphClass, Schema] = {}
 
-    def register_glyph_class_selector(glyph_class):
+    def register_glyph_class_selector(glyph_class: GlyphClass) -> Schema:
         if glyph_class in glyph_class_selectors:
             return glyph_class_selectors[glyph_class]
         return glyph_class_selectors.setdefault(glyph_class, Schema(None, GlyphClassSelector(glyph_class), 0))
 
-    def get_glyph_class_selector(schema):
+    def get_glyph_class_selector(schema: Schema) -> Schema:
         return register_glyph_class_selector(schema.glyph_class)
 
-    def register_width_marker(width_markers, digit_path, *args):
+    def register_width_marker(width_markers: MutableMapping[tuple, Schema], digit_path: type[Digit], *args: Any) -> Schema:
         if args not in width_markers:
             width_marker = Schema(None, digit_path(*args), 0)
             width_markers[args] = width_marker
         return width_markers[args]
 
-    width_number_schemas = {}
+    width_number_schemas: MutableMapping[WidthNumber, Schema] = {}
 
-    def get_width_number_schema(width_number):
+    def get_width_number_schema(width_number: WidthNumber) -> Schema:
         if width_number in width_number_schemas:
             return width_number_schemas[width_number]
         return width_number_schemas.setdefault(width_number, Schema(None, width_number, 0))
 
-    width_number_counter = collections.Counter()
+    width_number_counter: collections.Counter = collections.Counter()
     minimum_optimizable_width_number_count = 2
-    width_numbers = {}
+    width_numbers: MutableMapping[tuple[type[Digit], int], WidthNumber] = {}
 
-    def get_width_number(digit_path, width):
+    def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber:
         width = round(width)
         if (digit_path, width) in width_numbers:
             width_number = width_numbers[(digit_path, width)]
@@ -357,7 +407,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                 # Not a schema created in `add_shims_for_pseudo_cursive`
                 continue
         if schema.might_need_width_markers and (
-            schema.glyph_class != GlyphClass.MARK or any(a[0] in anchors.ALL_MARK for a in schema.glyph.anchorPoints)
+            schema.glyph_class != GlyphClass.MARK or any(a[0] in anchors.ALL_MARK for a in schema.glyph.anchorPoints)  # type: ignore[union-attr]
         ):
             entry_xs = {}
             exit_xs = {}
@@ -365,6 +415,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                 entry_xs[anchors.CURSIVE] = 0
                 exit_xs[anchors.CURSIVE] = schema.size
             else:
+                assert schema.glyph is not None
                 for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
                     if type in ['entry', 'mark']:
                         entry_xs[anchor_class_name] = x
@@ -382,7 +433,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
             schemas_needing_width_markers.append((schema, entry_xs, exit_xs, start_x))
     for schema, entry_xs, exit_xs, start_x in schemas_needing_width_markers:
         if schema.glyph is None:
-            x_min = x_max = 0
+            x_min = x_max = 0.0
         else:
             x_min, _, x_max, _ = schema.glyph.boundingBox()
         if x_min == x_max == 0:
@@ -421,7 +472,7 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         rules_to_add.append((
             widths,
             (lambda widths,
-                    lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, schema=schema:
+                    lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, start=start, schema=schema:
                 add_rule(lookup, Rule([schema], [
                     start,
                     glyph_class_selector,
@@ -435,11 +486,14 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         ))
     for widths, rule_to_add in rules_to_add:
         final_widths = []
-        for width in widths:
-            if width_number_counter[width] >= minimum_optimizable_width_number_count:
-                final_widths.append(get_width_number_schema(width))
+        for width_number in widths:
+            if width_number_counter[width_number] >= minimum_optimizable_width_number_count:
+                final_widths.append(get_width_number_schema(width_number))
             else:
-                final_widths.extend(width.to_digits(functools.partial(register_width_marker, path_to_markers[width.digit_path])))
+                final_widths.extend(width_number.to_digits(functools.partial(
+                    register_width_marker,
+                    path_to_markers[width_number.digit_path],
+                )))
         rule_to_add(final_widths)
     return [
         *lookups,
@@ -447,7 +501,15 @@ def add_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     ]
 
 
-def add_end_markers_for_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_end_markers_for_marks(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
     for schema in new_schemas:
@@ -461,7 +523,15 @@ def add_end_markers_for_marks(builder, original_schemas, schemas, new_schemas, c
     return [lookup]
 
 
-def remove_false_end_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def remove_false_end_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -477,14 +547,22 @@ def remove_false_end_markers(builder, original_schemas, schemas, new_schemas, cl
     return [lookup]
 
 
-def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def clear_entry_width_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
-    zeros = [None] * WIDTH_MARKER_PLACES
+    zeros: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
         named_lookups['zero'] = Lookup(None, None)
     for schema in schemas:
@@ -499,7 +577,9 @@ def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, c
                 continuing_overlap = schema
     for schema in new_schemas:
         if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
-            add_rule(named_lookups['zero'], Rule([schema], [zeros[schema.path.place]]))
+            zero = zeros[schema.path.place]
+            assert zero is not None
+            add_rule(named_lookups['zero'], Rule([schema], [zero]))
     add_rule(lookup, Rule(
         [continuing_overlap],
         ['idx'] * WIDTH_MARKER_PLACES,
@@ -516,11 +596,19 @@ def clear_entry_width_markers(builder, original_schemas, schemas, new_schemas, c
 
 
 class _AlwaysTrueList(list):
-    def __bool__(builder):
+    def __bool__(self) -> Literal[True]:
         return True
 
 
-def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def sum_width_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -539,9 +627,9 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     original_right_digit_schemas = []
     anchor_digit_schemas = {}
     original_anchor_digit_schemas = []
-    mark_anchor_selectors = {}
+    mark_anchor_selectors: MutableMapping[int, Schema] = {}
 
-    def get_mark_anchor_selector(index, class_name):
+    def get_mark_anchor_selector(index: int, class_name: str) -> Schema:
         if index in mark_anchor_selectors:
             rv = mark_anchor_selectors[index]
             classes[class_name].append(rv)
@@ -554,9 +642,10 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
         classes['all'].append(rv)
         classes[class_name].append(rv)
         return mark_anchor_selectors.setdefault(index, rv)
-    glyph_class_selectors = {}
 
-    def get_glyph_class_selector(glyph_class, class_name):
+    glyph_class_selectors: MutableMapping[GlyphClass, Schema] = {}
+
+    def get_glyph_class_selector(glyph_class: GlyphClass, class_name: str) -> Schema:
         if glyph_class in glyph_class_selectors:
             rv = glyph_class_selectors[glyph_class]
             classes[class_name].append(rv)
@@ -667,8 +756,8 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_schemas
-            place = augend_schema.path.place
-            augend = augend_schema.path.digit
+            place = augend_schema.path.place  # type: ignore[attr-defined]
+            augend = augend_schema.path.digit  # type: ignore[attr-defined]
             for (
                 continuing_overlap_is_relevant,
                 augend_skip_backtrack,
@@ -677,7 +766,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                 original_addend_schemas,
                 addend_schemas,
                 addend_path,
-            ) in inner_iterable:
+            ) in inner_iterable:  # type: ignore[attr-defined]
                 for carry_in_schema in original_carry_schemas:
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
@@ -691,7 +780,7 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                         context_in_lookup_name = f'e{place}_c{carry_in}_{addend_letter}{addend}'
                         if continuing_overlap_is_relevant:
                             classes[context_in_lookup_name].append(continuing_overlap)
-                        classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{augend_schema.path.place}'])
+                        classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{place}'])
                         if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
                             if carry_out == 0:
                                 carry_out_schema = carry_0_placeholder
@@ -723,23 +812,24 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                     mark_filtering_set=context_in_lookup_name,
                                 )
+                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, (Schema, str)) else _AlwaysTrueList()
                             add_rule(lookup, Rule(
-                                _AlwaysTrueList() if carry_in == 0 else [carry_in_schema],
+                                contexts_in,
                                 [addend_schema],
                                 [],
                                 lookups=[context_in_lookup_name],
                             ))
-                            classes[context_in_lookup_name].extend(classes[f'idx_{augend_schema.path.place}'])
+                            classes[context_in_lookup_name].extend(classes[f'idx_{place}'])
                             if addend_skip_backtrack != 0:
                                 classes[context_in_lookup_name].extend(classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'])
-                            context_in_lookup_context_in = []
+                            context_in_lookup_context_in: list[Schema | str] = []
                             if augend_letter == 'i' and addend_letter == 'a':
                                 context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.JOINER, context_in_lookup_name))
                             context_in_lookup_context_in.append(augend_schema)
-                            context_in_lookup_context_in.extend([f'iadx_{augend_schema.path.place}'] * augend_skip_backtrack)
+                            context_in_lookup_context_in.extend([f'iadx_{place}'] * augend_skip_backtrack)
                             if augend_letter == 'a' and addend_letter == 'a':
                                 context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
-                                context_in_lookup_context_in.append(f'iadx_{augend_schema.path.place}')
+                                context_in_lookup_context_in.append(f'iadx_{place}')
                             elif augend_skip_backtrack == 1:
                                 context_in_lookup_context_in.append(continuing_overlap)
                             elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
@@ -758,7 +848,15 @@ def sum_width_markers(builder, original_schemas, schemas, new_schemas, classes, 
     return [lookup]
 
 
-def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def calculate_bound_extrema(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     left_lookup = Lookup(
         'dist',
         'dflt',
@@ -810,14 +908,16 @@ def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, cla
                     (left_schema_i, left_digit_schemas, left_lookup, 'ldx', 'ldx_copy', int.__gt__),
                     (right_schema_i, right_digit_schemas, right_lookup, 'rdx', 'rdx_copy', int.__lt__),
                 ]:
+                    assert schema_i is not None
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
+                    place_j = schema_j.path.place  # type: ignore[attr-defined]
                     add_rule(lookup, Rule(
-                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
-                        [*[marker_class] * schema_j.path.place, schema_j],
+                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],  # type: ignore[attr-defined]
+                        [*[marker_class] * place_j, schema_j],
                         [],
-                        lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (schema_j.path.place + 1)))
+                        lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (place_j + 1)))
                     add_rule(named_lookups[copy_lookup_name], Rule(
                         [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - 1)],
                         [schema_j],
@@ -826,7 +926,15 @@ def calculate_bound_extrema(builder, original_schemas, schemas, new_schemas, cla
     return [left_lookup, right_lookup]
 
 
-def remove_false_start_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def remove_false_start_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -841,14 +949,22 @@ def remove_false_start_markers(builder, original_schemas, schemas, new_schemas, 
     return [lookup]
 
 
-def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def mark_hubs_after_initial_secants(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
         mark_filtering_set='all',
         reversed=True,
     )
-    hubs = OrderedSet()
+    hubs: OrderedSet[Schema] = OrderedSet()
     for schema in new_schemas:
         if isinstance(schema.path, Hub) and not schema.path.initial_secant:
             hubs.add(schema)
@@ -856,6 +972,7 @@ def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_sche
         elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             classes['secant'].append(schema)
     for hub in hubs:
+        assert isinstance(hub.path, Hub)
         initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))
         classes[phases.HUB_CLASS].append(initial_secant_hub)
         classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(initial_secant_hub)
@@ -868,7 +985,15 @@ def mark_hubs_after_initial_secants(builder, original_schemas, schemas, new_sche
     return [lookup]
 
 
-def find_real_hub(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def find_real_hub(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -891,9 +1016,11 @@ def find_real_hub(builder, original_schemas, schemas, new_schemas, classes, name
     for priority_a, hubs_a in sorted(hubs.items()):
         for priority_b, hubs_b in sorted(hubs.items()):
             for hub_a in hubs_a:
+                assert isinstance(hub_a.path, Hub)
                 if not hub_a.path.initial_secant:
                     add_rule(lookup, Rule([continuing_overlap], [hub_a], [], [dummy]))
                 for hub_b in hubs_b:
+                    assert isinstance(hub_b.path, Hub)
                     if hub_b.path.initial_secant:
                         continue
                     if priority_a <= priority_b:
@@ -903,7 +1030,15 @@ def find_real_hub(builder, original_schemas, schemas, new_schemas, classes, name
     return [lookup]
 
 
-def expand_start_markers(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def expand_start_markers(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
@@ -913,7 +1048,15 @@ def expand_start_markers(builder, original_schemas, schemas, new_schemas, classe
     return [lookup]
 
 
-def mark_maximum_bounds(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def mark_maximum_bounds(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     left_lookup = Lookup(
         'dist',
         'dflt',
@@ -953,17 +1096,25 @@ def mark_maximum_bounds(builder, original_schemas, schemas, new_schemas, classes
         (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
-            if schema.path.status != DigitStatus.NORMAL:
+            if schema.path.status != DigitStatus.NORMAL:  # type: ignore[attr-defined]
                 continue
             add_rule(lookup, Rule(
                 [],
                 [schema],
-                [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
-                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))
+                [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],  # type: ignore[attr-defined]
+                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))  # type: ignore[attr-defined]
     return [left_lookup, right_lookup, anchor_lookup]
 
 
-def copy_maximum_left_bound_to_start(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def copy_maximum_left_bound_to_start(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -971,7 +1122,7 @@ def copy_maximum_left_bound_to_start(builder, original_schemas, schemas, new_sch
         mark_filtering_set='all',
     )
     new_left_totals = []
-    new_left_start_totals = [None] * WIDTH_MARKER_PLACES
+    new_left_start_totals: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
     start = next(s for s in schemas if isinstance(s.path, Start))
     if start not in classes['all']:
         classes['all'].append(start)
@@ -983,24 +1134,36 @@ def copy_maximum_left_bound_to_start(builder, original_schemas, schemas, new_sch
                 new_left_start_totals[schema.path.place] = schema
     for total in new_left_totals:
         classes['all'].append(total)
-        if total.path.digit == 0:
-            done = new_left_start_totals[total.path.place]
+        total_digit = total.path.digit  # type: ignore[attr-defined]
+        total_place = total.path.place  # type: ignore[attr-defined]
+        if total_digit == 0:
+            done = new_left_start_totals[total_place]
+            assert done is not None
         else:
-            done = Schema(None, LeftBoundDigit(total.path.place, total.path.digit, DigitStatus.DONE), 0)
+            done = Schema(None, LeftBoundDigit(total_place, total_digit, DigitStatus.DONE), 0)
         classes['all'].append(done)
-        if total.path.digit != 0:
-            input = new_left_start_totals[total.path.place]
+        if total_digit != 0:
+            input = new_left_start_totals[total_place]
+            assert input is not None
             if input not in classes['all']:
                 classes['all'].append(input)
             add_rule(lookup, Rule(
-                [start, *['all'] * total.path.place],
+                [start, *['all'] * total_place],
                 [input],
                 [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
                 [done]))
     return [lookup]
 
 
-def dist(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def dist(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:
         if ((isinstance(schema.path, LeftBoundDigit)

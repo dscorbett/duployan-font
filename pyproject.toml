@@ -22,6 +22,7 @@ enable_error_code = [
     "unused-awaitable",
 ]
 disallow_incomplete_defs = true
+disallow_untyped_defs = true
 no_implicit_reexport = true
 strict_equality = true
 warn_redundant_casts = true
@@ -43,3 +44,9 @@ module = [
     "fontforge.*",
 ]
 follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = [
+    "otf2ttf",
+]
+disallow_untyped_defs = false

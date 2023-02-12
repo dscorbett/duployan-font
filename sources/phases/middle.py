@@ -13,19 +13,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'PHASE_LIST',
     'merge_lookalikes',
 ]
 
 
+from collections.abc import Collection
+from typing import Callable
+from typing import MutableSequence
+from typing import TYPE_CHECKING
+
+
+from . import FreezableList
 from . import Lookup
 from . import Rule
 from schema import Schema
 import sifting
+from utils import OrderedSet
+from utils import PrefixView
 
 
-def merge_lookalikes(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+if TYPE_CHECKING:
+    from mypy_extensions import DefaultNamedArg
+
+    from duployan import Builder
+
+
+def merge_lookalikes(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',

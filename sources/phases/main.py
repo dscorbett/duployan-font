@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'PHASE_LIST',
     'add_parent_edges',
@@ -57,18 +60,23 @@ __all__ = [
 
 
 import collections
+from collections.abc import Collection
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import itertools
+from typing import Callable
 from typing import Iterable
+from typing import MutableMapping
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import TypeVar
 
 
 import fontTools.otlLib.builder
 
 
+from . import FreezableList
 from . import Lookup
 from . import Rule
 import anchors
@@ -104,11 +112,26 @@ from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import OrderedSet
+from utils import PrefixView
 from utils import Type
 from utils import mkmk
 
 
-def dont_ignore_default_ignorables(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+if TYPE_CHECKING:
+    from mypy_extensions import DefaultNamedArg
+
+    from duployan import Builder
+
+
+def dont_ignore_default_ignorables(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup_1 = Lookup('abvm', 'dflt')
     lookup_2 = Lookup('abvm', 'dflt')
     for schema in schemas:
@@ -118,19 +141,35 @@ def dont_ignore_default_ignorables(builder, original_schemas, schemas, new_schem
     return [lookup_1, lookup_2]
 
 
-def reversed_circle_kludge(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def reversed_circle_kludge(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
     for schema in new_schemas:
         if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
             add_rule(lookup, Rule(
                 [schema, cgj, cgj, cgj],
-                [schema.clone(cmap=None, cps=[*schema.cps, 0x034F, 0x034F, 0x034F], path=schema.path.as_reversed())],
+                [schema.clone(cmap=None, cps=[*schema.cps, 0x034F, 0x034F, 0x034F], path=schema.path.as_reversed())],  # type: ignore[attr-defined]
             ))
     return [lookup]
 
 
-def validate_shading(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def validate_shading(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -150,7 +189,15 @@ def validate_shading(builder, original_schemas, schemas, new_schemas, classes, n
     return [lookup]
 
 
-def validate_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def validate_double_marks(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -173,15 +220,31 @@ def validate_double_marks(builder, original_schemas, schemas, new_schemas, class
     return [lookup]
 
 
-def decompose(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def decompose(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('abvs', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
-            add_rule(lookup, Rule([schema], [schema.without_marks] + schema.marks))
+            add_rule(lookup, Rule([schema], [schema.without_marks, *schema.marks]))
     return [lookup]
 
 
-def expand_secants(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def expand_secants(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'abvs',
         'dflt',
@@ -214,7 +277,15 @@ def expand_secants(builder, original_schemas, schemas, new_schemas, classes, nam
     return [lookup]
 
 
-def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def validate_overlap_controls(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -270,7 +341,15 @@ def validate_overlap_controls(builder, original_schemas, schemas, new_schemas, c
     return [lookup]
 
 
-def add_parent_edges(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_parent_edges(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -332,7 +411,15 @@ def _make_trees(
     return trees
 
 
-def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def invalidate_overlap_controls(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -407,7 +494,15 @@ def invalidate_overlap_controls(builder, original_schemas, schemas, new_schemas,
     return [lookup]
 
 
-def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_secant_guidelines(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('abvs', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -439,7 +534,15 @@ def add_secant_guidelines(builder, original_schemas, schemas, new_schemas, class
     return [lookup]
 
 
-def add_placeholders_for_missing_children(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def add_placeholders_for_missing_children(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup_1 = Lookup(
         'blwm',
         'dflt',
@@ -483,7 +586,7 @@ def add_placeholders_for_missing_children(builder, original_schemas, schemas, ne
         ))
         for sibling_count in range(max_tree_width - 1, 0, -1):
             backtrack_list = [base_class] + [valid_letter_overlap] * (sibling_count - 1)
-            input_1 = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
+            input_1: str | Schema = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
             add_rule(lookup_1, Rule(
                 backtrack_list,
                 [input_1],
@@ -499,7 +602,15 @@ def add_placeholders_for_missing_children(builder, original_schemas, schemas, ne
     return [lookup_1, lookup_2]
 
 
-def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def categorize_edges(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'blwm',
         'dflt',
@@ -507,21 +618,23 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
         mark_filtering_set='all',
     )
     old_groups = [s.path.group() for s in classes['all']]
-    child_edges = {}
-    parent_edges = {}
+    child_edges: MutableMapping[Sequence[tuple[int, int]], Schema] = {}
+    parent_edges: MutableMapping[Sequence[tuple[int, int]], Schema] = {}
 
-    def get_child_edge(lineage):
+    def get_child_edge(lineage: Sequence[tuple[int, int]]) -> Schema:
         lineage = tuple(lineage)
         child_edge = child_edges.get(lineage)
         if child_edge is None:
+            assert isinstance(default_child_edge.path, ChildEdge)
             child_edge = default_child_edge.clone(cmap=None, path=default_child_edge.path.clone(lineage=lineage))
             child_edges[lineage] = child_edge
         return child_edge
 
-    def get_parent_edge(lineage):
+    def get_parent_edge(lineage: Sequence[tuple[int, int]]) -> Schema:
         lineage = tuple(lineage)
         parent_edge = parent_edges.get(lineage)
         if parent_edge is None:
+            assert isinstance(default_parent_edge.path, ParentEdge)
             parent_edge = default_parent_edge.clone(cmap=None, path=default_parent_edge.path.clone(lineage=lineage))
             parent_edges[lineage] = parent_edge
         return parent_edge
@@ -579,7 +692,15 @@ def categorize_edges(builder, original_schemas, schemas, new_schemas, classes, n
     return [lookup]
 
 
-def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def promote_final_letter_overlap_to_continuing_overlap(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('rclt', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -608,6 +729,7 @@ def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas
             mark_filtering_set=str(overlap.path),
         )
         classes[str(overlap.path)].append(overlap)
+        assert isinstance(overlap.path, ChildEdge)
         for parent_edge in new_schemas:
             if (isinstance(parent_edge.path, ParentEdge)
                 and parent_edge.path.lineage
@@ -635,7 +757,15 @@ def promote_final_letter_overlap_to_continuing_overlap(builder, original_schemas
     return [lookup]
 
 
-def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def reposition_chinook_jargon_overlap_points(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     # TODO: This should be a general thing, not limited to specific Chinook
     # Jargon abbreviations and a few similar patterns.
     lookup = Lookup(
@@ -683,6 +813,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
             add_rule(lookup, Rule(['line', *['letter_overlap'] * (width - 1), 'overlap'], 'curve', 'overlap', 'curve'))
     for curve in classes['curve']:
         if curve in new_schemas:
+            assert isinstance(curve.path, Curve)
             for line_class, (angle, _) in line_classes.items():
                 for width in range(1, curve.max_tree_width() + 1):
                     add_rule(lookup, Rule(
@@ -693,6 +824,7 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
                     ))
     for curve_child in classes['curve']:
         if curve_child in new_schemas:
+            assert isinstance(curve_child.path, Curve)
             for line_class, (angle, max_tree_width) in line_classes.items():
                 for width in range(1, max_tree_width + 1):
                     add_rule(lookup, Rule(
@@ -704,7 +836,15 @@ def reposition_chinook_jargon_overlap_points(builder, original_schemas, schemas,
     return [lookup]
 
 
-def make_mark_variants_of_children(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def make_mark_variants_of_children(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     old_child_count = len(classes['child'])
     for schema in new_schemas:
@@ -724,14 +864,22 @@ def make_mark_variants_of_children(builder, original_schemas, schemas, new_schem
     return [lookup]
 
 
-def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def interrupt_overlong_primary_curve_sequences(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     dotted_circle = next(s for s in schemas if s.cmap == 0x25CC)
-    deltas_by_size = collections.defaultdict(OrderedSet)
+    deltas_by_size: collections.defaultdict[float, OrderedSet[float]] = collections.defaultdict(OrderedSet)
     new_deltas_by_size = collections.defaultdict(set)
     for schema in schemas:
         if schema.glyph_class == GlyphClass.MARK:
@@ -758,7 +906,11 @@ def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schema
         ):
             classes['c'].append(schema)
 
-    def find_overlong_sequences(deltas, overlong_sequences, sequence):
+    def find_overlong_sequences(
+        deltas: Iterable[float],
+        overlong_sequences: MutableSequence[Sequence[float]],
+        sequence: Sequence[float],
+    ) -> None:
         delta_so_far = sum(sequence)
         for delta in deltas:
             new_sequence = [*sequence, delta]
@@ -767,9 +919,9 @@ def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schema
             else:
                 find_overlong_sequences(deltas, overlong_sequences, new_sequence)
 
-    overlong_class_sequences = []
+    overlong_class_sequences: MutableSequence[Sequence[str]] = []
     for size, deltas in deltas_by_size.items():
-        overlong_sequences = []
+        overlong_sequences: MutableSequence[Sequence[float]] = []
         find_overlong_sequences(deltas, overlong_sequences, [])
         overlong_class_sequences.extend(
             [f'{size}_{d}' for d in s]
@@ -821,7 +973,15 @@ def interrupt_overlong_primary_curve_sequences(builder, original_schemas, schema
     return [lookup]
 
 
-def reposition_stenographic_period(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def reposition_stenographic_period(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -841,7 +1001,15 @@ def reposition_stenographic_period(builder, original_schemas, schemas, new_schem
     return [lookup]
 
 
-def disjoin_equals_sign(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def disjoin_equals_sign(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -861,7 +1029,15 @@ def disjoin_equals_sign(builder, original_schemas, schemas, new_schemas, classes
     return [lookup]
 
 
-def join_with_next_step(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_next_step(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -907,7 +1083,15 @@ def join_with_next_step(builder, original_schemas, schemas, new_schemas, classes
     return [lookup]
 
 
-def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def separate_subantiparallel_lines(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -929,7 +1113,7 @@ def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schem
             classes['vowel'].append(schema)
     closeness_threshold = 20
 
-    def axis_alignment(x):
+    def axis_alignment(x: float) -> float:
         return abs(x % 90 - 45)
 
     for a1, lines_1 in lines_by_angle.items():
@@ -945,6 +1129,7 @@ def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schem
                 classes[f'i_{a1}_{a2}'].extend(lines_1)
                 classes[f'c_{a1}_{a2}'].extend(lines_2)
                 for line_1 in lines_1:
+                    assert isinstance(line_1.path, Line)
                     classes[f'o_{a1}_{a2}'].append(line_1.clone(
                         cmap=None,
                         path=line_1.path.clone(
@@ -962,7 +1147,15 @@ def separate_subantiparallel_lines(builder, original_schemas, schemas, new_schem
     return [lookup]
 
 
-def prepare_for_secondary_diphthong_ligature(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def prepare_for_secondary_diphthong_ligature(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -977,14 +1170,24 @@ def prepare_for_secondary_diphthong_ligature(builder, original_schemas, schemas,
         if isinstance(schema.path, Curve):
             if schema.is_primary:
                 classes['primary_semicircle'].append(schema)
-        elif schema.path.reversed:
-            classes['reversed_circle'].append(schema)
-            classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
+        else:
+            assert isinstance(schema.path, Circle)
+            if schema.path.reversed:
+                classes['reversed_circle'].append(schema)
+                classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
     add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
     return [lookup]
 
 
-def join_with_previous(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_previous(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup_1 = Lookup(
         'rclt',
         'dflt',
@@ -997,10 +1200,10 @@ def join_with_previous(builder, original_schemas, schemas, new_schemas, classes,
     )
     if len(original_schemas) != len(schemas):
         return [lookup_1, lookup_2]
-    contexts_in = OrderedSet()
+    contexts_in: OrderedSet[Schema] = OrderedSet()
 
     @functools.cache
-    def get_context_marker(context):
+    def get_context_marker(context: Context) -> Schema:
         return Schema(None, ContextMarker(False, context), 0)
 
     for schema in original_schemas:
@@ -1012,21 +1215,30 @@ def join_with_previous(builder, original_schemas, schemas, new_schemas, classes,
             if (context_in := schema.path_context_out()) != NO_CONTEXT:
                 if context_in.ignorable_for_topography:
                     context_in = context_in.clone(angle=0)
-                context_in = get_context_marker(context_in)
-                classes['all'].append(context_in)
+                context_in_marker = get_context_marker(context_in)
+                classes['all'].append(context_in_marker)
                 classes['i2'].append(schema)
-                classes['o2'].append(context_in)
-                contexts_in.add(context_in)
+                classes['o2'].append(context_in_marker)
+                contexts_in.add(context_in_marker)
     classes['all'].extend(classes[phases.CONTINUING_OVERLAP_CLASS])
     add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
-    for j, context_in in enumerate(contexts_in):
+    for j, context_in_marker in enumerate(contexts_in):
+        assert isinstance(context_in_marker.path, ContextMarker)
         for i, target_schema in enumerate(classes['i']):
-            classes[f'o_{j}'].append(target_schema.contextualize(context_in.path.context, target_schema.context_out))
-        add_rule(lookup_2, Rule([context_in], 'i', [], f'o_{j}'))
+            classes[f'o_{j}'].append(target_schema.contextualize(context_in_marker.path.context, target_schema.context_out))
+        add_rule(lookup_2, Rule([context_in_marker], 'i', [], f'o_{j}'))
     return [lookup_1, lookup_2]
 
 
-def unignore_last_orienting_glyph_in_initial_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def unignore_last_orienting_glyph_in_initial_sequence(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1064,7 +1276,15 @@ def unignore_last_orienting_glyph_in_initial_sequence(builder, original_schemas,
     return [lookup]
 
 
-def ignore_first_orienting_glyph_in_initial_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def ignore_first_orienting_glyph_in_initial_sequence(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1085,13 +1305,14 @@ def ignore_first_orienting_glyph_in_initial_sequence(builder, original_schemas, 
         ):
             classes['c'].append(schema)
             if schema.joining_type == Type.ORIENTING and not isinstance(schema.path, Ou):
+                assert isinstance(schema.path, (Circle, Curve))
                 classes['i'].append(schema)
                 angle_out = schema.path.angle_out - schema.path.angle_in
                 path = schema.path.clone(
                     angle_in=0,
                     angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
                     clockwise=True,
-                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})
+                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})  # type: ignore[arg-type]
                 )
                 classes['o'].append(schema.clone(
                     cmap=None,
@@ -1105,7 +1326,15 @@ def ignore_first_orienting_glyph_in_initial_sequence(builder, original_schemas, 
     return [lookup]
 
 
-def tag_main_glyph_in_orienting_sequence(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def tag_main_glyph_in_orienting_sequence(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1129,7 +1358,15 @@ def tag_main_glyph_in_orienting_sequence(builder, original_schemas, schemas, new
     return [lookup]
 
 
-def join_with_next(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def join_with_next(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     pre_lookup = Lookup(
         'rclt',
         'dflt',
@@ -1147,7 +1384,7 @@ def join_with_next(builder, original_schemas, schemas, new_schemas, classes, nam
         mark_filtering_set='continuing_overlap_after_secant',
         reversed=True,
     )
-    contexts_out = OrderedSet()
+    contexts_out: OrderedSet[Context] = OrderedSet()
     new_contexts_out = set()
     old_input_count = len(classes['i'])
     if old_input_count == 0:
@@ -1193,7 +1430,15 @@ def join_with_next(builder, original_schemas, schemas, new_schemas, classes, nam
     return [pre_lookup, lookup, post_lookup]
 
 
-def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def join_circle_with_adjacent_nonorienting_glyph(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1201,7 +1446,7 @@ def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, sche
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    contexts_out = OrderedSet()
+    contexts_out: OrderedSet[Context] = OrderedSet()
     for schema in new_schemas:
         if schema.ignored_for_topography:
             if isinstance(schema.path, Circle):
@@ -1224,18 +1469,27 @@ def join_circle_with_adjacent_nonorienting_glyph(builder, original_schemas, sche
     return [lookup]
 
 
-def ligate_diphthongs(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def ligate_diphthongs(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
         mark_filtering_set='ignored_for_topography',
         reversed=True,
     )
-    diphthong_1_classes = OrderedSet()
-    diphthong_2_classes = OrderedSet()
+    diphthong_1_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
+    diphthong_2_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
     for schema in new_schemas:
         if not schema.can_become_part_of_diphthong:
             continue
+        assert isinstance(schema.path, (Circle, Curve))
         is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
         is_ignored = schema.ignored_for_topography
         is_primary = schema.is_primary
@@ -1276,7 +1530,15 @@ def ligate_diphthongs(builder, original_schemas, schemas, new_schemas, classes, 
     return [lookup]
 
 
-def thwart_what_would_flip(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def thwart_what_would_flip(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1299,13 +1561,21 @@ def thwart_what_would_flip(builder, original_schemas, schemas, new_schemas, clas
     return [lookup]
 
 
-def unignore_noninitial_orienting_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def unignore_noninitial_orienting_sequences(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
         mark_filtering_set='i',
     )
-    contexts_in = OrderedSet()
+    contexts_in: OrderedSet[Context] = OrderedSet()
     new_contexts_in = set()
     old_input_count = len(classes['i'])
     for schema in new_schemas:
@@ -1338,14 +1608,22 @@ def unignore_noninitial_orienting_sequences(builder, original_schemas, schemas, 
     return [lookup]
 
 
-def unignore_initial_orienting_sequences(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def unignore_initial_orienting_sequences(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
         mark_filtering_set='i',
         reversed=True,
     )
-    contexts_out = OrderedSet()
+    contexts_out: OrderedSet[Context] = OrderedSet()
     new_contexts_out = set()
     old_input_count = len(classes['i'])
     for schema in new_schemas:
@@ -1378,7 +1656,15 @@ def unignore_initial_orienting_sequences(builder, original_schemas, schemas, new
     return [lookup]
 
 
-def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def join_double_marks(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -1390,24 +1676,32 @@ def join_double_marks(builder, original_schemas, schemas, new_schemas, classes, 
             for i in range(2, MAX_DOUBLE_MARKS + 1):
                 add_rule(lookup, Rule([schema] * i, [schema.clone(
                     cmap=None,
-                    cps=schema.cps * i,
+                    cps=[*schema.cps] * i,
                     path=Complex([
                         (1, schema.path),
-                        (500, Space((schema.path.angle + 180) % 360)),
-                        (250, Space((schema.path.angle - 90) % 360)),
+                        (500, Space((schema.path.angle + 180) % 360)),  # type: ignore[attr-defined]
+                        (250, Space((schema.path.angle - 90) % 360)),  # type: ignore[attr-defined]
                     ] * i),
                 )]))
     return [lookup]
 
 
-def rotate_diacritics(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def rotate_diacritics(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
         mark_filtering_set='all',
         reversed=True,
     )
-    base_anchors_and_contexts = OrderedSet()
+    base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
     new_base_anchors_and_contexts = set()
     for schema in original_schemas:
         if schema.anchor:
@@ -1440,7 +1734,15 @@ def rotate_diacritics(builder, original_schemas, schemas, new_schemas, classes, 
     return [lookup]
 
 
-def shade(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def shade(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -1459,14 +1761,22 @@ def shade(builder, original_schemas, schemas, new_schemas, classes, named_lookup
                 and schema.path.is_shadable()
             ):
                 classes['i'].append(schema)
-                classes['o'].append(schema.clone(cmap=None, cps=schema.cps + dtls.cps))
+                classes['o'].append(schema.clone(cmap=None, cps=[*schema.cps, *dtls.cps]))
                 if schema.glyph_class == GlyphClass.MARK:
                     classes['independent_mark'].append(schema)
         add_rule(lookup, Rule(['i', dtls], 'o'))
     return [lookup]
 
 
-def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def create_diagonal_fractions(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup_slash = Lookup(
         'rlig',
         'dflt',
@@ -1485,6 +1795,7 @@ def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, c
     for schema in new_schemas:
         if schema.cmap in range(0x0030, 0x0039 + 1):
             classes['i'].append(schema)
+            assert schema.y_max is not None
             dnom = schema.clone(cmap=None, y_max=0.6 * schema.y_max)
             numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
             classes['dnom'].append(dnom)
@@ -1503,12 +1814,21 @@ def create_diagonal_fractions(builder, original_schemas, schemas, new_schemas, c
     return [lookup_slash, lookup_dnom, lookup_numr]
 
 
-def create_superscripts_and_subscripts(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def create_superscripts_and_subscripts(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup_sups = Lookup('sups', 'dflt')
     lookup_subs = Lookup('subs', 'dflt')
     for schema in new_schemas:
         if schema.cmap in range(0x0030, 0x0039 + 1):
             classes['i'].append(schema)
+            assert schema.y_max is not None
             classes['o_sups'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=None, y_max=1.18 * schema.y_max))
             classes['o_subs'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=-0.18 * schema.y_max, y_max=None))
     add_rule(lookup_sups, Rule('i', 'o_sups'))
@@ -1516,7 +1836,15 @@ def create_superscripts_and_subscripts(builder, original_schemas, schemas, new_s
     return [lookup_sups, lookup_subs]
 
 
-def make_widthless_variants_of_marks(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def make_widthless_variants_of_marks(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     first_iteration = 'i' not in classes
     for schema in new_schemas:
@@ -1533,7 +1861,15 @@ def make_widthless_variants_of_marks(builder, original_schemas, schemas, new_sch
     return [lookup]
 
 
-def classify_marks_for_trees(builder, original_schemas, schemas, new_schemas, classes, named_lookups, add_rule):
+def classify_marks_for_trees(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+) -> MutableSequence[Lookup]:
     for schema in schemas:
         for anchor in anchors.ALL_MARK:
             if schema.child or schema.anchor == anchor:

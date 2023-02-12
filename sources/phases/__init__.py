@@ -179,7 +179,7 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class _FreezableList(Generic[_T], Collection[_T]):
+class FreezableList(Generic[_T], Collection[_T]):
     """A list that can be frozen, making it immutable.
 
     This is not a `list` in the Python sense, but it is analogous.
@@ -331,7 +331,7 @@ class Rule:
         /,
         *,
         x_placements: Sequence[Optional[float]],
-        x_advances: Optional[Sequence[Optional[float]]],
+        x_advances: Optional[Sequence[Optional[float]]] = ...,
     ) -> None:
         ...
 
@@ -671,10 +671,10 @@ class Lookup:
             feature: str,
             language: str,
             *,
-            flags: int,
-            mark_filtering_set: Optional[str],
-            reversed: bool,
-            prepending: bool,
+            flags: int = ...,
+            mark_filtering_set: Optional[str] = ...,
+            reversed: bool = ...,
+            prepending: bool = ...,
     ) -> None:
         ...
 
@@ -684,10 +684,10 @@ class Lookup:
             feature: None,
             language: None,
             *,
-            flags: int,
-            mark_filtering_set: Optional[str],
-            reversed: bool,
-            prepending: bool,
+            flags: int = ...,
+            mark_filtering_set: Optional[str] = ...,
+            reversed: bool = ...,
+            prepending: bool = ...,
     ) -> None:
         ...
 
@@ -726,7 +726,7 @@ class Lookup:
         self.required = feature is not None and feature not in self._DISCRETIONARY_FEATURES
         self.reversed = reversed
         self.prepending = prepending
-        self.rules: _FreezableList[Rule] = _FreezableList()
+        self.rules: FreezableList[Rule] = FreezableList()
         assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
 
     def get_scripts(
@@ -935,10 +935,11 @@ class Lookup:
 def _add_rule(
     autochthonous_schemas: Iterable[schema.Schema],
     output_schemas: OrderedSet[schema.Schema],
-    classes: Mapping[str, _FreezableList[schema.Schema]],
+    classes: Mapping[str, FreezableList[schema.Schema]],
     named_lookups: Mapping[str, Lookup],
     lookup: Lookup,
     rule: Rule,
+    *,
     track_possible_outputs: bool = True,
 ) -> None:
     """Adds a rule to a lookup.
@@ -1126,7 +1127,7 @@ def run_phases(
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases: MutableSequence[Tuple[Lookup, Any]] = []
     if all_classes is None:
-        all_classes = collections.defaultdict(_FreezableList)
+        all_classes = collections.defaultdict(FreezableList)
     all_named_lookups_with_phases: dict[str, Tuple[Lookup, Any]] = {}
     for phase_index, phase in enumerate(phases):
         schema.CURRENT_PHASE_INDEX = phase_index
