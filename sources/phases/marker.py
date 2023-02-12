@@ -261,7 +261,7 @@ def shrink_wrap_enclosing_circle(
     for schema in schemas:
         if not schema.glyph:
             continue
-        if schema.widthless and schema.cps == [0x20DD]:
+        if schema.widthless and schema.cps == (0x20DD,):
             assert circle_schema is None
             circle_schema = schema
             classes['i'].append(circle_schema)

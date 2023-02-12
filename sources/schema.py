@@ -213,6 +213,9 @@ class Schema:
         original_shape: The type of the `path` attribute of the original
             schema from which this schema is derived through some number
             of phases.
+        scripts: The intersection of the sets of script tags associated
+            with the `cps` of this schema and of all schemas
+            canonicalized to this schema.
         phase_index: The phase index for the phase in which this schema
             was generated. See `CURRENT_PHASE_INDEX`.
         glyph: The cached FontForge glyph generated for this schema, or
@@ -410,8 +413,9 @@ class Schema:
         self.diphthong_1 = diphthong_1
         self.diphthong_2 = diphthong_2
         self.base_angle = base_angle
-        self.cps = cps or ([] if cmap is None else [cmap])
+        self.cps = tuple(cps) if cps is not None else () if cmap is None else (cmap,)
         self.original_shape = original_shape or type(path)
+        self.scripts = cps_to_scripts(self.cps)
         self.phase_index = CURRENT_PHASE_INDEX
         self._glyph_name: Optional[str] = None
         self._canonical_schema: Schema = self
@@ -595,14 +599,12 @@ class Schema:
         groups represent glyphs that are interchangeable for all
         purposes except perhaps for GSUB.
         """
-        scripts = frozenset(cps_to_scripts(tuple(self.cps)))
         if self.ignored_for_topography:
             return (
                 self.ignorability == Ignorability.DEFAULT_YES,
                 self.side_bearing,
                 self.y_min,
                 self.y_max,
-                scripts,
             )
         if isinstance(self.path, Circle) and (self.diphthong_1 or self.diphthong_2):
             path_group: Hashable = (
@@ -618,7 +620,7 @@ class Schema:
             self.ignorability == Ignorability.DEFAULT_YES,
             type(self.path),
             path_group,
-            self.path.invisible() or self.cmap is not None or self.cps[-1:] != [0x1BC9D],
+            self.path.invisible() or self.cmap is not None or self.cps[-1:] != (0x1BC9D,),
             self.size,
             self.joining_type,
             self.side_bearing,
@@ -635,7 +637,6 @@ class Schema:
             self.context_out == NO_CONTEXT and self.diphthong_2,
             self.diphthong_1,
             self.diphthong_2,
-            scripts,
         )
 
     @property
@@ -655,6 +656,7 @@ class Schema:
     @canonical_schema.setter
     def canonical_schema(self, canonical_schema: Schema) -> None:
         assert self._canonical_schema is self
+        canonical_schema.scripts |= self.scripts
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
@@ -764,7 +766,7 @@ class Schema:
                 if name:
                     name += '.'
                 name += name_from_path
-        if self.cmap is None and cps == [0x2044]:
+        if self.cmap is None and cps == (0x2044,):
             name += '.frac'
         if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
             if self.y_min is None:
@@ -808,7 +810,7 @@ class Schema:
                     name = name.removeprefix('dupl')
                 name = f'_{name}'
         agl_string = fontTools.agl.toUnicode(name)
-        agl_cps = [*map(ord, agl_string)]
+        agl_cps = tuple(map(ord, agl_string))
         assert cps == agl_cps, f'''The glyph name "{
                 name
             }" corresponds to <{

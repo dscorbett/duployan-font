@@ -104,7 +104,7 @@ def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
         if not any(map(lambda s: s.phase_index >= phase_index, group)):
             continue
         group.sort(key=Schema.sort_key)
-        canonical_schema = next(filter(lambda s: s.phase_index < phase_index, group), None)
+        canonical_schema = next((s for s in group if s.phase_index < phase_index), None)
         if canonical_schema is None:
             canonical_schema = group[0]
         for schema in list(group):
@@ -669,7 +669,7 @@ class Builder:
         floating = schema.path.draw(
             glyph,
             not invisible and pen,
-            scalar * (self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != [0x1BC9D] else self.shaded_line),
+            scalar * (self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line),
             scalar * self.light_line,
             scalar * self.stroke_gap,
             schema.size,

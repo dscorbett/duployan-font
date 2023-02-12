@@ -218,8 +218,8 @@ def cps_to_scripts(cps: tuple[int]) -> Set[str]:
 
     Args:
         cps: A code point sequence. It is assumed that the code points
-        all appear in the same item, meaning they have at most one
-        distinct script tag.
+            all appear in the same item, meaning they have at most one
+            distinct script tag.
 
     Returns:
         The set of all script tags such that a rule in a lookup

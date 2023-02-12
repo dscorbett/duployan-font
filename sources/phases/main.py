@@ -204,7 +204,7 @@ def validate_double_marks(
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    double_mark = next(s for s in original_schemas if s.cps == [0x1BC9E])
+    double_mark = next(s for s in original_schemas if s.cps == (0x1BC9E,))
     classes['double_mark'].append(double_mark)
     new_maximums = set()
     for schema in new_schemas:
@@ -790,7 +790,7 @@ def reposition_chinook_jargon_overlap_points(
             if schema.max_tree_width() == 0:
                 continue
             if (isinstance(schema.path, Line)
-                and (schema.size == 1 or schema.cps == [0x1BC07])
+                and (schema.size == 1 or schema.cps == (0x1BC07,))
                 and not schema.path.secant
                 and not schema.path.dots
             ):
@@ -801,7 +801,7 @@ def reposition_chinook_jargon_overlap_points(
                 classes[line_class].append(schema)
                 line_classes[line_class] = (angle, max_tree_width)
             elif (isinstance(schema.path, Curve)
-                and schema.cps in [[0x1BC1B], [0x1BC1C]]
+                and schema.cps in [(0x1BC1B,), (0x1BC1C,)]
                 and schema.size == 6
                 and schema.joining_type == Type.JOINING
                 and (schema.path.angle_in, schema.path.angle_out) in [(90, 270), (270, 90)]
@@ -1670,7 +1670,7 @@ def join_double_marks(
         mark_filtering_set='all',
     )
     for schema in new_schemas:
-        if schema.cps == [0x1BC9E]:
+        if schema.cps == (0x1BC9E,):
             classes['all'].append(schema)
             for i in range(2, MAX_DOUBLE_MARKS + 1):
                 add_rule(lookup, Rule([schema] * i, [schema.clone(
