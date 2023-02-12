@@ -53,7 +53,7 @@ _T = TypeVar('_T')
 class Grouper(Generic[_T]):
     def __init__(self, groups: Collection[_Group[_T]]):
         self._groups: MutableSequence[_Group[_T]] = []
-        self._inverted: MutableMapping[_T, _Group] = {}
+        self._inverted: MutableMapping[_T, _Group[_T]] = {}
         for group in groups:
             if len(group) > 1:
                 self.add(group)

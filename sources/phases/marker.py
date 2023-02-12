@@ -40,12 +40,12 @@ import collections
 from collections.abc import Collection
 import functools
 import math
-from typing import Any
 from typing import Literal
 from typing import MutableMapping
 from typing import MutableSequence
 from typing import Optional
 from typing import TYPE_CHECKING
+from typing import TypeVar
 
 
 import fontTools.otlLib.builder
@@ -89,6 +89,7 @@ from utils import WIDTH_MARKER_RADIX
 
 
 if TYPE_CHECKING:
+    from _typeshed import Incomplete
     from mypy_extensions import DefaultNamedArg
 
     from . import AddRule
@@ -309,10 +310,10 @@ def add_width_markers(
     ]
     digit_expansion_lookup = Lookup('dist', 'dflt')
     rule_count = 0
-    entry_width_markers: MutableMapping[tuple, Schema] = {}
-    left_bound_markers: MutableMapping[tuple, Schema] = {}
-    right_bound_markers: MutableMapping[tuple, Schema] = {}
-    anchor_width_markers: MutableMapping[tuple, Schema] = {}
+    entry_width_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
+    left_bound_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
+    right_bound_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
+    anchor_width_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
     path_to_markers = {
         EntryWidthDigit: entry_width_markers,
         AnchorWidthDigit: anchor_width_markers,
@@ -359,24 +360,24 @@ def add_width_markers(
     def get_glyph_class_selector(schema: Schema) -> Schema:
         return register_glyph_class_selector(schema.glyph_class)
 
-    def register_width_marker(width_markers: MutableMapping[tuple, Schema], digit_path: type[Digit], *args: Any) -> Schema:
+    def register_width_marker(width_markers: MutableMapping[tuple[Incomplete, ...], Schema], digit_path: type[Digit], *args: Incomplete) -> Schema:
         if args not in width_markers:
             width_marker = Schema(None, digit_path(*args), 0)
             width_markers[args] = width_marker
         return width_markers[args]
 
-    width_number_schemas: MutableMapping[WidthNumber, Schema] = {}
+    width_number_schemas: MutableMapping[WidthNumber[Digit], Schema] = {}
 
-    def get_width_number_schema(width_number: WidthNumber) -> Schema:
+    def get_width_number_schema(width_number: WidthNumber[Digit]) -> Schema:
         if width_number in width_number_schemas:
             return width_number_schemas[width_number]
         return width_number_schemas.setdefault(width_number, Schema(None, width_number, 0))
 
-    width_number_counter: collections.Counter = collections.Counter()
+    width_number_counter: collections.Counter[WidthNumber[Digit]] = collections.Counter()
     minimum_optimizable_width_number_count = 2
-    width_numbers: MutableMapping[tuple[type[Digit], int], WidthNumber] = {}
+    width_numbers: MutableMapping[tuple[type[Digit], int], WidthNumber[Digit]] = {}
 
-    def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber:
+    def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber[Digit]:
         width = round(width)
         if (digit_path, width) in width_numbers:
             width_number = width_numbers[(digit_path, width)]
@@ -594,7 +595,10 @@ def clear_entry_width_markers(
     return [lookup]
 
 
-class _AlwaysTrueList(list):
+_T = TypeVar('_T')
+
+
+class _AlwaysTrueList(list[_T]):
     def __bool__(self) -> Literal[True]:
         return True
 

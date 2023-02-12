@@ -66,11 +66,16 @@ from typing import Literal
 from typing import Optional
 from typing import Self
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import overload
 
 
 import uharfbuzz
+
+
+if TYPE_CHECKING:
+    from _typeshed import Incomplete
 
 
 #: The regular font’s cap height.
@@ -582,7 +587,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
     ``".."``.
     """
 
-    def __init__(self, source: Callable, delegate: MutableMapping[str, _T]) -> None:
+    def __init__(self, source: Callable[..., Incomplete], delegate: MutableMapping[str, _T]) -> None:
         """Initializes this `PrefixView`.
 
         Args:

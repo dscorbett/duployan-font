@@ -99,7 +99,7 @@ if TYPE_CHECKING:
     from phases import Phase
 
 
-def rename_schemas(grouper: sifting.Grouper, phase_index: int) -> None:
+def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
     for group in grouper.groups():
         if not any(map(lambda s: s.phase_index >= phase_index, group)):
             continue
@@ -860,7 +860,7 @@ class Builder:
         named_lookups_with_phases: MutableMapping[str, tuple[Lookup, Phase]],
     ) -> None:
         grouper = sifting.group_schemas(schemas)
-        previous_phase: Optional[Callable] = None
+        previous_phase: Optional[Phase] = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
                 rename_schemas(grouper, self._phases.index(previous_phase))

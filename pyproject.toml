@@ -21,6 +21,7 @@ enable_error_code = [
     "truthy-iterable",
     "unused-awaitable",
 ]
+disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 no_implicit_reexport = true

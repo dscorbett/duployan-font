@@ -139,6 +139,7 @@ from utils import cps_to_scripts
 
 
 if TYPE_CHECKING:
+    from mypy_extensions import Arg
     from mypy_extensions import DefaultNamedArg
 
     from duployan import Builder
@@ -1168,13 +1169,13 @@ def _add_rule(
 if TYPE_CHECKING:
     Phase = Callable[
         [
-            Builder,
-            OrderedSet[schema.Schema],
-            OrderedSet[schema.Schema],
-            OrderedSet[schema.Schema],
-            PrefixView[MutableSequence[schema.Schema]],
-            PrefixView[Lookup],
-            AddRule,
+            Arg(Builder, 'builder'),
+            Arg(OrderedSet[schema.Schema], 'original_schemas'),
+            Arg(OrderedSet[schema.Schema], 'schemas'),
+            Arg(OrderedSet[schema.Schema], 'new_schemas'),
+            Arg(PrefixView[MutableSequence[schema.Schema]], 'classes'),
+            Arg(PrefixView[Lookup], 'named_lookups'),
+            Arg(AddRule, 'add_rule'),
         ],
         MutableSequence[Lookup],
     ]

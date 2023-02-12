@@ -76,7 +76,6 @@ from collections.abc import Sequence
 import enum
 import math
 import typing
-from typing import Any
 from typing import Callable
 from typing import ClassVar
 from typing import Final
@@ -85,6 +84,7 @@ from typing import Literal
 from typing import LiteralString
 from typing import Optional
 from typing import Self
+from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import cast
 
@@ -107,6 +107,12 @@ from utils import Type
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
 from utils import mkmk
+
+
+if TYPE_CHECKING:
+    from _typeshed import Unused
+
+    from schema import Schema
 
 
 LINE_FACTOR: Final[float] = 500
@@ -260,7 +266,7 @@ class Shape:
         """
         return 0
 
-    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence) -> int:
+    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         """Returns the maximum number of consecutive instances of
         U+1BC9E DUPLOYAN DOUBLE MARK supported after this shape’s glyph.
         """
@@ -812,8 +818,8 @@ class WidthNumber(Shape, Generic[_D]):
 
     def to_digits(
         self,
-        register_width_marker: Callable[[type[_D], int, int], _D],
-    ) -> Sequence[_D]:
+        register_width_marker: Callable[[type[_D], int, int], Schema],
+    ) -> Sequence[Schema]:
         """Converts this number to a sequence of digits.
 
         Args:
@@ -1665,7 +1671,7 @@ class Line(Shape):
     def max_tree_width(self, size: float) -> int:
         return 2 if size == 2 and not self.secant else 1
 
-    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence) -> int:
+    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return (0
             if self.secant or self.dots or any(
                 m.anchor in [anchors.RELATIVE_1, anchors.RELATIVE_2, anchors.MIDDLE]
@@ -2130,7 +2136,7 @@ class Curve(Shape):
     def max_tree_width(self, size: float) -> int:
         return 1
 
-    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence) -> int:
+    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         if any(m.anchor == anchors.MIDDLE for m in marks):
             return 0
         a1, a2 = self._get_normalized_angles()
@@ -2887,7 +2893,7 @@ class Complex(Shape):
             """
             self._layer.draw(pen)
 
-        def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Any) -> None:
+        def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Unused) -> None:
             """Simulates `fontforge.glyph.transform`.
 
             Args:
