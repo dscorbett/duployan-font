@@ -40,15 +40,13 @@ import functools
 import math
 import re
 import typing
-from typing import Any
 from typing import Callable
 from typing import ClassVar
 from typing import Final
 from typing import Iterable
 from typing import Optional
 from typing import Self
-from typing import Tuple
-from typing import Union
+from typing import TYPE_CHECKING
 import unicodedata
 
 
@@ -84,6 +82,10 @@ from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import Type
 from utils import cps_to_scripts
+
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsRichComparison
 
 
 #: An integer representing the lack of a phase index. It is less than
@@ -247,7 +249,7 @@ class Schema:
     #: character name is a Unicode character name or, for nameless code
     #: points, the glyph name recommended by the Adobe Glyph List
     #: Specification.
-    _CHARACTER_NAME_RAW_SUBSTITUTIONS: ClassVar[Iterable[Tuple[str, Union[str, Callable[[re.Match[str]], str]]]]] = [
+    _CHARACTER_NAME_RAW_SUBSTITUTIONS: ClassVar[Iterable[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
@@ -294,7 +296,7 @@ class Schema:
 
     #: `_CHARACTER_NAME_RAW_SUBSTITUTIONS` with all the search strings
     #: compiled into pattern objects.
-    _CHARACTER_NAME_SUBSTITUTIONS: ClassVar[Iterable[Tuple[re.Pattern[str], Union[str, Callable[[re.Match[str]], str]]]]] = [
+    _CHARACTER_NAME_SUBSTITUTIONS: ClassVar[Iterable[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
         (re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in _CHARACTER_NAME_RAW_SUBSTITUTIONS
     ]
 
@@ -303,14 +305,14 @@ class Schema:
     #: `_CHARACTER_NAME_RAW_SUBSTITUTIONS` except that this is applied
     #: to a sequence of the outputs of `_CHARACTER_NAME_SUBSTITUTIONS`
     #: joined by ``"__"``.
-    _SEQUENCE_NAME_RAW_SUBSTITUTIONS: ClassVar[Sequence[Tuple[str, Union[str, Callable[[re.Match[str]], str]]]]] = [
+    _SEQUENCE_NAME_RAW_SUBSTITUTIONS: ClassVar[Sequence[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         (r'__zwj__', '___'),
         (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
     ]
 
     #: `_SEQUENCE_NAME_RAW_SUBSTITUTIONS` with all the search strings
     #: compiled into pattern objects.
-    _SEQUENCE_NAME_SUBSTITUTIONS: ClassVar[Sequence[Tuple[re.Pattern[str], Union[str, Callable[[re.Match[str]], str]]]]] = [
+    _SEQUENCE_NAME_SUBSTITUTIONS: ClassVar[Sequence[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
         (re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in _SEQUENCE_NAME_RAW_SUBSTITUTIONS
     ]
 
@@ -416,7 +418,7 @@ class Schema:
         self._lookalike_group: Collection[Schema] = [self]
         self.glyph: Optional[fontforge.glyph] = None
 
-    def sort_key(self) -> Any:
+    def sort_key(self) -> SupportsRichComparison:
         """Returns a sortable key representing this schema.
 
         This is used to decide which schema among many mergeable schemas
@@ -438,7 +440,7 @@ class Schema:
             len(self._calculate_name()),
         )
 
-    def glyph_id_sort_key(self) -> Any:
+    def glyph_id_sort_key(self) -> SupportsRichComparison:
         """Returns a sortable key representing the glyph ID of this
         schema’s glyph.
 
@@ -904,7 +906,7 @@ class Schema:
         """Return whether this schema can give rise to a schema that is
         ignored for topography.
         """
-        return (isinstance(self.path, (Circle, Ou))
+        return (isinstance(self.path, Circle | Ou)
             or isinstance(self.path, Curve) and not self.path.hook
         )
 

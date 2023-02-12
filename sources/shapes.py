@@ -85,9 +85,7 @@ from typing import Literal
 from typing import LiteralString
 from typing import Optional
 from typing import Self
-from typing import Tuple
 from typing import TypeVar
-from typing import Union
 from typing import cast
 
 
@@ -117,7 +115,7 @@ LINE_FACTOR: Final[float] = 500
 RADIUS: Final[float] = 50
 
 
-def _rect(r: float, theta: float) -> Tuple[float, float]:
+def _rect(r: float, theta: float) -> tuple[float, float]:
     """Converts from polar to rectangular coordinates.
 
     Args:
@@ -196,7 +194,7 @@ class Shape:
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -498,7 +496,7 @@ class Hub(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -541,7 +539,7 @@ class End(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -936,7 +934,7 @@ class Notdef(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1020,7 +1018,7 @@ class Space(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1078,7 +1076,7 @@ class Bound(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1145,7 +1143,7 @@ class ChildEdge(Shape):
             F has the lineage ``[(2, 3), (1, 1), (1, 2)]``.
     """
 
-    def __init__(self, lineage: Sequence[Tuple[int, int]]) -> None:
+    def __init__(self, lineage: Sequence[tuple[int, int]]) -> None:
         """Initializes this `ChildEdge`.
 
         Args:
@@ -1157,7 +1155,7 @@ class ChildEdge(Shape):
     def clone(
         self,
         *,
-        lineage: Sequence[Tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
+        lineage: Sequence[tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
@@ -1176,7 +1174,7 @@ class ChildEdge(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1222,7 +1220,7 @@ class ContinuingOverlapS(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1258,7 +1256,7 @@ class ParentEdge(Shape):
             empty, it represents the root of a tree.
     """
 
-    def __init__(self, lineage: Sequence[Tuple[int, int]]) -> None:
+    def __init__(self, lineage: Sequence[tuple[int, int]]) -> None:
         """Initializes this `ParentEdge`.
 
         Args:
@@ -1269,7 +1267,7 @@ class ParentEdge(Shape):
     def clone(
         self,
         *,
-        lineage: Sequence[Tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
+        lineage: Sequence[tuple[int, int]] | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
@@ -1292,7 +1290,7 @@ class ParentEdge(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1383,7 +1381,7 @@ class Dot(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1566,7 +1564,7 @@ class Line(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1906,7 +1904,7 @@ class Curve(Shape):
         self,
         diphthong_1: bool = False,
         diphthong_2: bool = False,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         angle_in = self.angle_in
         angle_out = self.angle_out
         if diphthong_1:
@@ -1927,7 +1925,7 @@ class Curve(Shape):
         diphthong_2: bool,
         final_circle_diphthong: bool,
         initial_circle_diphthong: bool,
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         a1, a2 = self._get_normalized_angles(diphthong_1, diphthong_2)
         if final_circle_diphthong:
             a2 = a1
@@ -1990,7 +1988,7 @@ class Curve(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -2429,7 +2427,7 @@ class Circle(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -2708,10 +2706,10 @@ class Circle(Shape):
         )
 
 
-_AnchorType = Union[Literal['base'], Literal['basemark'], Literal['entry'], Literal['exit'], Literal['ligature'], Literal['mark']]
+_AnchorType = Literal['base', 'basemark', 'entry', 'exit', 'ligature', 'mark']
 
 
-_Instruction = Union[Callable[[Context], Context], Union[Tuple[float, Shape], Tuple[float, Shape, bool]]]
+_Instruction = Callable[[Context], Context] | tuple[float, Shape] | tuple[float, Shape, bool]
 
 
 _Instructions = Sequence[_Instruction]
@@ -2720,7 +2718,7 @@ _Instructions = Sequence[_Instruction]
 _MutableInstructions = MutableSequence[_Instruction]
 
 
-_Point = Tuple[float, float]
+_Point = tuple[float, float]
 
 
 class Complex(Shape):
@@ -2837,7 +2835,7 @@ class Complex(Shape):
         def __init__(self) -> None:
             """Initializes this `Proxy`.
             """
-            self.anchor_points: collections.defaultdict[Tuple[str, _AnchorType], MutableSequence[_Point]] = collections.defaultdict(list)
+            self.anchor_points: collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]] = collections.defaultdict(list)
             self._layer = fontforge.layer()
             self._layer += fontforge.contour()
 
@@ -2862,7 +2860,7 @@ class Complex(Shape):
             self,
             nib_type: LiteralString,
             width_or_contour: float,
-            *args: float | str | Tuple[str, ...],
+            *args: float | str | tuple[str, ...],
             **kwargs: bool | float | str,
         ) -> None:
             """Simulates `fontforge.glyph.stroke`.
@@ -2876,10 +2874,10 @@ class Complex(Shape):
             """
             self._layer.stroke(nib_type, width_or_contour, *args, **kwargs)
 
-        def boundingBox(self) -> Tuple[float, float, float, float]:
+        def boundingBox(self) -> tuple[float, float, float, float]:
             """Simulates `fontforge.glyph.boundingBox`.
             """
-            return cast(Tuple[float, float, float, float], self._layer.boundingBox())
+            return cast(tuple[float, float, float, float], self._layer.boundingBox())
 
         def draw(self, pen: fontforge.glyphPen) -> None:
             """Draws the collected data to a FontForge glyph.
@@ -2889,7 +2887,7 @@ class Complex(Shape):
             """
             self._layer.draw(pen)
 
-        def transform(self, matrix: Tuple[float, float, float, float, float, float], *args: Any) -> None:
+        def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Any) -> None:
             """Simulates `fontforge.glyph.transform`.
 
             Args:
@@ -2939,7 +2937,7 @@ class Complex(Shape):
             """Ignores `fontforge.glyph.removeOverlap`.
             """
 
-        def get_crossing_point(self, component: Union[Curve, Circle]) -> _Point:
+        def get_crossing_point(self, component: Curve | Circle) -> _Point:
             """Returns the point at which two rays extending from a
             circle or curve’s entry and exit points would cross.
 
@@ -2986,7 +2984,7 @@ class Complex(Shape):
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> Tuple[bool, collections.defaultdict[Tuple[str, _AnchorType], list[_Point]]]:
+    ) -> tuple[bool, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         """Draws this shape to a `Proxy`.
 
         This method is split out from `draw` so that subclasses can
@@ -3011,7 +3009,7 @@ class Complex(Shape):
             anchor name and anchor type.
         """
         first_is_invisible = None
-        singular_anchor_points: collections.defaultdict[Tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
+        singular_anchor_points: collections.defaultdict[tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
         for op in self.instructions:
             if callable(op):
                 continue
@@ -3086,7 +3084,7 @@ class Complex(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3333,7 +3331,7 @@ class RomanianU(Complex):
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> Tuple[bool, collections.defaultdict[Tuple[str, _AnchorType], list[_Point]]]:
+    ) -> tuple[bool, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         (
             first_is_invisible,
             singular_anchor_points,
@@ -3409,7 +3407,7 @@ class Ou(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3422,13 +3420,12 @@ class Ou(Complex):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        drawer: Union[super, Complex]
         if self.role != CircleRole.LEADER or self._isolated:
-            drawer = super()
+            drawer = cast(Complex, super())
         else:
             circle_op = self.instructions[2 if self._initial else 0]
             circle_path = circle_op[1]  # type: ignore[index]
-            assert isinstance(circle_path, (Circle, Curve))
+            assert isinstance(circle_path, Circle | Curve)
             clockwise = circle_path.clockwise
             curve_op = self.instructions[0 if self._initial else 2]
             curve_path = curve_op[1]  # type: ignore[index]
@@ -3465,7 +3462,7 @@ class Ou(Complex):
                     )),
                 ]
             drawer = Complex(instructions=instructions)
-        drawer.draw(  # type: ignore[union-attr]
+        drawer.draw(
             glyph,
             pen,
             stroke_width,
@@ -3582,7 +3579,7 @@ class SeparateAffix(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3674,7 +3671,7 @@ class Wa(Complex):
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> Tuple[bool, collections.defaultdict[Tuple[str, _AnchorType], list[_Point]]]:
+    ) -> tuple[bool, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         first_is_invisible = None
         last_crossing_point: Optional[_Point] = None
         singular_anchor_points = collections.defaultdict(list)
@@ -3832,7 +3829,7 @@ class Wi(Complex):
                                 angle_in=(op[1].angle_in + 180) % 360,
                                 angle_out=(op[1].angle_out + 180) % 360,
                                 clockwise=not op[1].clockwise,
-                            ) if isinstance(op[1], (Circle, Curve))
+                            ) if isinstance(op[1], Circle | Curve)
                             else op[1],
                         *op[2:],
                     ) for op in self.instructions
@@ -3922,7 +3919,7 @@ class XShape(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: Union[fontforge.glyphPen, Literal[False]],
+            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,

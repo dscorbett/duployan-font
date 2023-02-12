@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = ['Builder']
 
 
@@ -24,11 +27,10 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import io
 import math
-from typing import Any
 from typing import Callable
 from typing import Final
 from typing import Optional
-from typing import Tuple
+from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
 
@@ -54,56 +56,32 @@ from schema import MAX_DOUBLE_MARKS
 from schema import MAX_HUB_PRIORITY
 from schema import NO_PHASE_INDEX
 from schema import Schema
-from shapes import AnchorWidthDigit
 from shapes import Bound
-from shapes import Carry
-from shapes import ChildEdge
 from shapes import Circle
-from shapes import CircleRole
 from shapes import Complex
-from shapes import ContextMarker
-from shapes import ContinuingOverlap
-from shapes import ContinuingOverlapS
 from shapes import Curve
-from shapes import DigitStatus
 from shapes import Dot
-from shapes import Dummy
-from shapes import End
-from shapes import EntryWidthDigit
-from shapes import GlyphClassSelector
-from shapes import Hub
-from shapes import InitialSecantMarker
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
 from shapes import LINE_FACTOR
-from shapes import LeftBoundDigit
 from shapes import Line
-from shapes import MarkAnchorSelector
 from shapes import Notdef
 from shapes import Ou
-from shapes import ParentEdge
 from shapes import RADIUS
-from shapes import RightBoundDigit
 from shapes import RomanianU
-from shapes import RootOnlyParentEdge
 from shapes import SeparateAffix
 from shapes import Space
-from shapes import Start
 from shapes import TangentHook
-from shapes import ValidDTLS
 from shapes import Wa
 from shapes import Wi
-from shapes import WidthNumber
 from shapes import XShape
 import sifting
 from utils import BRACKET_DEPTH
 from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
-from utils import CLONE_DEFAULT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
-from utils import EPSILON
 from utils import GlyphClass
 from utils import KNOWN_SCRIPTS
 from utils import MAX_TREE_DEPTH
@@ -114,9 +92,11 @@ from utils import PrefixView
 from utils import REGULAR_LIGHT_LINE
 from utils import SHADING_FACTOR
 from utils import Type
-from utils import WIDTH_MARKER_PLACES
-from utils import WIDTH_MARKER_RADIX
 from utils import mkmk
+
+
+if TYPE_CHECKING:
+    from phases import Phase
 
 
 def rename_schemas(grouper: sifting.Grouper, phase_index: int) -> None:
@@ -759,9 +739,9 @@ class Builder:
         glyph.width = 0
 
     def _complete_gpos(self) -> None:
-        mark_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        base_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        basemark_positions: collections.defaultdict[str, collections.defaultdict[Tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        mark_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        base_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
+        basemark_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
         cursive_positions: collections.defaultdict[str, collections.defaultdict[str, MutableSequence[Optional[fontTools.feaLib.ast.Anchor]]]] = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
         for glyph in self.font.glyphs():
             for anchor_class_name, type, x, y in glyph.anchorPoints:
@@ -843,7 +823,7 @@ class Builder:
 
     def convert_named_lookups(
         self,
-        named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+        named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
         class_asts: MutableMapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
     ) -> dict[str, fontTools.feaLib.ast.LookupBlock]:
         named_lookup_asts: dict[str, fontTools.feaLib.ast.LookupBlock] = {}
@@ -875,9 +855,9 @@ class Builder:
     def _merge_schemas(
         self,
         schemas: Collection[Schema],
-        lookups_with_phases: Sequence[Tuple[Lookup, Any]],
-        classes: MutableMapping[str, Collection[Schema]],
-        named_lookups_with_phases: MutableMapping[str, Tuple[Lookup, Any]],
+        lookups_with_phases: Sequence[tuple[Lookup, Phase]],
+        classes: MutableMapping[str, MutableSequence[Schema]],
+        named_lookups_with_phases: MutableMapping[str, tuple[Lookup, Phase]],
     ) -> None:
         grouper = sifting.group_schemas(schemas)
         previous_phase: Optional[Callable] = None

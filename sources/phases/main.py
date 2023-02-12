@@ -65,7 +65,6 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import itertools
-from typing import Callable
 from typing import Iterable
 from typing import MutableMapping
 from typing import Optional
@@ -76,7 +75,6 @@ from typing import TypeVar
 import fontTools.otlLib.builder
 
 
-from . import FreezableList
 from . import Lookup
 from . import Rule
 import anchors
@@ -120,6 +118,7 @@ from utils import mkmk
 if TYPE_CHECKING:
     from mypy_extensions import DefaultNamedArg
 
+    from . import AddRule
     from duployan import Builder
 
 
@@ -128,9 +127,9 @@ def dont_ignore_default_ignorables(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup_1 = Lookup('abvm', 'dflt')
     lookup_2 = Lookup('abvm', 'dflt')
@@ -146,9 +145,9 @@ def reversed_circle_kludge(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
@@ -166,9 +165,9 @@ def validate_shading(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -194,9 +193,9 @@ def validate_double_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -225,9 +224,9 @@ def decompose(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('abvs', 'dflt')
     for schema in schemas:
@@ -241,9 +240,9 @@ def expand_secants(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'abvs',
@@ -282,9 +281,9 @@ def validate_overlap_controls(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -346,9 +345,9 @@ def add_parent_edges(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     if len(original_schemas) != len(schemas):
@@ -416,9 +415,9 @@ def invalidate_overlap_controls(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -499,9 +498,9 @@ def add_secant_guidelines(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('abvs', 'dflt')
     if len(original_schemas) != len(schemas):
@@ -539,9 +538,9 @@ def add_placeholders_for_missing_children(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup_1 = Lookup(
         'blwm',
@@ -607,9 +606,9 @@ def categorize_edges(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'blwm',
@@ -697,9 +696,9 @@ def promote_final_letter_overlap_to_continuing_overlap(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('rclt', 'dflt')
     if len(original_schemas) != len(schemas):
@@ -762,9 +761,9 @@ def reposition_chinook_jargon_overlap_points(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     # TODO: This should be a general thing, not limited to specific Chinook
     # Jargon abbreviations and a few similar patterns.
@@ -841,9 +840,9 @@ def make_mark_variants_of_children(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     old_child_count = len(classes['child'])
@@ -869,9 +868,9 @@ def interrupt_overlong_primary_curve_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -978,9 +977,9 @@ def reposition_stenographic_period(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1006,9 +1005,9 @@ def disjoin_equals_sign(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1034,9 +1033,9 @@ def join_with_next_step(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1088,9 +1087,9 @@ def separate_subantiparallel_lines(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1108,7 +1107,7 @@ def separate_subantiparallel_lines(
             ):
                 lines_by_angle[schema.path.angle].append(schema)
         elif (isinstance(schema.path, Circle) and schema.is_primary
-            or isinstance(schema.path, (RomanianU, Ou, Wa, Wi))
+            or isinstance(schema.path, RomanianU | Ou | Wa | Wi)
         ):
             classes['vowel'].append(schema)
     closeness_threshold = 20
@@ -1152,9 +1151,9 @@ def prepare_for_secondary_diphthong_ligature(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1184,9 +1183,9 @@ def join_with_previous(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup_1 = Lookup(
         'rclt',
@@ -1235,9 +1234,9 @@ def unignore_last_orienting_glyph_in_initial_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1281,9 +1280,9 @@ def ignore_first_orienting_glyph_in_initial_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1305,7 +1304,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
         ):
             classes['c'].append(schema)
             if schema.joining_type == Type.ORIENTING and not isinstance(schema.path, Ou):
-                assert isinstance(schema.path, (Circle, Curve))
+                assert isinstance(schema.path, Circle | Curve)
                 classes['i'].append(schema)
                 angle_out = schema.path.angle_out - schema.path.angle_in
                 path = schema.path.clone(
@@ -1331,9 +1330,9 @@ def tag_main_glyph_in_orienting_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1347,7 +1346,7 @@ def tag_main_glyph_in_orienting_sequence(
             classes['dependent'].append(schema)
         elif (schema.joining_type == Type.ORIENTING
             and schema.glyph_class == GlyphClass.JOINER
-            and (isinstance(schema.path, (Circle, Ou))
+            and (isinstance(schema.path, Circle | Ou)
                 and schema.path.role == CircleRole.INDEPENDENT
             )
         ):
@@ -1363,9 +1362,9 @@ def join_with_next(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     pre_lookup = Lookup(
         'rclt',
@@ -1403,7 +1402,7 @@ def join_with_next(
         add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
     for schema in new_schemas:
         if (schema.glyph_class == GlyphClass.JOINER
-            and (old_input_count == 0 or not isinstance(schema.path, (Curve, Circle, Complex)))
+            and (old_input_count == 0 or not isinstance(schema.path, Curve | Circle | Complex))
             and not (isinstance(schema.path, Line) and schema.path.secant)
             and (context_out := schema.path.context_in()) != NO_CONTEXT
         ):
@@ -1435,9 +1434,9 @@ def join_circle_with_adjacent_nonorienting_glyph(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1474,9 +1473,9 @@ def ligate_diphthongs(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1489,7 +1488,7 @@ def ligate_diphthongs(
     for schema in new_schemas:
         if not schema.can_become_part_of_diphthong:
             continue
-        assert isinstance(schema.path, (Circle, Curve))
+        assert isinstance(schema.path, Circle | Curve)
         is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
         is_ignored = schema.ignored_for_topography
         is_primary = schema.is_primary
@@ -1535,9 +1534,9 @@ def thwart_what_would_flip(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1566,9 +1565,9 @@ def unignore_noninitial_orienting_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1613,9 +1612,9 @@ def unignore_initial_orienting_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rclt',
@@ -1661,9 +1660,9 @@ def join_double_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -1691,9 +1690,9 @@ def rotate_diacritics(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -1739,9 +1738,9 @@ def shade(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -1773,9 +1772,9 @@ def create_diagonal_fractions(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup_slash = Lookup(
         'rlig',
@@ -1819,9 +1818,9 @@ def create_superscripts_and_subscripts(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup_sups = Lookup('sups', 'dflt')
     lookup_subs = Lookup('subs', 'dflt')
@@ -1841,9 +1840,9 @@ def make_widthless_variants_of_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     first_iteration = 'i' not in classes
@@ -1866,9 +1865,9 @@ def classify_marks_for_trees(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     for schema in schemas:
         for anchor in anchors.ALL_MARK:

@@ -41,7 +41,6 @@ from collections.abc import Collection
 import functools
 import math
 from typing import Any
-from typing import Callable
 from typing import Literal
 from typing import MutableMapping
 from typing import MutableSequence
@@ -52,7 +51,6 @@ from typing import TYPE_CHECKING
 import fontTools.otlLib.builder
 
 
-from . import FreezableList
 from . import Lookup
 from . import Rule
 import anchors
@@ -93,6 +91,7 @@ from utils import WIDTH_MARKER_RADIX
 if TYPE_CHECKING:
     from mypy_extensions import DefaultNamedArg
 
+    from . import AddRule
     from duployan import Builder
 
 
@@ -101,9 +100,9 @@ def add_shims_for_pseudo_cursive(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     marker_lookup = Lookup(
         'abvm',
@@ -240,9 +239,9 @@ def shrink_wrap_enclosing_circle(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',
@@ -299,9 +298,9 @@ def add_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookups_per_position = 6
     lookups = [
@@ -506,9 +505,9 @@ def add_end_markers_for_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
@@ -528,9 +527,9 @@ def remove_false_end_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -552,9 +551,9 @@ def clear_entry_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -605,9 +604,9 @@ def sum_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -812,7 +811,7 @@ def sum_width_markers(
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                     mark_filtering_set=context_in_lookup_name,
                                 )
-                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, (Schema, str)) else _AlwaysTrueList()
+                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, Schema | str) else _AlwaysTrueList()
                             add_rule(lookup, Rule(
                                 contexts_in,
                                 [addend_schema],
@@ -853,9 +852,9 @@ def calculate_bound_extrema(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     left_lookup = Lookup(
         'dist',
@@ -931,9 +930,9 @@ def remove_false_start_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -954,9 +953,9 @@ def mark_hubs_after_initial_secants(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -990,9 +989,9 @@ def find_real_hub(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -1035,9 +1034,9 @@ def expand_start_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
@@ -1053,9 +1052,9 @@ def mark_maximum_bounds(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     left_lookup = Lookup(
         'dist',
@@ -1111,9 +1110,9 @@ def copy_maximum_left_bound_to_start(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'dist',
@@ -1160,9 +1159,9 @@ def dist(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:

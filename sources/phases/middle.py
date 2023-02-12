@@ -23,12 +23,10 @@ __all__ = [
 
 
 from collections.abc import Collection
-from typing import Callable
 from typing import MutableSequence
 from typing import TYPE_CHECKING
 
 
-from . import FreezableList
 from . import Lookup
 from . import Rule
 from schema import Schema
@@ -40,6 +38,7 @@ from utils import PrefixView
 if TYPE_CHECKING:
     from mypy_extensions import DefaultNamedArg
 
+    from . import AddRule
     from duployan import Builder
 
 
@@ -48,9 +47,9 @@ def merge_lookalikes(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[FreezableList[Schema]],
+    classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
-    add_rule: Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None],
+    add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
         'rlig',

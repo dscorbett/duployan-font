@@ -101,7 +101,6 @@ __all__ = [
 
 
 import collections
-from collections.abc import Collection
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
@@ -109,7 +108,7 @@ from collections.abc import MutableSet
 from collections.abc import Sequence
 import itertools
 import functools
-from typing import Any
+from typing import Callable
 from typing import ClassVar
 from typing import Final
 from typing import Generic
@@ -118,9 +117,7 @@ from typing import Iterator
 from typing import Optional
 from typing import Set
 from typing import TYPE_CHECKING
-from typing import Tuple
 from typing import TypeVar
-from typing import Union
 from typing import cast
 from typing import overload
 
@@ -142,7 +139,9 @@ from utils import cps_to_scripts
 
 
 if TYPE_CHECKING:
-    import duployan
+    from mypy_extensions import DefaultNamedArg
+
+    from duployan import Builder
 
 
 # TODO: Document the edge class name constants better with reference to
@@ -179,7 +178,7 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class FreezableList(Generic[_T], Collection[_T]):
+class _FreezableList(Generic[_T], MutableSequence[_T]):
     """A list that can be frozen, making it immutable.
 
     This is not a `list` in the Python sense, but it is analogous.
@@ -201,6 +200,54 @@ class FreezableList(Generic[_T], Collection[_T]):
         """
         return key in self._delegate
 
+    @overload
+    def __delitem__(self, index: int, /) -> None:
+        ...
+
+    @overload
+    def __delitem__(self, index: slice, /) -> None:
+        ...
+
+    def __delitem__(self, index: int | slice, /) -> None:
+        """Deletes the element(s) at an index or range of indices.
+
+        Args:
+            index: The index, or range of indices, of the element(s) to
+                delete.
+
+        Raises:
+            IndexError: If `index` is out of range.
+            ValueError: If this list is frozen.
+        """
+        if isinstance(self._delegate, MutableSequence):
+            del self._delegate[index]
+        else:
+            raise ValueError('Modifying a frozen list') from None
+
+    @overload
+    def __getitem__(self, index: int, /) -> _T:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice, /) -> MutableSequence[_T]:
+        ...
+
+    def __getitem__(self, index: int | slice, /) -> _T | MutableSequence[_T]:
+        """Returns the element(s) at an index or range of indices.
+
+        Args:
+            index: The index, or range of indices, of the element(s) to
+                return.
+
+        Raises:
+            IndexError: If `index` is out of range.
+        """
+        match index:
+            case int():
+                return self._delegate[index]
+            case slice():
+                return self._delegate[index] if isinstance(self._delegate, MutableSequence) else [*self._delegate[index]]
+
     def __iter__(self) -> Iterator[_T]:
         """Returns an iterator over this list.
         """
@@ -210,6 +257,31 @@ class FreezableList(Generic[_T], Collection[_T]):
         """Returns the length of this list.
         """
         return len(self._delegate)
+
+    @overload
+    def __setitem__(self, index: int, object: _T, /) -> None:
+        ...
+
+    @overload
+    def __setitem__(self, index: slice, object: Iterable[_T], /) -> None:
+        ...
+
+    def __setitem__(self, index: int | slice, object: _T | Iterable[_T], /) -> None:
+        """Sets the element(s) at an index or range of indices.
+
+        Args:
+            index: The index, or range of indices, of the element(s) to
+                set.
+            object: The new value(s) of the element(s) at `index`.
+
+        Raises:
+            IndexError: If the index is out of range.
+            ValueError: If this list is frozen.
+        """
+        if isinstance(self._delegate, MutableSequence):
+            self._delegate[index] = object  # type: ignore[index]
+        else:
+            raise ValueError('Modifying a frozen list') from None
 
     def insert(self, index: int, object: _T, /) -> None:
         """Inserts something into this list.
@@ -225,7 +297,7 @@ class FreezableList(Generic[_T], Collection[_T]):
         if isinstance(self._delegate, MutableSequence):
             self._delegate.insert(index, object)
         else:
-            raise ValueError('Inserting into a frozen list') from None
+            raise ValueError('Modifying a frozen list') from None
 
     def append(self, object: _T, /) -> None:
         """Appends something to this list.
@@ -293,8 +365,8 @@ class Rule:
     @overload
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
         /,
     ) -> None:
         ...
@@ -302,10 +374,10 @@ class Rule:
     @overload
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
-        a3: Union[str, Sequence[Union[schema.Schema, str]]],
-        a4: Union[str, Sequence[Union[schema.Schema, str]]],
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
+        a3: str | Sequence[schema.Schema | str],
+        a4: str | Sequence[schema.Schema | str],
         /,
     ) -> None:
         ...
@@ -313,9 +385,9 @@ class Rule:
     @overload
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
-        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
+        a3: Optional[str | Sequence[schema.Schema | str]],
         /,
         *,
         lookups: Sequence[Optional[str]],
@@ -325,9 +397,9 @@ class Rule:
     @overload
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
-        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
+        a3: Optional[str | Sequence[schema.Schema | str]],
         /,
         *,
         x_placements: Sequence[Optional[float]],
@@ -338,9 +410,9 @@ class Rule:
     @overload
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
-        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]],
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
+        a3: Optional[str | Sequence[schema.Schema | str]],
         /,
         *,
         x_advances: Sequence[Optional[float]],
@@ -349,10 +421,10 @@ class Rule:
 
     def __init__(
         self,
-        a1: Union[str, Sequence[Union[schema.Schema, str]]],
-        a2: Union[str, Sequence[Union[schema.Schema, str]]],
-        a3: Optional[Union[str, Sequence[Union[schema.Schema, str]]]] = None,
-        a4: Optional[Union[str, Sequence[Union[schema.Schema, str]]]] = None,
+        a1: str | Sequence[schema.Schema | str],
+        a2: str | Sequence[schema.Schema | str],
+        a3: Optional[str | Sequence[schema.Schema | str]] = None,
+        a4: Optional[str | Sequence[schema.Schema | str]] = None,
         /,
         *,
         lookups: Optional[Sequence[Optional[str]]] = None,
@@ -387,10 +459,10 @@ class Rule:
             ...
 
         @overload
-        def _l(glyphs: Union[str, Sequence[Union[schema.Schema, str]]]) -> Sequence[Union[schema.Schema, str]]:
+        def _l(glyphs: str | Sequence[schema.Schema | str]) -> Sequence[schema.Schema | str]:
             ...
 
-        def _l(glyphs: Optional[Union[str, Sequence[Union[schema.Schema, str]]]]) -> Optional[Sequence[Union[schema.Schema, str]]]:
+        def _l(glyphs: Optional[str | Sequence[schema.Schema | str]]) -> Optional[Sequence[schema.Schema | str]]:
             return [glyphs] if isinstance(glyphs, str) else glyphs
 
         if a4 is None and lookups is None and x_advances is None:
@@ -453,9 +525,9 @@ class Rule:
             rule.
         """
         def glyph_to_ast(
-            glyph: Union[str, schema.Schema],
+            glyph: str | schema.Schema,
             unrolling_index: Optional[int] = None,
-        ) -> Union[fontTools.feaLib.ast.GlyphClassName, fontTools.feaLib.ast.GlyphName]:
+        ) -> fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName:
             if isinstance(glyph, str):
                 if unrolling_index is not None:
                     return fontTools.feaLib.ast.GlyphName(class_asts[glyph].glyphs.glyphs[unrolling_index])
@@ -464,13 +536,13 @@ class Rule:
             return fontTools.feaLib.ast.GlyphName(str(glyph))
 
         def glyphs_to_ast(
-            glyphs: Iterable[Union[str, schema.Schema]],
+            glyphs: Iterable[str | schema.Schema],
             unrolling_index: Optional[int] = None,
-        ) -> Sequence[Union[fontTools.feaLib.ast.GlyphClassName, fontTools.feaLib.ast.GlyphName]]:
+        ) -> Sequence[fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName]:
             return [glyph_to_ast(glyph, unrolling_index) for glyph in glyphs]
 
         def glyph_to_name(
-            glyph: Union[str, schema.Schema],
+            glyph: str | schema.Schema,
             unrolling_index: Optional[int] = None,
         ) -> str:
             if isinstance(glyph, str):
@@ -481,7 +553,7 @@ class Rule:
             return str(glyph)
 
         def glyphs_to_names(
-            glyphs: Iterable[Union[str, schema.Schema]],
+            glyphs: Iterable[str | schema.Schema],
             unrolling_index: Optional[int] = None,
         ) -> Sequence[str]:
             return [glyph_to_name(glyph, unrolling_index) for glyph in glyphs]
@@ -726,7 +798,7 @@ class Lookup:
         self.required = feature is not None and feature not in self._DISCRETIONARY_FEATURES
         self.reversed = reversed
         self.prepending = prepending
-        self.rules: FreezableList[Rule] = FreezableList()
+        self.rules: _FreezableList[Rule] = _FreezableList()
         assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
 
     def get_scripts(
@@ -755,7 +827,7 @@ class Lookup:
             return cps_to_scripts(tuple(schema.cps))
 
         def s_to_scripts(
-            s: Union[schema.Schema, str],
+            s: schema.Schema | str,
             class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         ) -> Set[str]:
             if isinstance(s, str):
@@ -764,7 +836,7 @@ class Lookup:
                 return schema_to_scripts(s)
 
         def target_to_scripts(
-            target: Optional[Sequence[Union[schema.Schema, str]]],
+            target: Optional[Sequence[schema.Schema | str]],
             class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         ) -> Set[str]:
             scripts = set(KNOWN_SCRIPTS)
@@ -835,7 +907,7 @@ class Lookup:
         features_to_scripts: Optional[Mapping[str, Set[str]]],
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
-        name: Union[str, int],
+        name: str | int,
     ) -> Sequence[fontTools.feaLib.ast.Block]:
         """Converts this lookup to fontTools feaLib ASTs.
 
@@ -932,10 +1004,14 @@ class Lookup:
                 self.append(rule)
 
 
+if TYPE_CHECKING:
+    AddRule = Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None]
+
+
 def _add_rule(
     autochthonous_schemas: Iterable[schema.Schema],
     output_schemas: OrderedSet[schema.Schema],
-    classes: Mapping[str, FreezableList[schema.Schema]],
+    classes: Mapping[str, _FreezableList[schema.Schema]],
     named_lookups: Mapping[str, Lookup],
     lookup: Lookup,
     rule: Rule,
@@ -980,7 +1056,7 @@ def _add_rule(
             )
         )
 
-    def check_ignored(target_part: Iterable[Union[schema.Schema, str]]) -> None:
+    def check_ignored(target_part: Iterable[schema.Schema | str]) -> None:
         """Asserts that a rule part contains no ignored schemas.
 
         It is not useful for a rule to mention an ignored schema. It is
@@ -1020,10 +1096,10 @@ def _add_rule(
         elif input in autochthonous_schemas:
             return
 
-    def is_prefix(maybe_prefix: Sequence[Union[schema.Schema, str]], full: Sequence[Union[schema.Schema, str]]) -> bool:
+    def is_prefix(maybe_prefix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
         return len(maybe_prefix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(maybe_prefix, full)))
 
-    def is_suffix(maybe_suffix: Sequence[Union[schema.Schema, str]], full: Sequence[Union[schema.Schema, str]]) -> bool:
+    def is_suffix(maybe_suffix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
         return len(maybe_suffix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(reversed(maybe_suffix), reversed(full))))
 
     if not lookup.prepending and any(r.is_contextual() for r in lookup.rules):
@@ -1089,17 +1165,32 @@ def _add_rule(
     register_output_schemas(rule)
 
 
+if TYPE_CHECKING:
+    Phase = Callable[
+        [
+            Builder,
+            OrderedSet[schema.Schema],
+            OrderedSet[schema.Schema],
+            OrderedSet[schema.Schema],
+            PrefixView[MutableSequence[schema.Schema]],
+            PrefixView[Lookup],
+            AddRule,
+        ],
+        MutableSequence[Lookup],
+    ]
+
+
 def run_phases(
-    builder: duployan.Builder,
+    builder: Builder,
     all_input_schemas: Iterable[schema.Schema],
-    phases: Iterable,
-    all_classes: Optional[collections.defaultdict[str, Collection[schema.Schema]]] = None,
-) -> Tuple[
+    phases: Iterable[Phase],
+    all_classes: Optional[collections.defaultdict[str, MutableSequence[schema.Schema]]] = None,
+) -> tuple[
     OrderedSet[schema.Schema],
     Iterable[schema.Schema],
-    MutableSequence[Tuple[Lookup, Any]],
-    collections.defaultdict[str, Collection[schema.Schema]],
-    MutableMapping[str, Tuple[Lookup, Any]],
+    MutableSequence[tuple[Lookup, Phase]],
+    collections.defaultdict[str, MutableSequence[schema.Schema]],
+    MutableMapping[str, tuple[Lookup, Phase]],
 ]:
     """Runs a sequence of phases.
 
@@ -1107,7 +1198,7 @@ def run_phases(
         builder: The source of everything.
         all_input_schemas: The input schemas for the first iteration of
             the first phase.
-        phases (Iterable[Phase]): The phases to run.
+        phases: The phases to run.
         all_classes: The font’s global mapping to classes from their
             names. If ``None``, this method starts with a new empty mapping.
 
@@ -1125,10 +1216,10 @@ def run_phases(
     """
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
-    all_lookups_with_phases: MutableSequence[Tuple[Lookup, Any]] = []
+    all_lookups_with_phases: MutableSequence[tuple[Lookup, Phase]] = []
     if all_classes is None:
-        all_classes = collections.defaultdict(FreezableList)
-    all_named_lookups_with_phases: dict[str, Tuple[Lookup, Any]] = {}
+        all_classes = collections.defaultdict(_FreezableList)
+    all_named_lookups_with_phases: dict[str, tuple[Lookup, Phase]] = {}
     for phase_index, phase in enumerate(phases):
         schema.CURRENT_PHASE_INDEX = phase_index
         all_output_schemas: OrderedSet[schema.Schema] = OrderedSet()

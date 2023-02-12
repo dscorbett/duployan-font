@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 __all__ = [
     'Grouper',
     'group_schemas',
@@ -26,16 +29,19 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
-from typing import Any
 from typing import Generic
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import TypeVar
-from typing import Tuple
-from typing import Union
 
 
-import phases
+from phases import Lookup
+from phases import Rule
 from schema import Schema
+
+
+if TYPE_CHECKING:
+    from phases import Phase
 
 
 _Group = list
@@ -91,10 +97,10 @@ def group_schemas(schemas: Collection[Schema]) -> Grouper[Schema]:
 
 def _sift_groups_in_rule_part(
     grouper: Grouper[Schema],
-    rule: phases.Rule,
-    target_part: Sequence[Union[Schema, str]],
+    rule: Rule,
+    target_part: Sequence[Schema | str],
     classes: Mapping[str, Collection[Schema]],
-    named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+    named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
 ) -> None:
     for s in target_part:
         if isinstance(s, str):
@@ -145,9 +151,9 @@ def _sift_groups_in_rule_part(
 
 def sift_groups(
     grouper: Grouper[Schema],
-    lookup: phases.Lookup,
+    lookup: Lookup,
     classes: Mapping[str, Collection[Schema]],
-    named_lookups_with_phases: Mapping[str, Tuple[phases.Lookup, Any]],
+    named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
 ) -> None:
     for rule in lookup.rules:
         _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)

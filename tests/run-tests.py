@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2023 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,6 @@ import subprocess
 import sys
 from typing import Generator
 from typing import Literal
-from typing import Tuple
-from typing import Union
 
 
 CI = os.getenv('CI') == 'true'
@@ -52,16 +50,17 @@ NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)')
 
 
-_Color = Union[Literal['auto'], Literal['no'], Literal['yes']]
+_Color = Literal['auto', 'no', 'yes']
 
 
 def parse_color(color: _Color) -> bool:
-    if color == 'auto':
-        return CI or sys.stdout.isatty()
-    if color == 'no':
-        return False
-    if color == 'yes':
-        return True
+    match color:
+        case 'auto':
+            return CI or sys.stdout.isatty()
+        case 'no':
+            return False
+        case 'yes':
+            return True
     raise ValueError(f'Invalid --color value: {color}')
 
 
@@ -137,7 +136,7 @@ def run_test(
     color: bool,
     incomplete: bool,
     view_all: bool,
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         [
