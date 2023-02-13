@@ -99,6 +99,8 @@
 003A 20DD:--script Dupl:[colon@246,0|uni20DD.enclosing_circle.wl@380,-174|_@760,0]
 003B 20DD:--script Dupl:[semicolon@300,0|uni20DD.enclosing_circle.wl@447,-351|_@893,0]
 003F 20DD:--script Dupl:[question@209,0|uni20DD.enclosing_circle.wl@458,-174|_@916,0]
+00A1 20DD:--script Dupl:[uni00A1.inverted_exclamation@325,0|uni20DD.enclosing_circle.wl@458,-367|_@915,0]
+00BF 20DD:--script Dupl:[uni00BF.inverted_question@228,0|uni20DD.enclosing_circle.wl@458,-367|_@915,0]
 2013 20DD:--script Dupl:[uni2013.en_dash@140,0|uni20DD.enclosing_circle.wl@510,42|_@1020,0]
 201C 20DD:--script Dupl:[uni201C.left_double_quote@140,0|uni20DD.enclosing_circle.wl@366,384|_@732,0]
 201D 20DD:--script Dupl:[uni201D.right_double_quote@140,0|uni20DD.enclosing_circle.wl@367,391|_@733,0]
