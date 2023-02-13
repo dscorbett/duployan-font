@@ -1756,6 +1756,20 @@ class Line(Shape):
         return 270 if 45 <= (self.angle + 90) % 180 < 135 else 0
 
 
+class StretchAxis(enum.Enum):
+    """The axis alone which a `Curve` is stretched.
+    """
+
+    #: The y axis.
+    ABSOLUTE = enum.auto()
+
+    #: The `Curve`’s `angle_in`.
+    ANGLE_IN = enum.auto()
+
+    #: The `Curve`’s `angle_out`.
+    ANGLE_OUT = enum.auto()
+
+
 class Curve(Shape):
     """An arc of an ellipse.
 
@@ -1766,12 +1780,10 @@ class Curve(Shape):
         stretch: How much to stretch this curve in one axis, as a
             proportion of the other axis. If ``stretch == 0``, this
             curve is an arc of a circle.
-        long: Whether to stretch this curve along the axis parallel to
-            the entry angle, as opposed to perpendicular. This has no
-            effect if ``stretch == 0``.
-        relative_stretch: Whether `stretch` works in terms of the
-            ellipse’s major axis and minor axis, as opposed to the
-            absolute x axis and y axis.
+        long: Whether to stretch this curve along the axis perpendicular
+            to the one indicated by `stretch_axis`. This has no effect
+            if ``stretch == 0``.
+        stretch_axis: The axis along which this curve is stretched.
         hook: Whether this curve represents a hook character.
         reversed_circle: Whether this curve represents a reversed circle
             character.
@@ -1802,7 +1814,7 @@ class Curve(Shape):
         clockwise: bool,
         stretch: float = 0,
         long: bool = False,
-        relative_stretch: bool = True,
+        stretch_axis: StretchAxis = StretchAxis.ANGLE_IN,
         hook: bool = False,
         reversed_circle: bool = False,
         overlap_angle: Optional[float] = None,
@@ -1818,7 +1830,7 @@ class Curve(Shape):
             clockwise: The ``clockwise`` attribute.
             stretch: The ``stretch`` attribute.
             long: The ``long`` attribute.
-            relative_stretch: The ``relative_stretch`` attribute.
+            stretch_axis: The ``stretch_axis`` attribute.
             hook: The ``hook`` attribute.
             reversed_circle: The ``reversed_circle`` attribute.
             overlap_angle: The ``overlap_angle`` attribute.
@@ -1834,7 +1846,7 @@ class Curve(Shape):
         self.clockwise = clockwise
         self.stretch = stretch
         self.long = long
-        self.relative_stretch = relative_stretch
+        self.stretch_axis = stretch_axis
         self.hook = hook
         self.reversed_circle = reversed_circle
         self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
@@ -1850,7 +1862,7 @@ class Curve(Shape):
         clockwise: bool | CloneDefault = CLONE_DEFAULT,
         stretch: float | CloneDefault = CLONE_DEFAULT,
         long: bool | CloneDefault = CLONE_DEFAULT,
-        relative_stretch: bool | CloneDefault = CLONE_DEFAULT,
+        stretch_axis: StretchAxis | CloneDefault = CLONE_DEFAULT,
         hook: bool | CloneDefault = CLONE_DEFAULT,
         reversed_circle: bool | CloneDefault = CLONE_DEFAULT,
         overlap_angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
@@ -1864,7 +1876,7 @@ class Curve(Shape):
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
-            relative_stretch=self.relative_stretch if relative_stretch is CLONE_DEFAULT else relative_stretch,
+            stretch_axis=self.stretch_axis if stretch_axis is CLONE_DEFAULT else stretch_axis,
             hook=self.hook if hook is CLONE_DEFAULT else hook,
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
@@ -1893,7 +1905,7 @@ class Curve(Shape):
             self.clockwise,
             self.stretch,
             self.long,
-            self.relative_stretch,
+            self.stretch_axis,
             self.reversed_circle,
             self.overlap_angle,
             self.early_exit,
@@ -2106,7 +2118,14 @@ class Curve(Shape):
                 scale_y = 1.0 + self.stretch
                 if self.long:
                     scale_x, scale_y = scale_y, scale_x
-                theta = self.relative_stretch and math.radians(self.angle_in % 180)
+                match self.stretch_axis:
+                    case StretchAxis.ABSOLUTE:
+                        theta = 0.0
+                    case StretchAxis.ANGLE_IN:
+                        theta = self.angle_in
+                    case StretchAxis.ANGLE_OUT:
+                        theta = self.angle_out
+                theta = math.radians(theta % 180)
                 glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, *_rect(0, 0))
                 glyph.transform(
                     fontTools.misc.transform.Identity
