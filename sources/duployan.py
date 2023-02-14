@@ -144,7 +144,7 @@ class Builder:
         notdef = Notdef()
         space = Space(0, margins=True)
         h = Dot()
-        exclamation = Complex([(2, h), (244, Space(90)), (1.109, Line(90))])
+        exclamation = Complex([(2, Dot(centered=True)), (188, Space(90)), (1.109, Line(90))])
         inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].reversed())])  # type: ignore[call-arg, index, union-attr]
         dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
         asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), False), (0.467, Line(126)), (0.467, Line(306), False), (0.467, Line(54)), (0.467, Line(234), False), (0.467, Line(342))])
@@ -163,7 +163,7 @@ class Builder:
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
         colon = Complex([(2, h), (408, Space(90)), (2, h)])
         semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (388, Space(90)), (2, h)])
-        question = Complex([(2, h), (244, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
+        question = Complex([(2, Dot(centered=True)), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
         inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
         less_than = Complex([(1, Line(153)), (1, Line(27))])
         equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
