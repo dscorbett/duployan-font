@@ -269,26 +269,29 @@ def shrink_wrap_enclosing_circle(
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             dx = x_max - x_min
             dy = y_max - y_min
-            class_name = f'c_{dx}_{dy}'
+            dx += 3 * builder.stroke_gap + builder.light_line
+            dy += 3 * builder.stroke_gap + builder.light_line
+            if dx > dy:
+                dy = max(dy, dx * 0.75)
+            elif dx < dy:
+                dx = max(dx, dy * 0.75)
+            stretch = max(dx, dy) / min(dx, dy) - 1
+            long = dx < dy
+            size = min(dx, dy) / 100
+            side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - schema.glyph.width) / 2)
+            class_name = f'c_{stretch}_{long}_{size}_{side_bearing}'
             classes[class_name].append(schema)
-            punctuation[class_name] = (dx, dy, schema.glyph.width)
-    for class_name, (dx, dy, width) in punctuation.items():
-        dx += 3 * builder.stroke_gap + builder.light_line
-        dy += 3 * builder.stroke_gap + builder.light_line
-        if dx > dy:
-            dy = max(dy, dx * 0.75)
-        elif dx < dy:
-            dx = max(dx, dy * 0.75)
-        assert circle_schema is not None
-        assert isinstance(circle_schema.path, Circle)
+            punctuation[class_name] = (stretch, long, size, side_bearing)
+    assert circle_schema is not None
+    assert isinstance(circle_schema.path, Circle)
+    for class_name, (stretch, long, size, side_bearing) in punctuation.items():
         new_circle_schema = circle_schema.clone(
             cmap=None,
-            path=circle_schema.path.clone(stretch=max(dx, dy) / min(dx, dy) - 1, long=dx < dy),
-            size=min(dx, dy) / 100,
+            path=circle_schema.path.clone(stretch=stretch, long=long),
+            size=size,
         )
         add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
         classes['o'].append(new_circle_schema)
-        side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - width) / 2)
         add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[side_bearing]))
         add_rule(dist_lookup, Rule([class_name], [new_circle_schema], [], x_advances=[side_bearing]))
     return [lookup, dist_lookup]
