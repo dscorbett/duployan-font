@@ -144,7 +144,7 @@ class Builder:
         notdef = Notdef()
         space = Space(0, margins=True)
         h = Dot()
-        exclamation = Complex([(2, Dot(centered=True)), (188, Space(90)), (1.109, Line(90))])
+        exclamation = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (1.109, Line(90))])
         inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].reversed())])  # type: ignore[call-arg, index, union-attr]
         dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
         asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), False), (0.467, Line(126)), (0.467, Line(306), False), (0.467, Line(54)), (0.467, Line(234), False), (0.467, Line(342))])
@@ -161,9 +161,9 @@ class Builder:
         seven = Complex([(0.818, Line(0)), (1.36, Line(246))])
         eight = Complex([(2.88, Curve(180, 90, clockwise=True)), (2.88, Curve(90, 270, clockwise=True)), (2.88, Curve(270, 180, clockwise=True)), (3.16, Curve(180, 270, clockwise=False)), (3.16, Curve(270, 90, clockwise=False)), (3.16, Curve(90, 180, clockwise=False))])
         nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 260, clockwise=True, stretch=0.45)), (4, Curve(255, 175, clockwise=True))])
-        colon = Complex([(2, h), (408, Space(90)), (2, h)])
-        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (388, Space(90)), (2, h)])
-        question = Complex([(2, Dot(centered=True)), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
+        colon = Complex([(0, h), (408, Space(90)), (0, h)])
+        semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (388, Space(90)), (0, h)])
+        question = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
         inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
         less_than = Complex([(1, Line(153)), (1, Line(27))])
         equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
@@ -192,22 +192,22 @@ class Builder:
         circumflex = Complex([(1, Line(25)), (1, Line(335))])
         macron = Line(0)
         breve = Curve(270, 90, clockwise=False, stretch=0.2)
-        diaeresis = Complex([(2, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (2, h)])
+        diaeresis = Complex([(0, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (0, h)])
         caron = Complex([(1, Line(335)), (1, Line(25))])
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
         high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
         high_right_quote = Complex([(742, Space(90)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
         low_right_quote = Complex([(35, Space(0)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-        ellipsis = Complex([(2, h), (196, Space(0)), (2, h), (196, Space(0)), (2, h)])
+        ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
         nnbsp = Space(0)
-        dotted_circle = Complex([(33, Space(90)), (1, h), (446, Space(90)), (1, h), (223, Space(270)), (223, Space(60)), (1, h), (446, Space(240)), (1, h), (223, Space(60)), (223, Space(30)), (1, h), (446, Space(210)), (1, h), (223, Space(30)), (223, Space(0)), (1, h), (446, Space(180)), (1, h), (223, Space(0)), (223, Space(330)), (1, h), (446, Space(150)), (1, h), (223, Space(330)), (223, Space(300)), (1, h), (446, Space(120)), (1, h)])
-        skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 99 / 172, Space(270)), (2.3561, Dot(centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (2.3561, Dot(centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (2.3561, Dot(centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 59 / 215, Space(270)), (1, h), (150, Space(160)), (1, h), (150, Space(340)), (150, Space(20)), (1, h), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), False), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
+        dotted_circle = Complex([(33, Space(90)), (0, Dot(0)), (446, Space(90)), (0, Dot(0)), (223, Space(270)), (223, Space(60)), (0, Dot(0)), (446, Space(240)), (0, Dot(0)), (223, Space(60)), (223, Space(30)), (0, Dot(0)), (446, Space(210)), (0, Dot(0)), (223, Space(30)), (223, Space(0)), (0, Dot(0)), (446, Space(180)), (0, Dot(0)), (223, Space(0)), (223, Space(330)), (0, Dot(0)), (446, Space(150)), (0, Dot(0)), (223, Space(330)), (223, Space(300)), (0, Dot(0)), (446, Space(120)), (0, Dot(0))])
+        skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 99 / 172, Space(270)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 59 / 215, Space(270)), (0, Dot(0)), (150, Space(160)), (0, Dot(0)), (150, Space(340)), (150, Space(20)), (0, Dot(0)), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), False), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
         stenographic_period = Complex([(0.5, Line(135), True), *multiplication.instructions])
         double_hyphen = Complex([(305, Space(90)), (0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
         bound = Bound()
         cross_knob_line_factor = 0.42
-        cross_knob_op = (4.64, Dot(centered=True))
+        cross_knob_op = (0, Dot(3.64, centered=True))
         cross_pommy = Complex([cross_knob_op, (3 + 2 * cross_knob_line_factor, Line(270)), cross_knob_op, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), cross_knob_op, (2 + 2 * cross_knob_line_factor, Line(0)), cross_knob_op])
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
         sacred_heart = Complex([(10.584, Curve(42.5, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 317.5, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_IN)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].reversed(), True), *cross.instructions])  # type: ignore[index, union-attr]
@@ -276,7 +276,7 @@ class Builder:
         high_tight_acute = SeparateAffix([(0.5, Line(45))], tight=True)
         high_grave = SeparateAffix([(0.5, Line(315))])
         high_long_grave = SeparateAffix([(0.4, Line(300)), (0.75, Line(0))])
-        high_dot = SeparateAffix([(2, h)])
+        high_dot = SeparateAffix([(0, h)])
         high_circle = SeparateAffix([(2, Circle(0, 0, clockwise=False))])
         high_line = SeparateAffix([(0.5, Line(0))])
         high_wave = SeparateAffix([(2, Curve(90, 315, clockwise=True)), (RADIUS * math.sqrt(2) / LINE_FACTOR, Line(315)), (2, Curve(315, 90, clockwise=False))])
@@ -301,9 +301,9 @@ class Builder:
         up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
         line = Line(0)
 
-        small_dot_1 = Schema(None, h, 1, anchor=anchors.RELATIVE_1)
-        dot_1 = Schema(None, h, 2, anchor=anchors.RELATIVE_1)
-        dot_2 = Schema(None, h, 2, anchor=anchors.RELATIVE_2)
+        small_dot_1 = Schema(None, Dot(0), 0, anchor=anchors.RELATIVE_1)
+        dot_1 = Schema(None, h, 0, anchor=anchors.RELATIVE_1)
+        dot_2 = Schema(None, h, 0, anchor=anchors.RELATIVE_2)
         line_2 = Schema(None, line, 0.35, Type.ORIENTING, anchor=anchors.RELATIVE_2)
         line_middle = Schema(None, line, 0.45, Type.ORIENTING, anchor=anchors.MIDDLE)
 
@@ -315,7 +315,7 @@ class Builder:
             Schema(0x002A, asterisk, 1, Type.NON_JOINING),
             Schema(0x002B, plus, 1, Type.NON_JOINING),
             Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
-            Schema(0x002E, h, 2, Type.NON_JOINING, shading_allowed=False),
+            Schema(0x002E, h, 0, Type.NON_JOINING, shading_allowed=False),
             Schema(0x002F, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x0030, zero, 3.882, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x0031, one, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
@@ -348,12 +348,12 @@ class Builder:
             Schema(0x0302, circumflex, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),
             Schema(0x0304, macron, 0.2, anchor=anchors.ABOVE),
             Schema(0x0306, breve, 1, anchor=anchors.ABOVE),
-            Schema(0x0307, h, 2, anchor=anchors.ABOVE),
+            Schema(0x0307, h, 0, anchor=anchors.ABOVE),
             Schema(0x0308, diaeresis, 1, anchor=anchors.ABOVE),
             Schema(0x030C, caron, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),
             Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),
             Schema(0x0317, acute, 0.2, anchor=anchors.BELOW),
-            Schema(0x0323, h, 2, anchor=anchors.BELOW),
+            Schema(0x0323, h, 0, anchor=anchors.BELOW),
             Schema(0x0324, diaeresis, 1, anchor=anchors.BELOW),
             Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
             Schema(0x0331, macron, 0.2, anchor=anchors.BELOW),
@@ -376,7 +376,7 @@ class Builder:
             Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x230B, right_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
-            Schema(0x2620, skull_and_crossbones, 1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
+            Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING, shading_allowed=False),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
@@ -392,7 +392,7 @@ class Builder:
             Schema(0xEC1A, n_reverse, 6, shading_allowed=False),
             Schema(0xEC1B, j_reverse, 6, shading_allowed=False),
             Schema(0xEC1C, s_reverse, 6, shading_allowed=False),
-            Schema(0x1BC00, h, 2, shading_allowed=False),
+            Schema(0x1BC00, h, 0, shading_allowed=False),
             Schema(0x1BC01, x, 0.75, shading_allowed=False),
             Schema(0x1BC02, p, 1, Type.ORIENTING),
             Schema(0x1BC03, t, 1, Type.ORIENTING),
@@ -667,17 +667,18 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    def _draw_glyph(self, glyph: fontforge.glyph, schema: Schema, scalar: float = 1) -> None:
+    def _draw_glyph(self, glyph: fontforge.glyph, schema: Schema, _scalar: float = 1) -> None:
         assert not schema.marks
         pen = glyph.glyphPen()
         invisible = schema.path.invisible()
+        stroke_width = self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line
         floating = schema.path.draw(
             glyph,
             not invisible and pen,
-            scalar * (self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line),
-            scalar * self.light_line,
-            scalar * self.stroke_gap,
-            schema.size,
+            stroke_width,
+            self.light_line,
+            self.stroke_gap,
+            _scalar * schema.size,
             schema.anchor,
             schema.joining_type,
             schema.child,
@@ -700,13 +701,15 @@ class Builder:
             if y_min != y_max:
                 if schema.y_min is not None:
                     if schema.y_max is not None:
-                        if (desired_to_actual_ratio := (schema.y_max - schema.y_min) / (y_max - y_min)) != 1:
-                            if scalar == 1:
+                        desired_height = schema.y_max - schema.y_min
+                        actual_height = y_max - y_min
+                        if (desired_to_actual_ratio := (desired_height - stroke_width) / (actual_height - stroke_width)) != 1:
+                            if _scalar == 1:
                                 glyph.clear()
-                                self._draw_glyph(glyph, schema, 1 / desired_to_actual_ratio)
+                                self._draw_glyph(glyph, schema, desired_to_actual_ratio)
                             else:
                                 glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
-                                    .scale(desired_to_actual_ratio)
+                                    .scale(desired_height / actual_height)
                                 )
                         _, y_min, _, _ = glyph.boundingBox()
                         glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
@@ -717,7 +720,7 @@ class Builder:
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
-            side_bearing = int(scalar * schema.side_bearing)
+            side_bearing = int(_scalar * schema.side_bearing)
             glyph.right_side_bearing = side_bearing
             if x_min != x_max:
                 glyph.left_side_bearing = side_bearing

@@ -30,7 +30,7 @@
 
 # Diacritics
 1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E.double.90@370,-112|uni0300.grave@370,245|_@740,0]
-0021 20DD:--script Dupl:[exclam@324,0|uni20DD.enclosing_circle.wl@458,-174|_@915,0]
+0021 20DD:--script Dupl:[exclam@324,0|uni20DD.enclosing_circle.wl@458,-174|_@916,0]
 1BC02 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E.double__double__double.0@8,137|_@240,0]
 1BC02 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E.double__double__double.0@8,137|dupl.Line.0.dotted@240,0|u1BC9E.double.90.wl@735,-112|_@1230,0]
 
@@ -41,6 +41,6 @@
 1BC08 1BCA0 1BCA1 1BC02 1BC02::[u1BC08.d@0,0|u1BCA0.letter_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC02.p@3496,0|u1BC02.p@3736,0|_@3976,0]
 
 # Numbers
-0031 2044 0032::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@503,0|_@937,0]
+0031 2044 0032::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@500,0|_@937,0]
 0032:--features sups:[two.sups@0,0|_@450,0]
 0033:--features subs:[three.subs@0,0|_@460,0]

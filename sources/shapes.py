@@ -1345,41 +1345,53 @@ class Dot(Shape):
     """A dot.
 
     Attributes:
+        size_exponent: The exponent to use when determining the actual
+            stroke width. The actual stroke width is the nominal stroke
+            width multiplied by `SCALAR` raised to the power of
+            `size_exponent`. A standalone dot should normally be scaled
+            up lest it be hard to see at small font sizes.
         centered: Whether the cursive anchor points are placed in the
             center of the dot, as opposed to at the bottom.
     """
 
-    #: The factor by which to scale the nominal stroke width to get the
-    #: actual stroke width. A standalone dot should normally be scaled
-    #: up lest it be hard to see at small font sizes.
+    #: The factor to use when determining the actual stroke width. See
+    #: the ``size_exponent`` attribute.
     SCALAR: ClassVar[float] = 2 ** 0.5
 
     def __init__(
         self,
+        size_exponent: float = 1,
         *,
         centered: bool = False,
     ) -> None:
         """Initializes this `Dot`.
 
         Args:
+            size_exponent: The ``size_exponent`` attribute.
             centered: The ``centered`` attribute.
         """
+        self.size_exponent = size_exponent
         self.centered = centered
 
     def clone(
         self,
         *,
+        size_exponent: bool | CloneDefault = CLONE_DEFAULT,
         centered: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
+            size_exponent=self.size_exponent if size_exponent is CLONE_DEFAULT else size_exponent,
             centered=self.centered if centered is CLONE_DEFAULT else centered,
         )
 
     def __str__(self) -> str:
-        return ''
+        return '' if self.size_exponent == 1 else str(int(self.size_exponent))
 
     def group(self) -> Hashable:
-        return self.centered
+        return (
+            self.centered,
+            self.size_exponent,
+        )
 
     def hub_priority(self, size: float) -> int:
         return -1
@@ -1402,7 +1414,7 @@ class Dot(Shape):
     ) -> bool:
         assert pen
         assert not child
-        stroke_width *= self.SCALAR ** (size - 1)
+        stroke_width *= self.SCALAR ** self.size_exponent
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', stroke_width, 'round')

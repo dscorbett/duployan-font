@@ -104,7 +104,7 @@
 1BC47 1BC03 1BCA1 1BC1C 1BCA1 1BC04::[u1BC46.i.180p0@0,0|u1BC03.t@100,0|u1BC1C.s@253,-40|u1BC04.f@697,-333|_@1225,0]
 
 # U+002F SOLIDUS is not a valid root, even though it looks like one.
-002F 1BCA0 1BC02::[slash@0,0|u1BCA0.letter_overlap@836,0|u1BC02.p@1964,0|_@2204,0]
-002F 1BCA1 1BC02::[slash@0,0|u1BCA1.continuing_overlap@836,0|u1BC02.p@1964,0|_@2204,0]
-1BC02 1BCA0 002F::[u1BC02.p@0,0|u1BCA0.letter_overlap@240,0|slash@1368,0|_@2204,0]
-1BC02 1BCA1 002F::[u1BC02.p@0,0|u1BCA1.continuing_overlap@240,0|slash@1368,0|_@2204,0]
+002F 1BCA0 1BC02::[slash@0,0|u1BCA0.letter_overlap@833,0|u1BC02.p@1961,0|_@2201,0]
+002F 1BCA1 1BC02::[slash@0,0|u1BCA1.continuing_overlap@833,0|u1BC02.p@1961,0|_@2201,0]
+1BC02 1BCA0 002F::[u1BC02.p@0,0|u1BCA0.letter_overlap@240,0|slash@1368,0|_@2201,0]
+1BC02 1BCA1 002F::[u1BC02.p@0,0|u1BCA1.continuing_overlap@240,0|slash@1368,0|_@2201,0]
