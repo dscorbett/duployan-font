@@ -275,10 +275,10 @@ def shrink_wrap_enclosing_circle(
                 dy = max(dy, dx * 0.75)
             elif dx < dy:
                 dx = max(dx, dy * 0.75)
-            stretch = max(dx, dy) / min(dx, dy) - 1
+            stretch = round(max(dx, dy) / min(dx, dy) - 1, 2)
             long = dx < dy
-            size = min(dx, dy) / 100
-            side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - schema.glyph.width) / 2)
+            size = round(min(dx, dy) / 100, 3)
+            side_bearing = round((dx + 2 * DEFAULT_SIDE_BEARING - schema.glyph.width) / 4) * 2
             class_name = f'c_{stretch}_{long}_{size}_{side_bearing}'
             classes[class_name].append(schema)
             punctuation[class_name] = (stretch, long, size, side_bearing)
