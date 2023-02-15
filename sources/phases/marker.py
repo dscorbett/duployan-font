@@ -292,8 +292,7 @@ def shrink_wrap_enclosing_circle(
         )
         add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
         classes['o'].append(new_circle_schema)
-        add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[side_bearing]))
-        add_rule(dist_lookup, Rule([class_name], [new_circle_schema], [], x_advances=[side_bearing]))
+        add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[2 * side_bearing]))
     return [lookup, dist_lookup]
 
 
