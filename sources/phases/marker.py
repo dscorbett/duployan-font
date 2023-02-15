@@ -257,7 +257,21 @@ def shrink_wrap_enclosing_circle(
     if len(original_schemas) != len(schemas):
         return [lookup, dist_lookup]
     punctuation = {}
-    circle_schema = None
+    circle_schema: Optional[Schema] = None
+
+    new_circle_schemas: MutableMapping[tuple[float, bool, float], Schema] = {}
+
+    def get_new_circle_schema(stretch: float, long: bool, size: float) -> Schema:
+        if (stretch, long, size) in new_circle_schemas:
+            return new_circle_schemas[(stretch, long, size)]
+        assert circle_schema is not None
+        assert isinstance(circle_schema.path, Circle)
+        return new_circle_schemas.setdefault((stretch, long, size), circle_schema.clone(
+            cmap=None,
+            path=circle_schema.path.clone(stretch=stretch, long=long),
+            size=size,
+        ))
+
     for schema in schemas:
         if not schema.glyph:
             continue
@@ -283,13 +297,8 @@ def shrink_wrap_enclosing_circle(
             classes[class_name].append(schema)
             punctuation[class_name] = (stretch, long, size, side_bearing)
     assert circle_schema is not None
-    assert isinstance(circle_schema.path, Circle)
     for class_name, (stretch, long, size, side_bearing) in punctuation.items():
-        new_circle_schema = circle_schema.clone(
-            cmap=None,
-            path=circle_schema.path.clone(stretch=stretch, long=long),
-            size=size,
-        )
+        new_circle_schema = get_new_circle_schema(stretch, long, size)
         add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
         classes['o'].append(new_circle_schema)
         add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[2 * side_bearing]))
