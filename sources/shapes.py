@@ -1911,13 +1911,27 @@ class Curve(Shape):
             }'''
 
     def group(self) -> Hashable:
+        if self.stretch:
+            long = self.long
+            stretch_axis = self.stretch_axis
+            if stretch_axis == StretchAxis.ANGLE_OUT:
+                match self.angle_out % 180:
+                    case 0.0:
+                        stretch_axis = StretchAxis.ABSOLUTE
+                    case a if a == self.angle_in % 180:
+                        stretch_axis = StretchAxis.ANGLE_IN
+            elif stretch_axis == StretchAxis.ANGLE_IN and self.angle_in % 180 == 0:
+                stretch_axis = StretchAxis.ABSOLUTE
+        else:
+            long = False
+            stretch_axis = StretchAxis.ANGLE_IN
         return (
             self.angle_in,
             self.angle_out,
             self.clockwise,
             self.stretch,
-            self.long,
-            self.stretch_axis,
+            long,
+            stretch_axis,
             self.reversed_circle,
             self.overlap_angle,
             self.early_exit,
@@ -2324,6 +2338,11 @@ class Curve(Shape):
             angle_in=(self.angle_out + 180) % 360,
             angle_out=(self.angle_in + 180) % 360,
             clockwise=not self.clockwise,
+            stretch_axis=StretchAxis.ANGLE_IN
+                if self.stretch_axis == StretchAxis.ANGLE_OUT
+                else StretchAxis.ANGLE_OUT
+                if self.stretch_axis == StretchAxis.ANGLE_IN
+                else self.stretch_axis,
         )
 
 
