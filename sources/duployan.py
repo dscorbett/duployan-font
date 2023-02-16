@@ -174,6 +174,12 @@ class Builder:
         right_ceiling = Complex([(2.059, Line(90)), (0.45, Line(180))])
         left_floor = Complex([(0.45, Line(180)), (2.059, Line(90))])
         right_floor = Complex([(0.45, Line(0)), (2.059, Line(90))])
+        upper_left_brace_section = Complex([(1, Curve(188, 288, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (1, Curve(288, 188, clockwise=True, stretch=0.3, long=True))])
+        lower_left_brace_section = Complex([(upper_left_brace_section.instructions[1][0], upper_left_brace_section.instructions[1][1].clone(angle_in=(180 - upper_left_brace_section.instructions[1][1].angle_out) % 360, angle_out=(180 - upper_left_brace_section.instructions[1][1].angle_in) % 360, stretch_axis=StretchAxis.ANGLE_OUT)), (upper_left_brace_section.instructions[0][0], upper_left_brace_section.instructions[0][1].clone(angle_in=(180 - upper_left_brace_section.instructions[0][1].angle_out) % 360, angle_out=(180 - upper_left_brace_section.instructions[0][1].angle_in) % 360, stretch_axis=StretchAxis.ANGLE_IN))])  # type: ignore[call-arg, index, union-attr]
+        left_brace = Complex([*upper_left_brace_section.instructions, *lower_left_brace_section.instructions])
+        upper_right_brace_section = Complex([(upper_left_brace_section.instructions[0][0], upper_left_brace_section.instructions[0][1].clone(angle_in=(180 - upper_left_brace_section.instructions[0][1].angle_in) % 360, angle_out=(180 - upper_left_brace_section.instructions[0][1].angle_out) % 360, clockwise=not upper_left_brace_section.instructions[0][1].clockwise)), (upper_left_brace_section.instructions[1][0], upper_left_brace_section.instructions[1][1].clone(angle_in=(180 - upper_left_brace_section.instructions[1][1].angle_in) % 360, angle_out=(180 - upper_left_brace_section.instructions[1][1].angle_out) % 360, clockwise=not upper_left_brace_section.instructions[1][1].clockwise))])  # type: ignore[call-arg, index, union-attr]
+        lower_right_brace_section = Complex([(lower_left_brace_section.instructions[0][0], lower_left_brace_section.instructions[0][1].clone(angle_in=(180 - lower_left_brace_section.instructions[0][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[0][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[0][1].clockwise)), (lower_left_brace_section.instructions[1][0], lower_left_brace_section.instructions[1][1].clone(angle_in=(180 - lower_left_brace_section.instructions[1][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[1][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[1][1].clockwise))])  # type: ignore[call-arg, index, union-attr]
+        right_brace = Complex([*upper_right_brace_section.instructions, *lower_right_brace_section.instructions])
         guillemet_vertical_space = (75, Space(90))
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
@@ -335,6 +341,8 @@ class Builder:
             Schema(0x003F, question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
             Schema(0x005B, left_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x005D, right_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x007B, left_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x007D, right_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
