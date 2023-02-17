@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2022 David Corbett
+Copyright 2022-2023 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ make NOTO=1
 
 That will produce four fonts:
 
-* fonts/ttf/unhinted/instance\_ttf/NotoSansDuployan-Regular.ttf
-* fonts/ttf/unhinted/instance\_ttf/NotoSansDuployan-Bold.ttf
-* fonts/otf/unhinted/instance\_otf/NotoSansDuployan-Regular.otf
-* fonts/otf/unhinted/instance\_otf/NotoSansDuployan-Bold.otf
+* fonts/NotoSansDuployan/unhinted/ttf/NotoSansDuployan-Regular.ttf
+* fonts/NotoSansDuployan/unhinted/ttf/NotoSansDuployan-Bold.ttf
+* fonts/NotoSansDuployan/unhinted/otf/NotoSansDuployan-Regular.otf
+* fonts/NotoSansDuployan/unhinted/otf/NotoSansDuployan-Bold.otf
 
 To only build one weight, append `STYLES=Regular` or `STYLES=Bold`.
 
