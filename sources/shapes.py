@@ -2941,6 +2941,10 @@ class Complex(Shape):
             Args:
                 pen: The pen to draw with.
             """
+            assert all(len(contour) == 0 or contour.closed for contour in self._layer), (
+                f'''A proxy contains an open contour: {
+                    list((point.x, point.y) for point in next(filter(lambda contour: len(contour) and not contour.closed, self._layer)))
+                }''')
             self._layer.draw(pen)
 
         def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Unused) -> None:
@@ -3773,6 +3777,7 @@ class Wa(Complex):
             # the stroking code produces buggy results for some glyphs.
             proxy.moveTo((first_entry[0], first_entry[1] + 0.01))
             proxy.lineTo((last_entry[0], last_entry[1] + 0.01))
+            proxy.stroke('circular', stroke_width, 'round')
             proxy.draw(pen)
         first_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][0]
         last_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][-1]
@@ -3780,6 +3785,7 @@ class Wa(Complex):
             proxy = Complex.Proxy()
             proxy.moveTo((first_exit[0], first_exit[1] + 0.01))
             proxy.lineTo((last_exit[0], last_exit[1] + 0.01))
+            proxy.stroke('circular', stroke_width, 'round')
             proxy.draw(pen)
         assert first_is_invisible is not None
         return (
