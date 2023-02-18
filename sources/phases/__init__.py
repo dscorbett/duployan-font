@@ -122,7 +122,6 @@ from typing import cast
 from typing import overload
 
 
-import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
 
@@ -135,7 +134,6 @@ from utils import MAX_TREE_WIDTH
 from utils import OrderedSet
 from utils import PrefixView
 from utils import REQUIRED_SCRIPT_FEATURES
-from utils import cps_to_scripts
 
 
 if TYPE_CHECKING:
@@ -801,63 +799,47 @@ class Lookup:
 
     def get_scripts(
         self,
-        class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+        classes: Mapping[str, MutableSequence[schema.Schema]],
     ) -> Set[str]:
         """Returns the minimal set of script tags relevant to this
         lookup.
 
         Args:
-            class_asts: A map to glyph classes from their names.
+            classes: A mapping to glyph classes from their names.
         """
-        def glyph_name_to_scripts(glyph_name: str) -> Set[str]:
-            return cps_to_scripts(tuple(map(ord, fontTools.agl.toUnicode(glyph_name))))
-
-        def class_to_scripts(
-            cls: str,
-            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
-        ) -> Set[str]:
-            scripts: Set[str] = set()
-            for glyph_name in class_asts[cls].glyphs.glyphs:
-                scripts |= glyph_name_to_scripts(glyph_name)
-            return scripts
-
-        def schema_to_scripts(schema: schema.Schema) -> Set[str]:
-            return cps_to_scripts(tuple(schema.cps))
-
         def s_to_scripts(
             s: schema.Schema | str,
-            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         ) -> Set[str]:
             if isinstance(s, str):
-                return class_to_scripts(s, class_asts)
-            else:
-                return schema_to_scripts(s)
+                scripts = set()
+                for schema in classes[s]:
+                    scripts |= schema.scripts
+                return scripts
+            return s.scripts
 
         def target_to_scripts(
             target: Optional[Sequence[schema.Schema | str]],
-            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         ) -> Set[str]:
             scripts = set(KNOWN_SCRIPTS)
             if target:
                 for s in target:
-                    scripts &= s_to_scripts(s, class_asts)
+                    scripts &= s_to_scripts(s)
             assert scripts
             return scripts
 
         def rule_to_scripts(
             rule: Rule,
-            class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         ) -> Set[str]:
-            scripts = (target_to_scripts(rule.contexts_in, class_asts)
-                & target_to_scripts(rule.inputs, class_asts)
-                & target_to_scripts(rule.contexts_out, class_asts)
+            scripts = (target_to_scripts(rule.contexts_in)
+                & target_to_scripts(rule.inputs)
+                & target_to_scripts(rule.contexts_out)
             )
             assert scripts
             return scripts
 
         scripts = set()
         for rule in self.rules:
-            scripts |= rule_to_scripts(rule, class_asts)
+            scripts |= rule_to_scripts(rule)
         return scripts
 
     def _get_sorted_scripts(self, features_to_scripts: Mapping[str, Set[str]]) -> Iterable[str]:
@@ -914,8 +896,9 @@ class Lookup:
                 script tags, if this lookup is anonymous, or else
                 ``None``. If this is an anonymous lookup, the mapping
                 must contain this lookup’s feature tag. The associated
-                script tags, which must be a superset of
-                ``self.get_scripts(class_asts)``, are used in the second
+                script tags, which must be a superset of what
+                ``self.get_scripts`` returns for the classes
+                corresponding to `class_asts`, are used in the second
                 returned AST.
             class_asts: A map to glyph classes from their names.
             named_lookup_asts: A map to named lookup ASTs from their

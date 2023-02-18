@@ -905,6 +905,7 @@ class Builder:
             more_named_lookups_with_phases,
         ) = phases.run_phases(self, [schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
         lookups_with_phases += more_lookups_with_phases
+        classes |= more_classes
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
         for schema in schemas.sorted(key=lambda schema: (
@@ -926,6 +927,7 @@ class Builder:
             more_named_lookups_with_phases,
         ) = phases.run_phases(self, [*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
         lookups_with_phases += more_lookups_with_phases
+        classes |= more_classes
         for schema in schemas.sorted(key=Schema.glyph_id_sort_key):
             if schema.glyph is None:
                 self._create_marker(schema)
@@ -934,7 +936,7 @@ class Builder:
         features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)
         for lp in lookups_with_phases:
             if lp[0].feature:
-                features_to_scripts[lp[0].feature] |= lp[0].get_scripts(PrefixView(lp[1], class_asts))
+                features_to_scripts[lp[0].feature] |= lp[0].get_scripts(PrefixView(lp[1], classes))
         for i, lp in enumerate(lookups_with_phases):
             for statement in lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
                 self._fea.statements.append(statement)
