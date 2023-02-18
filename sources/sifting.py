@@ -29,6 +29,7 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
+from typing import Final
 from typing import Generic
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -52,8 +53,8 @@ _T = TypeVar('_T')
 
 class Grouper(Generic[_T]):
     def __init__(self, groups: Collection[_Group[_T]]):
-        self._groups: MutableSequence[_Group[_T]] = []
-        self._inverted: MutableMapping[_T, _Group[_T]] = {}
+        self._groups: Final[MutableSequence[_Group[_T]]] = []
+        self._inverted: Final[MutableMapping[_T, _Group[_T]]] = {}
         for group in groups:
             if len(group) > 1:
                 self.add(group)

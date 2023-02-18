@@ -474,22 +474,19 @@ class Rule:
             a3 = []
         assert (a4 is not None) + (lookups is not None) + (x_placements is not None or x_advances is not None) == 1, (
             'Rule can take exactly one of an output glyph/class list, a lookup list, or a position list')
-        self.contexts_in = _l(a1)
-        self.inputs = _l(a2)
-        self.contexts_out = _l(a3)
-        self.outputs = None
-        self.lookups = lookups
-        self.x_placements = x_placements
-        self.x_advances = x_advances
+        self.contexts_in: Final = _l(a1)
+        self.inputs: Final = _l(a2)
+        self.contexts_out: Final = _l(a3)
+        self.outputs: Final = _l(a4)
+        self.lookups: Final = lookups
+        self.x_placements: Final = x_placements
+        self.x_advances: Final = x_advances
         if lookups is not None:
             assert len(lookups) == len(self.inputs), f'There must be one lookup (or None) per input glyph ({len(lookups)} != {len(self.inputs)})'
-        elif a4 is not None:
-            self.outputs = _l(a4)
-        else:
-            if x_placements is not None:
-                assert len(x_placements) == len(self.inputs), f'There must be one x placement (or None) per input glyph ({len(x_placements)} != {len(self.inputs)})'
-            if x_advances is not None:
-                assert len(x_advances) == len(self.inputs), f'There must be one x advance (or None) per input glyph ({len(x_advances)} != {len(self.inputs)})'
+        if x_placements is not None:
+            assert len(x_placements) == len(self.inputs), f'There must be one x placement (or None) per input glyph ({len(x_placements)} != {len(self.inputs)})'
+        if x_advances is not None:
+            assert len(x_advances) == len(self.inputs), f'There must be one x advance (or None) per input glyph ({len(x_advances)} != {len(self.inputs)})'
 
     def to_asts(
         self,
@@ -790,17 +787,17 @@ class Lookup:
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
-        self.feature = feature
-        self.language = language
         assert language is None or len(language) == 4, f"Language tag must be 4 characters long: '{language}'"
         assert feature is None or len(feature) == 4, f"Feature tag must be 4 characters long: '{feature}'"
-        self.flags = flags
-        self.mark_filtering_set = mark_filtering_set
-        self.required = feature is not None and feature not in self._DISCRETIONARY_FEATURES
-        self.reversed = reversed
-        self.prepending = prepending
-        self.rules: _FreezableList[Rule] = _FreezableList()
         assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
+        self.feature: Final = feature
+        self.language: Final = language
+        self.flags: Final = flags
+        self.mark_filtering_set: Final = mark_filtering_set
+        self.required: Final = feature is not None and feature not in self._DISCRETIONARY_FEATURES
+        self.reversed: Final = reversed
+        self.prepending: Final = prepending
+        self.rules: Final[_FreezableList[Rule]] = _FreezableList()
 
     def get_scripts(
         self,

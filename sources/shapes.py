@@ -343,8 +343,8 @@ class ContextMarker(Shape):
             is_context_in: The ``is_context_in`` attribute.
             context: The ``context`` attribute.
         """
-        self.is_context_in = is_context_in
-        self.context = context
+        self.is_context_in: Final = is_context_in
+        self.context: Final = context
 
     def clone(
         self,
@@ -475,8 +475,8 @@ class Hub(Shape):
             priority: The ``priority`` attribute.
             initial_secant: The ``initial_secant`` attribute.
         """
-        self.priority = priority
-        self.initial_secant = initial_secant
+        self.priority: Final = priority
+        self.initial_secant: Final = initial_secant
 
     def clone(
         self,
@@ -621,8 +621,8 @@ class EntryWidthDigit(Shape):
             place: The ``place`` attribute.
             digit: The ``digit`` attribute.
         """
-        self.place = place
-        self.digit = digit
+        self.place: Final = place
+        self.digit: Final = digit
 
     def __str__(self) -> str:
         return f'idx.{self.digit}e{self.place}'
@@ -660,9 +660,9 @@ class LeftBoundDigit(Shape):
             digit: The ``digit`` attribute.
             status: The ``status`` attribute.
         """
-        self.place = place
-        self.digit = digit
-        self.status = status
+        self.place: Final = place
+        self.digit: Final = digit
+        self.status: Final = status
 
     def __str__(self) -> str:
         return f'''{
@@ -704,9 +704,9 @@ class RightBoundDigit(Shape):
             digit: The ``digit`` attribute.
             status: The ``status`` attribute.
         """
-        self.place = place
-        self.digit = digit
-        self.status = status
+        self.place: Final = place
+        self.digit: Final = digit
+        self.status: Final = status
 
     def __str__(self) -> str:
         return f'''{
@@ -748,9 +748,9 @@ class AnchorWidthDigit(Shape):
             digit: The ``digit`` attribute.
             status: The ``status`` attribute.
         """
-        self.place = place
-        self.digit = digit
-        self.status = status
+        self.place: Final = place
+        self.digit: Final = digit
+        self.status: Final = status
 
     def __str__(self) -> str:
         return f'''{
@@ -797,8 +797,8 @@ class WidthNumber(Shape, Generic[_D]):
             digit_path: The ``digit_path`` attribute.
             width: The ``width`` attribute.
         """
-        self.digit_path = digit_path
-        self.width = width
+        self.digit_path: Final = digit_path
+        self.width: Final = width
 
     def __str__(self) -> str:
         return f'''{
@@ -854,7 +854,7 @@ class MarkAnchorSelector(Shape):
         Args:
             index: The ``index`` attribute.
         """
-        self.index = index
+        self.index: Final = index
 
     def __str__(self) -> str:
         return f'anchor.{anchors.ALL_MARK[self.index]}'
@@ -884,7 +884,7 @@ class GlyphClassSelector(Shape):
         Args:
             glyph_class: The ``glyph_class`` attribute.
         """
-        self.glyph_class = glyph_class
+        self.glyph_class: Final = glyph_class
 
     def __str__(self) -> str:
         return f'gc.{self.glyph_class.name}'
@@ -992,8 +992,8 @@ class Space(Shape):
             angle: The ``angle`` attribute.
             margins: The ``margins`` attribute.
         """
-        self.angle = angle
-        self.margins = margins
+        self.angle: Final = angle
+        self.margins: Final = margins
 
     def clone(
         self,
@@ -1156,7 +1156,7 @@ class ChildEdge(Shape):
             lineage: The ``lineage`` attribute.
         """
         assert lineage, 'A lineage may not be empty'
-        self.lineage = lineage
+        self.lineage: Final = lineage
 
     def clone(
         self,
@@ -1268,7 +1268,7 @@ class ParentEdge(Shape):
         Args:
             lineage: The ``lineage`` attribute.
         """
-        self.lineage = lineage
+        self.lineage: Final = lineage
 
     def clone(
         self,
@@ -1370,8 +1370,8 @@ class Dot(Shape):
             size_exponent: The ``size_exponent`` attribute.
             centered: The ``centered`` attribute.
         """
-        self.size_exponent = size_exponent
-        self.centered = centered
+        self.size_exponent: Final = size_exponent
+        self.centered: Final = centered
 
     def clone(
         self,
@@ -1490,14 +1490,14 @@ class Line(Shape):
             final_tick: The ``final_tick`` attribute.
             original_angle: The ``original_angle`` attribute.
         """
-        self.angle = angle
-        self.minor = minor
-        self.stretchy = stretchy
-        self.secant = secant
-        self.secant_curvature_offset = secant_curvature_offset
-        self.dots = dots
-        self.final_tick = final_tick
-        self.original_angle = original_angle
+        self.angle: Final = angle
+        self.minor: Final = minor
+        self.stretchy: Final = stretchy
+        self.secant: Final = secant
+        self.secant_curvature_offset: Final = secant_curvature_offset
+        self.dots: Final = dots
+        self.final_tick: Final = final_tick
+        self.original_angle: Final = original_angle
 
     def clone(
         self,
@@ -1853,18 +1853,18 @@ class Curve(Shape):
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         assert would_flip or not early_exit, 'An early exit is not needed if the curve would not flip'
-        self.angle_in = angle_in
-        self.angle_out = angle_out
-        self.clockwise = clockwise
-        self.stretch = stretch
-        self.long = long
-        self.stretch_axis = stretch_axis
-        self.hook = hook
-        self.reversed_circle = reversed_circle
-        self.overlap_angle = overlap_angle if overlap_angle is None else overlap_angle % 180
-        self.secondary = clockwise if secondary is None else secondary
-        self.would_flip = would_flip
-        self.early_exit = early_exit
+        self.angle_in: Final = angle_in
+        self.angle_out: Final = angle_out
+        self.clockwise: Final = clockwise
+        self.stretch: Final = stretch
+        self.long: Final = long
+        self.stretch_axis: Final = stretch_axis
+        self.hook: Final = hook
+        self.reversed_circle: Final = reversed_circle
+        self.overlap_angle: Final = overlap_angle if overlap_angle is None else overlap_angle % 180
+        self.secondary: Final = clockwise if secondary is None else secondary
+        self.would_flip: Final = would_flip
+        self.early_exit: Final = early_exit
 
     def clone(
         self,
@@ -2408,14 +2408,14 @@ class Circle(Shape):
             long: The ``long`` attribute.
             role: The ``role`` attribute.
         """
-        self.angle_in = angle_in
-        self.angle_out = angle_out
-        self.clockwise = clockwise
-        self.reversed = reversed
-        self.pinned = pinned
-        self.stretch = stretch
-        self.long = long
-        self.role = role
+        self.angle_in: Final = angle_in
+        self.angle_out: Final = angle_out
+        self.clockwise: Final = clockwise
+        self.reversed: Final = reversed
+        self.pinned: Final = pinned
+        self.stretch: Final = stretch
+        self.long: Final = long
+        self.role: Final = role
 
     def clone(
         self,
@@ -2832,10 +2832,10 @@ class Complex(Shape):
             hook: The ``hook`` attribute.
             maximum_tree_width: The ``maximum_tree_width`` attribute.
         """
-        self.instructions = instructions
-        self.hook = hook
-        self.maximum_tree_width = maximum_tree_width
-        self._final_rotation = _final_rotation
+        self.instructions: Final = instructions
+        self.hook: Final = hook
+        self.maximum_tree_width: Final = maximum_tree_width
+        self._final_rotation: Final = _final_rotation
 
     def clone(
         self,
@@ -2891,9 +2891,10 @@ class Complex(Shape):
         def __init__(self) -> None:
             """Initializes this `Proxy`.
             """
-            self.anchor_points: collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]] = collections.defaultdict(list)
-            self._layer = fontforge.layer()
-            self._layer += fontforge.contour()
+            self.anchor_points: Final[collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]]] = collections.defaultdict(list)
+            layer = fontforge.layer()
+            layer += fontforge.contour()
+            self._layer: Final = layer
 
         def addAnchorPoint(
             self,
@@ -3318,7 +3319,7 @@ class InvalidOverlap(Complex):
             instructions: The ``instructions`` attribute.
         """
         super().__init__(instructions)
-        self.continuing = continuing
+        self.continuing: Final = continuing
 
     def clone(  # type: ignore[override]
         self,
@@ -3357,7 +3358,7 @@ class InvalidStep(Complex):
             instructions: The ``instructions`` attribute.
         """
         super().__init__(instructions)
-        self.angle = angle
+        self.angle: Final = angle
 
     def clone(  # type: ignore[override]
         self,
@@ -3429,9 +3430,9 @@ class Ou(Complex):
             role: The ``role`` attribute.
         """
         super().__init__(instructions, hook=True)
-        self.role = role
-        self._initial = _initial
-        self._isolated = _isolated
+        self.role: Final = role
+        self._initial: Final = _initial
+        self._isolated: Final = _isolated
 
     def clone(  # type: ignore[override]
         self,
@@ -3610,8 +3611,8 @@ class SeparateAffix(Complex):
             tight: The ``tight`` attribute.
         """
         super().__init__(instructions)
-        self.low = low
-        self.tight = tight
+        self.low: Final = low
+        self.tight: Final = tight
 
     def clone(  # type: ignore[override]
         self,
@@ -3917,7 +3918,7 @@ class TangentHook(Complex):
         while callable(instructions[0]):
             instructions = instructions[1:]
         super().__init__([self._override_initial_context if _initial else self._override_noninitial_context, *instructions], hook=True)
-        self._initial = _initial
+        self._initial: Final = _initial
 
     @staticmethod
     def _override_noninitial_context(c: Context) -> Context:

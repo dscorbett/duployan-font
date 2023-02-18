@@ -119,12 +119,12 @@ class Builder:
     def __init__(self, font: fontforge.font, bold: bool, noto: bool) -> None:
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
-        self._anchors: MutableMapping[str, fontTools.feaLib.ast.LookupBlock] = {}
+        self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
         self._initialize_phases(noto)
-        self.light_line = 101 if bold else REGULAR_LIGHT_LINE
-        self.shaded_line = SHADING_FACTOR * self.light_line
-        self.stroke_gap = max(MINIMUM_STROKE_GAP, self.light_line)
-        code_points: collections.defaultdict[int, int] = collections.defaultdict(int)
+        self.light_line: Final = 101 if bold else REGULAR_LIGHT_LINE
+        self.shaded_line: Final = SHADING_FACTOR * self.light_line
+        self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
+        code_points: Final[collections.defaultdict[int, int]] = collections.defaultdict(int)
         self._initialize_schemas(noto, self.light_line, self.stroke_gap)
         for schema in self._schemas:
             if schema.cmap is not None:

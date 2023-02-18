@@ -392,32 +392,32 @@ class Schema:
         """
         assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
         assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
-        self.cmap = cmap
-        self.path = path
-        self.size = size
-        self.joining_type = joining_type
-        self.side_bearing = side_bearing
-        self.y_min = y_min
-        self.y_max = y_max
-        self.child = child
-        self.can_lead_orienting_sequence = can_lead_orienting_sequence if can_lead_orienting_sequence is not None else joining_type == Type.ORIENTING
-        self.ignored_for_topography = ignored_for_topography
-        self.anchor = anchor
-        self.widthless = widthless
-        self.marks = marks or []
-        self.ignorability = ignorability
-        self.encirclable = encirclable
-        self.maximum_tree_width = maximum_tree_width
-        self.shading_allowed = shading_allowed
-        self.context_in = context_in or NO_CONTEXT
-        self.context_out = context_out or NO_CONTEXT
-        self.diphthong_1 = diphthong_1
-        self.diphthong_2 = diphthong_2
-        self.base_angle = base_angle
-        self.cps = tuple(cps) if cps is not None else () if cmap is None else (cmap,)
-        self.original_shape = original_shape or type(path)
-        self.scripts = cps_to_scripts(self.cps)
-        self.phase_index = CURRENT_PHASE_INDEX
+        self.cmap: Final = cmap
+        self.path: Final = path
+        self.size: Final = size
+        self.joining_type: Final = joining_type
+        self.side_bearing: Final = side_bearing
+        self.y_min: Final = y_min
+        self.y_max: Final = y_max
+        self.child: Final = child
+        self.can_lead_orienting_sequence: Final = can_lead_orienting_sequence if can_lead_orienting_sequence is not None else joining_type == Type.ORIENTING
+        self.ignored_for_topography: Final = ignored_for_topography
+        self.anchor: Final = anchor
+        self.widthless: Final = widthless
+        self.marks: Final = marks or []
+        self.ignorability: Final = ignorability
+        self.encirclable: Final = encirclable
+        self.maximum_tree_width: Final = maximum_tree_width
+        self.shading_allowed: Final = shading_allowed
+        self.context_in: Final = context_in or NO_CONTEXT
+        self.context_out: Final = context_out or NO_CONTEXT
+        self.diphthong_1: Final = diphthong_1
+        self.diphthong_2: Final = diphthong_2
+        self.base_angle: Final = base_angle
+        self.cps: Final = tuple(cps) if cps is not None else () if cmap is None else (cmap,)
+        self.original_shape: Final = original_shape or type(path)
+        self.scripts: Final = cps_to_scripts(self.cps)
+        self.phase_index: Final = CURRENT_PHASE_INDEX
         self._glyph_name: Optional[str] = None
         self._canonical_schema: Schema = self
         self._lookalike_group: Collection[Schema] = [self]
@@ -434,7 +434,7 @@ class Schema:
                 thunk: The callable that produces a sortable value. This
                     `_LazySortable` will call it at most once.
             """
-            self._thunk = thunk
+            self._thunk: Final = thunk
             self._value: Optional[SupportsDunderLT[Any]] = None
 
         def __lt__(self, other: object) -> bool:
@@ -687,7 +687,7 @@ class Schema:
     @canonical_schema.setter
     def canonical_schema(self, canonical_schema: Schema) -> None:
         assert self._canonical_schema is self
-        canonical_schema.scripts |= self.scripts
+        canonical_schema.scripts.update(self.scripts)
         self._canonical_schema = canonical_schema
         self._glyph_name = None
 
