@@ -709,6 +709,7 @@ class Schema:
         return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
 
     @classmethod
+    @functools.cache
     def _readable_name(cls, cp: int) -> str:
         """Returns a human-readable glyph name for a code point.
 
