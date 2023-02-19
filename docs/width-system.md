@@ -162,7 +162,7 @@ The absence of `_.c` represents a carry of 0.
 Any `_.START` glyphs that follow other `_.START` glyphs within the same
 stenogram are obviously not at the start, so they are removed.
 
-`_.START` is replaced with itself followed by a left bound width marker sequence
+`_.START` is replaced with itself preceded by a left bound width marker sequence
 encoding the number 0 with fully capitalized glyph names: `_.LDX.0E0` and so on.
 This is just a placeholder.
 
@@ -182,7 +182,7 @@ The left bound width markers are slightly different:
 `_.ldx.2e3` after the final letter becomes the partially capitalized
 `_.ldx.2E3`.
 These are then copied, with fully capitalized glyph names,
-over the placeholder left bound width markers that follow `_.START`.
+over the placeholder left bound width markers that precede `_.START`.
 
 Entry width markers do not get capitalized glyphs.
 They are only used to calculate anchor widths

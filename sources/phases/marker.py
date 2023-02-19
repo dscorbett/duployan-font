@@ -1056,8 +1056,8 @@ def expand_start_markers(
     lookup = Lookup('dist', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
-        start,
         *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
+        start,
     ]))
     return [lookup]
 
@@ -1137,9 +1137,6 @@ def copy_maximum_left_bound_to_start(
     )
     new_left_totals = []
     new_left_start_totals: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
-    start = next(s for s in schemas if isinstance(s.path, Start))
-    if start not in classes['all']:
-        classes['all'].append(start)
     for schema in new_schemas:
         if isinstance(schema.path, LeftBoundDigit):
             if schema.path.status == DigitStatus.ALMOST_DONE:
@@ -1162,7 +1159,7 @@ def copy_maximum_left_bound_to_start(
             if input not in classes['all']:
                 classes['all'].append(input)
             add_rule(lookup, Rule(
-                [start, *['all'] * total_place],
+                [],
                 [input],
                 [*['all'] * (WIDTH_MARKER_PLACES - 1), total],
                 [done]))
