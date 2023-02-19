@@ -54,6 +54,7 @@ import fontTools.agl
 import fontforge
 
 
+import anchors
 from shapes import AnchorWidthDigit
 from shapes import ChildEdge
 from shapes import Circle
@@ -582,15 +583,23 @@ class Schema:
         return self.path.calculate_diacritic_angles()
 
     @functools.cached_property
-    def without_marks(self) -> Schema:
+    def without_marks(self) -> Self:
         """Returns this schema without its marks.
 
         If this schema has no marks, the return value is ``self``.
 
         Otherwise, the return value is the same as this schema but with
-        the ``cmap`` and ``marks`` attributes reset.
+        the ``cmap`` and ``marks`` attributes reset. The ``encirclable``
+        attribute is also set to ``True`` if any of the marks is a
+        combining enclosing circle.
         """
-        return self.clone(cmap=None, marks=None) if self.marks else self
+        return self.clone(
+                cmap=None,
+                marks=None,
+                encirclable=True
+                    if any(mark.anchor == anchors.MIDDLE and isinstance(mark.path, Circle) for mark in self.marks)
+                    else CLONE_DEFAULT,
+            ) if self.marks else self
 
     @functools.cached_property
     def glyph_class(self) -> GlyphClass:

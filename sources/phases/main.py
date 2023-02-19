@@ -228,7 +228,7 @@ def decompose(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
-    lookup = Lookup('abvs', 'dflt')
+    lookup = Lookup('abvm', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Rule([schema], [schema.without_marks, *schema.marks]))

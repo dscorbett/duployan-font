@@ -247,12 +247,12 @@ def shrink_wrap_enclosing_circle(
     lookup = Lookup(
         'rlig',
         'dflt',
-        mark_filtering_set='i',
+        mark_filtering_set='all',
     )
     dist_lookup = Lookup(
         'dist',
         'dflt',
-        mark_filtering_set='o',
+        mark_filtering_set='all',
     )
     if len(original_schemas) != len(schemas):
         return [lookup, dist_lookup]
@@ -275,10 +275,11 @@ def shrink_wrap_enclosing_circle(
     for schema in schemas:
         if not schema.glyph:
             continue
-        if schema.widthless and schema.cps == (0x20DD,):
-            assert circle_schema is None
-            circle_schema = schema
-            classes['i'].append(circle_schema)
+        if schema.widthless and schema.anchor == anchors.MIDDLE and isinstance(schema.path, Circle):
+            if circle_schema is None:
+                circle_schema = schema
+            classes['i'].append(schema)
+            classes['all'].append(schema)
         elif schema.encirclable:
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             dx = x_max - x_min
@@ -299,8 +300,9 @@ def shrink_wrap_enclosing_circle(
     assert circle_schema is not None
     for class_name, (stretch, long, size, side_bearing) in punctuation.items():
         new_circle_schema = get_new_circle_schema(stretch, long, size)
-        add_rule(lookup, Rule(class_name, [circle_schema], [], [new_circle_schema]))
+        add_rule(lookup, Rule(class_name, 'i', [], [new_circle_schema]))
         classes['o'].append(new_circle_schema)
+        classes['all'].append(new_circle_schema)
         add_rule(dist_lookup, Rule([], [class_name], [new_circle_schema], x_placements=[side_bearing], x_advances=[2 * side_bearing]))
     return [lookup, dist_lookup]
 

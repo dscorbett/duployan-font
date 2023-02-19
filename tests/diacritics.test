@@ -106,3 +106,6 @@
 201D 20DD::[uni201D.right_double_quote@140,0|uni20DD.enclosing_circle.wl@367,391|_@733,0]
 201E 20DD::[uni201E.double_low_9_quote@140,0|uni20DD.enclosing_circle.wl@367,-351|_@733,0]
 2026 20DD::[uni2026.horizontal_ellipsis@140,0|uni20DD.enclosing_circle.wl@470,-274|_@940,0]
+
+# U+2463 CIRCLED DIGIT FOUR is implemented using U+20DD.
+2463::[uni2463.circled_four@140,0|uni20DD.enclosing_circle.wl@489,-175|_@978,0]

@@ -190,7 +190,7 @@ class Builder:
         right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
         right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
-        enclosing_circle = Circle(180, 180, clockwise=False)
+        circle = Circle(180, 180, clockwise=False)
         masculine_ordinal_indicator = Complex([(625.5, Space(90)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
         multiplication = Complex([(1, Line(315)), (0.5, Line(135), False), (0.5, Line(225)), (1, Line(45))])
         grave = Line(150)
@@ -307,6 +307,7 @@ class Builder:
         up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
         line = Line(0)
 
+        enclosing_circle = Schema(None, circle, 10, anchor=anchors.MIDDLE)
         small_dot_1 = Schema(None, Dot(0), 0, anchor=anchors.RELATIVE_1)
         dot_1 = Schema(None, h, 0, anchor=anchors.RELATIVE_1)
         dot_2 = Schema(None, h, 0, anchor=anchors.RELATIVE_2)
@@ -346,7 +347,7 @@ class Builder:
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
-            Schema(0x00B0, enclosing_circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT, shading_allowed=False),
+            Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING),
             Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING),
             Schema(0x00BF, inverted_question, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
@@ -378,11 +379,12 @@ class Builder:
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
-            Schema(0x20DD, enclosing_circle, 10, anchor=anchors.MIDDLE),
+            Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
             Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x2309, right_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
             Schema(0x230B, right_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
+            Schema(0x2463, four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, marks=[enclosing_circle], shading_allowed=False),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
             Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
