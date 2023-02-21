@@ -85,8 +85,8 @@
 # cursive behavior.
 003D 1BCA0 1BC02::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
 003D 1BCA1 1BC02::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
-003D 1BCA0 1BC02 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p.sub@453,27|uni200C.zwnj@740,0|u1BC41.a@740,0|_@1180,0]
-003D 1BCA1 1BC02 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|u1BC41.a.90n90@333,-73|_@773,0]
+003D 1BCA0 1BC09 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|uni200C.zwnj@1006,0|u1BC41.a@1006,0|_@1446,0]
+003D 1BCA1 1BC09 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|u1BC41.a.120n120@753,-439|_@1193,0]
 1BC02 1BCA0 003D::[u1BC02.p@0,0|u1BCA0.letter_overlap@240,0|uni200C.zwnj@1368,0|equal@1368,0|_@2108,0]
 1BC02 1BCA1 003D::[u1BC02.p@0,0|u1BCA1.continuing_overlap@240,0|uni200C.zwnj@1368,0|equal@1368,0|_@2108,0]
 1BC0B 003D::[u1BC0B.r@0,0|uni200C.zwnj@1240,0|equal@1240,0|_@1980,0]

@@ -1016,15 +1016,20 @@ def disjoin_equals_sign(
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    equals_sign = next(s for s in schemas if s.cmap == 0x003D)
-    continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
-    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge) and not s.path.lineage)
+    for schema in new_schemas:
+        if schema.cmap == 0x003D:
+            equals_sign = schema
+        elif schema.glyph_class == GlyphClass.JOINER:
+            classes['joiner'].append(schema)
+        elif isinstance(schema.path, ContinuingOverlap):
+            classes['all'].append(schema)
+        elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
+            root_parent_edge = schema
+            classes['all'].append(root_parent_edge)
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-    classes['all'].append(continuing_overlap)
-    classes['all'].append(root_parent_edge)
     add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
-    add_rule(lookup, Rule([equals_sign, continuing_overlap], [root_parent_edge], [], lookups=[None]))
-    add_rule(lookup, Rule([equals_sign], [root_parent_edge], [], [zwnj, root_parent_edge]))
+    for tree in _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, equals_sign.max_tree_width() + 1)):
+        add_rule(lookup, Rule([equals_sign, *filter(None, tree)], [root_parent_edge], [], [zwnj, root_parent_edge]))
     return [lookup]
 
 
@@ -1889,12 +1894,12 @@ PHASE_LIST = [
     add_secant_guidelines,
     add_placeholders_for_missing_children,
     categorize_edges,
+    disjoin_equals_sign,
     promote_final_letter_overlap_to_continuing_overlap,
     reposition_chinook_jargon_overlap_points,
     make_mark_variants_of_children,
     interrupt_overlong_primary_curve_sequences,
     reposition_stenographic_period,
-    disjoin_equals_sign,
     join_with_next_step,
     separate_subantiparallel_lines,
     prepare_for_secondary_diphthong_ligature,
