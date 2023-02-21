@@ -316,8 +316,7 @@ class Shape:
         """
         return {}
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         """Returns the glyph class that any schema with this shape is
         guaranteed to have, or ``None`` if there is no guarantee.
         """
@@ -371,8 +370,7 @@ class ContextMarker(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -397,8 +395,7 @@ class Dummy(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -435,8 +432,7 @@ class Start(Shape):
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -523,8 +519,7 @@ class Hub(Shape):
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -542,27 +537,7 @@ class End(Shape):
     def invisible(self) -> bool:
         return True
 
-    def draw(
-            self,
-            glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
-            stroke_width: float,
-            light_line: float,
-            stroke_gap: float,
-            size: float,
-            anchor: Optional[str],
-            joining_type: Type,
-            child: bool,
-            initial_circle_diphthong: bool,
-            final_circle_diphthong: bool,
-            diphthong_1: bool,
-            diphthong_2: bool,
-    ) -> bool:
-        glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
-        return False
-
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -580,8 +555,7 @@ class Carry(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -634,8 +608,7 @@ class EntryWidthDigit(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -678,9 +651,8 @@ class LeftBoundDigit(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
-        return GlyphClass.MARK
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
+        return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
 
 class RightBoundDigit(Shape):
@@ -722,9 +694,28 @@ class RightBoundDigit(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
-        return GlyphClass.MARK
+    def draw(
+            self,
+            glyph: fontforge.glyph,
+            pen: fontforge.glyphPen | Literal[False],
+            stroke_width: float,
+            light_line: float,
+            stroke_gap: float,
+            size: float,
+            anchor: Optional[str],
+            joining_type: Type,
+            child: bool,
+            initial_circle_diphthong: bool,
+            final_circle_diphthong: bool,
+            diphthong_1: bool,
+            diphthong_2: bool,
+    ) -> bool:
+        if self.place == 0 and self.status == DigitStatus.DONE:
+            glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
+        return False
+
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
+        return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
 
 class AnchorWidthDigit(Shape):
@@ -766,9 +757,8 @@ class AnchorWidthDigit(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
-        return GlyphClass.MARK
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
+        return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
 
 Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
@@ -812,8 +802,7 @@ class WidthNumber(Shape, Generic[_D]):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
     def to_digits(
@@ -866,8 +855,7 @@ class MarkAnchorSelector(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -896,8 +884,7 @@ class GlyphClassSelector(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -915,8 +902,7 @@ class InitialSecantMarker(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -964,8 +950,7 @@ class Notdef(Shape):
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -1104,8 +1089,7 @@ class Bound(Shape):
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -1126,8 +1110,7 @@ class ValidDTLS(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1199,8 +1182,7 @@ class ChildEdge(Shape):
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1241,8 +1223,7 @@ class ContinuingOverlapS(Shape):
     ) -> bool:
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1316,8 +1297,7 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
         return False
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -1336,8 +1316,7 @@ class RootOnlyParentEdge(Shape):
     def invisible(self) -> bool:
         return True
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.MARK
 
 
@@ -3293,8 +3272,7 @@ class InvalidDTLS(Complex):
     def context_out(self) -> Context:
         return NO_CONTEXT
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 
@@ -3332,8 +3310,7 @@ class InvalidOverlap(Complex):
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
-    @staticmethod
-    def guaranteed_glyph_class() -> Optional[GlyphClass]:
+    def guaranteed_glyph_class(self) -> Optional[GlyphClass]:
         return GlyphClass.BLOCKER
 
 

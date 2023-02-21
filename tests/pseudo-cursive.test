@@ -40,9 +40,9 @@
 1BC5F 1BC01 1BC02::[u1BC5F.wei@0,340|u1BC01.x@558,387|u1BC02.p@752,0|_@992,0]
 
 # U+202F NARROW NO-BREAK SPACE
-202F:--script Dupl:[uni202F.nnbsp@85,0|_@200,0]
-202F 202F:--script Dupl:[uni202F.nnbsp@85,0|uni202F.nnbsp@283,0|_@398,0]
-202F 202F 202F:--script Dupl:[uni202F.nnbsp@85,0|uni202F.nnbsp@283,0|uni202F.nnbsp@481,0|_@596,0]
+202F::[uni202F.nnbsp@85,0|_@200,0]
+202F 202F::[uni202F.nnbsp@85,0|uni202F.nnbsp@283,0|_@398,0]
+202F 202F 202F::[uni202F.nnbsp@85,0|uni202F.nnbsp@283,0|uni202F.nnbsp@481,0|_@596,0]
 1BC02 202F 1BC05::[u1BC02.p@0,0|uni202F.nnbsp@240,35|u1BC05.k@30,-500|_@558,0]
 1BC05 202F 1BC02::[u1BC05.k@0,0|uni202F.nnbsp@288,35|u1BC02.p@318,-500|_@558,0]
 1BC02 202F 1BC19::[u1BC02.p@0,0|uni202F.nnbsp@240,35|u1BC19.m@162,-720|_@702,0]

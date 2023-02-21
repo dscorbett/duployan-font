@@ -255,14 +255,15 @@ initial and final cursive glyphs in the usual OpenType width system.
 Cursive glyphs have positive advance widths, which means the final
 cursive glyph’s advance width would be added to the total calculated right bound
 width.
-To avoid that problem, an invisible zero-width cursive glyph named `_.END` is
-added at the end of the stenogram.
-That is half the purpose of `_.END`; the other is to mark the final letter.
+To avoid that problem, an invisible zero-width cursive glyph named `_.RDX.*E0`
+is added at the end of the stenogram.
+That is half the purpose of `_.RDX.*E0`;
+the other is to add space after the final letter.
 Similarly, `_.START` is an invisible zero-width cursive glyph added at the start
 of the stenogram that suppresses the left side bearing of the initial letter.
 The point of giving these glyphs advance widths that are never actually used is
 to make debugging substitution rules more convenient in FontForge’s UI.
-Since the `_.START` and `_.END` glyphs have to exist anyway,
+Since the `_.START` and `_.RDX.*E0` glyphs have to exist anyway,
 it does not make the font too much more complex.
 
 ## Caveats
