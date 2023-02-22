@@ -1022,6 +1022,11 @@ def _add_rule(
             but it can sometimes cause a crash in fontTools, so it can
             be disabled.
     """
+    if lookup.mark_filtering_set:
+        for mark in classes[lookup.mark_filtering_set]:
+            assert mark.glyph_class == GlyphClass.MARK, f'''{mark} has GDEF class {mark.glyph_class}, but it appears in {
+                lookup.mark_filtering_set}, a mark filtering set'''
+
     def ignored(schema: schema.Schema) -> bool:
         """Returns whether `rule` would ignore a schema.
 

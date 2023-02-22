@@ -299,7 +299,6 @@ def validate_overlap_controls(
         if isinstance(schema.path, ChildEdge):
             return [lookup]
         if isinstance(schema.path, InvalidOverlap):
-            classes['overlap'].append(schema)
             if schema.path.continuing:
                 continuing_overlap = schema
             else:

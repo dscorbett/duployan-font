@@ -548,14 +548,12 @@ def remove_false_end_markers(
     lookup = Lookup(
         'dist',
         'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES + fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
-    if 'all' in classes:
+    if len(original_schemas) != len(schemas):
         return [lookup]
     dummy = Schema(None, Dummy(), 0)
     end = next(s for s in new_schemas if isinstance(s.path, End))
-    classes['all'].append(end)
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
@@ -1135,7 +1133,7 @@ def copy_maximum_left_bound_to_start(
         'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-        mark_filtering_set='all',
+        mark_filtering_set='almost_done',
     )
     new_left_totals = []
     new_left_start_totals: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
@@ -1143,10 +1141,11 @@ def copy_maximum_left_bound_to_start(
         if isinstance(schema.path, LeftBoundDigit):
             if schema.path.status == DigitStatus.ALMOST_DONE:
                 new_left_totals.append(schema)
+                classes['almost_done'].append(schema)
+                classes['all'].append(schema)
             elif schema.path.status == DigitStatus.DONE and schema.path.digit == 0:
                 new_left_start_totals[schema.path.place] = schema
     for total in new_left_totals:
-        classes['all'].append(total)
         total_digit = total.path.digit  # type: ignore[attr-defined]
         total_place = total.path.place  # type: ignore[attr-defined]
         if total_digit == 0:
@@ -1213,8 +1212,8 @@ PHASE_LIST = [
     remove_false_start_markers,
     mark_hubs_after_initial_secants,
     find_real_hub,
-    expand_start_markers,
     mark_maximum_bounds,
+    expand_start_markers,
     copy_maximum_left_bound_to_start,
     dist,
 ]
