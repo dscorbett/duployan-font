@@ -38,16 +38,26 @@ import utils
 LEADING_ZEROS = re.compile('(?<= )0+')
 
 
+TIMESTAMP_FORMAT = '%Y%m%dT%H%M%SZ'
+
+
 VERSION_PREFIX = 'Version '
 
 
-def build_font(options: argparse.Namespace, font: fontforge.font) -> None:
+def build_font(
+    options: argparse.Namespace,
+    font: fontforge.font,
+    dirty: bool,
+) -> None:
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         try:
-            os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
-                    ['git', 'log', '-1', '--format=%ct'],
-                    encoding='utf-8',
-                ).rstrip()
+            if dirty:
+                os.environ['SOURCE_DATE_EPOCH'] = f'{datetime.datetime.now(datetime.timezone.utc).timestamp():.0f}'
+            else:
+                os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
+                        ['git', 'log', '-1', '--format=%ct'],
+                        encoding='utf-8',
+                    ).rstrip()
         except (FileNotFoundError, subprocess.CalledProcessError):
             os.environ['SOURCE_DATE_EPOCH'] = '0'
     font.selection.all()
@@ -102,11 +112,16 @@ def set_unique_id(names: Collection[Any], vendor: str) -> None:
     unique_id_record.string = f'{version};{vendor};{postscript_name}'
 
 
+def get_date() -> str:
+    return datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.timezone.utc).strftime(TIMESTAMP_FORMAT)
+
+
 def set_version(
     tt_font: fontTools.ttLib.ttFont.TTFont,
     noto: bool,
     version: float,
     release: bool,
+    dirty: bool,
 ) -> None:
     tt_font['head'].fontRevision = version
     if noto:
@@ -126,17 +141,21 @@ def set_version(
                 if release:
                     release_suffix = ''
                 else:
-                    timestamp_format = '%Y%m%dT%H%M%SZ'
                     os.environ['TZ'] = 'UTC'
                     try:
-                        git_date = subprocess.check_output(
-                                ['git', 'log', '-1', f'--date=format-local:{timestamp_format}', '--format=%cd'],
-                                encoding='utf-8',
-                            ).rstrip()
+                        if dirty:
+                            date = get_date()
+                        else:
+                            date = subprocess.check_output(
+                                    ['git', 'log', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd'],
+                                    encoding='utf-8',
+                                ).rstrip()
                         git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-                        metadata = f'{git_date}.{git_hash}'
+                        metadata = f'{date}.{git_hash}'
+                        if dirty:
+                            metadata += '.dirty'
                     except (FileNotFoundError, subprocess.CalledProcessError):
-                        metadata = datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.timezone.utc).strftime(timestamp_format)
+                        metadata = get_date()
                     release_suffix = f'-alpha+{metadata}'
                 name.string = f'{VERSION_PREFIX}{version}.0{release_suffix}'
                 break
@@ -166,7 +185,7 @@ def add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
     meta.data['slng'] = 'Dupl'
 
 
-def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
+def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bool) -> None:
     with fontTools.ttLib.ttFont.TTFont(options.output, recalcBBoxes=False) as tt_font:
         # Remove the FontForge timestamp table.
         if 'FFTM' in tt_font:
@@ -216,7 +235,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
         tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
-        set_version(tt_font, options.noto, options.version, options.release)
+        set_version(tt_font, options.noto, options.version, options.release, dirty)
         set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID)
         if 'CFF ' in tt_font:
             set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
@@ -226,13 +245,21 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder) -> None:
         tt_font.save(options.output)
 
 
+def is_dirty() -> bool:
+    try:
+        return bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no']))
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+
 def make_font(options: argparse.Namespace) -> None:
     font = fontforge.font()
     font.encoding = 'UnicodeFull'
     builder = duployan.Builder(font, options.bold, options.noto)
     builder.augment()
-    build_font(options, builder.font)
-    tweak_font(options, builder)
+    dirty = is_dirty()
+    build_font(options, builder.font, dirty)
+    tweak_font(options, builder, dirty)
 
 
 if __name__ == '__main__':
