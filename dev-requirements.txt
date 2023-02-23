@@ -121,7 +121,7 @@ lxml==4.9.2
     #   fontbakery
     #   fontfeatures
     #   fonttools
-markdown-it-py==2.1.0
+markdown-it-py==2.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
@@ -196,6 +196,7 @@ ufolint==1.2.0
     # via fontbakery
 uharfbuzz==0.33.0
     # via
+    #   -c constraints.txt
     #   -r requirements.in
     #   collidoscope
     #   fonttools
