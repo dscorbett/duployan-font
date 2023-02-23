@@ -63,9 +63,7 @@ defcon==0.10.2
 dehinter==4.0.0
     # via fontbakery
 font-v==2.1.0
-    # via
-    #   -r requirements.in
-    #   fontbakery
+    # via fontbakery
 fontbakery[freetype]==0.8.10
     # via -r dev-requirements.in
 fontfeatures==1.7.4

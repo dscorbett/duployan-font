@@ -125,16 +125,11 @@ def set_version(
 ) -> None:
     tt_font['head'].fontRevision = version
     if noto:
-        os.environ['GIT_PYTHON_REFRESH'] = 'warn'
-        import fontv.libfv
-        fontv_version = fontv.libfv.FontVersion(tt_font)
-        fontv_version.set_version_number(f'{version:.03f}')
-        if not release:
-            try:
-                fontv_version.set_state_git_commit_sha1(development=True)
-            except OSError:
-                fontv_version.set_development_status()
-        fontv_version.write_version_string()
+        for name in tt_font['name'].names:
+            if name.nameID == 5:
+                release_suffix = '' if release else ';DEV'
+                name.string = f'{VERSION_PREFIX}{version:.03f}{release_suffix}'
+                break
     else:
         for name in tt_font['name'].names:
             if name.nameID == 5:

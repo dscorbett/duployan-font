@@ -14,6 +14,5 @@
 # limitations under the License.
 
 -c constraints.txt
-font-v ~= 2.1
 fonttools[repacker] ~= 4.35
 uharfbuzz

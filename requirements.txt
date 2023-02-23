@@ -18,18 +18,8 @@
 #
 #    pip-compile --allow-unsafe --no-emit-index-url --no-emit-trusted-host --resolver=backtracking requirements.in
 #
-font-v==2.1.0
-    # via -r requirements.in
 fonttools[repacker]==4.38.0
-    # via
-    #   -r requirements.in
-    #   font-v
-gitdb==4.0.10
-    # via gitpython
-gitpython==3.1.30
-    # via font-v
-smmap==5.0.0
-    # via gitdb
+    # via -r requirements.in
 uharfbuzz==0.33.0
     # via
     #   -r requirements.in

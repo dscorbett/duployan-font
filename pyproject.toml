@@ -35,7 +35,6 @@ warn_unused_ignores = true
 module = [
     "fontTools.*",
     "fontforge.*",
-    "fontv.*",
     "uharfbuzz.*",
 ]
 ignore_missing_imports = true
