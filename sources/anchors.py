@@ -39,7 +39,6 @@ __all__ = [
 from collections.abc import Collection
 from collections.abc import Sequence
 from typing import Final
-from typing import Iterable
 
 
 from utils import MAX_TREE_DEPTH

@@ -75,7 +75,6 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import enum
 import math
-import typing
 from typing import Callable
 from typing import ClassVar
 from typing import Final
@@ -3012,7 +3011,6 @@ class Complex(Shape):
             if abs(det) < EPSILON:
                 return 0, 0
             u = (dy * bdx - dx * bdy) / det
-            v = (dy * adx - dx * ady) / det
             px = asx + adx * u
             py = asy + ady * u
             return px, py
@@ -3152,8 +3150,6 @@ class Complex(Shape):
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
             if self.hub_priority(size) != 0:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-        anchor_name = mkmk if anchor or child else lambda a: a
-        base = 'basemark' if anchor or child else 'base'
         if anchor is None:
             for (singular_anchor, type), points in singular_anchor_points.items():
                 if singular_anchor in anchors.ALL_MARK or (
@@ -3645,12 +3641,6 @@ class SeparateAffix(Complex):
             diphthong_1,
             diphthong_2,
         )
-        for anchor_class_name, type, x, y in glyph.anchorPoints:
-            if anchor_class_name == anchors.CURSIVE:
-                if type == 'entry':
-                    entry = x, y
-                elif type == 'exit':
-                    exit = x, y
         glyph.anchorPoints = []
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         cursive_y = (y_max + 200 if self.low else y_min - 200)
@@ -3987,12 +3977,6 @@ class XShape(Complex):
             diphthong_1,
             diphthong_2,
         )
-        for anchor_class_name, type, x, y in glyph.anchorPoints:
-            if anchor_class_name == anchors.CURSIVE:
-                if type == 'entry':
-                    entry = x, y
-                elif type == 'exit':
-                    exit = x, y
         glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.CURSIVE]
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_avg = (x_min + x_max) / 2

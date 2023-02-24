@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-from collections.abc import Collection
 from typing import MutableSequence
 from typing import TYPE_CHECKING
 
@@ -36,8 +35,6 @@ from utils import PrefixView
 
 
 if TYPE_CHECKING:
-    from mypy_extensions import DefaultNamedArg
-
     from . import AddRule
     from duployan import Builder
 

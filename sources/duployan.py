@@ -27,7 +27,6 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import io
 import math
-from typing import Callable
 from typing import Final
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -50,10 +49,7 @@ from phases import Lookup
 import phases.main
 import phases.marker
 import phases.middle
-import schema
 from schema import Ignorability
-from schema import MAX_DOUBLE_MARKS
-from schema import MAX_HUB_PRIORITY
 from schema import NO_PHASE_INDEX
 from schema import Schema
 from shapes import Bound
@@ -261,7 +257,6 @@ class Builder:
         romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))], hook=True)
         uh = Circle(45, 45, clockwise=False, reversed=False, stretch=2)
         ou = Ou([(1, Circle(180, 145, clockwise=False)), lambda c: c, (5 / 9, Curve(145, 270, clockwise=False))])
-        ou_reverse = ou.as_reversed()
         wa = Wa([(4, Circle(180, 180, clockwise=False)), (2, Circle(180, 180, clockwise=False))])
         wo = Wa([(4, Circle(180, 180, clockwise=False)), (2.5, Circle(180, 180, clockwise=False))])
         wi = Wi([(4, Circle(180, 180, clockwise=False)), lambda c: c, (5 / 3, m)])
@@ -590,8 +585,6 @@ class Builder:
         self._fea.statements.append(feature)
 
     def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
-        parent_edge_lookup = None
-        child_edge_lookups = [None] * MAX_TREE_WIDTH
         self._add_lookup(
                 'abvm',
                 anchors.PARENT_EDGE,

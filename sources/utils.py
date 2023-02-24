@@ -49,7 +49,6 @@ __all__ = [
 ]
 
 
-from collections.abc import Collection
 from collections.abc import ItemsView
 from collections.abc import KeysView
 from collections.abc import Mapping

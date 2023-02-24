@@ -60,7 +60,6 @@ __all__ = [
 
 
 import collections
-from collections.abc import Collection
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
@@ -116,8 +115,6 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
-    from mypy_extensions import DefaultNamedArg
-
     from . import AddRule
     from duployan import Builder
 
@@ -431,7 +428,6 @@ def invalidate_overlap_controls(
                 node = schema
                 classes['all'].append(schema)
             case RootOnlyParentEdge():
-                root_only_parent_edge = schema
                 classes['all'].append(schema)
             case ChildEdge():
                 valid_letter_overlap = schema

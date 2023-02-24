@@ -37,7 +37,6 @@ __all__ = [
 
 
 import collections
-from collections.abc import Collection
 import functools
 import math
 from typing import Literal
@@ -90,7 +89,6 @@ from utils import WIDTH_MARKER_RADIX
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
-    from mypy_extensions import DefaultNamedArg
 
     from . import AddRule
     from duployan import Builder
@@ -709,8 +707,6 @@ def sum_width_markers(
                     classes['all'].append(schema)
                     classes[f'adx_{schema.path.place}'].append(schema)
                     classes[f'iadx_{schema.path.place}'].append(schema)
-            case Dummy():
-                dummy = schema
             case MarkAnchorSelector():
                 mark_anchor_selectors[schema.path.index] = schema
             case GlyphClassSelector():
