@@ -141,16 +141,16 @@ class Schema:
 
     A schema is mostly immutable. It ultimately represents certain
     unchangeable bytes in the generated font and so it would not make
-    sense to mutate it. Two exceptions are `canonical_schema` and
-    `lookalike_group`. These are used for build-time optimizations
-    related to the schema itself, as a Python object, rather than as the
-    font data it represents.
+    sense to mutate it. Exceptions include `canonical_schema`,
+    `anchors`, `scripts`, and `lookalike_group`. These are used for
+    build-time optimizations related to the schema itself, as a Python
+    object, rather than as the font data it represents.
 
-    The third exception to immutability is `glyph`, the FontForge object
+    Another exception to immutability is `glyph`, the FontForge object
     corresponding to this schema. `glyph` is set once the glyph has been
     drawn, which, as an optimization, is not done till schemas have been
     merged. This is rather a case of caching and lazy initialization
-    than full immutability.
+    than mutability.
 
     Attributes:
         cmap: The code point the 'cmap' table should map to this
@@ -214,6 +214,8 @@ class Schema:
         original_shape: The type of the `path` attribute of the original
             schema from which this schema is derived through some number
             of phases.
+        anchors: The anchors of marks that are known to be able to
+            attach to this schema, if this schema is not a mark.
         scripts: The intersection of the sets of script tags associated
             with the `cps` of this schema and of all schemas
             canonicalized to this schema.
@@ -352,6 +354,7 @@ class Schema:
             base_angle: float | None = None,
             cps: Sequence[int] | None = None,
             original_shape: type[Shape] | None = None,
+            _anchors: set[str] | None = None,
     ) -> None:
         """Initializes this `Schema`.
 
@@ -416,6 +419,7 @@ class Schema:
         self.base_angle: Final = base_angle
         self.cps: Final = tuple(cps) if cps is not None else () if cmap is None else (cmap,)
         self.original_shape: Final = original_shape or type(path)
+        self.anchors: Final = _anchors if _anchors is not None else set()
         self.scripts: Final = cps_to_scripts(self.cps)
         self.phase_index: Final = CURRENT_PHASE_INDEX
         self._glyph_name: str | None = None
@@ -534,6 +538,7 @@ class Schema:
         base_angle: float | None | CloneDefault = CLONE_DEFAULT,
         cps: Sequence[int] | None | CloneDefault = CLONE_DEFAULT,
         original_shape: type[Shape] | None | CloneDefault = CLONE_DEFAULT,
+        _anchors: set[str] | None | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.cmap if cmap is CLONE_DEFAULT else cmap,
@@ -560,6 +565,7 @@ class Schema:
             base_angle=self.base_angle if base_angle is CLONE_DEFAULT else base_angle,
             cps=self.cps if cps is CLONE_DEFAULT else cps,
             original_shape=self.original_shape if original_shape is CLONE_DEFAULT else original_shape,
+            _anchors=self.anchors if _anchors is CLONE_DEFAULT else _anchors,
         )
 
     def __repr__(self) -> str:
@@ -587,10 +593,11 @@ class Schema:
 
         If this schema has no marks, the return value is ``self``.
 
-        Otherwise, the return value is the same as this schema but with
-        the ``cmap`` and ``marks`` attributes reset. The ``encirclable``
-        attribute is also set to ``True`` if any of the marks is a
-        combining enclosing circle.
+        Otherwise, the return value is a clone of this schema with some
+        fields overridden. The ``cmap`` and ``marks`` attributes are
+        reset. The ``encirclable`` attribute is set to ``True`` if any
+        of the marks is a combining enclosing circle. The ``anchors``
+        attribute is extending with the anchors of this schema’s marks.
         """
         return self.clone(
                 cmap=None,
@@ -598,6 +605,7 @@ class Schema:
                 encirclable=True
                     if any(mark.anchor == anchors.MIDDLE and isinstance(mark.path, Circle) for mark in self.marks)
                     else CLONE_DEFAULT,
+                _anchors=self.anchors | {mark.anchor for mark in self.marks if mark.anchor is not None},
             ) if self.marks else self
 
     @functools.cached_property
@@ -670,6 +678,8 @@ class Schema:
             self.widthless,
             tuple(m.group for m in self.marks),
             self.glyph_class,
+            self.encirclable or self.max_double_marks != 0 or self.cmap == 0x25CC,
+            self.can_take_secant,
             self.context_in == NO_CONTEXT and not self.diphthong_1,
             self.context_out == NO_CONTEXT and not self.diphthong_2,
             self.context_in == NO_CONTEXT and self.diphthong_1,
@@ -695,6 +705,7 @@ class Schema:
     @canonical_schema.setter
     def canonical_schema(self, canonical_schema: Schema) -> None:
         assert self._canonical_schema is self
+        canonical_schema.anchors.update(self.anchors)
         canonical_schema.scripts.update(self.scripts)
         self._canonical_schema = canonical_schema
         self._glyph_name = None
@@ -901,6 +912,7 @@ class Schema:
         """
         return min(self.maximum_tree_width, self.path.max_tree_width(self.size))
 
+    @functools.cached_property
     def max_double_marks(self) -> int:
         """Returns the maximum number of consecutive instances of
         U+1BC9E DUPLOYAN DOUBLE MARK supported after this schema’s

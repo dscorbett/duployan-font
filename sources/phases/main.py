@@ -204,7 +204,7 @@ def validate_double_marks(
     classes['double_mark'].append(double_mark)
     new_maximums = set()
     for schema in new_schemas:
-        maximum = schema.max_double_marks()
+        maximum = schema.max_double_marks
         new_maximums.add(maximum)
         classes[str(maximum)].append(schema)
     for maximum in sorted(new_maximums, reverse=True):

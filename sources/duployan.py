@@ -25,6 +25,7 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
+from collections.abc import Set
 import io
 import math
 from typing import Final
@@ -669,7 +670,13 @@ class Builder:
                     glyph.altuni += new_altuni
         return glyph
 
-    def _draw_glyph(self, glyph: fontforge.glyph, schema: Schema, _scalar: float = 1) -> None:
+    def _draw_glyph(
+        self,
+        glyph: fontforge.glyph,
+        schema: Schema,
+        cmapped_anchors: Set[str],
+        _scalar: float = 1,
+    ) -> None:
         assert not schema.marks
         pen = glyph.glyphPen()
         invisible = schema.path.invisible()
@@ -707,7 +714,7 @@ class Builder:
                     if (desired_to_actual_ratio := (desired_height - stroke_width) / (actual_height - stroke_width)) != 1:
                         if _scalar == 1:
                             glyph.clear()
-                            self._draw_glyph(glyph, schema, desired_to_actual_ratio)
+                            self._draw_glyph(glyph, schema, cmapped_anchors, desired_to_actual_ratio)
                         else:
                             glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
                                 .scale(desired_height / actual_height)
@@ -725,23 +732,48 @@ class Builder:
             glyph.right_side_bearing = side_bearing
             if x_min != x_max:
                 glyph.left_side_bearing = side_bearing
-        self._wrangle_anchor_points(schema, glyph)
+        self._wrangle_anchor_points(schema, glyph, cmapped_anchors, stroke_width)
 
-    def _wrangle_anchor_points(self, schema: Schema, glyph: fontforge.glyph) -> None:
-        if schema.glyph_class == GlyphClass.MARK or schema.cmap == 0x25CC:
+    def _wrangle_anchor_points(
+        self,
+        schema: Schema,
+        glyph: fontforge.glyph,
+        cmapped_anchors: Set[str],
+        stroke_width: float,
+    ) -> None:
+        if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef):
             return
+        anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}
+        anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
+        anchor_tests[anchors.SECANT] |= schema.can_take_secant
         anchor_class_names = {a[0] for a in glyph.anchorPoints}
-        for anchor_class_name, should_have_anchor in [
-            (anchors.MIDDLE, schema.encirclable or schema.max_double_marks() != 0),
-            (anchors.SECANT, schema.can_take_secant),
-        ]:
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        if x_min == x_max == 0:
+            x_max = schema.side_bearing
+            y_max = CAP_HEIGHT
+        x_center = (x_max + x_min) / 2
+        y_center = (y_max + y_min) / 2
+        for anchor_class_name, should_have_anchor in anchor_tests.items():
+            should_have_anchor &= not schema.pseudo_cursive
             if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
                 if has_anchor:
                     glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]
+                elif anchor_class_name == anchors.MIDDLE:
+                    glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_center)
+                elif anchor_class_name == anchors.ABOVE:
+                    glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_max + stroke_width / 2 + self.stroke_gap + self.light_line / 2)
+                elif anchor_class_name == anchors.BELOW:
+                    glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_min - (stroke_width / 2 + self.stroke_gap + self.light_line / 2))
                 else:
-                    assert False, f'{glyph.glyphname}: {has_anchor} != {should_have_anchor}'
+                    assert False, f'{glyph.glyphname}: {anchor_class_name}: {has_anchor} != {should_have_anchor}'
 
-    def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
+    def _create_glyph(
+        self,
+        schema: Schema,
+        cmapped_anchors: Set[str],
+        *,
+        drawing: bool,
+    ) -> fontforge.glyph:
         glyph_name = str(schema)
         uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
@@ -752,14 +784,14 @@ class Builder:
         glyph.glyphclass = schema.glyph_class.value
         glyph.temporary = schema
         if drawing:
-            self._draw_glyph(glyph, schema)
+            self._draw_glyph(glyph, schema, cmapped_anchors)
         else:
             glyph.width = glyph.width
         return glyph
 
     def _create_marker(self, schema: Schema) -> None:
         assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
-        glyph = self._create_glyph(schema, drawing=True)
+        glyph = self._create_glyph(schema, set(), drawing=True)
         glyph.width = 0
 
     def _complete_gpos(self) -> None:
@@ -916,6 +948,7 @@ class Builder:
         classes |= more_classes
         class_asts |= self.convert_classes(more_classes)
         named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
+        cmapped_anchors = {schema.anchor for schema in schemas if schema.anchor is not None and schema.cmap is not None}
         for schema in schemas.sorted(key=lambda schema: (
             schema.canonical_schema is not schema,
             schema.cmap is None and schema.glyph_class == GlyphClass.MARK
@@ -925,6 +958,7 @@ class Builder:
             if schema.canonical_schema is schema or schema.cmap is not None:
                 self._create_glyph(
                     schema,
+                    cmapped_anchors,
                     drawing=not schema.ignored_for_topography and schema in output_schemas and schema in more_output_schemas,
                 )
         (

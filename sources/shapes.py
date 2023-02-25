@@ -3151,7 +3151,9 @@ class Complex(Shape):
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
         if anchor is None:
             for (singular_anchor, type), points in singular_anchor_points.items():
-                if singular_anchor in anchors.ALL_MARK or (
+                if (
+                    singular_anchor in anchors.ALL_MARK and singular_anchor not in [anchors.MIDDLE, anchors.ABOVE, anchors.BELOW]
+                ) or (
                     self.maximum_tree_width and (
                         singular_anchor == anchors.CONTINUING_OVERLAP
                         or any(singular_anchor in l for l in anchors.CHILD_EDGES)
@@ -3175,10 +3177,6 @@ class Complex(Shape):
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
             glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
-        elif anchor is None:
-            glyph.addAnchorPoint(anchors.MIDDLE, 'base', x_center, y_center)
-            glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_width / 2 + stroke_gap + light_line / 2)
-            glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
         return first_is_invisible
 
     def can_be_child(self, size: float) -> bool:
