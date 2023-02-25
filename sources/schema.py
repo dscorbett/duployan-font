@@ -907,7 +907,7 @@ class Schema:
         glyph.
         """
         return (0
-            if self.glyph_class != GlyphClass.JOINER
+            if self.glyph_class != GlyphClass.JOINER and not (isinstance(self.path, Line) and self.path.dots)
             else max(0, min(MAX_DOUBLE_MARKS, self.path.max_double_marks(self.size, self.joining_type, self.marks))))
 
     @functools.cached_property
@@ -1046,6 +1046,14 @@ class Schema:
             path=self.path.rotate_diacritic(context),  # type: ignore[attr-defined]
             base_angle=context.angle,
         )
+
+    @functools.cached_property
+    def is_secant(self) -> bool:
+        return isinstance(self.path, Line) and self.path.secant is not None and self.glyph_class == GlyphClass.JOINER
+
+    @functools.cached_property
+    def can_take_secant(self) -> bool:
+        return not self.is_secant and self.glyph_class == GlyphClass.JOINER and self.path.can_take_secant()
 
     @functools.cached_property
     def hub_priority(self) -> int:

@@ -29,6 +29,12 @@
 0021 032F::[exclam@0,0|uni032F.inverted_breve_below.wl@134,-225|_@268,0]
 0021 0331::[exclam@0,0|uni0331.macron_below.wl@84,-175|_@268,0]
 
+# U+25CC DOTTED CIRCLE
+25CC 0300::[uni25CC.dotted_circle@0,0|uni0300.grave.wl@343,654|_@686,0]
+25CC 0316::[uni25CC.dotted_circle@0,0|uni0316.grave_below.wl@430,-192|_@686,0]
+25CC 20DD::[uni25CC.dotted_circle@0,0|uni20DD.enclosing_circle.wl@343,-244|_@686,0]
+25CC 1BC9E::[uni25CC.dotted_circle@0,0|dupl.Line.0.dotted@686,0|u1BC9E.double.90.wl@1181,-112|_@1676,0]
+
 # <U+1BC03 DUPLOYAN LETTER T, U+1BC9E DUPLOYAN DOUBLE MARK>
 1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E.double.90@370,-112|uni0300.grave@370,245|_@740,0]
 1BC03 1BC9E 0301::[u1BC03.t@0,0|u1BC9E.double.90@370,-112|uni0301.acute@370,245|_@740,0]

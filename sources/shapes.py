@@ -1663,7 +1663,7 @@ class Line(Shape):
 
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return (0
-            if self.secant or self.dots or any(
+            if self.secant or any(
                 m.anchor in [anchors.RELATIVE_1, anchors.RELATIVE_2, anchors.MIDDLE]
                     for m in marks
             ) else int(self._get_length(size) // (250 * 0.45)) - 1)

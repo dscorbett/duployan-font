@@ -727,6 +727,21 @@ class Builder:
             glyph.right_side_bearing = side_bearing
             if x_min != x_max:
                 glyph.left_side_bearing = side_bearing
+        self._wrangle_anchor_points(schema, glyph)
+
+    def _wrangle_anchor_points(self, schema: Schema, glyph: fontforge.glyph) -> None:
+        if schema.glyph_class == GlyphClass.MARK or schema.cmap == 0x25CC:
+            return
+        anchor_class_names = {a[0] for a in glyph.anchorPoints}
+        for anchor_class_name, should_have_anchor in [
+            (anchors.MIDDLE, schema.encirclable or schema.max_double_marks() != 0),
+            (anchors.SECANT, schema.can_take_secant),
+        ]:
+            if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
+                if has_anchor:
+                    glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]
+                else:
+                    assert False, f'{glyph.glyphname}: {has_anchor} != {should_have_anchor}'
 
     def _create_glyph(self, schema: Schema, *, drawing: bool) -> fontforge.glyph:
         glyph_name = str(schema)

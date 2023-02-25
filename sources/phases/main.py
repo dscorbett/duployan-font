@@ -251,7 +251,8 @@ def expand_secants(
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
     named_lookups['non_initial_secant'] = Lookup(None, None)
     for schema in new_schemas:
-        if isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
+        if schema.is_secant:
+            assert isinstance(schema.path, Line)
             add_rule(named_lookups['non_initial_secant'], Rule(
                 [schema],
                 [schema.clone(
@@ -262,7 +263,7 @@ def expand_secants(
                 )],
             ))
             classes['secant'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_take_secant():
+        elif schema.can_take_secant:
             classes['base'].append(schema)
     add_rule(lookup, Rule('base', 'secant', [], lookups=['non_initial_secant']))
     initial_secant_marker = Schema(None, InitialSecantMarker(), 0, side_bearing=0)
