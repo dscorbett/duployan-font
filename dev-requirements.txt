@@ -95,11 +95,11 @@ fs==2.4.16
     # via
     #   fontfeatures
     #   fonttools
-gflanguages==0.4.3
+gflanguages==0.4.4
     # via fontbakery
 gitdb==4.0.10
     # via gitpython
-gitpython==3.1.30
+gitpython==3.1.31
     # via font-v
 glyphsets==0.5.4
     # via fontbakery
@@ -119,11 +119,11 @@ lxml==4.9.2
     #   fontbakery
     #   fontfeatures
     #   fonttools
-markdown-it-py==2.1.0
+markdown-it-py==2.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-mypy==1.0.0
+mypy==1.0.1
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -172,7 +172,7 @@ skia-pathops==0.7.4
     # via collidoscope
 smmap==5.0.0
     # via gitdb
-soupsieve==2.3.2.post1
+soupsieve==2.4
     # via beautifulsoup4
 sre-yield==1.2
     # via stringbrewer
@@ -182,7 +182,7 @@ toml==0.10.2
     # via fontbakery
 tqdm==4.64.1
     # via collidoscope
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via mypy
 ufo2ft==2.30.0
     # via fontbakery
@@ -206,9 +206,9 @@ vharfbuzz==0.1.4
     # via fontbakery
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.0
+pip==23.0.1
     # via pip-api
-setuptools==67.2.0
+setuptools==67.4.0
     # via
     #   fs
     #   glyphsets
