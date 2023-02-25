@@ -49,22 +49,21 @@ __all__ = [
 ]
 
 
+from collections.abc import Callable
 from collections.abc import ItemsView
+from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
+from collections.abc import Set
 import enum
 import functools
-from typing import Callable
 from typing import ClassVar
 from typing import Final
 from typing import Generic
-from typing import Iterable
-from typing import Iterator
 from typing import Literal
-from typing import Optional
 from typing import Self
-from typing import Set
 from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import overload
@@ -212,7 +211,7 @@ KNOWN_SCRIPTS: Iterable[str] = sorted(REQUIRED_SCRIPT_FEATURES)
 
 
 @functools.cache
-def cps_to_scripts(cps: tuple[int]) -> Set[str]:
+def cps_to_scripts(cps: tuple[int]) -> set[str]:
     """Converts a code point sequence to its set of script tags.
 
     Args:
@@ -330,7 +329,7 @@ class Context:
     def __init__(
         self,
         angle: float,
-        clockwise: Optional[bool] = ...,
+        clockwise: bool | None = ...,
         *,
         minor: bool = ...,
         ignorable_for_topography: bool = ...,
@@ -354,8 +353,8 @@ class Context:
 
     def __init__(
         self,
-        angle: Optional[float] = None,
-        clockwise: Optional[bool] = None,
+        angle: float | None = None,
+        clockwise: bool | None = None,
         *,
         minor: bool = False,
         ignorable_for_topography: bool = False,
@@ -384,8 +383,8 @@ class Context:
     def clone(
         self,
         *,
-        angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
-        clockwise: Optional[bool] | CloneDefault = CLONE_DEFAULT,
+        angle: float | None | CloneDefault = CLONE_DEFAULT,
+        clockwise: bool | None | CloneDefault = CLONE_DEFAULT,
         minor: bool | CloneDefault = CLONE_DEFAULT,
         ignorable_for_topography: bool | CloneDefault = CLONE_DEFAULT,
         diphthong_start: bool | CloneDefault = CLONE_DEFAULT,
@@ -518,7 +517,7 @@ class OrderedSet(dict[_T, None]):
 
     def __init__(
         self,
-        iterable: Optional[Iterable[_T]] = None,
+        iterable: Iterable[_T] | None = None,
         /,
     ) -> None:
         """Initializes this `OrderedSet`.
@@ -559,7 +558,7 @@ class OrderedSet(dict[_T, None]):
             key: An optional key function by which to sort the items.
                 This must be given if the items are not inherently
                 ordered.
-            reversed: Whether to sort in descending order.
+            reverse: Whether to sort in descending order.
         """
         return sorted(self.keys(), key=key, reverse=reverse)
 

@@ -37,12 +37,11 @@ __all__ = [
 
 
 import collections
+from collections.abc import MutableMapping
+from collections.abc import MutableSequence
 import functools
 import math
 from typing import Literal
-from typing import MutableMapping
-from typing import MutableSequence
-from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -154,17 +153,16 @@ def add_shims_for_pseudo_cursive(
                 (y_max - y_min) / 2 if isinstance(schema.path, Dot) else 0,
                 200 if isinstance(schema.path, SeparateAffix) else 6,
             )
-        if schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT:
-            if (
-                (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
-                | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
-            ):
-                for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
-                    if anchor_class_name == anchors.CURSIVE:
-                        if looks_like_valid_exit and type == 'exit':
-                            exit_schemas.append((schema, x, y))
-                        elif looks_like_valid_entry and type == 'entry':
-                            entry_schemas.append((schema, x, y))
+        if (schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT) and (
+            (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
+            | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
+        ):
+            for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+                if anchor_class_name == anchors.CURSIVE:
+                    if looks_like_valid_exit and type == 'exit':
+                        exit_schemas.append((schema, x, y))
+                    elif looks_like_valid_entry and type == 'entry':
+                        entry_schemas.append((schema, x, y))
 
     @functools.cache
     def get_shim(width: float, height: float) -> Schema:
@@ -200,7 +198,7 @@ def add_shims_for_pseudo_cursive(
         ]:
             for e_schema, x, y in e_schemas:
                 assert e_schema.glyph is not None
-                bounds: Optional[tuple[float, float]] = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
+                bounds: tuple[float, float] | None = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
                 shim_height = pseudo_cursive_y_offset * height_sign
@@ -255,7 +253,7 @@ def shrink_wrap_enclosing_circle(
     if len(original_schemas) != len(schemas):
         return [lookup, dist_lookup]
     punctuation = {}
-    circle_schema: Optional[Schema] = None
+    circle_schema: Schema | None = None
 
     new_circle_schemas: MutableMapping[tuple[float, bool, float], Schema] = {}
 
@@ -352,7 +350,7 @@ def add_width_markers(
         return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
 
     def get_mark_anchor_selector(schema: Schema) -> Schema:
-        only_anchor_class_name: Optional[str] = None
+        only_anchor_class_name: str | None = None
         assert schema.glyph is not None
         for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
             if type == 'mark' and anchor_class_name in anchors.ALL_MARK:
@@ -571,7 +569,7 @@ def clear_entry_width_markers(
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
-    zeros: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
+    zeros: list[Schema | None] = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
         named_lookups['zero'] = Lookup(None, None)
     for schema in schemas:
@@ -1132,7 +1130,7 @@ def copy_maximum_left_bound_to_start(
         mark_filtering_set='almost_done',
     )
     new_left_totals = []
-    new_left_start_totals: list[Optional[Schema]] = [None] * WIDTH_MARKER_PLACES
+    new_left_start_totals: list[Schema | None] = [None] * WIDTH_MARKER_PLACES
     for schema in new_schemas:
         if isinstance(schema.path, LeftBoundDigit):
             if schema.path.status == DigitStatus.ALMOST_DONE:
@@ -1174,9 +1172,7 @@ def dist(
 ) -> MutableSequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:
-        if ((isinstance(schema.path, LeftBoundDigit)
-                or isinstance(schema.path, RightBoundDigit)
-                or isinstance(schema.path, AnchorWidthDigit))
+        if (isinstance(schema.path, LeftBoundDigit | RightBoundDigit | AnchorWidthDigit)
                 and schema.path.status == DigitStatus.DONE):
             place = schema.path.place
             digit = schema.path.digit

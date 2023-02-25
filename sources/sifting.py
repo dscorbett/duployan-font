@@ -31,7 +31,6 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 from typing import Final
 from typing import Generic
-from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -52,7 +51,7 @@ _T = TypeVar('_T')
 
 
 class Grouper(Generic[_T]):
-    def __init__(self, groups: Collection[_Group[_T]]):
+    def __init__(self, groups: Collection[_Group[_T]]) -> None:
         self._groups: Final[MutableSequence[_Group[_T]]] = []
         self._inverted: Final[MutableMapping[_T, _Group[_T]]] = {}
         for group in groups:
@@ -62,7 +61,7 @@ class Grouper(Generic[_T]):
     def groups(self) -> Sequence[_Group[_T]]:
         return list(self._groups)
 
-    def group_of(self, item: _T) -> Optional[_Group[_T]]:
+    def group_of(self, item: _T) -> _Group[_T] | None:
         return self._inverted.get(item)
 
     def add(self, group: _Group[_T]) -> None:
@@ -127,7 +126,7 @@ def _sift_groups_in_rule_part(
                                         if input_schema in intersection_set:
                                             key = id(grouper.group_of(output_schema) or output_schema)
                                             new_groups[key].append(input_schema)
-                                    new_intersection: Optional[MutableSequence[Schema]] = None
+                                    new_intersection: MutableSequence[Schema] | None = None
                                     for schema in intersection:
                                         new_group = new_groups.get(id(schema))
                                         if new_group and schema in new_group:

@@ -101,21 +101,20 @@ __all__ = [
 
 
 import collections
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import MutableSet
 from collections.abc import Sequence
+from collections.abc import Set
 import itertools
 import functools
-from typing import Callable
 from typing import ClassVar
 from typing import Final
 from typing import Generic
-from typing import Iterable
-from typing import Iterator
-from typing import Optional
-from typing import Set
 from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import cast
@@ -386,10 +385,10 @@ class Rule:
         self,
         a1: str | Sequence[schema.Schema | str],
         a2: str | Sequence[schema.Schema | str],
-        a3: Optional[str | Sequence[schema.Schema | str]],
+        a3: str | Sequence[schema.Schema | str] | None,
         /,
         *,
-        lookups: Sequence[Optional[str]],
+        lookups: Sequence[str | None],
     ) -> None:
         ...
 
@@ -398,11 +397,11 @@ class Rule:
         self,
         a1: str | Sequence[schema.Schema | str],
         a2: str | Sequence[schema.Schema | str],
-        a3: Optional[str | Sequence[schema.Schema | str]],
+        a3: str | Sequence[schema.Schema | str] | None,
         /,
         *,
-        x_placements: Sequence[Optional[float]],
-        x_advances: Optional[Sequence[Optional[float]]] = ...,
+        x_placements: Sequence[float | None],
+        x_advances: Sequence[float | None] | None = ...,
     ) -> None:
         ...
 
@@ -411,10 +410,10 @@ class Rule:
         self,
         a1: str | Sequence[schema.Schema | str],
         a2: str | Sequence[schema.Schema | str],
-        a3: Optional[str | Sequence[schema.Schema | str]],
+        a3: str | Sequence[schema.Schema | str] | None,
         /,
         *,
-        x_advances: Sequence[Optional[float]],
+        x_advances: Sequence[float | None],
     ) -> None:
         ...
 
@@ -422,13 +421,13 @@ class Rule:
         self,
         a1: str | Sequence[schema.Schema | str],
         a2: str | Sequence[schema.Schema | str],
-        a3: Optional[str | Sequence[schema.Schema | str]] = None,
-        a4: Optional[str | Sequence[schema.Schema | str]] = None,
+        a3: str | Sequence[schema.Schema | str] | None = None,
+        a4: str | Sequence[schema.Schema | str] | None = None,
         /,
         *,
-        lookups: Optional[Sequence[Optional[str]]] = None,
-        x_placements: Optional[Sequence[Optional[float]]] = None,
-        x_advances: Optional[Sequence[Optional[float]]] = None,
+        lookups: Sequence[str | None] | None = None,
+        x_placements: Sequence[float | None] | None = None,
+        x_advances: Sequence[float | None] | None = None,
     ) -> None:
         """Initializes this `Rule`.
 
@@ -461,7 +460,7 @@ class Rule:
         def _l(glyphs: str | Sequence[schema.Schema | str]) -> Sequence[schema.Schema | str]:
             ...
 
-        def _l(glyphs: Optional[str | Sequence[schema.Schema | str]]) -> Optional[Sequence[schema.Schema | str]]:
+        def _l(glyphs: str | Sequence[schema.Schema | str] | None) -> Sequence[schema.Schema | str] | None:
             return [glyphs] if isinstance(glyphs, str) else glyphs
 
         if a4 is None and lookups is None and x_advances is None:
@@ -522,7 +521,7 @@ class Rule:
         """
         def glyph_to_ast(
             glyph: str | schema.Schema,
-            unrolling_index: Optional[int] = None,
+            unrolling_index: int | None = None,
         ) -> fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName:
             if isinstance(glyph, str):
                 if unrolling_index is not None:
@@ -533,13 +532,13 @@ class Rule:
 
         def glyphs_to_ast(
             glyphs: Iterable[str | schema.Schema],
-            unrolling_index: Optional[int] = None,
+            unrolling_index: int | None = None,
         ) -> Sequence[fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName]:
             return [glyph_to_ast(glyph, unrolling_index) for glyph in glyphs]
 
         def glyph_to_name(
             glyph: str | schema.Schema,
-            unrolling_index: Optional[int] = None,
+            unrolling_index: int | None = None,
         ) -> str:
             if isinstance(glyph, str):
                 if unrolling_index is not None:
@@ -550,7 +549,7 @@ class Rule:
 
         def glyphs_to_names(
             glyphs: Iterable[str | schema.Schema],
-            unrolling_index: Optional[int] = None,
+            unrolling_index: int | None = None,
         ) -> Sequence[str]:
             return [glyph_to_name(glyph, unrolling_index) for glyph in glyphs]
 
@@ -740,7 +739,7 @@ class Lookup:
             language: str,
             *,
             flags: int = ...,
-            mark_filtering_set: Optional[str] = ...,
+            mark_filtering_set: str | None = ...,
             reversed: bool = ...,
             prepending: bool = ...,
     ) -> None:
@@ -753,7 +752,7 @@ class Lookup:
             language: None,
             *,
             flags: int = ...,
-            mark_filtering_set: Optional[str] = ...,
+            mark_filtering_set: str | None = ...,
             reversed: bool = ...,
             prepending: bool = ...,
     ) -> None:
@@ -761,11 +760,11 @@ class Lookup:
 
     def __init__(
             self,
-            feature: Optional[str],
-            language: Optional[str],
+            feature: str | None,
+            language: str | None,
             *,
             flags: int = 0,
-            mark_filtering_set: Optional[str] = None,
+            mark_filtering_set: str | None = None,
             reversed: bool = False,
             prepending: bool = False,
     ) -> None:
@@ -818,7 +817,7 @@ class Lookup:
             return s.scripts
 
         def target_to_scripts(
-            target: Optional[Sequence[schema.Schema | str]],
+            target: Sequence[schema.Schema | str] | None,
         ) -> Set[str]:
             scripts = set(KNOWN_SCRIPTS)
             if target:
@@ -837,7 +836,7 @@ class Lookup:
             assert scripts
             return scripts
 
-        scripts = set()
+        scripts: Set[str] = set()
         for rule in self.rules:
             scripts |= rule_to_scripts(rule)
         return scripts
@@ -884,7 +883,7 @@ class Lookup:
 
     def to_asts(
         self,
-        features_to_scripts: Optional[Mapping[str, Set[str]]],
+        features_to_scripts: Mapping[str, Set[str]] | None,
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: str | int,
@@ -1083,14 +1082,14 @@ def _add_rule(
             return
 
     def is_prefix(maybe_prefix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
-        return len(maybe_prefix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(maybe_prefix, full)))
+        return len(maybe_prefix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(maybe_prefix, full))
 
     def is_suffix(maybe_suffix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
-        return len(maybe_suffix) <= len(full) and all(map(lambda mp_f: mp_f[0] == mp_f[1], zip(reversed(maybe_suffix), reversed(full))))
+        return len(maybe_suffix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(reversed(maybe_suffix), reversed(full)))
 
     if not lookup.prepending and any(r.is_contextual() for r in lookup.rules):
         # TODO: Check prepending lookups too.
-        for i, previous_rule in enumerate(lookup.rules):
+        for previous_rule in lookup.rules:
             if lookup.prepending:
                 previous_rule, rule = rule, previous_rule  # type: ignore[unreachable]
             assert previous_rule.contexts_out is not None
@@ -1117,7 +1116,7 @@ def _add_rule(
         else:
             output_schemas.remove(input)
 
-    registered_lookups: MutableSet[Optional[str]] = {None}
+    registered_lookups: MutableSet[str | None] = {None}
 
     def register_output_schemas(rule: Rule) -> bool:
         if rule.outputs is not None:
@@ -1170,7 +1169,7 @@ def run_phases(
     builder: Builder,
     all_input_schemas: Iterable[schema.Schema],
     phases: Iterable[Phase],
-    all_classes: Optional[collections.defaultdict[str, MutableSequence[schema.Schema]]] = None,
+    all_classes: collections.defaultdict[str, MutableSequence[schema.Schema]] | None = None,
 ) -> tuple[
     OrderedSet[schema.Schema],
     Iterable[schema.Schema],
@@ -1215,7 +1214,7 @@ def run_phases(
         output_schemas = OrderedSet(all_input_schemas)
         classes = PrefixView(phase, all_classes)
         named_lookups: PrefixView[Lookup] = PrefixView(phase, {})
-        lookups: Optional[Sequence[Lookup]] = None
+        lookups: Sequence[Lookup] | None = None
         while new_input_schemas:
             output_lookups = phase(
                 # TODO: `builder` is only used to check which phase generated a schema,

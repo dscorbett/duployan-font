@@ -29,8 +29,10 @@ __all__ = [
 ]
 
 
+from collections.abc import Callable
 from collections.abc import Collection
 from collections.abc import Hashable
+from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
@@ -40,11 +42,8 @@ import functools
 import math
 import re
 from typing import Any
-from typing import Callable
 from typing import ClassVar
 from typing import Final
-from typing import Iterable
-from typing import Optional
 from typing import Self
 from typing import TYPE_CHECKING
 import unicodedata
@@ -328,31 +327,31 @@ class Schema:
 
     def __init__(
             self,
-            cmap: Optional[int],
+            cmap: int | None,
             path: Shape,
             size: float,
             joining_type: Type = Type.JOINING,
             *,
             side_bearing: float = DEFAULT_SIDE_BEARING,
-            y_min: Optional[float] = 0,
-            y_max: Optional[float] = None,
+            y_min: float | None = 0,
+            y_max: float | None = None,
             child: bool = False,
-            can_lead_orienting_sequence: Optional[bool] = None,
+            can_lead_orienting_sequence: bool | None = None,
             ignored_for_topography: bool = False,
-            anchor: Optional[str] = None,
-            widthless: Optional[bool] = None,
-            marks: Optional[Sequence[Schema]] = None,
+            anchor: str | None = None,
+            widthless: bool | None = None,
+            marks: Sequence[Schema] | None = None,
             ignorability: Ignorability = Ignorability.DEFAULT_NO,
             encirclable: bool = False,
             maximum_tree_width: int = MAX_TREE_WIDTH,
             shading_allowed: bool = True,
-            context_in: Optional[Context] = None,
-            context_out: Optional[Context] = None,
+            context_in: Context | None = None,
+            context_out: Context | None = None,
             diphthong_1: bool = False,
             diphthong_2: bool = False,
-            base_angle: Optional[float] = None,
-            cps: Optional[Sequence[int]] = None,
-            original_shape: Optional[type[Shape]] = None,
+            base_angle: float | None = None,
+            cps: Sequence[int] | None = None,
+            original_shape: type[Shape] | None = None,
     ) -> None:
         """Initializes this `Schema`.
 
@@ -391,7 +390,7 @@ class Schema:
             original_shape: The ``original_shape`` attribute, or
                 ``None`` to set the attribute to ``type(path)``.
         """
-        assert not (marks and anchor), 'A schema has both marks {} and anchor {}'.format(marks, anchor)
+        assert not (marks and anchor), f'A schema has both marks {marks} and anchor {anchor}'
         assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
         self.cmap: Final = cmap
         self.path: Final = path
@@ -419,10 +418,10 @@ class Schema:
         self.original_shape: Final = original_shape or type(path)
         self.scripts: Final = cps_to_scripts(self.cps)
         self.phase_index: Final = CURRENT_PHASE_INDEX
-        self._glyph_name: Optional[str] = None
+        self._glyph_name: str | None = None
         self._canonical_schema: Schema = self
         self._lookalike_group: Collection[Schema] = [self]
-        self.glyph: Optional[fontforge.glyph] = None
+        self.glyph: fontforge.glyph | None = None
 
     class _LazySortable:
         """A lazy wrapper for a sortable value.
@@ -436,7 +435,7 @@ class Schema:
                     `_LazySortable` will call it at most once.
             """
             self._thunk: Final = thunk
-            self._value: Optional[SupportsDunderLT[Any]] = None
+            self._value: SupportsDunderLT[Any] | None = None
 
         def __lt__(self, other: object) -> bool:
             """Returns whether this `_LazySortable`’s value is less than
@@ -511,30 +510,30 @@ class Schema:
     def clone(
         self,
         *,
-        cmap: Optional[int] | CloneDefault = CLONE_DEFAULT,
+        cmap: int | None | CloneDefault = CLONE_DEFAULT,
         path: Shape | CloneDefault = CLONE_DEFAULT,
         size: float | CloneDefault = CLONE_DEFAULT,
         joining_type: Type | CloneDefault = CLONE_DEFAULT,
         side_bearing: float | CloneDefault = CLONE_DEFAULT,
-        y_min: Optional[float] | CloneDefault = CLONE_DEFAULT,
-        y_max: Optional[float] | CloneDefault = CLONE_DEFAULT,
+        y_min: float | None | CloneDefault = CLONE_DEFAULT,
+        y_max: float | None | CloneDefault = CLONE_DEFAULT,
         child: bool | CloneDefault = CLONE_DEFAULT,
-        can_lead_orienting_sequence: Optional[bool] | CloneDefault = CLONE_DEFAULT,
+        can_lead_orienting_sequence: bool | None | CloneDefault = CLONE_DEFAULT,
         ignored_for_topography: bool | CloneDefault = CLONE_DEFAULT,
-        anchor: Optional[str] | CloneDefault = CLONE_DEFAULT,
+        anchor: str | None | CloneDefault = CLONE_DEFAULT,
         widthless: bool | CloneDefault = CLONE_DEFAULT,
-        marks: Optional[Sequence[Schema]] | CloneDefault = CLONE_DEFAULT,
+        marks: Sequence[Schema] | None | CloneDefault = CLONE_DEFAULT,
         ignorability: Ignorability | CloneDefault = CLONE_DEFAULT,
         encirclable: bool | CloneDefault = CLONE_DEFAULT,
         maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
         shading_allowed: bool | CloneDefault = CLONE_DEFAULT,
-        context_in: Optional[Context] | CloneDefault = CLONE_DEFAULT,
-        context_out: Optional[Context] | CloneDefault = CLONE_DEFAULT,
+        context_in: Context | None | CloneDefault = CLONE_DEFAULT,
+        context_out: Context | None | CloneDefault = CLONE_DEFAULT,
         diphthong_1: bool | CloneDefault = CLONE_DEFAULT,
         diphthong_2: bool | CloneDefault = CLONE_DEFAULT,
-        base_angle: Optional[float] | CloneDefault = CLONE_DEFAULT,
-        cps: Optional[Sequence[int]] | CloneDefault = CLONE_DEFAULT,
-        original_shape: Optional[type[Shape]] | CloneDefault = CLONE_DEFAULT,
+        base_angle: float | None | CloneDefault = CLONE_DEFAULT,
+        cps: Sequence[int] | None | CloneDefault = CLONE_DEFAULT,
+        original_shape: type[Shape] | None | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.cmap if cmap is CLONE_DEFAULT else cmap,
@@ -723,7 +722,7 @@ class Schema:
         del self._lookalike_group
 
     @staticmethod
-    def _agl_name(cp: int) -> Optional[str]:
+    def _agl_name(cp: int) -> str | None:
         """Returns the Adobe Glyph List name of an ASCII code point.
 
         Args:
@@ -795,18 +794,19 @@ class Schema:
                 name = ''
             else:
                 name = f'dupl.{type(self.path).__name__}'
-        if first_component_implies_type or (
-            self.cmap is None
-            and (
-                self.joining_type == Type.ORIENTING
-                or isinstance(self.path, ChildEdge)
-                or isinstance(self.path, Line) and self.path.dots
+        if (
+            first_component_implies_type or (
+                self.cmap is None
+                and (
+                    self.joining_type == Type.ORIENTING
+                    or isinstance(self.path, ChildEdge)
+                    or isinstance(self.path, Line) and self.path.dots
+                )
             )
-        ):
-            if name_from_path := str(self.path):
-                if name:
-                    name += '.'
-                name += name_from_path
+        ) and (name_from_path := str(self.path)):
+            if name:
+                name += '.'
+            name += name_from_path
         if self.cmap is None and cps == (0x2044,):
             name += '.frac'
         if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
@@ -889,7 +889,7 @@ class Schema:
                 if name in self._canonical_names:
                     if self not in self._canonical_names[name]:
                         self._canonical_names[name].append(self)
-                        name += '._{:X}'.format(len(self._canonical_names[name]) - 1)
+                        name += f'._{len(self._canonical_names[name]) - 1:X}'
                 else:
                     self._canonical_names[name] = [self]
                 self._glyph_name = name

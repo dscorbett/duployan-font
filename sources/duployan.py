@@ -28,7 +28,6 @@ from collections.abc import Sequence
 import io
 import math
 from typing import Final
-from typing import Optional
 from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
@@ -98,7 +97,7 @@ if TYPE_CHECKING:
 
 def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
     for group in grouper.groups():
-        if not any(map(lambda s: s.phase_index >= phase_index, group)):
+        if all(s.phase_index < phase_index for s in group):
             continue
         group.sort(key=Schema.sort_key)
         canonical_schema = next((s for s in group if s.phase_index < phase_index), None)
@@ -294,12 +293,12 @@ class Builder:
         low_arrow = SeparateAffix([(0.4, Line(0)), (0.4, Line(240))], low=True)
         likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90)), (0.5, p), (math.hypot(125, 125), Space(135)), (0.5, Line(0))])
         dotted_square = [(152, Space(270)), (0.26 - light_line / 1000, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.26 - light_line / 1000, Line(90)), (0.26 - light_line / 1000, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.26 - light_line / 1000, Line(0)), (0.26 - light_line / 1000, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.26 - light_line / 1000, Line(270)), (0.26 - light_line / 1000, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.26 - light_line / 1000, Line(180))]
-        dtls = InvalidDTLS(instructions=dotted_square + [(341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
+        dtls = InvalidDTLS(instructions=[*dotted_square, (341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
         chinook_period = Complex([(100, Space(90)), (1, Line(0)), (179, Space(90)), (1, Line(180))])
-        overlap = InvalidOverlap(continuing=False, instructions=dotted_square + [(162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])
-        continuing_overlap = InvalidOverlap(continuing=True, instructions=dotted_square + [(189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])
-        down_step = InvalidStep(270, dotted_square + [(444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])
-        up_step = InvalidStep(90, dotted_square + [(444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
+        overlap = InvalidOverlap(continuing=False, instructions=[*dotted_square, (162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])
+        continuing_overlap = InvalidOverlap(continuing=True, instructions=[*dotted_square, (189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])
+        down_step = InvalidStep(270, [*dotted_square, (444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])
+        up_step = InvalidStep(90, [*dotted_square, (444, Space(0)), (157, Space(90)), (1.184, Line(90)), (0.32, Line(230)), (0.32, Line(50), True), (0.32, Line(310))])
         line = Line(0)
 
         enclosing_circle = Schema(None, circle, 10, anchor=anchors.MIDDLE)
@@ -561,7 +560,7 @@ class Builder:
         anchor_class_name: str,
         *,
         flags: int,
-        mark_filtering_set: Optional[fontTools.feaLib.ast.GlyphClassDefinition] = None,
+        mark_filtering_set: fontTools.feaLib.ast.GlyphClassDefinition | None = None,
     ) -> None:
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
@@ -700,26 +699,25 @@ class Builder:
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
         x_min, y_min, x_max, y_max = glyph.boundingBox()
-        if not floating:
-            if y_min != y_max:
-                if schema.y_min is not None:
-                    if schema.y_max is not None:
-                        desired_height = schema.y_max - schema.y_min
-                        actual_height = y_max - y_min
-                        if (desired_to_actual_ratio := (desired_height - stroke_width) / (actual_height - stroke_width)) != 1:
-                            if _scalar == 1:
-                                glyph.clear()
-                                self._draw_glyph(glyph, schema, desired_to_actual_ratio)
-                            else:
-                                glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
-                                    .scale(desired_height / actual_height)
-                                )
-                        _, y_min, _, _ = glyph.boundingBox()
-                        glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
-                    else:
-                        glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
-                elif schema.y_max is not None:
-                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_max - y_max))
+        if not floating and y_min != y_max:
+            if schema.y_min is not None:
+                if schema.y_max is not None:
+                    desired_height = schema.y_max - schema.y_min
+                    actual_height = y_max - y_min
+                    if (desired_to_actual_ratio := (desired_height - stroke_width) / (actual_height - stroke_width)) != 1:
+                        if _scalar == 1:
+                            glyph.clear()
+                            self._draw_glyph(glyph, schema, desired_to_actual_ratio)
+                        else:
+                            glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
+                                .scale(desired_height / actual_height)
+                            )
+                    _, y_min, _, _ = glyph.boundingBox()
+                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
+                else:
+                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
+            elif schema.y_max is not None:
+                glyph.transform(fontTools.misc.transform.Offset(0, schema.y_max - y_max))
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
@@ -768,7 +766,7 @@ class Builder:
         mark_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
         base_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
         basemark_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = collections.defaultdict(lambda: collections.defaultdict(fontTools.feaLib.ast.GlyphClass))
-        cursive_positions: collections.defaultdict[str, collections.defaultdict[str, MutableSequence[Optional[fontTools.feaLib.ast.Anchor]]]] = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
+        cursive_positions: collections.defaultdict[str, collections.defaultdict[str, MutableSequence[fontTools.feaLib.ast.Anchor | None]]] = collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None]))
         for glyph in self.font.glyphs():
             for anchor_class_name, type, x, y in glyph.anchorPoints:
                 x = round(x)
@@ -786,7 +784,7 @@ class Builder:
                     case 'exit':
                         cursive_positions[anchor_class_name][glyph_name][1] = fontTools.feaLib.ast.Anchor(x, y)
                     case _:
-                        raise RuntimeError('Unknown anchor type: {}'.format(type))
+                        raise RuntimeError(f'Unknown anchor type: {type}')
         for anchor_class_name, lookup in self._anchors.items():
             mark_class = fontTools.feaLib.ast.MarkClass(anchor_class_name)
             for x_y, glyph_class in mark_positions[anchor_class_name].items():
@@ -886,7 +884,7 @@ class Builder:
         named_lookups_with_phases: MutableMapping[str, tuple[Lookup, Phase]],
     ) -> None:
         grouper = sifting.group_schemas(schemas)
-        previous_phase: Optional[Phase] = None
+        previous_phase: Phase | None = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
                 rename_schemas(grouper, self._phases.index(previous_phase))

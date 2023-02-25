@@ -52,7 +52,7 @@ def build_font(
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         try:
             if dirty:
-                os.environ['SOURCE_DATE_EPOCH'] = f'{datetime.datetime.now(datetime.timezone.utc).timestamp():.0f}'
+                os.environ['SOURCE_DATE_EPOCH'] = f'{datetime.datetime.now(datetime.UTC).timestamp():.0f}'
             else:
                 os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
                         ['git', 'log', '-1', '--format=%ct'],
@@ -113,7 +113,7 @@ def set_unique_id(names: Collection[Any], vendor: str) -> None:
 
 
 def get_date() -> str:
-    return datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.timezone.utc).strftime(TIMESTAMP_FORMAT)
+    return datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.UTC).strftime(TIMESTAMP_FORMAT)
 
 
 def set_version(

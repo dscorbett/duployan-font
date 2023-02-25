@@ -16,13 +16,13 @@
 # limitations under the License.
 
 import argparse
+from collections.abc import Generator
 import difflib
 import json
 import os
 import re
 import subprocess
 import sys
-from typing import Generator
 from typing import Literal
 
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
                     passed_line, result_line = run_test(
                         args.font,
                         line,
-                        os.path.join(failed_dir, 'png', os.path.basename(fn), '{:03}'.format(line_number)),
+                        os.path.join(failed_dir, 'png', os.path.basename(fn), f'{line_number:03}'),
                         color,
                         args.incomplete,
                         args.view,

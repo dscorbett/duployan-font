@@ -60,13 +60,12 @@ __all__ = [
 
 
 import collections
+from collections.abc import Iterable
+from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import itertools
-from typing import Iterable
-from typing import MutableMapping
-from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -301,14 +300,13 @@ def validate_overlap_controls(
                 continuing_overlap = schema
             else:
                 letter_overlap = schema
-        elif not schema.anchor:
-            if max_tree_width := schema.max_tree_width():
-                if max_tree_width > global_max_tree_width:
-                    global_max_tree_width = max_tree_width
-                classes['base'].append(schema)
-                new_class = f'base_{max_tree_width}'
-                classes[new_class].append(schema)
-                new_classes[max_tree_width] = new_class
+        elif not schema.anchor and (max_tree_width := schema.max_tree_width()):
+            if max_tree_width > global_max_tree_width:
+                global_max_tree_width = max_tree_width
+            classes['base'].append(schema)
+            new_class = f'base_{max_tree_width}'
+            classes[new_class].append(schema)
+            new_classes[max_tree_width] = new_class
     assert global_max_tree_width == MAX_TREE_WIDTH
     classes['invalid'].append(letter_overlap)
     classes['invalid'].append(continuing_overlap)
@@ -376,8 +374,8 @@ def _make_trees(
     edge: _E,
     maximum_depth: int,
     *,
-    top_widths: Optional[Iterable[int]] = None,
-    prefix_depth: Optional[int] = None,
+    top_widths: Iterable[int] | None = None,
+    prefix_depth: int | None = None,
 ) -> Sequence[Sequence[_E | _N]]:
     if maximum_depth <= 0:
         return []
@@ -646,9 +644,7 @@ def categorize_edges(
             if not schema.path.lineage:
                 default_parent_edge = schema
     for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ParentEdge):
+        if isinstance(schema.path, ChildEdge | ParentEdge):
             classes['all'].append(schema)
     for edge in new_schemas:
         if edge.path.group() not in old_groups:
@@ -1456,11 +1452,11 @@ def join_circle_with_adjacent_nonorienting_glyph(
             and (not schema.can_lead_orienting_sequence
                 or isinstance(schema.path, Line) and not schema.path.secant
             )
+            and (context_out := schema.path.context_in()) != NO_CONTEXT
         ):
-            if (context_out := schema.path.context_in()) != NO_CONTEXT:
-                context_out = Context(context_out.angle)
-                contexts_out.add(context_out)
-                classes[f'c_{context_out}'].append(schema)
+            context_out = Context(context_out.angle)
+            contexts_out.add(context_out)
+            classes[f'c_{context_out}'].append(schema)
     for context_out in contexts_out:
         output_class_name = f'o_{context_out}'
         for circle in classes['i']:
@@ -1522,8 +1518,8 @@ def ligate_diphthongs(
         if schema.ignored_for_topography:
             classes['ignored_for_topography'].append(schema)
             classes['ignored_for_topography'].append(output_schema)
-    for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes.keys():
-        for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes.keys():
+    for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes:
+        for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes:
             if is_circle_1 != is_circle_2 and (is_ignored_1 or is_ignored_2):
                 add_rule(lookup, Rule(input_1, input_2, [], output_2))
                 add_rule(lookup, Rule([], input_1, output_2, output_1))

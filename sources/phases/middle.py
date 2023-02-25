@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-from typing import MutableSequence
+from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
 
