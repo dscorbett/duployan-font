@@ -943,7 +943,7 @@ class Notdef(Shape):
         pen.lineTo((stroke_width / 2, 663 + stroke_width / 2))
         pen.lineTo((360 + stroke_width / 2, 663 + stroke_width / 2))
         pen.lineTo((360 + stroke_width / 2, stroke_width / 2))
-        pen.lineTo((stroke_width / 2, stroke_width / 2))
+        pen.lineTo((stroke_width / 2 * 1.9, stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
         return False
