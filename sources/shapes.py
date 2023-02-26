@@ -3200,18 +3200,22 @@ class Complex(Shape):
                     forced_context = forced_context.clone(ignorable_for_topography=False)
                 instructions.append(op)
             else:
-                scalar, component = op  # type: ignore[misc]
+                scalar, component, *skip_drawing = op
                 component = component.contextualize(context_in, context_out)
+                assert isinstance(component, Circle | Curve | Line)
                 if i and initial_hook:
-                    component = component.reversed()  # type: ignore[union-attr]
+                    assert not isinstance(component, Circle)
+                    component = component.reversed()
                 if forced_context is not None:
                     if isinstance(component, Line):
                         if forced_context != NO_CONTEXT:
                             component = component.clone(angle=forced_context.angle)  # type: ignore[arg-type]
                     else:
                         if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
+                            assert isinstance(component, Curve)
                             component = component.reversed()
                         if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                            assert forced_context.angle is not None
                             angle_out = component.angle_out
                             if component.clockwise and angle_out > component.angle_in:
                                 angle_out -= 360
@@ -3228,7 +3232,7 @@ class Complex(Shape):
                                     angle_in=forced_context.angle,
                                     angle_out=(forced_context.angle + da) % 360,
                                 )
-                instructions.append((scalar, component))
+                instructions.append((scalar, component, *skip_drawing))  # type: ignore[arg-type]
                 if initial_hook:
                     context_out = component.context_in()
                 else:

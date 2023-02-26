@@ -269,7 +269,7 @@ class Builder:
         high_vertical_secant = Line(90, secant=1 / 3)
         rtl_secant = Line(240, secant=0.5, secant_curvature_offset=55)
         ltr_secant = Line(310, secant=0.5, secant_curvature_offset=55)
-        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270)), lambda c: Context((cast(float, c.angle) + 180) % 360), (0.5, Line(90))], hook=True)
+        tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270), True), lambda c: Context((cast(float, c.angle) + 180) % 360), (0.5, Line(90))], hook=True)
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
         tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
