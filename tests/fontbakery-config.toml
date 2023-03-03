@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2022 David Corbett
+# Copyright 2022-2023 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 exclude_checks = [
     "com.google.fonts/check/cjk_vertical_metrics",
     "com.google.fonts/check/cjk_vertical_metrics_regressions",
+    "com.google.fonts/check/description/noto_has_article",
     "com.google.fonts/check/family/win_ascent_and_descent",
     "com.google.fonts/check/fontbakery_version",
     "com.google.fonts/check/fontdata_namecheck",

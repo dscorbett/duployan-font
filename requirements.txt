@@ -20,7 +20,7 @@
 #
 fonttools[repacker]==4.38.0
     # via -r requirements.in
-uharfbuzz==0.33.0
+uharfbuzz==0.34.0
     # via
     #   -r requirements.in
     #   fonttools
