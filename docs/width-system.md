@@ -278,5 +278,5 @@ It causes [user-visible problems](user-documentation.md#Limitations) with
 rendering times and glyph positions.
 
 The width system’s lookups take up a lot of space.
-They add megabytes to the font’s file size
+They add about half a megabyte to the font’s file size
 and they make it hard to find space for lookups for other systems.
