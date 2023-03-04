@@ -1396,7 +1396,6 @@ class Dot(Shape):
         pen.lineTo((0, 0))
         glyph.stroke('circular', stroke_width, 'round')
         if anchor:
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', *_rect(0, 0))
             glyph.addAnchorPoint(anchor, 'mark', *_rect(0, 0))
         elif joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
@@ -1595,7 +1594,6 @@ class Line(Shape):
             elif (anchor == anchors.ABOVE) == (self.angle < 180):
                 length = 0
             glyph.addAnchorPoint(anchor, 'mark', length, end_y)
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', length, end_y)
         elif self.secant:
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
             glyph.addAnchorPoint(anchors.PRE_HUB_CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
@@ -2069,7 +2067,6 @@ class Curve(Shape):
         anchor_name = mkmk if child else lambda a: a
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', *_rect(r, math.radians(relative_mark_angle)))
         else:
             base = 'basemark' if child else 'base'
             if joining_type != Type.NON_JOINING:
@@ -3172,11 +3169,9 @@ class Complex(Shape):
         elif anchor == anchors.ABOVE:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_max + stroke_width / 2 + stroke_gap + light_line / 2)
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_min + stroke_width / 2)
         elif anchor == anchors.BELOW:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
-            glyph.addAnchorPoint(mkmk(anchor), 'mark', x_center, y_max - stroke_width / 2)
         return first_is_invisible
 
     def can_be_child(self, size: float) -> bool:

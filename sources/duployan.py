@@ -734,6 +734,26 @@ class Builder:
                 glyph.left_side_bearing = side_bearing
         self._wrangle_anchor_points(schema, glyph, cmapped_anchors, stroke_width)
 
+    def _add_mkmk_anchor_points(
+        self,
+        schema: Schema,
+        glyph: fontforge.glyph,
+        stroke_width: float,
+    ) -> None:
+        for anchor_class_name, type, x, y in glyph.anchorPoints:
+            if type == 'mark' and schema.anchor == anchor_class_name in anchors.ALL_MKMK:
+                mkmk_anchor_class_name = mkmk(anchor_class_name)
+                glyph.addAnchorPoint(mkmk_anchor_class_name, 'mark', x, y)
+                _, y_min, _, y_max = glyph.boundingBox()
+                gap = stroke_width / 2 + self.stroke_gap + self.light_line / 2
+                match anchor_class_name:
+                    case anchors.ABOVE:
+                        y = y_max + gap
+                    case anchors.BELOW:
+                        y = y_min - gap
+                glyph.addAnchorPoint(mkmk_anchor_class_name, 'basemark', x, y)
+                return
+
     def _wrangle_anchor_points(
         self,
         schema: Schema,
@@ -741,6 +761,8 @@ class Builder:
         cmapped_anchors: Set[str],
         stroke_width: float,
     ) -> None:
+        if schema.anchor:
+            self._add_mkmk_anchor_points(schema, glyph, stroke_width)
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef):
             return
         anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}

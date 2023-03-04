@@ -30,10 +30,20 @@
 0021 0331::[exclam@0,0|uni0331.macron_below.wl@84,-175|_@268,0]
 
 # U+25CC DOTTED CIRCLE
-25CC 0300::[uni25CC.dotted_circle@0,0|uni0300.grave.wl@343,654|_@686,0]
-25CC 0316::[uni25CC.dotted_circle@0,0|uni0316.grave_below.wl@430,-192|_@686,0]
-25CC 20DD::[uni25CC.dotted_circle@0,0|uni20DD.enclosing_circle.wl@343,-244|_@686,0]
-25CC 1BC9E::[uni25CC.dotted_circle@0,0|dupl.Line.0.dotted@686,0|u1BC9E.double.90.wl@1181,-112|_@1676,0]
+25CC 0300 0300::[uni25CC.dotted_circle@0,0|uni0300.grave.wl@343,654|uni0300.grave.wl@343,879|_@686,0]
+25CC 0301 0301::[uni25CC.dotted_circle@0,0|uni0301.acute.wl@343,654|uni0301.acute.wl@343,900|_@686,0]
+25CC 0302 0302::[uni25CC.dotted_circle@0,0|uni0302.circumflex.wl@253,654|uni0302.circumflex.wl@253,871|_@686,0]
+25CC 0304 0304::[uni25CC.dotted_circle@0,0|uni0304.macron.wl@293,654|uni0304.macron.wl@293,829|_@686,0]
+25CC 0306 0306::[uni25CC.dotted_circle@0,0|uni0306.breve.wl@343,654|uni0306.breve.wl@343,879|_@686,0]
+25CC 0307 0307::[uni25CC.dotted_circle@0,0|uni0307.dot_above.wl@343,640|uni0307.dot_above.wl@343,830|_@686,0]
+25CC 0308 0308::[uni25CC.dotted_circle@0,0|uni0308.diaeresis.wl@272,654|uni0308.diaeresis.wl@272,857|_@686,0]
+25CC 030C 030C::[uni25CC.dotted_circle@0,0|uni030C.caron.wl@253,654|uni030C.caron.wl@253,871|_@686,0]
+25CC 0316 0316::[uni25CC.dotted_circle@0,0|uni0316.grave_below.wl@430,-192|uni0316.grave_below.wl@430,-417|_@686,0]
+25CC 0317 0317::[uni25CC.dotted_circle@0,0|uni0317.acute_below.wl@272,-213|uni0317.acute_below.wl@272,-459|_@686,0]
+25CC 0323 0323::[uni25CC.dotted_circle@0,0|uni0323.dot_below.wl@343,-156|uni0323.dot_below.wl@343,-345|_@686,0]
+25CC 0324 0324::[uni25CC.dotted_circle@0,0|uni0324.diaeresis_below.wl@272,-170|uni0324.diaeresis_below.wl@272,-373|_@686,0]
+25CC 032F 032F::[uni25CC.dotted_circle@0,0|uni032F.inverted_breve_below.wl@343,-192|uni032F.inverted_breve_below.wl@343,-417|_@686,0]
+25CC 0331 0331::[uni25CC.dotted_circle@0,0|uni0331.macron_below.wl@293,-142|uni0331.macron_below.wl@293,-317|_@686,0]
 
 # <U+1BC03 DUPLOYAN LETTER T, U+1BC9E DUPLOYAN DOUBLE MARK>
 1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E.double.90@370,-112|uni0300.grave@370,245|_@740,0]
