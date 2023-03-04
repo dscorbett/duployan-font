@@ -1867,8 +1867,12 @@ def classify_marks_for_trees(
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     for schema in schemas:
-        for anchor in anchors.ALL_MARK:
-            if schema.child or schema.anchor == anchor:
+        for anchor in anchors.ALL_MKMK:
+            if schema.glyph_class == GlyphClass.MARK and (
+                schema.child
+                or schema.anchor == anchor
+                or isinstance(schema.path, Line) and schema.path.secant
+            ):
                 classes[f'global..{mkmk(anchor)}'].append(schema)
     return []
 

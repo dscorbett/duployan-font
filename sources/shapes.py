@@ -1585,6 +1585,7 @@ class Line(Shape):
             if self.final_tick:
                 end_y = 100 if 90 < self.angle <= 270 else -100
                 pen.lineTo((length, end_y))
+        anchor_name, base = (mkmk, 'basemark') if child or anchor and self.secant else ((lambda a: a), 'base')
         if anchor:
             if (joining_type == Type.ORIENTING
                 or self.angle % 180 == 0
@@ -1598,8 +1599,6 @@ class Line(Shape):
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
             glyph.addAnchorPoint(anchors.PRE_HUB_CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
         else:
-            anchor_name = mkmk if child else lambda a: a
-            base = 'basemark' if child else 'base'
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
                 child_interval = length / (max_tree_width + 2)
@@ -1637,13 +1636,12 @@ class Line(Shape):
         )
         glyph.stroke('circular', stroke_width, 'round')
         floating = False
-        if not anchor:
-            if self.secant is None:
-                x_min, y_min, x_max, y_max = glyph.boundingBox()
-                x_center = (x_max + x_min) / 2
-                glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
-                glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
-            elif self.angle % 90 == 0:
+        if anchor is None or self.secant:
+            x_min, y_min, x_max, y_max = glyph.boundingBox()
+            x_center = (x_max + x_min) / 2
+            glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
+            glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
+            if self.secant is not None and self.angle % 90 == 0:
                 floating = True
                 y_offset = 2 * LINE_FACTOR * (2 * self.secant - 1)
                 if self.get_guideline_angle() % 180 == 90:
