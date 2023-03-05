@@ -148,7 +148,12 @@ def set_version(
                         git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
                         metadata = f'{date}.{git_hash}'
                         if dirty:
-                            metadata += '.dirty'
+                            git_diff = subprocess.check_output(['git', 'diff-index', '--patch', 'HEAD'])
+                            try:
+                                import hashlib
+                                metadata += f'.{hashlib.md5(git_diff).hexdigest()}'
+                            except AttributeError:
+                                metadata += '.dirty'
                     except (FileNotFoundError, subprocess.CalledProcessError):
                         metadata = get_date()
                     release_suffix = f'-alpha+{metadata}'
