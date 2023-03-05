@@ -725,13 +725,13 @@ class Builder:
                     glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
             elif schema.y_max is not None:
                 glyph.transform(fontTools.misc.transform.Offset(0, schema.y_max - y_max))
+        side_bearing = int(_scalar * schema.side_bearing)
+        if x_min != x_max:
+            glyph.left_side_bearing = side_bearing
         if schema.glyph_class == GlyphClass.MARK:
             glyph.width = 0
         else:
-            side_bearing = int(_scalar * schema.side_bearing)
             glyph.right_side_bearing = side_bearing
-            if x_min != x_max:
-                glyph.left_side_bearing = side_bearing
         self._wrangle_anchor_points(schema, glyph, cmapped_anchors, stroke_width)
 
     def _add_mkmk_anchor_points(

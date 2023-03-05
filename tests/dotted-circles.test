@@ -14,10 +14,10 @@
 # limitations under the License.
 
 # Overlong sequences of semicircles
-1BC46 0307 1BC46::[u1BC46.i@0,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i@1026,0|_@1366,0]
-1BC47 0323 1BC46::[u1BC47.e@0,0|uni0323.dot_below@220,-119|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
-1BC02 1BC47 0323 1BC46::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni0323.dot_below@220,-219|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
-1BC46 0307 1BC47 1BC02::[u1BC46.i@0,0|uni0307.dot_above@170,291|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1026,500|u1BC02.p@1026,0|_@1466,0]
+1BC46 0307 1BC46::[u1BC46.i@0,0|uni0307.dot_above@36,291|uni25CC.dotted_circle@340,0|u1BC46.i@1026,0|_@1366,0]
+1BC47 0323 1BC46::[u1BC47.e@0,0|uni0323.dot_below@86,-119|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
+1BC02 1BC47 0323 1BC46::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni0323.dot_below@86,-219|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
+1BC46 0307 1BC47 1BC02::[u1BC46.i@0,0|uni0307.dot_above@36,291|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1026,500|u1BC02.p@1026,0|_@1466,0]
 1BC02 1BC47 1BC46 1BC47::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|u1BC46.i.0n180@1226,-200|_@1566,0]
 1BC47 1BC46 1BC47 1BC02::[u1BC47.e@0,0|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|uni25CC.dotted_circle@1466,0|u1BC46.i.90p270@2152,500|u1BC02.p@2152,0|_@2592,0]
 
@@ -35,13 +35,13 @@
 
 # Adjacent curves that would otherwise be an overlong sequence are overlong if
 # they are different nodes in a tree.
-1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BC46.i.180p0.sub@707,-150|u1BC46.i@737,-150|_@1240,0]
+1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BC46.i.180p0.sub@487,-150|u1BC46.i@737,-150|_@1240,0]
 1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3496,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4522,0|_@4862,0]
 
 # Single medial curves may require flipping to avoid overlap, but the encoding
 # model does not allow that. They get glyphs with early exit anchor points
 # instead of dotted circles. Some orienting sequences might also need flipping,
 # but nothing happens for them.
-1BC03 1BC46 0307 1BC19::[u1BC03.t@0,620|u1BC46.i.0p180.ee@500,620|uni0307.dot_above@670,911|u1BC19.m@300,0|_@840,0]
-1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC46.i.270n90.ee@0,-100|uni0323.dot_below@220,-219|u1BC03.t@100,-100|_@840,0]
+1BC03 1BC46 0307 1BC19::[u1BC03.t@0,620|u1BC46.i.0p180.ee@500,620|uni0307.dot_above@536,911|u1BC19.m@300,0|_@840,0]
+1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC46.i.270n90.ee@0,-100|uni0323.dot_below@86,-219|u1BC03.t@100,-100|_@840,0]
 1BC02 1BC47 1BC47 1BC03::[u1BC02.p@400,0|u1BC46.i.270n90@200,-100|u1BC46.i.90p270@0,0|u1BC03.t@0,0|_@740,0]

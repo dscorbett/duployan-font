@@ -14,37 +14,37 @@
 # limitations under the License.
 
 # Incomplete fractions
-0030 2044::[zero@0,0|uni2044.fraction_slash@622,0|_@1455,0]
-2044 0030::[uni2044.fraction_slash@0,0|zero@833,0|_@1455,0]
+0030 2044::[zero@0,0|uni2044.fraction_slash@622,0|_@1456,0]
+2044 0030::[uni2044.fraction_slash@0,0|zero@834,0|_@1456,0]
 
 # Fractions
-0030 2044 0030::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|zero.dnom@635,0|_@1088,0]
-0031 2044 0030::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|zero.dnom@500,0|_@953,0]
-0032 2044 0030::[two.numr@0,0|uni2044.fraction_slash.frac@450,0|zero.dnom@613,0|_@1066,0]
-0033 2044 0030::[three.numr@0,0|uni2044.fraction_slash.frac@460,0|zero.dnom@623,0|_@1076,0]
-0034 2044 0030::[four.numr@0,0|uni2044.fraction_slash.frac@516,0|zero.dnom@679,0|_@1132,0]
-0035 2044 0030::[five.numr@0,0|uni2044.fraction_slash.frac@433,0|zero.dnom@596,0|_@1049,0]
-0036 2044 0030::[six.numr@0,0|uni2044.fraction_slash.frac@472,0|zero.dnom@635,0|_@1088,0]
-0037 2044 0030::[seven.numr@0,0|uni2044.fraction_slash.frac@485,0|zero.dnom@648,0|_@1101,0]
-0038 2044 0030::[eight.numr@0,0|uni2044.fraction_slash.frac@440,0|zero.dnom@603,0|_@1056,0]
-0039 2044 0030::[nine.numr@0,0|uni2044.fraction_slash.frac@454,0|zero.dnom@617,0|_@1070,0]
-0030 2044 0031::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|one.dnom@635,0|_@966,0]
-0030 2044 0032::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|two.dnom@635,0|_@1072,0]
-0030 2044 0033::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|three.dnom@635,0|_@1083,0]
-0030 2044 0034::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|four.dnom@635,0|_@1129,0]
-0030 2044 0035::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|five.dnom@635,0|_@1059,0]
-0030 2044 0036::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|six.dnom@635,0|_@1092,0]
-0030 2044 0037::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|seven.dnom@635,0|_@1111,0]
-0030 2044 0038::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|eight.dnom@635,0|_@1062,0]
-0030 2044 0039::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|nine.dnom@635,0|_@1075,0]
-0030 0031 0032 0033 0034 0035 0036 0037 0038 0039 2044 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039::[zero.numr@0,0|one.numr@472,0|two.numr@809,0|three.numr@1259,0|four.numr@1719,0|five.numr@2235,0|six.numr@2668,0|seven.numr@3140,0|eight.numr@3625,0|nine.numr@4065,0|uni2044.fraction_slash.frac@4519,0|zero.dnom@4682,0|one.dnom@5135,0|two.dnom@5466,0|three.dnom@5903,0|four.dnom@6351,0|five.dnom@6845,0|six.dnom@7269,0|seven.dnom@7726,0|eight.dnom@8202,0|nine.dnom@8629,0|_@9069,0]
+0030 2044 0030::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|zero.dnom@636,0|_@1089,0]
+0031 2044 0030::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|zero.dnom@501,0|_@954,0]
+0032 2044 0030::[two.numr@0,0|uni2044.fraction_slash.frac@450,0|zero.dnom@614,0|_@1067,0]
+0033 2044 0030::[three.numr@0,0|uni2044.fraction_slash.frac@461,0|zero.dnom@625,0|_@1078,0]
+0034 2044 0030::[four.numr@0,0|uni2044.fraction_slash.frac@516,0|zero.dnom@680,0|_@1133,0]
+0035 2044 0030::[five.numr@0,0|uni2044.fraction_slash.frac@433,0|zero.dnom@597,0|_@1050,0]
+0036 2044 0030::[six.numr@0,0|uni2044.fraction_slash.frac@472,0|zero.dnom@636,0|_@1089,0]
+0037 2044 0030::[seven.numr@0,0|uni2044.fraction_slash.frac@485,0|zero.dnom@649,0|_@1102,0]
+0038 2044 0030::[eight.numr@0,0|uni2044.fraction_slash.frac@440,0|zero.dnom@604,0|_@1057,0]
+0039 2044 0030::[nine.numr@0,0|uni2044.fraction_slash.frac@454,0|zero.dnom@618,0|_@1071,0]
+0030 2044 0031::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|one.dnom@636,0|_@967,0]
+0030 2044 0032::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|two.dnom@636,0|_@1073,0]
+0030 2044 0033::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|three.dnom@636,0|_@1085,0]
+0030 2044 0034::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|four.dnom@636,0|_@1130,0]
+0030 2044 0035::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|five.dnom@636,0|_@1061,0]
+0030 2044 0036::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|six.dnom@636,0|_@1093,0]
+0030 2044 0037::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|seven.dnom@636,0|_@1112,0]
+0030 2044 0038::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|eight.dnom@636,0|_@1063,0]
+0030 2044 0039::[zero.numr@0,0|uni2044.fraction_slash.frac@472,0|nine.dnom@636,0|_@1076,0]
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039 2044 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039::[zero.numr@0,0|one.numr@472,0|two.numr@809,0|three.numr@1259,0|four.numr@1720,0|five.numr@2236,0|six.numr@2669,0|seven.numr@3141,0|eight.numr@3626,0|nine.numr@4066,0|uni2044.fraction_slash.frac@4520,0|zero.dnom@4684,0|one.dnom@5137,0|two.dnom@5468,0|three.dnom@5905,0|four.dnom@6354,0|five.dnom@6848,0|six.dnom@7273,0|seven.dnom@7730,0|eight.dnom@8206,0|nine.dnom@8633,0|_@9073,0]
 
 # Ambiguous fractions
-0031 2044 0032 2044 0033::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@500,0|uni2044.fraction_slash@937,0|three@1770,0|_@2385,0]
-0031 2044 0032 2044 0033 2044 0034::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@500,0|uni2044.fraction_slash@937,0|three.numr@1770,0|uni2044.fraction_slash.frac@2230,0|four.dnom@2393,0|_@2887,0]
+0031 2044 0032 2044 0033::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@501,0|uni2044.fraction_slash@938,0|three@1772,0|_@2388,0]
+0031 2044 0032 2044 0033 2044 0034::[one.numr@0,0|uni2044.fraction_slash.frac@337,0|two.dnom@501,0|uni2044.fraction_slash@938,0|three.numr@1772,0|uni2044.fraction_slash.frac@2233,0|four.dnom@2397,0|_@2891,0]
 
 # Superscripts
-0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[zero.sups@0,0|one.sups@472,0|two.sups@809,0|three.sups@1259,0|four.sups@1719,0|five.sups@2235,0|six.sups@2668,0|seven.sups@3140,0|eight.sups@3625,0|nine.sups@4065,0|_@4519,0]
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[zero.sups@0,0|one.sups@472,0|two.sups@809,0|three.sups@1259,0|four.sups@1720,0|five.sups@2236,0|six.sups@2669,0|seven.sups@3141,0|eight.sups@3626,0|nine.sups@4066,0|_@4520,0]
 
 # Subscripts
-0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features subs:[zero.subs@0,0|one.subs@472,0|two.subs@809,0|three.subs@1259,0|four.subs@1719,0|five.subs@2235,0|six.subs@2668,0|seven.subs@3140,0|eight.subs@3625,0|nine.subs@4065,0|_@4519,0]
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features subs:[zero.subs@0,0|one.subs@472,0|two.subs@809,0|three.subs@1259,0|four.subs@1720,0|five.subs@2236,0|six.subs@2669,0|seven.subs@3141,0|eight.subs@3626,0|nine.subs@4066,0|_@4520,0]

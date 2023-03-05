@@ -44,24 +44,24 @@
 1BC77 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.330@0,208|u1BC04.f@121,0|_@673,0]
 
 # Medial
-1BC0A 1BC70 1BC04::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@120,-84|u1BC04.f@523,-500|_@1340,0]
-1BC0A 1BC71 1BC04::[u1BC0A.g@356,0|u1BC71.mid_horizontal_secant.0@120,249|u1BC04.f@356,-500|_@1240,0]
-1BC0A 1BC72 1BC04::[u1BC0A.g@189,0|u1BC72.right_horizontal_secant.0@120,582|u1BC04.f@189,-500|_@1240,0]
-1BC0A 1BC73 1BC04::[u1BC0A.g@0,0|u1BC73.low_vertical_secant.90@264,415|u1BC04.f@0,-500|_@817,0]
-1BC0A 1BC74 1BC04::[u1BC0A.g@0,0|u1BC74.mid_vertical_secant.90@264,249|u1BC04.f@0,-500|_@817,0]
-1BC0A 1BC75 1BC04::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@264,83|u1BC04.f@0,-500|_@817,0]
-1BC0A 1BC76 1BC04::[u1BC0A.g@72,0|u1BC76.secant.210@553,124|u1BC04.f@72,-500|_@889,0]
-1BC0A 1BC77 1BC04::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@120,58|u1BC04.f@17,-500|_@834,0]
+1BC0A 1BC70 1BC04::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@0,-84|u1BC04.f@523,-500|_@1340,0]
+1BC0A 1BC71 1BC04::[u1BC0A.g@356,0|u1BC71.mid_horizontal_secant.0@0,249|u1BC04.f@356,-500|_@1240,0]
+1BC0A 1BC72 1BC04::[u1BC0A.g@189,0|u1BC72.right_horizontal_secant.0@0,582|u1BC04.f@189,-500|_@1240,0]
+1BC0A 1BC73 1BC04::[u1BC0A.g@0,0|u1BC73.low_vertical_secant.90@144,415|u1BC04.f@0,-500|_@817,0]
+1BC0A 1BC74 1BC04::[u1BC0A.g@0,0|u1BC74.mid_vertical_secant.90@144,249|u1BC04.f@0,-500|_@817,0]
+1BC0A 1BC75 1BC04::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@144,83|u1BC04.f@0,-500|_@817,0]
+1BC0A 1BC76 1BC04::[u1BC0A.g@72,0|u1BC76.secant.210@0,124|u1BC04.f@72,-500|_@889,0]
+1BC0A 1BC77 1BC04::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@0,58|u1BC04.f@17,-500|_@834,0]
 
 # Final
-1BC0A 1BC70::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@120,-84|_@1340,0]
-1BC0A 1BC71::[u1BC0A.g@356,0|u1BC71.mid_horizontal_secant.0@120,249|_@1240,0]
-1BC0A 1BC72::[u1BC0A.g@189,0|u1BC72.right_horizontal_secant.0@120,582|_@1240,0]
-1BC0A 1BC73::[u1BC0A.g@0,0|u1BC73.low_vertical_secant.90@264,415|_@817,0]
-1BC0A 1BC74::[u1BC0A.g@0,0|u1BC74.mid_vertical_secant.90@264,249|_@817,0]
-1BC0A 1BC75::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@264,83|_@817,0]
-1BC0A 1BC76::[u1BC0A.g@72,0|u1BC76.secant.210@553,124|_@889,0]
-1BC0A 1BC77::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@120,58|_@834,0]
+1BC0A 1BC70::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@0,-84|_@1340,0]
+1BC0A 1BC71::[u1BC0A.g@356,0|u1BC71.mid_horizontal_secant.0@0,249|_@1240,0]
+1BC0A 1BC72::[u1BC0A.g@189,0|u1BC72.right_horizontal_secant.0@0,582|_@1240,0]
+1BC0A 1BC73::[u1BC0A.g@0,0|u1BC73.low_vertical_secant.90@144,415|_@817,0]
+1BC0A 1BC74::[u1BC0A.g@0,0|u1BC74.mid_vertical_secant.90@144,249|_@817,0]
+1BC0A 1BC75::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@144,83|_@817,0]
+1BC0A 1BC76::[u1BC0A.g@72,0|u1BC76.secant.210@0,124|_@889,0]
+1BC0A 1BC77::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@0,58|_@834,0]
 
 # Initial before isolated non-hub letter
 1BC70 1BC41::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,-233|u1BC41.a@567,0|_@1240,0]
@@ -94,22 +94,22 @@
 1BC77 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@459,558|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1020,0]
 
 # Skipping marks
-1BC04 1BC9D 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC72.right_horizontal_secant.0@120,525|_@1240,0]
-1BC04 1BC9E 1BC72::[u1BC04.f@141,0|u1BC9E.double.30@308,194|u1BC72.right_horizontal_secant.0@120,500|_@1240,0]
-1BC04 1BC9D 1BC9E 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC9E.double.30@308,219|u1BC72.right_horizontal_secant.0@120,525|_@1240,0]
+1BC04 1BC9D 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC72.right_horizontal_secant.0@0,525|_@1240,0]
+1BC04 1BC9E 1BC72::[u1BC04.f@141,0|u1BC9E.double.30@188,194|u1BC72.right_horizontal_secant.0@0,500|_@1240,0]
+1BC04 1BC9D 1BC9E 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC9E.double.30@188,219|u1BC72.right_horizontal_secant.0@0,525|_@1240,0]
 
 # Skipping child nodes
-1BC1B 1BCA0 1BC0A 1BC72::[u1BC1B.j@0,0|u1BC0A.g.sub@804,-489|u1BC72.right_horizontal_secant.0@327,593|_@1447,0]
-1BC02 1BCA0 1BC3A 1BC72::[u1BC02.p@333,0|u1BC3A.w_r.sub@753,-353|u1BC72.right_horizontal_secant.0@120,500|_@1240,0]
+1BC1B 1BCA0 1BC0A 1BC72::[u1BC1B.j@0,0|u1BC0A.g.sub@107,-489|u1BC72.right_horizontal_secant.0@207,593|_@1447,0]
+1BC02 1BCA0 1BC3A 1BC72::[u1BC02.p@333,0|u1BC3A.w_r.sub@33,-353|u1BC72.right_horizontal_secant.0@0,500|_@1240,0]
 
 # Not skipping continuing overlaps
-1BC1B 1BCA1 1BC0A 1BC72::[u1BC1B.j@82,0|u1BC0A.g@189,-489|u1BC72.right_horizontal_secant.0@120,93|_@1240,0]
-1BC02 1BCA1 1BC3A 1BC72::[u1BC02.p@553,0|u1BC3A.w_r@253,-353|u1BC72.right_horizontal_secant.0@120,280|_@1240,0]
+1BC1B 1BCA1 1BC0A 1BC72::[u1BC1B.j@82,0|u1BC0A.g@189,-489|u1BC72.right_horizontal_secant.0@0,93|_@1240,0]
+1BC02 1BCA1 1BC3A 1BC72::[u1BC02.p@553,0|u1BC3A.w_r@253,-353|u1BC72.right_horizontal_secant.0@0,280|_@1240,0]
 
 # Final after circle letter
-1BC04 1BC41 1BC70::[u1BC04.f@292,0|u1BC41.a.120n120@567,-50|u1BC70.left_horizontal_secant.0@120,-283|_@1240,0]
-1BC04 1BC57 1BC73::[u1BC04.f@0,0|u1BC57.uh.120n120@201,-215|u1BC73.low_vertical_secant.90@495,216|_@789,0]
+1BC04 1BC41 1BC70::[u1BC04.f@292,0|u1BC41.a.120n120@567,-50|u1BC70.left_horizontal_secant.0@0,-283|_@1240,0]
+1BC04 1BC57 1BC73::[u1BC04.f@0,0|u1BC57.uh.120n120@201,-215|u1BC73.low_vertical_secant.90@375,216|_@789,0]
 
 # Medial after curve glyph
-1BC03 1BC1A 1BC74 1BC05::[u1BC03.t@0,720|u1BC1A.n@500,0|u1BC74.mid_vertical_secant.90@880,180|u1BC05.k@212,-500|_@1040,0]
-1BC04 1BC44 1BC74 1BC05::[u1BC04.f@0,0|u1BC44.o.300p240@288,-75|u1BC74.mid_vertical_secant.90@538,75|u1BC05.k@0,-350|_@808,0]
+1BC03 1BC1A 1BC74 1BC05::[u1BC03.t@0,720|u1BC1A.n@500,0|u1BC74.mid_vertical_secant.90@760,180|u1BC05.k@212,-500|_@1040,0]
+1BC04 1BC44 1BC74 1BC05::[u1BC04.f@0,0|u1BC44.o.300p240@288,-75|u1BC74.mid_vertical_secant.90@418,75|u1BC05.k@0,-350|_@808,0]
