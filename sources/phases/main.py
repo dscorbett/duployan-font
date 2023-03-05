@@ -1792,7 +1792,7 @@ def create_diagonal_fractions(
         if schema.cmap in range(0x0030, 0x0039 + 1):
             classes['i'].append(schema)
             assert schema.y_max is not None
-            dnom = schema.clone(cmap=None, y_max=0.6 * schema.y_max)
+            dnom = schema.clone(cmap=None, size=0.6 * schema.size, y_max=None)
             numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
             classes['dnom'].append(dnom)
             classes['numr'].append(numr)
