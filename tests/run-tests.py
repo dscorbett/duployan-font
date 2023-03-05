@@ -151,6 +151,7 @@ def run_test(
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env={**os.environ, 'HB_SHAPER_LIST': ''},
     )
     stdout_data, stderr_data = p.communicate()
     print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
@@ -188,7 +189,9 @@ def run_test(
                     *options.split(),
                 ],
                 stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
+                stdout=subprocess.PIPE,
+                env={**os.environ, 'HB_SHAPER_LIST': ''},
+            )
             p.wait()
             assert p.stderr is not None
             print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
