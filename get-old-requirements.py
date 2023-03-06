@@ -25,10 +25,12 @@ import urllib.request
 import packaging.markers
 import packaging.requirements
 import packaging.specifiers
+import packaging.utils
+from packaging.utils import NormalizedName
 import packaging.version
 
 
-def parse_constraints(lines: Sequence[str]) -> Mapping[str, packaging.specifiers.SpecifierSet]:
+def parse_constraints(lines: Sequence[str]) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
     constraints = {}
     for line in lines:
         line = line.strip()
@@ -39,14 +41,14 @@ def parse_constraints(lines: Sequence[str]) -> Mapping[str, packaging.specifiers
                         constraint = packaging.requirements.Requirement(constraint_line)
                     except packaging.requirements.InvalidRequirement:
                         continue
-                    constraints[constraint.name] = constraint.specifier
+                    constraints[packaging.utils.canonicalize_name(constraint.name)] = constraint.specifier
     return constraints
 
 
 def add_required_dists(
-    requirements: MutableMapping[str, packaging.specifiers.SpecifierSet],
+    requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet],
     required_dists: Sequence[str],
-    constraints: Mapping[str, packaging.specifiers.SpecifierSet],
+    constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
     extra: str | None = None,
 ) -> None:
     for required_dist in required_dists:
@@ -58,14 +60,15 @@ def add_required_dists(
 
 
 def add_requirement(
-    requirements: MutableMapping[str, packaging.specifiers.SpecifierSet],
+    requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet],
     requirement: packaging.requirements.Requirement,
-    constraints: Mapping[str, packaging.specifiers.SpecifierSet],
+    constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
 ) -> None:
-    if requirement.name not in requirements:
-        requirements[requirement.name] = constraints.get(requirement.name, packaging.specifiers.SpecifierSet())
-    requirements[requirement.name] &= requirement.specifier
-    metadata = importlib.metadata.metadata(requirement.name)
+    name = packaging.utils.canonicalize_name(requirement.name)
+    if name not in requirements:
+        requirements[name] = constraints.get(name, packaging.specifiers.SpecifierSet())
+    requirements[name] &= requirement.specifier
+    metadata = importlib.metadata.metadata(name)
     required_dists = metadata.get_all('Requires-Dist')
     if required_dists:
         add_required_dists(requirements, required_dists, constraints)
@@ -78,9 +81,9 @@ def add_requirement(
 
 def parse_requirements(
     lines: list[str],
-    constraints: Mapping[str, packaging.specifiers.SpecifierSet],
-) -> Mapping[str, packaging.specifiers.SpecifierSet]:
-    requirements: MutableMapping[str, packaging.specifiers.SpecifierSet] = {}
+    constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
+) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
+    requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet] = {}
     for line in lines:
         try:
             requirement = packaging.requirements.Requirement(line)
