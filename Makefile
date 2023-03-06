@@ -44,6 +44,7 @@ ttf: $(filter %.ttf,$(FONTS))
 
 fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
 	$(BUILD) --fea <($(UNIFDEF) $<) --output $@
+	cffsubr --inplace $@
 
 fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
 	$(BUILD) --bold --fea <($(UNIFDEF) $<) --output $@

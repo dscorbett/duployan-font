@@ -18,8 +18,12 @@
 #
 #    pip-compile --allow-unsafe --no-emit-index-url --no-emit-trusted-host --resolver=backtracking requirements.in
 #
-fonttools[repacker]==4.39.0
+cffsubr==0.2.9.post1
     # via -r requirements.in
+fonttools[repacker]==4.39.0
+    # via
+    #   -r requirements.in
+    #   cffsubr
 uharfbuzz==0.34.0
     # via
     #   -r requirements.in
