@@ -130,7 +130,7 @@ mdurl==0.1.2
     # via markdown-it-py
 munkres==1.1.4
     # via fontbakery
-mypy==1.0.1
+mypy==1.1.1
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -222,7 +222,7 @@ pip==23.0.1
     # via
     #   pip-api
     #   pip-tools
-setuptools==67.5.1
+setuptools==67.6.0
     # via
     #   fs
     #   glyphsets
