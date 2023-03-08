@@ -42,17 +42,6 @@ otf: $(filter %.otf,$(FONTS))
 .PHONY: ttf
 ttf: $(filter %.ttf,$(FONTS))
 
-fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Regular.otf: sources/Duployan.fea sources/*.py
-	$(BUILD) --fea <($(UNIFDEF) $<) --output $@
-	cffsubr --inplace $@
-
-fonts/$(FONT_FAMILY_NAME)/unhinted/otf/$(FONT_FAMILY_NAME)-Bold.otf: sources/Duployan.fea sources/*.py
-	$(BUILD) --bold --fea <($(UNIFDEF) $<) --output $@
-
-$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
-	mkdir -p "$$(dirname "$@")"
-	sources/otf2ttf.py --output "$@" --overwrite "$<"
-
 subset-fonts/%.subset-glyphs.txt: fonts/%
 	mkdir -p "$$(dirname "$@")"
 	ttx -o - -q -t GlyphOrder "$<" \
@@ -72,6 +61,26 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 		--output-file="$@" \
 		--passthrough-tables \
 		"$<"
+
+dummy-%:
+	@:
+
+%.otf: sources/Duployan.fea sources/*.py | dummy-%
+	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
+	cffsubr --inplace $@
+
+%-Bold.otf: BOLD_ARG=--bold
+
+define MAKE_TTF
+    mkdir -p "$$(dirname "$@")"
+    sources/otf2ttf.py --output "$@" --overwrite "$<"
+endef
+
+%.ttf: %.otf
+	$(MAKE_TTF)
+
+$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
+	$(MAKE_TTF)
 
 .PHONY: clean
 clean:
