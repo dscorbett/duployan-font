@@ -3757,6 +3757,8 @@ class Wa(Complex):
         return False
 
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
+        context_in = context_in.clone(ignorable_for_topography=False)
+        context_out = context_out.clone(ignorable_for_topography=False)
         instructions = []
         for scalar, component in self.instructions:  # type: ignore[misc]
             instructions.append((scalar, component.contextualize(context_in, context_out)))
