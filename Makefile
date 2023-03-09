@@ -62,8 +62,7 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 		--passthrough-tables \
 		"$<"
 
-dummy-%:
-	@:
+dummy-%: ;
 
 %.otf: sources/Duployan.fea sources/*.py | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
