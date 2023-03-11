@@ -778,7 +778,7 @@ class Builder:
         x_center = (x_max + x_min) / 2
         y_center = (y_max + y_min) / 2
         for anchor_class_name, should_have_anchor in anchor_tests.items():
-            should_have_anchor &= not schema.pseudo_cursive
+            should_have_anchor &= not schema.pseudo_cursive and schema.ignorability != Ignorability.DEFAULT_YES
             if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
                 if has_anchor:
                     glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]
