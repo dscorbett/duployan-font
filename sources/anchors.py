@@ -73,15 +73,15 @@ SECANT: Final[str] = 'sec'
 
 
 ALL_MKMK: Final[list[str]] = [
+    RELATIVE_1,
+    RELATIVE_2,
+    MIDDLE,
     ABOVE,
     BELOW,
 ]
 
 
 ALL_MARK: Final[list[str]] = ALL_MKMK + [
-    RELATIVE_1,
-    RELATIVE_2,
-    MIDDLE,
     SECANT,
 ]
 

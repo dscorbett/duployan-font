@@ -751,6 +751,8 @@ class Builder:
                         y = y_max + gap
                     case anchors.BELOW:
                         y = y_min - gap
+                    case _:
+                        continue
                 glyph.addAnchorPoint(mkmk_anchor_class_name, 'basemark', x, y)
                 return
 

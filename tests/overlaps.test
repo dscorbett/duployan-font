@@ -81,6 +81,10 @@
 # Marks do not block trees.
 1BC25 0302 1BCA1 1BC04::[u1BC1C.s@0,0|dupl.Dot.rel1@346,286|uni0302.circumflex@269,405|u1BC04.f@444,-293|_@972,0]
 
+# Trees do not interfere with marks.
+1BC37 1BCA0 1BC1F 1BC33::[u1BC37.t_r_s@0,0|u1BC1B.j.sub@340,40|u1BC9E.double.90@700,228|u1BC33.s_t_r@600,-600|_@1440,0]
+1BC37 1BCA0 1BC24 1BC33::[u1BC37.t_r_s@14,0|u1BC1B.j.sub@354,40|dupl.Dot.rel1@700,26|dupl.Dot.rel2@700,480|u1BC33.s_t_r@614,-600|_@1454,0]
+
 # U+003D EQUALS SIGN is a valid root, but does not have other tree or
 # cursive behavior.
 003D 1BCA0 1BC02::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
