@@ -80,6 +80,7 @@ from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
 from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
+from utils import SUBSET_FEATURES
 from utils import Type
 from utils import cps_to_scripts
 
@@ -221,6 +222,10 @@ class Schema:
             canonicalized to this schema.
         phase_index: The phase index for the phase in which this schema
             was generated. See `CURRENT_PHASE_INDEX`.
+        features: The set of the feature tags of the lookups generated
+            by the phase at index `phase_index`, or ``None``. It starts
+            as ``None`` and should be set once the feature set is known.
+            It stays ``None`` for glyphs in 'cmap'.
         glyph: The cached FontForge glyph generated for this schema, or
             ``None`` if one has not been generated.
     """
@@ -245,6 +250,9 @@ class Schema:
     #: component. For example, ``uni1234_uniABCD`` can be collapsed into
     #: ``uni1234ABCD``.
     _COLLAPSIBLE_UNI_NAME: ClassVar[re.Pattern[str]] = re.compile(r'(?<=uni[0-9A-F]{4})_uni(?=[0-9A-F]{4})')
+
+    #: A pattern matching the first component of a glyph name.
+    _FIRST_COMPONENT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r'^([^.]*)')
 
     #: An iterable of substitutions to apply to a character name to get
     #: its glyph name. A substitution is a tuple of a search string and
@@ -423,6 +431,7 @@ class Schema:
         self.anchors: Final = _anchors if _anchors is not None else set()
         self.scripts: Final = cps_to_scripts(self.cps)
         self.phase_index: Final = CURRENT_PHASE_INDEX
+        self.features: set[str] | None = None
         self._glyph_name: str | None = None
         self._canonical_schema: Schema = self
         self._lookalike_group: Collection[Schema] = [self]
@@ -707,6 +716,11 @@ class Schema:
     def canonical_schema(self, canonical_schema: Schema) -> None:
         assert self._canonical_schema is self
         canonical_schema.anchors.update(self.anchors)
+        if canonical_schema.features is not None:
+            if self.features is None:
+                canonical_schema.features = self.features
+            else:
+                canonical_schema.features.update(self.features)
         canonical_schema.scripts.update(self.scripts)
         self._canonical_schema = canonical_schema
         self._glyph_name = None
@@ -862,6 +876,8 @@ class Schema:
                 if name.startswith('dupl.'):
                     name = name.removeprefix('dupl')
                 name = f'_{name}'
+        if (self.features is not None and SUBSET_FEATURES.isdisjoint(self.features)) != (name.startswith('_') or name.count('.') > 1):
+            name = self._FIRST_COMPONENT_PATTERN.sub(r'\1_', name)
         agl_string = fontTools.agl.toUnicode(name)
         agl_cps = tuple(map(ord, agl_string))
         assert cps == agl_cps, f'''The glyph name "{

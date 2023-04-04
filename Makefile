@@ -51,17 +51,16 @@ subset-fonts/%.subset-glyphs.txt: fonts/%
 	ttx -o - -q -t GlyphOrder "$<" \
 	| grep '<GlyphID ' \
 	| cut -f4 -d'"' \
-	| grep '^[^_]\|^_u1BC9D\.dtls$$' \
-	| grep -v '^u1BC7[0-7]\..*\.' \
+	| grep '^\(_[^.]*_\(\.\|$$\)\|[^_][^.]*_\.[^.]*\.\|\([^_][^.]*[^_]\(\.[^.]*\)\?\|\.[^.]*\)\(\._[0-9A-F][1-9A-F]*\)\?$$\)' \
 	>"$@"
 
 subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 	pyftsubset \
 		--glyph-names \
 		--glyphs-file="$(word 2,$^)" \
-		--layout-features+=subs,sups \
-		--layout-features-=curs,rclt \
+		--layout-features="$$(PYTHONPATH="sources:$$PYTHONPATH" python3 -c 'from utils import SUBSET_FEATURES; print(",".join(SUBSET_FEATURES))')" \
 		--no-layout-closure \
+		--notdef-outline \
 		--output-file="$@" \
 		--passthrough-tables \
 		"$<"

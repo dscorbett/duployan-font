@@ -18,17 +18,17 @@
 1BC02 1BCA2::[u1BC02.p@0,0|u1BCA2.down_step@240,0|_@1368,0]
 1BCA2 1BCA2 1BC02::[u1BC02.p@0,-2615|_@240,0]
 1BC02 1BCA2 1BCA2::[u1BC02.p@0,0|u1BCA2.down_step@240,0|u1BCA2.down_step@1368,0|_@2496,0]
-1BCA2 2E3C 1BC03::[uni2E3C.stenographic_period@0,-1163|uni200C.zwnj@416,0|u1BC03.t@416,0|_@1156,0]
+1BCA2 2E3C 1BC03::[uni2E3C_.stenographic_period@0,-1163|uni200C.zwnj@416,0|u1BC03.t@416,0|_@1156,0]
 
 # U+1BCA3 SHORTHAND FORMAT UP STEP
 1BCA3 1BC02::[u1BC02.p@0,505|_@240,0]
 1BC02 1BCA3::[u1BC02.p@0,0|u1BCA3.up_step@240,0|_@1368,0]
 1BCA3 1BCA3 1BC02::[u1BC02.p@0,1545|_@240,0]
 1BC02 1BCA3 1BCA3::[u1BC02.p@0,0|u1BCA3.up_step@240,0|u1BCA3.up_step@1368,0|_@2496,0]
-1BCA3 2E3C 1BC03::[uni2E3C.stenographic_period@0,917|uni200C.zwnj@416,0|u1BC03.t@416,0|_@1156,0]
+1BCA3 2E3C 1BC03::[uni2E3C_.stenographic_period@0,917|uni200C.zwnj@416,0|u1BC03.t@416,0|_@1156,0]
 
 # U+202F NARROW NO-BREAK SPACE, i.e. right step
-1BC06 202F 2E3C 1BC03::[u1BC06.l@0,0|uni202F.nnbsp@740,535|uni2E3C.stenographic_period@766,412|uni200C.zwnj@1182,0|u1BC03.t@1182,0|_@1922,0]
+1BC06 202F 2E3C 1BC03::[u1BC06.l@0,0|uni202F.nnbsp@740,535|uni2E3C_.stenographic_period@766,412|uni200C.zwnj@1182,0|u1BC03.t@1182,0|_@1922,0]
 
 # Multiple opposing steps
 1BCA2 1BCA3 1BC02::[u1BCA2.down_step@0,0|u1BC02.p@1128,505|_@1368,0]

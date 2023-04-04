@@ -241,7 +241,7 @@ def expand_secants(
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     lookup = Lookup(
-        'abvs',
+        'rclt',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )

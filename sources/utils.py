@@ -69,6 +69,7 @@ from typing import TypeVar
 from typing import overload
 
 
+import fontTools.subset
 import uharfbuzz
 
 
@@ -208,6 +209,13 @@ REQUIRED_SCRIPT_FEATURES: Mapping[str, Set[str]] = {
 
 #: The list of script tags that can appear in the generated font.
 KNOWN_SCRIPTS: Iterable[str] = sorted(REQUIRED_SCRIPT_FEATURES)
+
+
+#: The set of features that should be included in the subsetted font.
+SUBSET_FEATURES: Set[str] = (frozenset(fontTools.subset.Options().layout_features)
+    - {'blwm', 'curs', 'dist', 'rclt'}
+    | {'subs', 'sups'}
+)
 
 
 @functools.cache

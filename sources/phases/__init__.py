@@ -1248,6 +1248,7 @@ def run_phases(
                         break
             else:
                 might_have_feedback = True
+            features = {cast(str, lookup.feature) for lookup in lookups}
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
             new_input_schemas = OrderedSet()
@@ -1257,6 +1258,11 @@ def run_phases(
                         all_input_schemas.add(output_schema)
                         autochthonous_schemas.add(output_schema)
                         new_input_schemas.add(output_schema)
+                        output_schema.features = features
+            else:
+                for output_schema in output_schemas:
+                    if output_schema not in all_input_schemas:
+                        output_schema.features = features
         all_input_schemas = all_output_schemas
         all_schemas |= all_input_schemas
         assert lookups is not None

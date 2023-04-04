@@ -103,12 +103,12 @@ def add_shims_for_pseudo_cursive(
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
     marker_lookup = Lookup(
-        'abvm',
+        'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     space_lookup = Lookup(
-        'abvm',
+        'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reversed=True,
@@ -246,7 +246,7 @@ def shrink_wrap_enclosing_circle(
         mark_filtering_set='all',
     )
     dist_lookup = Lookup(
-        'dist',
+        'abvm',
         'dflt',
         mark_filtering_set='all',
     )

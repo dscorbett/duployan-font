@@ -15,7 +15,7 @@
 
 # U+1BC70 DUPLOYAN AFFIX LEFT HORIZONTAL SECANT
 1BC70 1BC02 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,0|u1BC02.p@667,0|u1BC70.left_horizontal_secant.0@0,-166|_@1240,0]
-1BC70 1BC03 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant.30@0,-333|u1BC03.t@410,0|u1BC70.left_horizontal_secant.30@166,-333|_@1272,0]
+1BC70 1BC03 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant.30@0,-333|u1BC03.t@410,0|u1BC70_.left_horizontal_secant.30@166,-333|_@1272,0]
 1BC70 1BC04 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,0|u1BC04.f@571,0|u1BC70.left_horizontal_secant.0@96,-166|_@1336,0]
 1BC70 1BC05 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@96,0|u1BC05.k@571,0|u1BC70.left_horizontal_secant.0@0,-166|_@1336,0]
 1BC70 1BC06 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,-166|u1BC06.l@500,0|u1BC70.left_horizontal_secant.0@166,0|_@1406,0]
@@ -27,7 +27,7 @@
 
 # U+1BC71 DUPLOYAN AFFIX MID HORIZONTAL SECANT
 1BC71 1BC02 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,333|u1BC02.p@500,0|u1BC71.mid_horizontal_secant.0@0,167|_@1240,0]
-1BC71 1BC03 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant.30@0,-250|u1BC03.t@266,0|u1BC71.mid_horizontal_secant.30@166,-250|_@1272,0]
+1BC71 1BC03 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant.30@0,-250|u1BC03.t@266,0|u1BC71_.mid_horizontal_secant.30@166,-250|_@1272,0]
 1BC71 1BC04 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,333|u1BC04.f@404,0|u1BC71.mid_horizontal_secant.0@96,167|_@1336,0]
 1BC71 1BC05 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@96,333|u1BC05.k@404,0|u1BC71.mid_horizontal_secant.0@0,167|_@1336,0]
 1BC71 1BC06 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,167|u1BC06.l@333,0|u1BC71.mid_horizontal_secant.0@166,333|_@1406,0]
@@ -39,7 +39,7 @@
 
 # U+1BC72 DUPLOYAN AFFIX RIGHT HORIZONTAL SECANT
 1BC72 1BC02 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,666|u1BC02.p@333,0|u1BC72.right_horizontal_secant.0@0,500|_@1240,0]
-1BC72 1BC03 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant.30@0,-167|u1BC03.t@122,0|u1BC72.right_horizontal_secant.30@166,-167|_@1272,0]
+1BC72 1BC03 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant.30@0,-167|u1BC03.t@122,0|u1BC72_.right_horizontal_secant.30@166,-167|_@1272,0]
 1BC72 1BC04 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,666|u1BC04.f@237,0|u1BC72.right_horizontal_secant.0@96,500|_@1336,0]
 1BC72 1BC05 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@96,666|u1BC05.k@237,0|u1BC72.right_horizontal_secant.0@0,500|_@1336,0]
 1BC72 1BC06 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,500|u1BC06.l@166,0|u1BC72.right_horizontal_secant.0@166,666|_@1406,0]
@@ -50,7 +50,7 @@
 1BC06 1BC46 1BC72::[u1BC06.l@0,0|u1BC46.i.45p225@359,500|u1BC72.right_horizontal_secant.0@122,1000|_@1362,0]
 
 # U+1BC73 DUPLOYAN AFFIX LOW HORIZONTAL SECANT
-1BC73 1BC02 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant.60@0,-244|u1BC02.p@333,0|u1BC73.low_vertical_secant.60@0,-410|_@740,0]
+1BC73 1BC02 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant.60@0,-244|u1BC02.p@333,0|u1BC73_.low_vertical_secant.60@0,-410|_@740,0]
 1BC73 1BC03 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@167,166|u1BC03.t@0,0|u1BC73.low_vertical_secant.90@333,166|_@740,0]
 1BC73 1BC04 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@96,499|u1BC04.f@0,0|u1BC73.low_vertical_secant.90@192,333|_@528,0]
 1BC73 1BC05 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant@192,499|u1BC05.k@0,0|u1BC73.low_vertical_secant.90@96,333|_@528,0]
@@ -62,7 +62,7 @@
 1BC04 1BC46 1BC73::[u1BC04.f@0,0|u1BC46.i.300p120@288,-50|u1BC73.low_vertical_secant.90@461,166|_@715,0]
 
 # U+1BC74 DUPLOYAN AFFIX MID HORIZONTAL SECANT
-1BC74 1BC02 1BC74::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant.60@0,-100|u1BC02.p@250,0|u1BC74.mid_vertical_secant.60@0,-266|_@740,0]
+1BC74 1BC02 1BC74::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant.60@0,-100|u1BC02.p@250,0|u1BC74_.mid_vertical_secant.60@0,-266|_@740,0]
 1BC74 1BC03 1BC74::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@167,0|u1BC03.t@0,0|u1BC74.mid_vertical_secant.90@333,0|_@740,0]
 1BC74 1BC04 1BC74::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@96,333|u1BC04.f@0,0|u1BC74.mid_vertical_secant.90@192,167|_@528,0]
 1BC74 1BC05 1BC74::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@192,333|u1BC05.k@0,0|u1BC74.mid_vertical_secant.90@96,167|_@528,0]
@@ -74,7 +74,7 @@
 1BC04 1BC46 1BC74::[u1BC04.f@0,0|u1BC46.i.300p120@288,-50|u1BC74.mid_vertical_secant.90@461,0|_@715,0]
 
 # U+1BC75 DUPLOYAN AFFIX HIGH HORIZONTAL SECANT
-1BC75 1BC02 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant.60@0,44|u1BC02.p@167,0|u1BC75.high_vertical_secant.60@0,-122|_@740,0]
+1BC75 1BC02 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant.60@0,44|u1BC02.p@167,0|u1BC75_.high_vertical_secant.60@0,-122|_@740,0]
 1BC75 1BC03 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@167,-166|u1BC03.t@0,0|u1BC75.high_vertical_secant.90@333,-166|_@740,0]
 1BC75 1BC04 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@96,167|u1BC04.f@0,0|u1BC75.high_vertical_secant.90@192,1|_@528,0]
 1BC75 1BC05 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@192,167|u1BC05.k@0,0|u1BC75.high_vertical_secant.90@96,1|_@528,0]
@@ -89,22 +89,22 @@
 1BC76 1BC07 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@0,534|u1BC07.b@125,0|u1BC76.secant.240@0,34|_@490,0]
 1BC76 1BC08 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@125,-216|u1BC08.d@0,0|u1BC76.secant.240@625,-216|_@1240,0]
 1BC76 1BC09 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@19,533|u1BC09.v@0,0|u1BC76.secant.240@308,33|_@817,0]
-1BC76 1BC0A 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.210@289,624|u1BC0A.g@72,0|u1BC76.secant.210@0,124|_@962,0]
-1BC76 1BC0B 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.255@186,8|u1BC0B.r@0,0|u1BC76.secant.255@686,508|_@1240,0]
+1BC76 1BC0A 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.210@289,624|u1BC0A.g@72,0|u1BC76_.secant.210@0,124|_@962,0]
+1BC76 1BC0B 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.255@186,8|u1BC0B.r@0,0|u1BC76_.secant.255@686,508|_@1240,0]
 1BC76 1BC19 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.195@0,476|u1BC19.m@202,0|u1BC76.secant.240@117,-36|_@742,0]
-1BC76 1BC1A 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@135,324|u1BC1A.n@0,0|u1BC76.secant.195@18,116|_@741,0]
+1BC76 1BC1A 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@135,324|u1BC1A.n@0,0|u1BC76_.secant.195@18,116|_@741,0]
 1BC76 1BC1B 1BC76::[uni200C.zwnj@0,0|u1BC76.secant.260@136,14|u1BC1B.j@0,0|u1BC76.secant.240@415,44|_@960,0]
-1BC76 1BC1C 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@55,-176|u1BC1C.s@0,0|u1BC76.secant.260@496,-206|_@960,0]
+1BC76 1BC1C 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@55,-176|u1BC1C.s@0,0|u1BC76_.secant.260@496,-206|_@960,0]
 1BC04 1BC46 1BC76::[u1BC04.f@0,0|u1BC46.i.300p120@288,-50|u1BC76.secant.240@336,-216|_@826,0]
 
 # U+1BC77 DUPLOYAN AFFIX ATTACHED LEFT-TO-RIGHT SECANT
 1BC77 1BC07 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@0,559|u1BC07.b@161,0|u1BC77.left_to_right_secant.310@0,59|_@561,0]
 1BC77 1BC08 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@89,-191|u1BC08.d@0,0|u1BC77.left_to_right_secant.310@589,-191|_@1240,0]
-1BC77 1BC09 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.330@0,624|u1BC09.v@73,0|u1BC77.left_to_right_secant.330@289,124|_@962,0]
+1BC77 1BC09 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.330@0,624|u1BC09.v@73,0|u1BC77_.left_to_right_secant.330@289,124|_@962,0]
 1BC77 1BC0A 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@289,558|u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@0,58|_@850,0]
 1BC77 1BC0B 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@89,59|u1BC0B.r@0,0|u1BC77.left_to_right_secant.310@589,559|_@1240,0]
-1BC77 1BC19 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@85,349|u1BC19.m@206,0|u1BC77.left_to_right_secant.350@0,136|_@746,0]
+1BC77 1BC19 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@85,349|u1BC19.m@206,0|u1BC77_.left_to_right_secant.350@0,136|_@746,0]
 1BC77 1BC1A 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.350@14,496|u1BC1A.n@0,0|u1BC77.left_to_right_secant.310@99,-11|_@746,0]
-1BC77 1BC1B 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@19,69|u1BC1B.j@0,0|u1BC77.left_to_right_secant.280@497,14|_@960,0]
+1BC77 1BC1B 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@19,69|u1BC1B.j@0,0|u1BC77_.left_to_right_secant.280@497,14|_@960,0]
 1BC77 1BC1C 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.280@137,-206|u1BC1C.s@0,0|u1BC77.left_to_right_secant.310@379,-151|_@960,0]
 1BC06 1BC46 1BC77::[u1BC06.l@0,0|u1BC46.i.45p225@359,500|u1BC77.left_to_right_secant.310@294,476|_@855,0]
