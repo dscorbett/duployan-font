@@ -1728,7 +1728,7 @@ class Line(Shape):
             anchors.SECANT: angle,
         }
 
-    def reversed(self) -> Line:
+    def as_reversed(self) -> Self:
         """Returns a `Line` that is the same as this one but with the
         opposite angle.
         """
@@ -2238,7 +2238,7 @@ class Curve(Shape):
             final_hook = self.hook and context_in != NO_CONTEXT
             if final_hook:
                 flip()
-                context_out = context_in.reversed()
+                context_out = context_in.as_reversed()
                 context_in = NO_CONTEXT
                 angle_in, angle_out = (angle_out + 180) % 360, (angle_in + 180) % 360
             context_clockwises = (context_in.clockwise, context_out.clockwise)
@@ -2302,7 +2302,7 @@ class Curve(Shape):
             anchors.SECANT: self.angle_out % 180,
         }
 
-    def reversed(self) -> Curve:
+    def as_reversed(self) -> Self:
         """Returns a `Curve` that looks the same but is drawn in the
         opposite direction.
         """
@@ -2722,7 +2722,7 @@ class Circle(Shape):
     def context_out(self) -> Context:
         return Context(self.angle_out, self.clockwise)
 
-    def as_reversed(self) -> Circle:
+    def as_reversed(self) -> Self:
         """Returns a `Circle` that looks the same but is drawn in the
         opposite direction.
         """
@@ -3197,16 +3197,14 @@ class Complex(Shape):
                 component = component.contextualize(context_in, context_out)
                 assert isinstance(component, Circle | Curve | Line)
                 if i and initial_hook:
-                    assert not isinstance(component, Circle)
-                    component = component.reversed()
+                    component = component.as_reversed()
                 if forced_context is not None:
                     if isinstance(component, Line):
                         if forced_context != NO_CONTEXT:
                             component = component.clone(angle=forced_context.angle)  # type: ignore[arg-type]
                     else:
                         if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
-                            assert isinstance(component, Curve)
-                            component = component.reversed()
+                            component = component.as_reversed()
                         if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
                             assert forced_context.angle is not None
                             angle_out = component.angle_out
@@ -3527,7 +3525,7 @@ class Ou(Complex):
         assert rv.angle is not None
         return rv.clone(angle=(rv.angle + 180) % 360)
 
-    def as_reversed(self) -> Ou:
+    def as_reversed(self) -> Self:
         """Returns an `Ou` that looks the same but is drawn in the
         opposite direction.
         """
@@ -3785,7 +3783,7 @@ class Wa(Complex):
                 ])
         return self.clone(instructions=instructions)
 
-    def as_reversed(self) -> Wa:
+    def as_reversed(self) -> Self:
         """Returns a `Wa` that looks the same but is drawn in the
         opposite direction.
         """
@@ -3834,7 +3832,7 @@ class Wi(Complex):
             return self.as_reversed()
         return self
 
-    def as_reversed(self) -> Wi:
+    def as_reversed(self) -> Self:
         """Returns a `Wi` that looks the same but is drawn in the
         opposite direction.
         """

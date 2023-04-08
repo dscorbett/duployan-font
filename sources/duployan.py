@@ -141,7 +141,7 @@ class Builder:
         space = Space(0, margins=True)
         h = Dot()
         exclamation = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (1.109, Line(90))])
-        inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].reversed())])  # type: ignore[call-arg, index, union-attr]
+        inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].as_reversed())])  # type: ignore[call-arg, index, union-attr]
         dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
         asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), False), (0.467, Line(126)), (0.467, Line(306), False), (0.467, Line(54)), (0.467, Line(234), False), (0.467, Line(342))])
         plus = Complex([(146, Space(90)), (0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
@@ -160,7 +160,7 @@ class Builder:
         colon = Complex([(0, h), (408, Space(90)), (0, h)])
         semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (388, Space(90)), (0, h)])
         question = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
-        inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
+        inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
         less_than = Complex([(1, Line(153)), (1, Line(27))])
         equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
         greater_than = Complex([(1, Line(27)), (1, Line(153))])
@@ -180,8 +180,8 @@ class Builder:
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
         right_guillemet = [*reversed(left_guillemet)]
-        left_guillemet += [(op[0], op[1].reversed(), True) for op in left_guillemet]  # type: ignore[misc]
-        right_guillemet += [(op[0], op[1].reversed(), True) for op in right_guillemet]  # type: ignore[misc]
+        left_guillemet += [(op[0], op[1].as_reversed(), True) for op in left_guillemet]  # type: ignore[misc]
+        right_guillemet += [(op[0], op[1].as_reversed(), True) for op in right_guillemet]  # type: ignore[misc]
         left_double_guillemet = Complex([guillemet_vertical_space, *left_guillemet, guillemet_horizontal_space, *left_guillemet])
         right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
         left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
@@ -212,7 +212,7 @@ class Builder:
         cross_knob_op = (0, Dot(3.64, centered=True))
         cross_pommy = Complex([cross_knob_op, (3 + 2 * cross_knob_line_factor, Line(270)), cross_knob_op, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), cross_knob_op, (2 + 2 * cross_knob_line_factor, Line(0)), cross_knob_op])
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
-        sacred_heart = Complex([(10.584, Curve(42.5, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 317.5, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_IN)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].reversed(), True), *cross.instructions])  # type: ignore[index, union-attr]
+        sacred_heart = Complex([(10.584, Curve(42.5, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 317.5, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_IN)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].as_reversed(), True), *cross.instructions])  # type: ignore[index, union-attr]
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270, stretchy=True)
         p_reverse = Line(90, stretchy=True)
@@ -272,7 +272,7 @@ class Builder:
         tangent = Complex([lambda c: Context(None if c.angle is None else (c.angle - 90) % 360 if 90 < c.angle < 315 else (c.angle + 90) % 360), (0.25, Line(270), True), lambda c: Context((cast(float, c.angle) + 180) % 360), (0.5, Line(90))], hook=True)
         e_hook = Curve(90, 270, clockwise=True, hook=True)
         i_hook = Curve(180, 0, clockwise=False, hook=True)
-        tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.reversed, (1, Curve(90, 270, clockwise=True))])
+        tangent_hook = TangentHook([(1, Curve(180, 270, clockwise=False)), Context.as_reversed, (1, Curve(90, 270, clockwise=True))])
         high_acute = SeparateAffix([(0.5, Line(45))])
         high_tight_acute = SeparateAffix([(0.5, Line(45))], tight=True)
         high_grave = SeparateAffix([(0.5, Line(315))])

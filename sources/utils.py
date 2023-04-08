@@ -466,7 +466,7 @@ class Context:
             ^ hash(self.diphthong_end)
         )
 
-    def reversed(self) -> Context:
+    def as_reversed(self) -> Self:
         """Returns the reversed form of this context.
 
         The reversed form is the context where the notional pen travels
