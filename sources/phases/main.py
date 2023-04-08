@@ -148,11 +148,19 @@ def reversed_circle_kludge(
     lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
     for schema in new_schemas:
-        if schema.cmap in [0x1BC44, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
-            assert isinstance(schema.path, Circle | Ou | Wa | Wi)
+        if schema.cmap in [0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
+            assert isinstance(schema.path, Circle | Curve | Ou | Wa | Wi)
             add_rule(lookup, Rule(
                 [schema, cgj, cgj, cgj],
-                [schema.clone(cmap=None, cps=[*schema.cps, 0x034F, 0x034F, 0x034F], path=schema.path.as_reversed())],
+                [schema.clone(
+                    cmap=None,
+                    cps=[*schema.cps, 0x034F, 0x034F, 0x034F],
+                    path=schema.path.clone(
+                            angle_out=(2 * schema.path.angle_in - schema.path.angle_out) % 360,
+                            clockwise=not schema.path.clockwise,
+                            secondary=None,
+                        ) if isinstance(schema.path, Curve) else schema.path.as_reversed(),
+                )],
             ))
     return [lookup]
 
