@@ -20,11 +20,11 @@
 #
 cffsubr==0.2.9.post1
     # via -r requirements.in
-fonttools[repacker]==4.39.0
+fonttools[repacker]==4.39.3
     # via
     #   -r requirements.in
     #   cffsubr
-uharfbuzz==0.34.0
+uharfbuzz==0.35.0
     # via
     #   -r requirements.in
     #   fonttools
