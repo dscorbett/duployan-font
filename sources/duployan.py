@@ -758,6 +758,19 @@ class Builder:
                 glyph.addAnchorPoint(mkmk_anchor_class_name, 'basemark', x, y)
                 return
 
+    def _convert_base_to_basemark(
+        self,
+        glyph: fontforge.glyph,
+    ) -> None:
+        for anchor_class_name, type, x, y in glyph.anchorPoints:
+            if type == 'base':
+                if anchor_class_name in anchors.ALL_MKMK:
+                    anchor_class_name = mkmk(anchor_class_name)
+                elif anchor_class_name in anchors.ALL_MARK:
+                    continue
+                glyph.addAnchorPoint(anchor_class_name, 'basemark', x, y)
+        glyph.anchorPoints = [a for a in glyph.anchorPoints if a[1] in ['basemark', 'mark']]
+
     def _wrangle_anchor_points(
         self,
         schema: Schema,
@@ -767,6 +780,8 @@ class Builder:
     ) -> None:
         if schema.anchor:
             self._add_mkmk_anchor_points(schema, glyph, stroke_width)
+        if schema.glyph_class == GlyphClass.MARK and not schema.path.invisible():
+            self._convert_base_to_basemark(glyph)
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef):
             return
         anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}

@@ -1585,7 +1585,6 @@ class Line(Shape):
             if self.final_tick:
                 end_y = 100 if 90 < self.angle <= 270 else -100
                 pen.lineTo((length, end_y))
-        anchor_name, base = (mkmk, 'basemark') if child or anchor and self.secant else ((lambda a: a), 'base')
         if anchor:
             if (joining_type == Type.ORIENTING
                 or self.angle % 180 == 0
@@ -1605,7 +1604,7 @@ class Line(Shape):
                 for child_index in range(max_tree_width):
                     glyph.addAnchorPoint(
                         anchors.CHILD_EDGES[int(child)][child_index],
-                        base,
+                        'base',
                         child_interval * (child_index + 2),
                         0,
                     )
@@ -1621,15 +1620,15 @@ class Line(Shape):
                         glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
                     if self.hub_priority(size) != 0:
                         glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', length, end_y)
-                    glyph.addAnchorPoint(anchor_name(anchors.SECANT), base, child_interval * (max_tree_width + 1), 0)
+                    glyph.addAnchorPoint(anchors.SECANT, 'base', child_interval * (max_tree_width + 1), 0)
             if size == 2 and 0 < self.angle <= 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2 + light_line + stroke_gap, -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', length / 2 + light_line + stroke_gap, -(stroke_width + Dot.SCALAR * light_line) / 2)
             else:
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, length / 2, (stroke_width + Dot.SCALAR * light_line) / 2)
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
-            glyph.addAnchorPoint(anchor_name(anchors.MIDDLE), base, length / 2, 0)
+                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', length / 2, (stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
+            glyph.addAnchorPoint(anchors.MIDDLE, 'base', length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
             ('round',)
@@ -1639,8 +1638,8 @@ class Line(Shape):
         if anchor is None or self.secant:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
-            glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
+            glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_width / 2 + 2 * stroke_gap + light_line / 2)
+            glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - (stroke_width / 2 + 2 * stroke_gap + light_line / 2))
             if self.secant is not None and self.angle % 90 == 0:
                 floating = True
                 y_offset = 2 * LINE_FACTOR * (2 * self.secant - 1)
@@ -2062,54 +2061,51 @@ class Curve(Shape):
             pen.lineTo(exit)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
-        anchor_name = mkmk if child else lambda a: a
         if anchor:
             glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
-        else:
-            base = 'basemark' if child else 'base'
-            if joining_type != Type.NON_JOINING:
-                max_tree_width = self.max_tree_width(size)
-                child_interval = da / (max_tree_width + 2)
-                if self.overlap_angle is None:
-                    for child_index in range(max_tree_width):
-                        glyph.addAnchorPoint(
-                            anchors.CHILD_EDGES[int(child)][child_index],
-                            base,
-                            *_rect(r, math.radians(a1 + child_interval * (child_index + 2))),
-                        )
-                else:
-                    overlap_exit_angle = self._get_angle_to_overlap_point(a1, a2, is_entry=False)
+        elif joining_type != Type.NON_JOINING:
+            max_tree_width = self.max_tree_width(size)
+            child_interval = da / (max_tree_width + 2)
+            if self.overlap_angle is None:
+                for child_index in range(max_tree_width):
                     glyph.addAnchorPoint(
-                        anchors.CHILD_EDGES[int(child)][0],
-                        base,
-                        *_rect(r, math.radians(overlap_exit_angle)),
+                        anchors.CHILD_EDGES[int(child)][child_index],
+                        'base',
+                        *_rect(r, math.radians(a1 + child_interval * (child_index + 2))),
                     )
-                overlap_entry_angle = (a1 + child_interval
-                    if self.overlap_angle is None
-                    else self._get_angle_to_overlap_point(a1, a2, is_entry=True))
-                if child:
-                    glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
-                else:
-                    glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
-                    glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *_rect(r, math.radians(
-                        a1 + child_interval * (max_tree_width + 1)
-                            if self.overlap_angle is None
-                            else overlap_exit_angle)))
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
-                    glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
-                    if self.hub_priority(size) != -1:
-                        glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *_rect(r, math.radians(a1)))
-                    if self.hub_priority(size) != 0:
-                        glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-                    glyph.addAnchorPoint(
-                        anchor_name(anchors.SECANT),
-                        base,
-                        *_rect(0, 0)
-                            if abs(da) > 180
-                            else _rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
-                    )
-            glyph.addAnchorPoint(anchor_name(anchors.MIDDLE), base, *_rect(r, math.radians(relative_mark_angle)))
+            else:
+                overlap_exit_angle = self._get_angle_to_overlap_point(a1, a2, is_entry=False)
+                glyph.addAnchorPoint(
+                    anchors.CHILD_EDGES[int(child)][0],
+                    'base',
+                    *_rect(r, math.radians(overlap_exit_angle)),
+                )
+            overlap_entry_angle = (a1 + child_interval
+                if self.overlap_angle is None
+                else self._get_angle_to_overlap_point(a1, a2, is_entry=True))
+            if child:
+                glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
+            else:
+                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
+                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *_rect(r, math.radians(
+                    a1 + child_interval * (max_tree_width + 1)
+                        if self.overlap_angle is None
+                        else overlap_exit_angle)))
+                glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
+                glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
+                glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
+                if self.hub_priority(size) != -1:
+                    glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *_rect(r, math.radians(a1)))
+                if self.hub_priority(size) != 0:
+                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
+                glyph.addAnchorPoint(
+                    anchors.SECANT,
+                    'base',
+                    *_rect(0, 0)
+                        if abs(da) > 180
+                        else _rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
+                )
+        glyph.addAnchorPoint(anchors.MIDDLE, 'base', *_rect(r, math.radians(relative_mark_angle)))
         if not anchor:
             if self.stretch:
                 scale_x = 1.0
@@ -2124,26 +2120,26 @@ class Curve(Shape):
                     case StretchAxis.ANGLE_OUT:
                         theta = self.angle_out
                 theta = math.radians(theta % 180)
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, *_rect(0, 0))
+                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
                 glyph.transform(
                     fontTools.misc.transform.Identity
                         .rotate(theta)
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
                 )
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
+                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
             else:
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base,
+                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base',
                     *(_rect(0, 0) if abs(da) > 180 else _rect(
                         min(stroke_width, r - (stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2)),
                         math.radians(relative_mark_angle))))
-                glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)))
+                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
         if not anchor:
             x_min, y_min, x_max, y_max = glyph.boundingBox()
             x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_gap)
-            glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - stroke_gap)
+            glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
+            glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
         return False
 
     def can_be_child(self, size: float) -> bool:
@@ -2527,8 +2523,6 @@ class Circle(Shape):
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
             pen.endPath()
-        anchor_name = mkmk if child else lambda a: a
-        base = 'basemark' if child else 'base'
         if joining_type != Type.NON_JOINING:
             if child:
                 glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', 0, 0)
@@ -2541,8 +2535,8 @@ class Circle(Shape):
                     glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
                 if self.hub_priority(size) != 0:
                     glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-                glyph.addAnchorPoint(anchor_name(anchors.SECANT), base, 0, 0)
-        glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_1), base, *_rect(0, 0))
+                glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
+        glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
         if anchor:
             glyph.addAnchorPoint(anchors.MIDDLE, 'mark', 0, 0)
         if self.stretch:
@@ -2557,16 +2551,16 @@ class Circle(Shape):
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(angle_in)))
+            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(angle_in)))
         else:
-            glyph.addAnchorPoint(anchor_name(anchors.RELATIVE_2), base, *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         if diphthong_1 or diphthong_2:
             glyph.removeOverlap()
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
-        glyph.addAnchorPoint(anchor_name(anchors.ABOVE), base, x_center, y_max + stroke_gap)
-        glyph.addAnchorPoint(anchor_name(anchors.BELOW), base, x_center, y_min - stroke_gap)
+        glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
+        glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
         return False
 
     def can_be_child(self, size: float) -> bool:

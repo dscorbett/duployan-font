@@ -641,7 +641,7 @@ class Schema:
         been drawn.
         """
         return not (
-                self.ignored_for_topography or self.widthless
+                self.child or self.ignored_for_topography or self.widthless
             ) and (
                 self.glyph_class == GlyphClass.JOINER
                 or self.glyph_class == GlyphClass.MARK

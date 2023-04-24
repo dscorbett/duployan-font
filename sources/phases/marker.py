@@ -420,11 +420,11 @@ def add_width_markers(
         ):
             entry_xs = {}
             exit_xs = {}
-            if schema.glyph is None and isinstance(schema.path, Space):
+            if schema.glyph is None:
+                assert isinstance(schema.path, Space)
                 entry_xs[anchors.CURSIVE] = 0
                 exit_xs[anchors.CURSIVE] = schema.size
             else:
-                assert schema.glyph is not None
                 for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
                     if type in ['entry', 'mark']:
                         entry_xs[anchor_class_name] = x
