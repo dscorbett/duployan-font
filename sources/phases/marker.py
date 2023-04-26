@@ -39,6 +39,7 @@ __all__ = [
 import collections
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
+from collections.abc import Sequence
 import functools
 import math
 from typing import Literal
@@ -76,6 +77,7 @@ from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
 from shapes import WidthNumber
+import sifting
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
 from utils import MINIMUM_STROKE_GAP
@@ -84,6 +86,7 @@ from utils import OrderedSet
 from utils import PrefixView
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
+from utils import mkmk
 
 
 if TYPE_CHECKING:
@@ -342,12 +345,14 @@ def add_width_markers(
             classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(hub)
         hubs[hub_priority] = [hub]
     end = Schema(None, End(), 0, side_bearing=0)
-    mark_anchor_selectors: MutableMapping[int, Schema] = {}
+    mark_anchor_selectors: MutableMapping[str, Schema] = {}
+    canonical_mark_anchors: Sequence[str] = []
+    canonical_mark_anchor_mapping: MutableMapping[str, str] | None = None
 
-    def register_mark_anchor_selector(index: int) -> Schema:
-        if index in mark_anchor_selectors:
-            return mark_anchor_selectors[index]
-        return mark_anchor_selectors.setdefault(index, Schema(None, MarkAnchorSelector(index), 0))
+    def register_mark_anchor_selector(anchor: str) -> Schema:
+        if anchor in mark_anchor_selectors:
+            return mark_anchor_selectors[anchor]
+        return mark_anchor_selectors.setdefault(anchor, Schema(None, MarkAnchorSelector(anchor), 0))
 
     def get_mark_anchor_selector(schema: Schema) -> Schema:
         only_anchor_class_name: str | None = None
@@ -356,8 +361,10 @@ def add_width_markers(
             if type == 'mark' and anchor_class_name in anchors.ALL_MARK:
                 assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
+        assert canonical_mark_anchor_mapping is not None, '`canonical_mark_anchor_mapping` is only implemented for the first iteration of the phase'
         assert only_anchor_class_name is not None
-        return register_mark_anchor_selector(anchors.ALL_MARK.index(only_anchor_class_name))
+        only_anchor_class_name = canonical_mark_anchor_mapping.get(only_anchor_class_name, only_anchor_class_name)
+        return register_mark_anchor_selector(only_anchor_class_name)
 
     glyph_class_selectors: MutableMapping[GlyphClass, Schema] = {}
 
@@ -403,13 +410,14 @@ def add_width_markers(
 
     schemas_needing_width_markers = []
     rules_to_add = []
+    anchor_grouper = sifting.Grouper([[*anchors.ALL_MARK]])
     for schema in new_schemas:
         if schema not in original_schemas:
             continue
         if schema.glyph is None:
             match schema.path:
                 case MarkAnchorSelector():
-                    mark_anchor_selectors[schema.path.index] = schema
+                    mark_anchor_selectors[schema.path.anchor] = schema
                 case GlyphClassSelector():
                     glyph_class_selectors[schema.glyph_class] = schema
             if not isinstance(schema.path, Space):
@@ -425,11 +433,28 @@ def add_width_markers(
                 entry_xs[anchors.CURSIVE] = 0
                 exit_xs[anchors.CURSIVE] = schema.size
             else:
+                should_check_anchor_x = False
                 for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
                     if type in ['entry', 'mark']:
                         entry_xs[anchor_class_name] = x
                     elif type in ['base', 'basemark', 'exit']:
                         exit_xs[anchor_class_name] = x
+                        should_check_anchor_x |= type in ['base', 'basemark']
+                if should_check_anchor_x:
+                    for group in anchor_grouper.groups():
+                        anchor_groups_by_x: collections.defaultdict[str | None, list[str]] = collections.defaultdict(list)
+                        anchor_groups_by_x[None] = [*group]
+                        for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
+                            if type == 'base' and anchor_class_name in group or type == 'basemark' and mkmk(anchor_class_name) in group:
+                                anchor_groups_by_x[x].append(anchor_class_name)
+                                anchor_groups_by_x[None].remove(anchor_class_name)
+                        if not anchor_groups_by_x[None]:
+                            del anchor_groups_by_x[None]
+                        if len(anchor_groups_by_x) > 1:
+                            anchor_grouper.remove(group)
+                            for anchor_group in anchor_groups_by_x.values():
+                                if len(anchor_group) > 1:
+                                    anchor_grouper.add(anchor_group)
             if not (entry_xs or exit_xs):
                 # This glyph never appears in the final glyph buffer.
                 continue
@@ -440,6 +465,21 @@ def add_width_markers(
             exit_xs.setdefault(anchors.CONTINUING_OVERLAP, exit_xs[anchors.CURSIVE])
             start_x = entry_xs[anchors.CURSIVE if schema.glyph_class == GlyphClass.JOINER else anchor_class_name]
             schemas_needing_width_markers.append((schema, entry_xs, exit_xs, start_x))
+    if len(original_schemas) == len(schemas):
+        anchor_groups = anchor_grouper.groups()
+        canonical_mark_anchors = [
+            a for a in anchors.ALL_MARK
+                if not any(a in group for group in anchor_groups) or any(a == group[0] for group in anchor_groups)
+        ]
+        canonical_mark_anchor_mapping = {}
+        for group in anchor_groups:
+            canonical_mark_anchor = group[0]
+            for anchor in group[1:]:
+                canonical_mark_anchor_mapping[anchor] = canonical_mark_anchor
+        for anchor in canonical_mark_anchors:
+            classes[f'global..canonical_anchor_{anchor}'] = []
+    else:
+        canonical_mark_anchors = [a for a in anchors.ALL_MARK if f'global..canonical_anchor_{a}' in classes]
     for schema, entry_xs, exit_xs, start_x in schemas_needing_width_markers:
         if schema.glyph is None:
             x_min = x_max = 0.0
@@ -462,7 +502,7 @@ def add_width_markers(
                 (
                     exit_xs[anchor] - start_x if anchor in exit_xs else 0,
                     AnchorWidthDigit,
-                ) for anchor in anchors.ALL_MARK
+                ) for anchor in canonical_mark_anchors
             ],
             *[
                 (
@@ -637,21 +677,18 @@ def sum_width_markers(
     original_right_digit_schemas = []
     anchor_digit_schemas = {}
     original_anchor_digit_schemas = []
-    mark_anchor_selectors: MutableMapping[int, Schema] = {}
+    mark_anchor_selectors: MutableMapping[str, Schema] = {}
+    canonical_anchors = [a for a in anchors.ALL if a not in anchors.ALL_MARK or f'global..canonical_anchor_{a}' in classes]
 
-    def get_mark_anchor_selector(index: int, class_name: str) -> Schema:
-        if index in mark_anchor_selectors:
-            rv = mark_anchor_selectors[index]
+    def get_mark_anchor_selector(anchor: str, class_name: str) -> Schema:
+        if anchor in mark_anchor_selectors:
+            rv = mark_anchor_selectors[anchor]
             classes[class_name].append(rv)
             return rv
-        rv = Schema(
-            None,
-            MarkAnchorSelector(index - len(anchors.ALL_CURSIVE)),
-            0,
-        )
+        rv = Schema(None, MarkAnchorSelector(anchor), 0)
         classes['all'].append(rv)
         classes[class_name].append(rv)
-        return mark_anchor_selectors.setdefault(index, rv)
+        return mark_anchor_selectors.setdefault(anchor, rv)
 
     glyph_class_selectors: MutableMapping[GlyphClass, Schema] = {}
 
@@ -706,7 +743,7 @@ def sum_width_markers(
                     classes[f'adx_{schema.path.place}'].append(schema)
                     classes[f'iadx_{schema.path.place}'].append(schema)
             case MarkAnchorSelector():
-                mark_anchor_selectors[schema.path.index] = schema
+                mark_anchor_selectors[schema.path.anchor] = schema
             case GlyphClassSelector():
                 glyph_class_selectors[schema.path.glyph_class] = schema
     for (
@@ -724,7 +761,7 @@ def sum_width_markers(
             original_anchor_digit_schemas,
             anchor_digit_schemas,
             AnchorWidthDigit,
-        ) for i, anchor in enumerate(anchors.ALL)], (
+        ) for i, anchor in enumerate(canonical_anchors)], (
             False,
             0,
             0,
@@ -752,15 +789,15 @@ def sum_width_markers(
             original_entry_digit_schemas,
             entry_digit_schemas,
             EntryWidthDigit,
-        ) for i in range(len(anchors.ALL) - 1, -1, -1)], *[(
+        ) for i in range(len(canonical_anchors) - 1, -1, -1)], *[(
             False,
             i,
-            len(anchors.ALL) - 1 - i,
+            len(canonical_anchors) - 1 - i,
             'a',
             original_anchor_digit_schemas,
             anchor_digit_schemas,
             AnchorWidthDigit,
-        ) for i in range(len(anchors.ALL))]],
+        ) for i in range(len(canonical_anchors))]],
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_schemas
@@ -842,7 +879,7 @@ def sum_width_markers(
                                 context_in_lookup_context_in.append(continuing_overlap)
                             elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:
                                 context_in_lookup_context_in.append(get_mark_anchor_selector(
-                                    len(anchors.ALL) - augend_skip_backtrack - 1,
+                                    canonical_anchors[len(canonical_anchors) - augend_skip_backtrack - 1],
                                     context_in_lookup_name,
                                 ))
                             context_in_lookup_context_in.extend([f'iadx_{sum_digit_schema.path.place}'] * addend_skip_backtrack)

@@ -109,7 +109,10 @@ They have no analogue in other scripts.
 
 A glyph’s anchor widths (`adx`) are measured from its cursive entry point to
 each mark anchor point.
-This font has 8 mark anchors so each glyph has 8 anchor widths.
+Each glyph has 7 anchor widths.
+The font has 8 mark/cursive anchors, but each base glyph uses the same x
+coordinate for its above- and below-base anchor points, so the above- and
+below-base anchors are represented by the same anchor width glyph.
 
 ## Number encoding
 

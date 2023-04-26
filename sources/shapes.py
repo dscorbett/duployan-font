@@ -829,22 +829,23 @@ class WidthNumber(Shape, Generic[_D]):
 
 class MarkAnchorSelector(Shape):
     """A marker for which anchor in `anchors.ALL_MARK` a mark glyph
-    attaches to.
+    attaches to. Not every anchor in `anchors.ALL_MARK` gets a
+    ``MarkAnchorSelector``.
 
     Attributes:
-        index: The index of the anchor in `anchors.ALL_MARK`.
+        anchor: The anchor.
     """
 
-    def __init__(self, index: int) -> None:
+    def __init__(self, anchor: str) -> None:
         """Initializes this `MarkAnchorSelector`.
 
         Args:
-            index: The ``index`` attribute.
+            anchor: The ``anchor`` attribute.
         """
-        self.index: Final = index
+        self.anchor: Final = anchor
 
     def __str__(self) -> str:
-        return f'anchor.{anchors.ALL_MARK[self.index]}'
+        return f'anchor.{self.anchor}'
 
     @staticmethod
     def name_implies_type() -> bool:
