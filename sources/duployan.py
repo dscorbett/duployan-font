@@ -731,6 +731,13 @@ class Builder:
         if x_min != x_max:
             glyph.left_side_bearing = side_bearing
         if schema.glyph_class == GlyphClass.MARK:
+            if schema.cps == (0x20DD,) and x_min != x_max:
+                radius = (x_max - x_min - self.light_line) / 2
+                inscribed_square_size = math.sqrt(2) * radius
+                # This should stay consistent with `shrink_wrap_enclosing_circle`.
+                shrunk_square_size = inscribed_square_size - 3 * self.stroke_gap - self.light_line
+                glyph.transform(fontTools.misc.transform.Offset(0, (CAP_HEIGHT - (y_max - y_min)) / 2))
+                glyph.left_side_bearing = -int(DEFAULT_SIDE_BEARING + (shrunk_square_size + x_max - x_min) / 2)
             glyph.width = 0
         else:
             glyph.right_side_bearing = side_bearing

@@ -30,7 +30,7 @@
 
 # Diacritics
 1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E_.double.90@250,-112|uni0300.grave@163,245|_@740,0]
-0021 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@-34,-173|_@916,0]
+0021 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
 1BC02 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.double__double__double.0@-112,137|_@240,0]
 1BC02 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.double__double__double.0@-112,137|dupl_.Line.0.dotted@240,0|u1BC9E_.double.90.wl@615,-112|_@1230,0]
 
