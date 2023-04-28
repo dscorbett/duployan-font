@@ -2735,7 +2735,7 @@ _AnchorType = Literal['base', 'basemark', 'entry', 'exit', 'ligature', 'mark']
 _Instruction = Callable[[Context], Context] | tuple[float, Shape] | tuple[float, Shape, bool]
 
 
-_Instructions = Sequence[_Instruction]
+Instructions = Sequence[_Instruction]
 
 
 _MutableInstructions = MutableSequence[_Instruction]
@@ -2786,7 +2786,7 @@ class Complex(Shape):
 
     def __init__(
         self,
-        instructions: _Instructions,
+        instructions: Instructions,
         *,
         hook: bool = False,
         maximum_tree_width: int = 0,
@@ -2807,7 +2807,7 @@ class Complex(Shape):
     def clone(
         self,
         *,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
         hook: bool | CloneDefault = CLONE_DEFAULT,
         maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
         _final_rotation: float | CloneDefault = CLONE_DEFAULT,
@@ -3271,7 +3271,7 @@ class InvalidOverlap(Complex):
         self,
         *,
         continuing: bool,
-        instructions: _Instructions,
+        instructions: Instructions,
     ) -> None:
         """Initializes this `InvalidOverlap`.
 
@@ -3286,7 +3286,7 @@ class InvalidOverlap(Complex):
         self,
         *,
         continuing: bool | CloneDefault = CLONE_DEFAULT,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
@@ -3309,7 +3309,7 @@ class InvalidStep(Complex):
     def __init__(
         self,
         angle: float,
-        instructions: _Instructions,
+        instructions: Instructions,
     ) -> None:
         """Initializes this `InvalidStep`.
 
@@ -3324,7 +3324,7 @@ class InvalidStep(Complex):
         self,
         *,
         angle: float | CloneDefault = CLONE_DEFAULT,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
@@ -3378,7 +3378,7 @@ class Ou(Complex):
 
     def __init__(
         self,
-        instructions: _Instructions,
+        instructions: Instructions,
         role: CircleRole = CircleRole.INDEPENDENT,
         _initial: bool = False,
         _isolated: bool = True,
@@ -3397,7 +3397,7 @@ class Ou(Complex):
     def clone(  # type: ignore[override]
         self,
         *,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
         role: CircleRole | CloneDefault = CLONE_DEFAULT,
         _initial: bool | CloneDefault = CLONE_DEFAULT,
         _isolated: bool | CloneDefault = CLONE_DEFAULT,
@@ -3556,7 +3556,7 @@ class SeparateAffix(Complex):
 
     def __init__(
         self,
-        instructions: _Instructions,
+        instructions: Instructions,
         *,
         low: bool = False,
         tight: bool = False,
@@ -3575,7 +3575,7 @@ class SeparateAffix(Complex):
     def clone(  # type: ignore[override]
         self,
         *,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
         low: bool | CloneDefault = CLONE_DEFAULT,
         tight: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
@@ -3659,7 +3659,7 @@ class Wa(Complex):
 
     def __init__(
         self,
-        instructions: _Instructions,
+        instructions: Instructions,
     ) -> None:
         """Initializes this `Wa`.
 
@@ -3671,7 +3671,7 @@ class Wa(Complex):
     def clone(  # type: ignore[override]
         self,
         *,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -3859,7 +3859,7 @@ class TangentHook(Complex):
 
     def __init__(
         self,
-        instructions: _Instructions,
+        instructions: Instructions,
         *,
         _initial: bool = False,
     ) -> None:
@@ -3892,7 +3892,7 @@ class TangentHook(Complex):
     def clone(  # type: ignore[override]
         self,
         *,
-        instructions: _Instructions | CloneDefault = CLONE_DEFAULT,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
         _initial: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(

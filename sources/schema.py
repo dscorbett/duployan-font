@@ -269,6 +269,8 @@ class Schema:
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
         (r'^uniE002$', 'DUPLOYAN PUNCTUATION CHINOOK FULL STOP WITH DOUBLE STROKE'),
         (r'^uniE003$', 'HEART WITH CROSS'),
+        (r'^uniE004$', 'STENOGRAPHIC LEFT PARENTHESIS'),
+        (r'^uniE005$', 'STENOGRAPHIC RIGHT PARENTHESIS'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
         (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
         (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),

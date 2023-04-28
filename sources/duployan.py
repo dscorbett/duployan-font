@@ -57,6 +57,7 @@ from shapes import Circle
 from shapes import Complex
 from shapes import Curve
 from shapes import Dot
+from shapes import Instructions
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
@@ -217,6 +218,11 @@ class Builder:
         cross_pommy = Complex([cross_knob_op, (3 + 2 * cross_knob_line_factor, Line(270)), cross_knob_op, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), cross_knob_op, (2 + 2 * cross_knob_line_factor, Line(0)), cross_knob_op])
         cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
         sacred_heart = Complex([(10.584, Curve(42.5, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 317.5, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_IN)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].as_reversed(), True), *cross.instructions])  # type: ignore[index, union-attr]
+        stenographic_parenthesis_stroke_size = 8
+        stenographic_parenthesis_stroke: Instructions = [(stenographic_parenthesis_stroke_size / 2, Line(180), True), (stenographic_parenthesis_stroke_size, Line(0)), (stenographic_parenthesis_stroke_size / 2, Line(180), True)]
+        stenographic_parenthesis_size = 431
+        stenographic_left_parenthesis = Complex([(stenographic_parenthesis_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *stenographic_parenthesis_stroke, (stenographic_parenthesis_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
+        stenographic_right_parenthesis = Complex([(stenographic_parenthesis_size, Curve(parenthesis_angle, 90, clockwise=False)), *stenographic_parenthesis_stroke, (stenographic_parenthesis_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270, stretchy=True)
         p_reverse = Line(90, stretchy=True)
@@ -397,6 +403,8 @@ class Builder:
             Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT, shading_allowed=False),
             Schema(0xE002, chinook_period_double_stroke, 1, Type.NON_JOINING),
             Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0xE004, stenographic_left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
+            Schema(0xE005, stenographic_right_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0xEC02, p_reverse, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0xEC03, t_reverse, 1, Type.ORIENTING, shading_allowed=False),
             Schema(0xEC04, f_reverse, 1, Type.ORIENTING, shading_allowed=False),
