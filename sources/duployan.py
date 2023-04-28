@@ -1033,11 +1033,12 @@ class Builder:
         self._add_lookups(class_asts)
         self.font.selection.all()
         self.font.round()
-        self.font.canonicalStart()
         self.font.simplify(3, (
             'setstarttoextremum',
             'smoothcurves',
         ))
+        self.font.canonicalStart()
+        self.font.canonicalContours()
 
     def merge_features(
         self,
