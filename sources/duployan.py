@@ -196,6 +196,7 @@ class Builder:
         breve = Curve(270, 90, clockwise=False, stretch=0.2)
         diaeresis = Complex([(0, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (0, h)])
         caron = Complex([(1, Line(335)), (1, Line(25))])
+        vertical_line = Line(90)
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
         high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
@@ -356,6 +357,7 @@ class Builder:
             Schema(0x0307, h, 0, anchor=anchors.ABOVE),
             Schema(0x0308, diaeresis, 1, anchor=anchors.ABOVE),
             Schema(0x030C, caron, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),
+            Schema(0x030D, vertical_line, 0.2, anchor=anchors.ABOVE),
             Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),
             Schema(0x0317, acute, 0.2, anchor=anchors.BELOW),
             Schema(0x0323, h, 0, anchor=anchors.BELOW),
