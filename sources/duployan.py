@@ -201,7 +201,9 @@ class Builder:
         diaeresis = Complex([(0, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (0, h)])
         caron = Complex([(1, Line(335)), (1, Line(25))])
         vertical_line = Line(90)
+        left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
+        right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
         high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
         high_right_quote = Complex([(742, Space(90)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
@@ -371,11 +373,15 @@ class Builder:
             Schema(0x030D, vertical_line, 0.2, anchor=anchors.ABOVE),
             Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),
             Schema(0x0317, acute, 0.2, anchor=anchors.BELOW),
+            Schema(0x031C, left_half_ring, 1, anchor=anchors.BELOW),
             Schema(0x0323, h, 0, anchor=anchors.BELOW),
             Schema(0x0324, diaeresis, 1, anchor=anchors.BELOW),
             Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
             Schema(0x0331, macron, 0.2, anchor=anchors.BELOW),
+            Schema(0x0339, right_half_ring, 1, anchor=anchors.BELOW),
             Schema(0x034F, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.DEFAULT_YES),
+            Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
+            Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
             Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),

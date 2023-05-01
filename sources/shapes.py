@@ -2062,9 +2062,7 @@ class Curve(Shape):
             pen.lineTo(exit)
         pen.endPath()
         relative_mark_angle = (a1 + a2) / 2
-        if anchor:
-            glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
-        elif joining_type != Type.NON_JOINING:
+        if not anchor and joining_type != Type.NON_JOINING:
             max_tree_width = self.max_tree_width(size)
             child_interval = da / (max_tree_width + 2)
             if self.overlap_angle is None:
@@ -2136,11 +2134,18 @@ class Curve(Shape):
                         math.radians(relative_mark_angle))))
                 glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)))
         glyph.stroke('circular', stroke_width, 'round')
-        if not anchor:
-            x_min, y_min, x_max, y_max = glyph.boundingBox()
-            x_center = (x_max + x_min) / 2
-            glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
-            glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        x_center = (x_max + x_min) / 2
+        match anchor:
+            case None:
+                glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
+                glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
+            case anchors.ABOVE:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
+            case anchors.BELOW:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
+            case _:
+                glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
         return False
 
     def can_be_child(self, size: float) -> bool:
