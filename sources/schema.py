@@ -267,7 +267,6 @@ class Schema:
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
-        (r'^uniE002$', 'DUPLOYAN PUNCTUATION CHINOOK FULL STOP WITH DOUBLE STROKE'),
         (r'^uniE003$', 'HEART WITH CROSS'),
         (r'^uniE004$', 'STENOGRAPHIC LEFT PARENTHESIS'),
         (r'^uniE005$', 'STENOGRAPHIC RIGHT PARENTHESIS'),
@@ -280,6 +279,7 @@ class Schema:
         (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
         (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
         (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
+        (r'^uniEC9A$', 'DUPLOYAN PUNCTUATION CHINOOK FULL STOP WITH DOUBLE STROKE'),
         # Unicode name aliases
         (r'^COMBINING GRAPHEME JOINER$', 'CGJ'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
