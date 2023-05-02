@@ -267,6 +267,7 @@ class Schema:
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
+        (r'^uniE002$', 'TWO LINES JOINED CONVERGING LEFT'),
         (r'^uniE003$', 'HEART WITH CROSS'),
         (r'^uniE004$', 'STENOGRAPHIC LEFT PARENTHESIS'),
         (r'^uniE005$', 'STENOGRAPHIC RIGHT PARENTHESIS'),
