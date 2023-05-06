@@ -144,6 +144,7 @@ class Builder:
         exclamation = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (1.109, Line(90))])
         inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].as_reversed())])  # type: ignore[call-arg, index, union-attr]
         dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
+        percent = Complex([(2.3, Curve(315, 315, clockwise=True, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE)), (2.3, Curve(315, 45, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.087757, Line(60), True), (1.463514, Line(240)), (0.087757, Line(60), True), (2.3, Curve(45, 315, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE), True), (2.3, Curve(315, 315, clockwise=False, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE))])
         parenthesis_angle = 62.68
         left_parenthesis = Complex([(1, Curve(180 + parenthesis_angle, 360 - parenthesis_angle, clockwise=False))])
         right_parenthesis = Complex([(1, Curve(parenthesis_angle, 180 - parenthesis_angle, clockwise=False))])
@@ -329,6 +330,7 @@ class Builder:
             Schema(0x0020, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x0021, exclamation, 1, Type.NON_JOINING, encirclable=True, y_max=CAP_HEIGHT),
             Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING, y_max=CAP_HEIGHT),
+            Schema(0x0025, percent, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x0028, left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x0029, right_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x002A, asterisk, 1, Type.NON_JOINING, y_min=None, y_max=1.073 * CAP_HEIGHT),
