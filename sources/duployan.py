@@ -147,7 +147,8 @@ class Builder:
         parenthesis_angle = 62.68
         left_parenthesis = Complex([(1, Curve(180 + parenthesis_angle, 360 - parenthesis_angle, clockwise=False))])
         right_parenthesis = Complex([(1, Curve(parenthesis_angle, 180 - parenthesis_angle, clockwise=False))])
-        asterisk = Complex([(310, Space(90)), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), True), (0.467, Line(126)), (0.467, Line(306), True), (0.467, Line(54)), (0.467, Line(234), True), (0.467, Line(342))])
+        asterisk = Complex([(0.467, Line(270), True), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), True), (0.467, Line(126)), (0.467, Line(306), True), (0.467, Line(54)), (0.467, Line(234), True), (0.467, Line(342)), (0.467, Line(162), True)])
+        asterism = Complex([*asterisk.instructions, (1.2, Line(60), True), *asterisk.instructions, (1.2, Line(300), True), *asterisk.instructions])
         plus = Complex([(146, Space(90)), (0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
         comma = Complex([(35, Space(0)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True))])
         slash = Line(60)
@@ -330,7 +331,7 @@ class Builder:
             Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x0028, left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x0029, right_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
-            Schema(0x002A, asterisk, 1, Type.NON_JOINING),
+            Schema(0x002A, asterisk, 1, Type.NON_JOINING, y_min=None, y_max=1.073 * CAP_HEIGHT),
             Schema(0x002B, plus, 1, Type.NON_JOINING),
             Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x002E, h, 0, Type.NON_JOINING, shading_allowed=False),
@@ -394,6 +395,7 @@ class Builder:
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
             Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
             Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, shading_allowed=False),
