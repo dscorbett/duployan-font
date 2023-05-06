@@ -194,7 +194,8 @@ class Builder:
         right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
         circle = Circle(180, 180, clockwise=False)
         masculine_ordinal_indicator = Complex([(625.5, Space(90)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
-        multiplication = Complex([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225)), (1, Line(45))])
+        multiplication = Complex([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True)])
+        reference_mark = Complex([*multiplication.instructions, (0.3, Line(0), True), (0, Dot(1, centered=True)), (0.3 * 2, Line(180), True), (0, Dot(1, centered=True)), (0.3, Line(0), True), (0.3, Line(90), True), (0, Dot(1, centered=True)), (0.3 * 2, Line(270), True), (0, Dot(1, centered=True))])
         grave = Line(150)
         acute = Line(45)
         circumflex = Complex([(1, Line(25)), (1, Line(335))])
@@ -397,6 +398,7 @@ class Builder:
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
             Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
             Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x203B, reference_mark, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, shading_allowed=False),
             Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
             Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0, shading_allowed=False),
             Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),

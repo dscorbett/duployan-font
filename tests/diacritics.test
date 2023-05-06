@@ -168,7 +168,7 @@
 
 # U+20DD COMBINING ENCLOSING CIRCLE
 0021 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
-00D7 20DD::[uni00D7.multiplication@0,0|uni20DD_.enclosing_circle.wl@593,0|_@593,0]
+00D7 20DD::[uni00D7.multiplication@0,0|uni20DD_.enclosing_circle.wl@592,0|_@592,0]
 002C 20DD::[comma@140,0|uni20DD_.enclosing_circle.wl@374,-418|_@573,0]
 003A 20DD::[colon@246,0|uni20DD_.enclosing_circle.wl@532,-104|_@760,0]
 003B 20DD::[semicolon@300,0|uni20DD_.enclosing_circle.wl@647,-192|_@893,0]
