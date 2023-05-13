@@ -1,4 +1,4 @@
-# Copyright 2019, 2022 David Corbett
+# Copyright 2019, 2022-2023 David Corbett
 # Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ name: Main workflow
 on: push
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: 6.0.0
+  HARFBUZZ_VERSION: 7.3.0
   PYTHON_VERSION: 3.11
 jobs:
   main:

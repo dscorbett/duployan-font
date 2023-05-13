@@ -1,4 +1,4 @@
-# Copyright 2022 David Corbett
+# Copyright 2022-2023 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,4 +13,4 @@
 # limitations under the License.
 
 beziers >= 0.5
-fonttools >= 4.35
+freetype-py != 2.4.0

@@ -521,37 +521,15 @@ class Rule:
         """
         def glyph_to_ast(
             glyph: str | schema.Schema,
-            unrolling_index: int | None = None,
         ) -> fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName:
             if isinstance(glyph, str):
-                if unrolling_index is not None:
-                    return fontTools.feaLib.ast.GlyphName(class_asts[glyph].glyphs.glyphs[unrolling_index])
-                else:
-                    return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
+                return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
             return fontTools.feaLib.ast.GlyphName(str(glyph))
 
         def glyphs_to_ast(
             glyphs: Iterable[str | schema.Schema],
-            unrolling_index: int | None = None,
         ) -> Sequence[fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName]:
-            return [glyph_to_ast(glyph, unrolling_index) for glyph in glyphs]
-
-        def glyph_to_name(
-            glyph: str | schema.Schema,
-            unrolling_index: int | None = None,
-        ) -> str:
-            if isinstance(glyph, str):
-                if unrolling_index is not None:
-                    return cast(Sequence[str], class_asts[glyph].glyphs.glyphs)[unrolling_index]
-                else:
-                    assert not isinstance(glyph, str), f'Glyph classes are not allowed where only glyphs are expected: @{glyph}'
-            return str(glyph)
-
-        def glyphs_to_names(
-            glyphs: Iterable[str | schema.Schema],
-            unrolling_index: int | None = None,
-        ) -> Sequence[str]:
-            return [glyph_to_name(glyph, unrolling_index) for glyph in glyphs]
+            return [glyph_to_ast(glyph) for glyph in glyphs]
 
         if self.lookups is not None:
             assert not in_reverse_lookup, 'Reverse chaining contextual substitutions do not support lookup references'
@@ -603,28 +581,13 @@ class Rule:
                     )]
             else:
                 assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
-                input = self.inputs[0]
-                if isinstance(input, str) and (not self.outputs or any(isinstance(output, str) for output in self.outputs)):
-                    # Allow classes in multiple substitution output by unrolling all uses of
-                    # the class in parallel with the input class.
-                    asts = []
-                    for i, glyph_name in enumerate(class_asts[input].glyphs.glyphs):
-                        asts.append(fontTools.feaLib.ast.MultipleSubstStatement(
-                            glyphs_to_ast(self.contexts_in),
-                            glyph_name,
-                            glyphs_to_ast(self.contexts_out),
-                            glyphs_to_names(self.outputs, i),
-                            in_contextual_lookup,
-                        ))
-                    return asts
-                else:
-                    return [fontTools.feaLib.ast.MultipleSubstStatement(
-                        glyphs_to_ast(self.contexts_in),
-                        glyph_to_name(input),
-                        glyphs_to_ast(self.contexts_out),
-                        glyphs_to_names(self.outputs),
-                        in_contextual_lookup,
-                    )]
+                return [fontTools.feaLib.ast.MultipleSubstStatement(
+                    glyphs_to_ast(self.contexts_in),
+                    glyph_to_ast(self.inputs[0]),
+                    glyphs_to_ast(self.contexts_out),
+                    glyphs_to_ast(self.outputs),
+                    in_contextual_lookup,
+                )]
         else:
             assert not in_reverse_lookup, 'Reverse chaining contextual substitutions only support single substitutions'
             assert self.outputs is not None
@@ -654,7 +617,7 @@ class Rule:
                             *glyphs_to_ast(self.inputs[input_class_index + 1:]),
                         ],
                         glyphs_to_ast(self.contexts_out),
-                        glyph_to_name(fontTools.feaLib.ast.GlyphName(output_glyph_name)),
+                        output_glyph_name,
                         in_contextual_lookup,
                     ))
                 return asts
@@ -663,7 +626,7 @@ class Rule:
                     glyphs_to_ast(self.contexts_in),
                     glyphs_to_ast(self.inputs),
                     glyphs_to_ast(self.contexts_out),
-                    glyph_to_name(output),
+                    str(output),
                     in_contextual_lookup,
                 )]
 

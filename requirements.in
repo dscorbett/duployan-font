@@ -15,5 +15,5 @@
 
 -c constraints.txt
 cffsubr < 0.2.10
-fonttools[repacker] ~= 4.35
+fonttools[repacker] >= 4.39.4, < 5
 uharfbuzz
