@@ -709,12 +709,10 @@ class Builder:
         _scalar: float = 1,
     ) -> None:
         assert not schema.marks
-        pen = glyph.glyphPen()
         invisible = schema.path.invisible()
         stroke_width = self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line
         floating = schema.path.draw(
             glyph,
-            not invisible and pen,
             stroke_width,
             self.light_line,
             self.stroke_gap,
@@ -729,6 +727,8 @@ class Builder:
             schema.diphthong_1,
             schema.diphthong_2,
         )
+        if invisible:
+            glyph.draw(glyph.glyphPen())
         if schema.joining_type != Type.NON_JOINING:
             entry_x = next(
                 (x for anchor_class_name, type, x, _ in glyph.anchorPoints

@@ -198,7 +198,6 @@ class Shape:
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -216,8 +215,6 @@ class Shape:
         Args:
             glyph: The FontForge glyph to add contour points and anchor
                 points to.
-            pen: ``glyph.glyphPen()``, or ``False`` if the glyph is
-                invisible and guaranteed not to have any contour points.
             stroke_width: The diameter of the circular nib with which to
                 stroke the path traced by `pen` to get the final
                 contours of the glyph.
@@ -414,7 +411,6 @@ class Start(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -496,7 +492,6 @@ class Hub(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -695,7 +690,6 @@ class RightBoundDigit(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -925,7 +919,6 @@ class Notdef(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -938,7 +931,7 @@ class Notdef(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        assert pen
+        pen = glyph.glyphPen()
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.lineTo((stroke_width / 2, 663 + stroke_width / 2))
@@ -1008,7 +1001,6 @@ class Space(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1066,7 +1058,6 @@ class Bound(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1079,7 +1070,7 @@ class Bound(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        assert pen
+        pen = glyph.glyphPen()
         stroke_width = 75
         pen.moveTo((stroke_width / 2, stroke_width / 2))
         pen.endPath()
@@ -1162,7 +1153,6 @@ class ChildEdge(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1203,24 +1193,6 @@ class ContinuingOverlapS(Shape):
 
     def invisible(self) -> bool:
         return True
-
-    def draw(
-            self,
-            glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
-            stroke_width: float,
-            light_line: float,
-            stroke_gap: float,
-            size: float,
-            anchor: str | None,
-            joining_type: Type,
-            child: bool,
-            initial_circle_diphthong: bool,
-            final_circle_diphthong: bool,
-            diphthong_1: bool,
-            diphthong_2: bool,
-    ) -> bool:
-        return False
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
@@ -1276,7 +1248,6 @@ class ParentEdge(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1377,7 +1348,6 @@ class Dot(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1390,8 +1360,8 @@ class Dot(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        assert pen
         assert not child
+        pen = glyph.glyphPen()
         stroke_width *= self.SCALAR ** self.size_exponent
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
@@ -1559,7 +1529,6 @@ class Line(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -1572,7 +1541,7 @@ class Line(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        assert pen
+        pen = glyph.glyphPen()
         end_y = 0
         length: float = self._get_length(size)
         pen.moveTo((0, 0))
@@ -2005,7 +1974,6 @@ class Curve(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -2018,7 +1986,7 @@ class Curve(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
-        assert pen
+        pen = glyph.glyphPen()
         a1, a2, da = self._get_normalized_angles_and_da(diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong)
         r = int(RADIUS * size)
         beziers_needed = int(math.ceil(abs(da) / 90))
@@ -2457,7 +2425,6 @@ class Circle(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -2482,7 +2449,6 @@ class Circle(Shape):
                     reversed_circle=self.reversed,
                 ).draw(
                     glyph,
-                    pen,
                     stroke_width,
                     light_line,
                     stroke_gap,
@@ -2496,7 +2462,7 @@ class Circle(Shape):
                     diphthong_2,
                 )
             return False
-        assert pen
+        pen = glyph.glyphPen()
         if diphthong_1:
             angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
         if diphthong_2:
@@ -2885,6 +2851,11 @@ class Complex(Shape):
             """
             self.anchor_points[(anchor_class_name, anchor_type)].append((x, y))
 
+        def glyphPen(self) -> Self:
+            """Simulates `fontforge.glyph.glyphPen`.
+            """
+            return self
+
         def stroke(
             self,
             nib_type: LiteralString,
@@ -3023,7 +2994,7 @@ class Complex(Shape):
         override it.
 
         Args:
-            pen: The ``pen`` argument from `draw`.
+            pen: The pen that draws to the ``glyph`` argument from `draw`.
             stroke_width: The ``stroke_width`` argument from `draw`.
             light_line: The ``light_line`` argument from `draw`.
             stroke_gap: The ``stroke_gap`` argument from `draw`.
@@ -3048,7 +3019,6 @@ class Complex(Shape):
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
             component.draw(
-                proxy,
                 proxy,
                 stroke_width,
                 light_line,
@@ -3116,7 +3086,6 @@ class Complex(Shape):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3129,6 +3098,7 @@ class Complex(Shape):
             diphthong_1: bool,
             diphthong_2: bool,
     ) -> bool:
+        pen = glyph.glyphPen()
         (
             first_is_invisible,
             singular_anchor_points,
@@ -3433,7 +3403,6 @@ class Ou(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3490,7 +3459,6 @@ class Ou(Complex):
             drawer = Complex(instructions=instructions)
         drawer.draw(
             glyph,
-            pen,
             stroke_width,
             light_line,
             stroke_gap,
@@ -3603,7 +3571,6 @@ class SeparateAffix(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3618,7 +3585,6 @@ class SeparateAffix(Complex):
     ) -> bool:
         super().draw(
             glyph,
-            pen,
             stroke_width,
             light_line,
             stroke_gap,
@@ -3698,7 +3664,6 @@ class Wa(Complex):
             scalar, component, *skip_drawing = op
             proxy = Complex.Proxy()
             component.draw(
-                proxy,
                 proxy,
                 stroke_width,
                 light_line,
@@ -3940,7 +3905,6 @@ class XShape(Complex):
     def draw(
             self,
             glyph: fontforge.glyph,
-            pen: fontforge.glyphPen | Literal[False],
             stroke_width: float,
             light_line: float,
             stroke_gap: float,
@@ -3955,7 +3919,6 @@ class XShape(Complex):
     ) -> bool:
         super().draw(
             glyph,
-            pen,
             stroke_width,
             light_line,
             stroke_gap,
