@@ -823,9 +823,10 @@ class Schema:
                 name = ''
             else:
                 name = f'dupl.{type(self.path).__name__}'
-        if (
-            first_component_implies_type or self.cmap is None
-        ) and (name_from_path := self.path.get_name(self.size, self.joining_type)):
+        if (not self.ignored_for_topography
+            and (first_component_implies_type or self.cmap is None)
+            and (name_from_path := self.path.get_name(self.size, self.joining_type))
+        ):
             if name:
                 name += '.'
             name += name_from_path
@@ -856,7 +857,7 @@ class Schema:
         if self.widthless:
             name += '.wl'
         if self.ignored_for_topography:
-            name += '.skip'
+            name += '.X'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
             if name and first_component_implies_type:
                 name = f'.{name}'
