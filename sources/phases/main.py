@@ -722,13 +722,14 @@ def promote_final_letter_overlap_to_continuing_overlap(
     named_lookups['promote'] = Lookup(None, None)
     add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
     for overlap in classes['final_letter_overlap']:
-        named_lookups[f'promote_{overlap.path}_and_parent'] = Lookup(
+        overlap_name = overlap.path.get_name(overlap.size, overlap.joining_type)
+        named_lookups[f'promote_{overlap_name}_and_parent'] = Lookup(
             None,
             None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-            mark_filtering_set=str(overlap.path),
+            mark_filtering_set=overlap_name,
         )
-        classes[str(overlap.path)].append(overlap)
+        classes[overlap_name].append(overlap)
         assert isinstance(overlap.path, ChildEdge)
         for parent_edge in new_schemas:
             if (isinstance(parent_edge.path, ParentEdge)
@@ -736,24 +737,24 @@ def promote_final_letter_overlap_to_continuing_overlap(
                 and overlap.path.lineage[:-1] == parent_edge.path.lineage[:-1]
                 and overlap.path.lineage[-1][0] == parent_edge.path.lineage[-1][0] == parent_edge.path.lineage[-1][1]
             ):
-                classes[str(overlap.path)].append(parent_edge)
-                classes[f'parent_for_{overlap.path}'].append(parent_edge)
-        add_rule(named_lookups['promote'], Rule(f'parent_for_{overlap.path}', [root_parent_edge]))
-        add_rule(named_lookups[f'promote_{overlap.path}_and_parent'], Rule(
+                classes[overlap_name].append(parent_edge)
+                classes[f'parent_for_{overlap_name}'].append(parent_edge)
+        add_rule(named_lookups['promote'], Rule(f'parent_for_{overlap_name}', [root_parent_edge]))
+        add_rule(named_lookups[f'promote_{overlap_name}_and_parent'], Rule(
             [],
-            [overlap, f'parent_for_{overlap.path}'],
+            [overlap, f'parent_for_{overlap_name}'],
             [],
             lookups=['promote', 'promote'],
         ))
-        named_lookups[f'check_and_promote_{overlap.path}'] = Lookup(
+        named_lookups[f'check_and_promote_{overlap_name}'] = Lookup(
             None,
             None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='secant_or_root_parent_edge',
         )
-        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
-        add_rule(named_lookups[f'check_and_promote_{overlap.path}'], Rule([], [overlap], [], lookups=[f'promote_{overlap.path}_and_parent']))
-        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap.path}']), track_possible_outputs=False)
+        add_rule(named_lookups[f'check_and_promote_{overlap_name}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
+        add_rule(named_lookups[f'check_and_promote_{overlap_name}'], Rule([], [overlap], [], lookups=[f'promote_{overlap_name}_and_parent']))
+        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap_name}']), track_possible_outputs=False)
     return [lookup]
 
 

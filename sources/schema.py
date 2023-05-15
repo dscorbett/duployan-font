@@ -243,13 +243,13 @@ class Schema:
     #: A pattern that must not appear in an undisambiguated glyph name.
     #: This ensures that a glyph name can never end with what appears to
     #: be a disambiguatory suffix but isn’t.
-    _RESERVED_GLYPH_NAME_PATTERN: re.Pattern[str] = re.compile(r'\._[1-9A-F][0-9A-F]*$')
+    _RESERVED_GLYPH_NAME_PATTERN: re.Pattern[str] = re.compile(r'\._[1-9A-F][0-9A-F]*(\.|$)')
 
     #: A pattern matching a ``uni`` glyph name component that follows
     #: and can be collapsed into a preceding ``uni`` glyph name
     #: component. For example, ``uni1234_uniABCD`` can be collapsed into
     #: ``uni1234ABCD``.
-    _COLLAPSIBLE_UNI_NAME: ClassVar[re.Pattern[str]] = re.compile(r'(?<=uni[0-9A-F]{4})_uni(?=[0-9A-F]{4})')
+    _COLLAPSIBLE_UNI_NAME: ClassVar[re.Pattern[str]] = re.compile(r'(?<=(^|(?<=_))uni[0-9A-F]{4})_uni(?=[0-9A-F]{4}(_|$))')
 
     #: A pattern matching the first component of a glyph name.
     _FIRST_COMPONENT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r'^([^.]*)')
@@ -815,7 +815,7 @@ class Schema:
                 readable_name = '__'.join(map(self._readable_name, cps))
                 for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
                     readable_name = regex.sub(repl, readable_name)
-                if name != readable_name.replace('__', '_'):
+                if name.casefold() != readable_name.replace('__', '_').casefold():
                     name = f'{name}.{readable_name}'
         else:
             first_component_implies_type = self.path.name_implies_type()
@@ -824,15 +824,8 @@ class Schema:
             else:
                 name = f'dupl.{type(self.path).__name__}'
         if (
-            first_component_implies_type or (
-                self.cmap is None
-                and (
-                    self.joining_type == Type.ORIENTING
-                    or isinstance(self.path, ChildEdge)
-                    or isinstance(self.path, Line) and self.path.dots
-                )
-            )
-        ) and (name_from_path := str(self.path)):
+            first_component_implies_type or self.cmap is None
+        ) and (name_from_path := self.path.get_name(self.size, self.joining_type)):
             if name:
                 name += '.'
             name += name_from_path
@@ -850,12 +843,6 @@ class Schema:
                     name += '.subs'
                 else:
                     name += '.dnom'
-        if not cps and isinstance(self.path, Space):
-            name += f'''.{
-                    int(self.size * math.cos(math.radians(self.path.angle)))
-                }.{
-                    int(self.size * math.sin(math.radians(self.path.angle)))
-                }'''.replace('-', 'n')
         if not cps and self.anchor:
             name += f'.{self.anchor}'
         if self.diphthong_1 or self.diphthong_2:
@@ -866,8 +853,6 @@ class Schema:
                 name += '2'
         if self.child:
             name += '.sub'
-        if isinstance(self.path, Curve) and self.path.overlap_angle is not None:
-            name += f'.{int(self.path.overlap_angle)}'
         if self.widthless:
             name += '.wl'
         if self.ignored_for_topography:

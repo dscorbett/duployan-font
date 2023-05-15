@@ -145,8 +145,12 @@ class Shape:
     def clone(self) -> Self:
         raise NotImplementedError
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         """Returns the piece of a glyph name derived from this shape.
+
+        Args:
+            size: The size of the schema that this is the shape of.
+            joining_type: This shape’s schema’s joining type.
         """
         raise NotImplementedError
 
@@ -167,7 +171,7 @@ class Shape:
 
         See `Schema.group` for details.
         """
-        return str(self)
+        raise NotImplementedError
 
     def invisible(self) -> bool:
         """Returns whether this shape is invisible.
@@ -351,7 +355,7 @@ class ContextMarker(Shape):
             self.context if context is CLONE_DEFAULT else context,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 'in' if self.is_context_in else 'out'
             }.{
@@ -361,6 +365,9 @@ class ContextMarker(Shape):
     @staticmethod
     def name_implies_type() -> bool:
         return True
+
+    def group(self) -> Hashable:
+        return self.get_name(0, Type.ORIENTING)
 
     def invisible(self) -> bool:
         return True
@@ -380,7 +387,7 @@ class Dummy(Shape):
     # Consider deleting glyphs instead of using `Dummy`. `Dummy` might
     # still be more efficient in some cases.
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
     @staticmethod
@@ -398,7 +405,7 @@ class Start(Shape):
     """The start of a cursively joined sequence.
     """
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'START'
 
     @staticmethod
@@ -479,7 +486,7 @@ class Hub(Shape):
             initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'HUB.{self.priority}{"s" if self.initial_secant else ""}'
 
     @staticmethod
@@ -520,7 +527,7 @@ class End(Shape):
     """The end of a cursively joined sequence.
     """
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'END'
 
     @staticmethod
@@ -538,7 +545,7 @@ class Carry(Shape):
     """A marker for the carry digit 1 when adding width digits.
     """
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'c'
 
     @staticmethod
@@ -591,7 +598,7 @@ class EntryWidthDigit(Shape):
         self.place: Final = place
         self.digit: Final = digit
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'idx.{self.digit}e{self.place}'
 
     @staticmethod
@@ -630,7 +637,7 @@ class LeftBoundDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "LDX" if self.status == DigitStatus.DONE else "ldx"
             }.{self.digit}{
@@ -673,7 +680,7 @@ class RightBoundDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "RDX" if self.status == DigitStatus.DONE else "rdx"
             }.{self.digit}{
@@ -735,7 +742,7 @@ class AnchorWidthDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "ADX" if self.status == DigitStatus.DONE else "adx"
             }.{self.digit}{
@@ -782,7 +789,7 @@ class WidthNumber(Shape, Generic[_D]):
         self.digit_path: Final = digit_path
         self.width: Final = width
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 'ilra'[[EntryWidthDigit, LeftBoundDigit, RightBoundDigit, AnchorWidthDigit].index(self.digit_path)]
             }dx.{self.width}'''.replace('-', 'n')
@@ -838,7 +845,7 @@ class MarkAnchorSelector(Shape):
         """
         self.anchor: Final = anchor
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'anchor.{self.anchor}'
 
     @staticmethod
@@ -867,7 +874,7 @@ class GlyphClassSelector(Shape):
         """
         self.glyph_class: Final = glyph_class
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'gc.{self.glyph_class.name}'
 
     @staticmethod
@@ -885,12 +892,15 @@ class InitialSecantMarker(Shape):
     """A marker inserted after an initial secant.
     """
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'SECANT'
 
     @staticmethod
     def name_implies_type() -> bool:
         return True
+
+    def group(self) -> Hashable:
+        return ()
 
     def invisible(self) -> bool:
         return True
@@ -906,7 +916,7 @@ class Notdef(Shape):
     def clone(self) -> Self:
         return self
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'notdef'
 
     @staticmethod
@@ -983,8 +993,15 @@ class Space(Shape):
             margins=self.margins if margins is CLONE_DEFAULT else margins,
         )
 
-    def __str__(self) -> str:
-        return str(int(self.angle))
+    def get_name(self, size: float, joining_type: Type) -> str:
+        if self.angle % 180 == 90:
+            return ''
+        return f'''{
+                int(size * math.cos(math.radians(self.angle)))
+            }.{
+                int(size * math.sin(math.radians(self.angle)))
+            }'''.replace('-', 'n')
+
 
     def group(self) -> Hashable:
         return (
@@ -1049,7 +1066,7 @@ class Bound(Shape):
     def clone(self) -> Self:
         return self
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
     def group(self) -> Hashable:
@@ -1090,12 +1107,16 @@ class ValidDTLS(Shape):
     An instance of U+1BC9D is valid if it is syntactically valid (it
     follows a character) and the preceding character supports shading.
     """
-    def __str__(self) -> str:
-        return 'dtls'
+
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return ''
 
     @staticmethod
     def name_implies_type() -> bool:
         return True
+
+    def group(self) -> Hashable:
+        return ()
 
     def invisible(self) -> bool:
         return True
@@ -1140,12 +1161,15 @@ class ChildEdge(Shape):
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 '_'.join(str(x[0]) for x in self.lineage)
             }.{
                 '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1])
             }'''
+
+    def group(self) -> Hashable:
+        return self.get_name(0, Type.ORIENTING)
 
     def invisible(self) -> bool:
         return True
@@ -1188,8 +1212,11 @@ class ContinuingOverlapS(Shape):
     def clone(self) -> Self:
         return type(self)()
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return ''
+
+    def group(self) -> Hashable:
+        return ()
 
     def invisible(self) -> bool:
         return True
@@ -1231,7 +1258,7 @@ class ParentEdge(Shape):
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return f'''pe.{
                 '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
             }.{
@@ -1241,6 +1268,9 @@ class ParentEdge(Shape):
     @staticmethod
     def name_implies_type() -> bool:
         return True
+
+    def group(self) -> Hashable:
+        return self.get_name(0, Type.ORIENTING)
 
     def invisible(self) -> bool:
         return True
@@ -1276,12 +1306,15 @@ class RootOnlyParentEdge(Shape):
     tree, not a child.
     """
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         return 'pe'
 
     @staticmethod
     def name_implies_type() -> bool:
         return True
+
+    def group(self) -> Hashable:
+        return ()
 
     def invisible(self) -> bool:
         return True
@@ -1333,8 +1366,8 @@ class Dot(Shape):
             centered=self.centered if centered is CLONE_DEFAULT else centered,
         )
 
-    def __str__(self) -> str:
-        return '' if self.size_exponent == 1 else str(int(self.size_exponent))
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return f'{int(self.size_exponent)}'
 
     def group(self) -> Hashable:
         return (
@@ -1469,16 +1502,15 @@ class Line(Shape):
             original_angle=self.original_angle if original_angle is CLONE_DEFAULT else original_angle,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         if self.final_tick:
-            s = 'tick'
-        elif self.dots or not self.stretchy:
+            return 'tick'
+        if self.dots or not self.stretchy and joining_type == Type.ORIENTING:
             s = str(int(self.angle))
             if self.dots:
                 s += '.dotted'
-        else:
-            s = ''
-        return s
+            return s
+        return ''
 
     def group(self) -> Hashable:
         return (
@@ -1839,7 +1871,11 @@ class Curve(Shape):
             early_exit=self.early_exit if early_exit is CLONE_DEFAULT else early_exit,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
+        if self.overlap_angle is not None:
+            return f'{int(self.overlap_angle)}'
+        if joining_type != Type.ORIENTING:
+            return ''
         return f'''{
                 int(self.angle_in)
             }{
@@ -2382,7 +2418,9 @@ class Circle(Shape):
             role=self.role if role is CLONE_DEFAULT else role,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
+        if joining_type != Type.ORIENTING:
+            return ''
         angle_in = self.angle_in
         angle_out = self.angle_out
         clockwise = self.clockwise
@@ -2790,16 +2828,18 @@ class Complex(Shape):
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         if self._final_rotation:
             return str(int(self._final_rotation))
+        if joining_type != Type.ORIENTING:
+            return ''
         non_callables = filter(lambda op: not callable(op), self.instructions)
         op = next(non_callables)
         assert not callable(op)
         if isinstance(op[1], Circle):
             op = next(non_callables)
             assert not callable(op)
-        return str(op[1])
+        return op[1].get_name(size, joining_type)
 
     def group(self) -> Hashable:
         return (
@@ -3384,10 +3424,10 @@ class Ou(Complex):
             self._isolated if _isolated is CLONE_DEFAULT else _isolated,
         )
 
-    def __str__(self) -> str:
+    def get_name(self, size: float, joining_type: Type) -> str:
         circle_op = self.instructions[2 if self._initial and self.role == CircleRole.LEADER else 0]
         assert not callable(circle_op)
-        rv = str(circle_op[1])
+        rv = circle_op[1].get_name(size, joining_type)
         if self.role == CircleRole.LEADER and not self._isolated:
             rv += '.open'
         return rv
