@@ -247,6 +247,7 @@ def shrink_wrap_enclosing_circle(
         'rlig',
         'dflt',
         mark_filtering_set='all',
+        reversed=True,
     )
     dist_lookup = Lookup(
         'abvm',
@@ -586,6 +587,7 @@ def remove_false_end_markers(
         'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES + fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reversed=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]

@@ -1377,6 +1377,7 @@ def join_with_next(
         'rclt',
         'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
+        reversed=True,
     )
     lookup = Lookup(
         'rclt',
@@ -1449,6 +1450,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
         'rclt',
         'dflt',
         mark_filtering_set='ignored_for_topography',
+        reversed=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -1786,6 +1788,7 @@ def create_diagonal_fractions(
     lookup_slash = Lookup(
         'rlig',
         'dflt',
+        reversed=True,
     )
     lookup_dnom = Lookup(
         'rlig',
