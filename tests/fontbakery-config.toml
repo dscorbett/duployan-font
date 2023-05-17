@@ -30,11 +30,6 @@ exclude_checks = [
     "com.google.fonts/check/vertical_metrics",
 ]
 
-[overrides."com.google.fonts/check/family/vertical_metrics"]
-ascent-mismatch = "WARN"
-sTypoAscender-mismatch = "WARN"
-usWinAscent-mismatch = "WARN"
-
 [overrides."com.google.fonts/check/valid_glyphnames"]
 legacy-long-names = "PASS"
 

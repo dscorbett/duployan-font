@@ -31,6 +31,7 @@ import fontTools.misc.timeTools
 import fontTools.ttLib
 import fontTools.ttLib.ttFont
 
+import copy_metrics
 import duployan
 import utils
 
@@ -222,17 +223,15 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         elif 'CFF ' in tt_font:
             tt_font['CFF '].cff[0].Notice = ''
 
-        tt_font['OS/2'].usWinAscent = max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax)
-        tt_font['OS/2'].usWinDescent = max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin)
-        tt_font['OS/2'].sTypoAscender = tt_font['OS/2'].usWinAscent
-        tt_font['OS/2'].sTypoDescender = -tt_font['OS/2'].usWinDescent
+        copy_metrics.update_metrics(
+            tt_font,
+            max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax),
+            max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin),
+        )
         tt_font['OS/2'].yStrikeoutPosition = utils.STRIKEOUT_POSITION
         tt_font['OS/2'].yStrikeoutSize = utils.REGULAR_LIGHT_LINE
-        tt_font['post'].underlinePosition = tt_font['OS/2'].sTypoDescender
         tt_font['post'].underlineThickness = utils.REGULAR_LIGHT_LINE
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
-        tt_font['hhea'].ascender = tt_font['OS/2'].sTypoAscender
-        tt_font['hhea'].descender = tt_font['OS/2'].sTypoDescender
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_version(tt_font, options.noto, options.version, options.release, dirty)

@@ -19,7 +19,9 @@ unexport TMPDIR
 
 SHELL=/bin/bash
 
-STYLES = Regular Bold
+VERTICAL_METRIC_SOURCE = Bold
+VERTICAL_METRIC_TARGET = Regular
+STYLES = $(VERTICAL_METRIC_SOURCE) $(VERTICAL_METRIC_TARGET)
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
     VERSION = 3.001
@@ -30,6 +32,10 @@ else
     FONT_FAMILY_NAME = Duployan
     VERSION = 1.0
     RELEASE =
+    ifndef RELEASE
+        VERTICAL_METRIC_SOURCE = Regular
+        VERTICAL_METRIC_TARGET = Bold
+    endif
 endif
 SUFFIXES = otf ttf
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
@@ -67,11 +73,15 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 
 dummy-%: ;
 
+%-$(VERTICAL_METRIC_TARGET).otf: %-$(VERTICAL_METRIC_TARGET).tmp.otf %-$(VERTICAL_METRIC_SOURCE).otf
+	sources/copy_metrics.py $^
+	mv $< $@
+
 %.otf: sources/Duployan.fea sources/*.py | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
 	cffsubr --inplace $@
 
-%-Bold.otf: BOLD_ARG=--bold
+%-Bold.otf %-Bold.tmp.otf: BOLD_ARG=--bold
 
 define MAKE_TTF
     mkdir -p "$$(dirname "$@")"
