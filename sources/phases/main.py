@@ -1410,7 +1410,13 @@ def join_with_next(
         add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
     for schema in new_schemas:
         if (schema.glyph_class == GlyphClass.JOINER
-            and (old_input_count == 0 or not isinstance(schema.path, Curve | Circle | Complex))
+            and (
+                old_input_count == 0
+                or not (
+                    isinstance(schema.path, Curve | Circle)
+                    or isinstance(schema.path, Complex) and not any(not callable(op) and op.absolute_size for op in schema.path.instructions)
+                )
+            )
             and not (isinstance(schema.path, Line) and schema.path.secant)
             and (context_out := schema.path.context_in()) != NO_CONTEXT
         ):
@@ -1462,7 +1468,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
             classes['ignored_for_topography'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
             and (not schema.can_lead_orienting_sequence
-                or isinstance(schema.path, Line) and not schema.path.secant
+                or (not schema.path.secant if isinstance(schema.path, Line) else schema.original_shape == Line)
             )
             and (context_out := schema.path.context_in()) != NO_CONTEXT
         ):

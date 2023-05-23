@@ -711,7 +711,7 @@ class Builder:
         assert not schema.marks
         invisible = schema.path.invisible()
         stroke_width = self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line
-        floating = schema.path.draw(
+        schema.path.draw(
             glyph,
             stroke_width,
             self.light_line,
@@ -737,7 +737,7 @@ class Builder:
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
         x_min, y_min, x_max, y_max = glyph.boundingBox()
-        if not floating and y_min != y_max:
+        if not schema.path.fixed_y() and y_min != y_max:
             if schema.y_min is not None:
                 if schema.y_max is not None:
                     desired_height = schema.y_max - schema.y_min
@@ -823,6 +823,8 @@ class Builder:
         anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}
         anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
         anchor_tests[anchors.SECANT] |= schema.can_take_secant
+        if schema.encirclable:
+            glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.MIDDLE]
         anchor_class_names = {a[0] for a in glyph.anchorPoints}
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         if x_min == x_max == 0:
