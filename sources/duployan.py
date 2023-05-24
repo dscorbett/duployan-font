@@ -711,7 +711,7 @@ class Builder:
         assert not schema.marks
         invisible = schema.path.invisible()
         stroke_width = self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line
-        schema.path.draw(
+        effective_bounding_box = schema.path.draw(
             glyph,
             stroke_width,
             self.light_line,
@@ -736,7 +736,7 @@ class Builder:
                 0,
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
-        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        x_min, y_min, x_max, y_max = effective_bounding_box or glyph.boundingBox()
         if not schema.path.fixed_y() and y_min != y_max:
             if schema.y_min is not None:
                 if schema.y_max is not None:

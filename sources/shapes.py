@@ -214,7 +214,7 @@ class Shape:
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         """Draws this shape to a FontForge glyph.
 
         Args:
@@ -240,9 +240,17 @@ class Shape:
                 diphthong ligature.
             diphthong_2: Whether this shape is a non-initial element of
                 a diphthong ligature.
+
+        Returns:
+            The effective bounding box if it overrides the real bounding
+            box, or else ``None``. The effective bounding box may differ
+            from the real bounding box by ignoring overshoots, optical
+            corrections, and small ascenders or descenders that can be
+            ignored when repositioning or rescaling.
         """
         if not self.invisible():
             raise NotImplementedError
+        return None
 
     def fixed_y(self) -> bool:
         """Returns whether the drawn glyph has a fixed y position.
@@ -433,8 +441,9 @@ class Start(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
@@ -513,13 +522,14 @@ class Hub(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         if self.initial_secant:
             glyph.addAnchorPoint(anchors.PRE_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'exit', 0, 0)
         else:
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
@@ -710,9 +720,10 @@ class RightBoundDigit(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         if self.place == 0 and self.status == DigitStatus.DONE:
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
@@ -941,7 +952,7 @@ class Notdef(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         stroke_width = 51
         pen.moveTo((stroke_width / 2, stroke_width / 2))
@@ -951,6 +962,7 @@ class Notdef(Shape):
         pen.lineTo((stroke_width / 2 * 1.9, stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
@@ -1029,7 +1041,7 @@ class Space(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
@@ -1041,6 +1053,7 @@ class Space(Shape):
                 fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
                 ('round',),
             )
+        return None
 
     def can_be_child(self, size: float) -> bool:
         return size == 0 and self.angle == 0 and not self.margins
@@ -1085,7 +1098,7 @@ class Bound(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         stroke_width = 75
         pen.moveTo((stroke_width / 2, stroke_width / 2))
@@ -1093,6 +1106,7 @@ class Bound(Shape):
         pen.moveTo((stroke_width / 2, CAP_HEIGHT - stroke_width / 2))
         pen.endPath()
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
@@ -1186,11 +1200,12 @@ class ChildEdge(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
         glyph.addAnchorPoint(anchors.CHILD_EDGES[min(1, layer_index)][child_index], 'mark', 0, 0)
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
@@ -1286,12 +1301,13 @@ class ParentEdge(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
             glyph.addAnchorPoint(anchors.PARENT_EDGE, 'basemark', 0, 0)
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
+        return None
 
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
@@ -1388,7 +1404,7 @@ class Dot(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         assert not child
         pen = glyph.glyphPen()
         stroke_width *= self.SCALAR ** self.size_exponent
@@ -1401,6 +1417,7 @@ class Dot(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
+        return None
 
     def is_pseudo_cursive(self, size: float) -> bool:
         return True
@@ -1556,7 +1573,7 @@ class Line(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         end_y = 0
         length: float = self._get_length(size)
@@ -1628,6 +1645,7 @@ class Line(Shape):
                     glyph.transform(fontTools.misc.transform.Offset(y=y_offset + stroke_width / 2))
                 else:
                     glyph.transform(fontTools.misc.transform.Offset(y=-y_offset - LINE_FACTOR + stroke_width / 2))
+        return None
 
     def fixed_y(self) -> bool:
         return self.secant is not None and self.angle % 90 == 0
@@ -2025,7 +2043,7 @@ class Curve(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         a1, a2, da = self._get_normalized_angles_and_da(diphthong_1, diphthong_2, final_circle_diphthong, initial_circle_diphthong)
         r = int(RADIUS * size)
@@ -2154,6 +2172,7 @@ class Curve(Shape):
                 glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
             case _:
                 glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
+        return None
 
     def can_be_child(self, size: float) -> bool:
         a1, a2 = self.get_normalized_angles()
@@ -2476,11 +2495,11 @@ class Circle(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         angle_in = self.angle_in
         angle_out = self.angle_out
         if (diphthong_1 or diphthong_2) and angle_in == angle_out:
-            Curve(
+            return Curve(
                     angle_in,
                     angle_out,
                     clockwise=self.clockwise,
@@ -2501,7 +2520,6 @@ class Circle(Shape):
                     diphthong_1,
                     diphthong_2,
                 )
-            return
         pen = glyph.glyphPen()
         if diphthong_1:
             angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
@@ -2573,6 +2591,7 @@ class Circle(Shape):
         x_center = (x_max + x_min) / 2
         glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
         glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
+        return None
 
     def can_be_child(self, size: float) -> bool:
         return True
@@ -2744,7 +2763,7 @@ class Component(NamedTuple):
     """
 
     #: The number by which to scale the component shape, or its absolute
-    #: size if `absolute_size` is ``True``.
+    #: size if `tick` is ``True``.
     size: float
 
     #: The component shape to include in a `Complex`.
@@ -2754,10 +2773,11 @@ class Component(NamedTuple):
     #: never skipped.)
     skip_drawing: bool = False
 
-    #: Whether `size` is the absolute size of the component instead of a
-    #: scalar, and also whether the shape should be drawn with a light
-    #: line regardless of the `Complex`’s shading.
-    absolute_size: bool = False
+    #: Whether this component acts like a tick: its `size` is the
+    #: absolute size of the component instead of a scalar, it is always
+    #: drawn with a light line regardless of the `Complex`’s shading,
+    #: and it is ignored for the `Complex`’s effective bounding box.
+    tick: bool = False
 
 
 _AnchorType = Literal['base', 'basemark', 'entry', 'exit', 'ligature', 'mark']
@@ -2851,7 +2871,7 @@ class Complex(Shape):
     def get_name(self, size: float, joining_type: Type) -> str:
         if self._final_rotation:
             return str(int(self._final_rotation))
-        if any(not callable(op) and op.absolute_size for op in self.instructions):
+        if any(not callable(op) and op.tick for op in self.instructions):
             return 'tick'
         if joining_type != Type.ORIENTING:
             return ''
@@ -2879,7 +2899,7 @@ class Complex(Shape):
         """
         base_component: Shape | None = None
         for i, op in enumerate(self.instructions):
-            if not callable(op) and not op.absolute_size:
+            if not callable(op) and not op.tick:
                 if base_component is None and not (i == 0 and (op.shape.invisible() or op.shape.fixed_y())):
                     base_component = op.shape
                 else:
@@ -2889,7 +2909,7 @@ class Complex(Shape):
     def can_take_secant(self) -> bool:
         if self._base_component is not None and all(
             callable(op)
-            or op.absolute_size
+            or op.tick
             or op.shape is self._base_component
             or op.shape.invisible()
             or op.shape.fixed_y()
@@ -3073,41 +3093,50 @@ class Complex(Shape):
 
     def draw_to_proxy(
         self,
-        pen: fontforge.glyphPen,
+        glyph: fontforge.glyph,
         stroke_width: float,
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> collections.defaultdict[tuple[str, _AnchorType], list[_Point]]:
+    ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         """Draws this shape to a `Proxy`.
 
         This method is split out from `draw` so that subclasses can
         override it.
 
         Args:
-            pen: The pen that draws to the ``glyph`` argument from `draw`.
+            glyph: The ``glyph`` argument from `draw`.
             stroke_width: The ``stroke_width`` argument from `draw`.
             light_line: The ``light_line`` argument from `draw`.
             stroke_gap: The ``stroke_gap`` argument from `draw`.
             size: The ``size`` argument from `draw`.
 
         Returns:
-            The mapping of all components’ singular anchor points. An
-            anchor point is singular if no other anchor points in the
-            same component share the same anchor name and anchor type.
+            A tuple of two elements.
+
+            The first element is the effective bounding box.
+
+            The second element is the mapping of all components’
+            singular anchor points. An anchor point is singular if no
+            other anchor points in the same component share the same
+            anchor name and anchor type.
         """
         singular_anchor_points: collections.defaultdict[tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
+        pen = glyph.glyphPen()
+        effective_bounding_box = None
         for op in self.instructions:
             if callable(op):
                 continue
-            scalar, component, skip_drawing, absolute_size = op
+            scalar, component, skip_drawing, tick = op
+            if tick and effective_bounding_box is None:
+                effective_bounding_box = glyph.boundingBox()
             proxy = Complex.Proxy()
             component.draw(
                 proxy,
-                light_line if absolute_size else stroke_width,
+                light_line if tick else stroke_width,
                 light_line,
                 stroke_gap,
-                scalar * (1 if absolute_size else size),
+                scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
                 False,
@@ -3126,11 +3155,11 @@ class Complex(Shape):
                     last_y - this_y,
                 ))
             for anchor_and_type, points in proxy.anchor_points.items():
-                if len(points) == 1 and not (absolute_size and anchor_and_type[0] != anchors.CURSIVE):
+                if len(points) == 1 and not (tick and anchor_and_type[0] != anchors.CURSIVE):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
                 proxy.draw(pen)
-        return singular_anchor_points
+        return effective_bounding_box, singular_anchor_points
 
     @staticmethod
     def _remove_bad_contours(glyph: fontforge.glyph) -> None:
@@ -3175,9 +3204,8 @@ class Complex(Shape):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
-        pen = glyph.glyphPen()
-        singular_anchor_points = self.draw_to_proxy(pen, stroke_width, light_line, stroke_gap, size)
+    ) -> tuple[float, float, float, float] | None:
+        effective_bounding_box, singular_anchor_points = self.draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or child or joining_type == Type.NON_JOINING):
@@ -3223,6 +3251,7 @@ class Complex(Shape):
         elif anchor == anchors.BELOW:
             glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
+        return effective_bounding_box
 
     def fixed_y(self) -> bool:
         for op in self.instructions:
@@ -3257,7 +3286,7 @@ class Complex(Shape):
                     forced_context = forced_context.clone(ignorable_for_topography=False)
                 instructions.append(op)
             else:
-                scalar, component, skip_drawing, absolute_size = op
+                scalar, component, skip_drawing, tick = op
                 component = component.contextualize(context_in, context_out)
                 assert isinstance(component, Circle | Curve | Line)
                 if i and initial_hook:
@@ -3287,7 +3316,7 @@ class Complex(Shape):
                                     angle_in=forced_context.angle,
                                     angle_out=(forced_context.angle + da) % 360,
                                 )
-                instructions.append((scalar, component, skip_drawing, absolute_size))
+                instructions.append((scalar, component, skip_drawing, tick))
                 if initial_hook:
                     context_out = component.context_in()
                 else:
@@ -3421,15 +3450,15 @@ class RomanianU(Complex):
 
     def draw_to_proxy(
         self,
-        pen: fontforge.glyphPen,
+        glyph: fontforge.glyph,
         stroke_width: float,
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> collections.defaultdict[tuple[str, _AnchorType], list[_Point]]:
-        singular_anchor_points = super().draw_to_proxy(pen, stroke_width, light_line, stroke_gap, size)
+    ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
+        effective_bounding_box, singular_anchor_points = super().draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
         singular_anchor_points[(anchors.RELATIVE_1, 'base')] = singular_anchor_points[(anchors.CURSIVE, 'exit')]
-        return singular_anchor_points
+        return effective_bounding_box, singular_anchor_points
 
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
@@ -3507,7 +3536,7 @@ class Ou(Complex):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
+    ) -> tuple[float, float, float, float] | None:
         if self.role != CircleRole.LEADER or self._isolated:
             drawer = cast(Complex, super())
         else:
@@ -3552,7 +3581,7 @@ class Ou(Complex):
                     )),
                 ]
             drawer = Complex(instructions=instructions)
-        drawer.draw(
+        return drawer.draw(
             glyph,
             stroke_width,
             light_line,
@@ -3679,8 +3708,8 @@ class SeparateAffix(Complex):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
-        super().draw(
+    ) -> tuple[float, float, float, float] | None:
+        effective_bounding_box = super().draw(
             glyph,
             stroke_width,
             light_line,
@@ -3703,6 +3732,7 @@ class SeparateAffix(Complex):
         glyph.transform(fontTools.misc.transform.Offset(y=-cursive_y))
         glyph.addAnchorPoint(anchors.CURSIVE, 'entry', entry_x, 0)
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', exit_x, 0)
+        return effective_bounding_box
 
     def fixed_y(self) -> bool:
         return True
@@ -3752,24 +3782,25 @@ class Wa(Complex):
 
     def draw_to_proxy(
         self,
-        pen: fontforge.glyphPen,
+        glyph: fontforge.glyph,
         stroke_width: float,
         light_line: float,
         stroke_gap: float,
         size: float,
-    ) -> collections.defaultdict[tuple[str, _AnchorType], list[_Point]]:
+    ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         last_crossing_point: _Point | None = None
         singular_anchor_points = collections.defaultdict(list)
+        pen = glyph.glyphPen()
         for op in self.instructions:
             assert not callable(op)
-            scalar, component, *skip_drawing = op
+            scalar, component, skip_drawing, tick = op
             proxy = Complex.Proxy()
             component.draw(
                 proxy,
-                stroke_width,
+                light_line if tick else stroke_width,
                 light_line,
                 stroke_gap,
-                scalar * size,
+                scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
                 False,
@@ -3788,7 +3819,7 @@ class Wa(Complex):
             for anchor_and_type, points in proxy.anchor_points.items():
                 if len(points) == 1:
                     singular_anchor_points[anchor_and_type].append(points[0])
-            if not (skip_drawing and skip_drawing[0]):
+            if not skip_drawing:
                 proxy.draw(pen)
         first_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][0]
         last_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][-1]
@@ -3809,7 +3840,7 @@ class Wa(Complex):
             proxy.lineTo((last_exit[0], last_exit[1] + 0.01))
             proxy.stroke('circular', stroke_width, 'round')
             proxy.draw(pen)
-        return singular_anchor_points
+        return None, singular_anchor_points
 
     def enter_on_first_path(self) -> bool:
         return False
@@ -4011,8 +4042,8 @@ class XShape(Complex):
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
-    ) -> None:
-        super().draw(
+    ) -> tuple[float, float, float, float] | None:
+        effective_bounding_box = super().draw(
             glyph,
             stroke_width,
             light_line,
@@ -4033,6 +4064,7 @@ class XShape(Complex):
         glyph.addAnchorPoint(anchors.CURSIVE, 'entry', x_avg, y_avg)
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', x_avg, y_avg)
         glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', x_avg, y_avg)
+        return effective_bounding_box
 
     def is_pseudo_cursive(self, size: float) -> bool:
         return True

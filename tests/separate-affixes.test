@@ -65,6 +65,6 @@
 # Even if the base letter has room for the affix to nestle within, the affix
 # should stay somewhat separate, to maintain the general left-to-right reading
 # direction.
-1BC90 1BC0D 1BC03::[u1BC90.low_acute@0,135|u1BC0D.d_s.tick@282,0|u1BC03.t@1782,0|_@2522,0]
+1BC90 1BC0D 1BC03::[u1BC90.low_acute@0,35|u1BC0D.d_s.tick@282,0|u1BC03.t@1782,-100|_@2522,0]
 1BC90 1BC31::[u1BC90.low_acute@0,1175|u1BC31.j_n_s@282,0|_@1222,0]
 1BC90 1BC36::[u1BC90.low_acute@0,435|u1BC36.t_s@282,0|_@922,0]

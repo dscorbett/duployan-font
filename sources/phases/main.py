@@ -1414,7 +1414,7 @@ def join_with_next(
                 old_input_count == 0
                 or not (
                     isinstance(schema.path, Curve | Circle)
-                    or isinstance(schema.path, Complex) and not any(not callable(op) and op.absolute_size for op in schema.path.instructions)
+                    or isinstance(schema.path, Complex) and not any(not callable(op) and op.tick for op in schema.path.instructions)
                 )
             )
             and not (isinstance(schema.path, Line) and schema.path.secant)

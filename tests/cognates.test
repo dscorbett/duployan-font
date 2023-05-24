@@ -15,21 +15,21 @@
 
 # Tick between cognate lines
 EC02 EC02::[uniEC02.reversed_p.tick@0,0|uniEC02.reversed_p@100,500|_@340,0]
-EC03 EC03::[uniEC03.reversed_t.tick@500,0|uniEC03.reversed_t@0,0|_@1240,0]
+EC03 EC03::[uniEC03.reversed_t.tick@500,0|uniEC03.reversed_t@0,-100|_@1240,0]
 EC04 EC04::[uniEC04.reversed_f.tick@288,0|uniEC04.reversed_f@0,450|_@903,0]
 EC05 EC05::[uniEC05.reversed_k.tick@0,0|uniEC05.reversed_k@375,450|_@903,0]
-EC06 EC06::[uniEC06.reversed_l.tick@431,0|uniEC06.reversed_l@0,-501|_@1169,0]
+EC06 EC06::[uniEC06.reversed_l.tick@431,0|uniEC06.reversed_l@0,-571|_@1169,0]
 1BC02 1BC07::[u1BC02.p.tick@0,0|u1BC07.b@100,-1000|_@340,0]
-1BC03 1BC08::[u1BC03.t.tick@0,0|u1BC08.d@500,0|_@1740,0]
-1BC04 1BC09::[u1BC04.f.tick@0,0|u1BC09.v@202,-999|_@1019,0]
-1BC05 1BC0A::[u1BC05.k.tick@490,0|u1BC0A.g@0,-999|_@1019,0]
+1BC03 1BC08::[u1BC03.t.tick@0,0|u1BC08.d@500,-100|_@1740,0]
+1BC04 1BC09::[u1BC04.f.tick@0,0|u1BC09.v@202,-1049|_@1019,0]
+1BC05 1BC0A::[u1BC05.k.tick@490,0|u1BC0A.g@0,-1049|_@1019,0]
 1BC06 1BC0B::[u1BC06.l.tick@0,0|u1BC0B.r@571,429|_@1811,0]
 1BC07 1BC02::[u1BC07.b.tick@0,0|u1BC02.p@100,-500|_@340,0]
-1BC08 1BC03::[u1BC08.d.tick@0,0|u1BC03.t@1000,0|_@1740,0]
-1BC09 1BC04::[u1BC09.v.tick@0,0|u1BC04.f@490,-499|_@1018,0]
-1BC0A 1BC05::[u1BC0A.g.tick@201,0|u1BC05.k@0,-499|_@1018,0]
+1BC08 1BC03::[u1BC08.d.tick@0,0|u1BC03.t@1000,-100|_@1740,0]
+1BC09 1BC04::[u1BC09.v.tick@0,0|u1BC04.f@490,-550|_@1018,0]
+1BC0A 1BC05::[u1BC0A.g.tick@201,0|u1BC05.k@0,-550|_@1018,0]
 1BC0B 1BC06::[u1BC0B.r.tick@0,0|u1BC06.l@1071,929|_@1811,0]
-1BC11 1BC11::[u1BC03.t.tick@0,0|dupl_.Dot.1.rel1@236,170|u1BC03.t@500,0|dupl_.Dot.1.rel1@736,70|_@1240,0]
+1BC11 1BC11::[u1BC03.t.tick@0,0|dupl_.Dot.1.rel1@236,70|u1BC03.t@500,-100|dupl_.Dot.1.rel1@736,-30|_@1240,0]
 
 # No tick
 1BC03 1BC1A::[u1BC03.t@0,720|u1BC1A.n@500,0|_@1040,0]
@@ -38,7 +38,7 @@ EC06 EC06::[uniEC06.reversed_l.tick@431,0|uniEC06.reversed_l@0,-501|_@1169,0]
 1BC50 1BC03::[u1BC50.ye@0,0|u1BC03.t@670,0|_@1410,0]
 
 # Multiple ticks
-1BC03 1BC08 1BC08 1BC08 1BC03::[u1BC03.t.tick@0,0|u1BC08.d.tick@500,-100|u1BC08.d.tick@1500,-200|u1BC08.d.tick@2500,-300|u1BC03.t@3500,-300|_@4240,0]
+1BC03 1BC08 1BC08 1BC08 1BC03::[u1BC03.t.tick@0,0|u1BC08.d.tick@500,-100|u1BC08.d.tick@1500,-200|u1BC08.d.tick@2500,-300|u1BC03.t@3500,-400|_@4240,0]
 
 # Tick near shading
 1BC02 1BC02 1BC9D::[u1BC02.p.tick@0,0|u1BC02_u1BC9D.P@75,-525|_@365,0]
@@ -49,10 +49,10 @@ EC06 EC06::[uniEC06.reversed_l.tick@431,0|uniEC06.reversed_l@0,-501|_@1169,0]
 
 # Interactions with other systems
 1BC02 1BC46 1BC44 1BC06 1BC06::[u1BC02.p@0,0|u1BC46.i.270p90.diph1@0,-100|u1BC44.o.270p45.circle.diph2@200,-100|u1BC06.l.tick@456,-56|u1BC06.l@1027,373|_@1767,0]
-1BC02 1BCA1 1BC03 1BC03::[u1BC02.p@167,0|u1BC03.t.tick@0,67|u1BC03.t@500,67|_@1240,0]
-1BC03 1BC73 1BC03::[u1BC03.t.tick@0,0|u1BC73.low_vertical_secant.90@333,266|u1BC03.t@500,0|_@1240,0]
-1BC03 1BC9E 1BC03::[u1BC03.t.tick@0,0|u1BC9E_.double.90@250,-12|u1BC03.t@500,0|_@1240,0]
-1BC03 1BCA0 1BC02 1BC03::[u1BC03.t.tick@0,0|u1BC02.p.sub@333,-233|u1BC03.t@500,0|_@1240,0]
+1BC02 1BCA1 1BC03 1BC03::[u1BC02.p@167,0|u1BC03.t.tick@0,167|u1BC03.t@500,67|_@1240,0]
+1BC03 1BC73 1BC03::[u1BC03.t.tick@0,0|u1BC73.low_vertical_secant.90@333,166|u1BC03.t@500,-100|_@1240,0]
+1BC03 1BC9E 1BC03::[u1BC03.t.tick@0,0|u1BC9E_.double.90@250,-112|u1BC03.t@500,-100|_@1240,0]
+1BC03 1BCA0 1BC02 1BC03::[u1BC03.t.tick@0,0|u1BC02.p.sub@333,-333|u1BC03.t@500,-100|_@1240,0]
 1BC05 1BC06 1BC06::[u1BC05.k@0,0|u1BC06_.l@0,0|u1BC06.l@696,123|_@1436,0]
 1BC1C 1BCA1 1BC02 1BC02::[u1BC1C.s.90@0,0|u1BC02.p.tick@360,-333|u1BC02.p@460,-833|_@960,0]
-1BC74 1BC03 1BC03::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@167,100|u1BC03.t.tick@0,0|u1BC03.t@500,0|_@1240,0]
+1BC74 1BC03 1BC03::[uni200C.zwnj@0,0|u1BC74.mid_vertical_secant@167,0|u1BC03.t.tick@0,0|u1BC03.t@500,-100|_@1240,0]
