@@ -254,3 +254,7 @@
 # Initial after secant
 1BC76 1BC41 1BC46 1BC05::[uni200C.zwnj@0,0|u1BC76.secant@0,433|u1BC41.a.60p60.diph1@125,549|u1BC46.i.60n240.diph2@362,500|u1BC05.k@197,0|_@739,0]
 1BC76 1BC46 1BC41 1BC05::[uni200C.zwnj@0,0|u1BC76.secant@0,333|u1BC46.i.240p60.diph1@125,413|u1BC41.a.60n60.diph2@262,350|u1BC05.k@24,0|_@739,0]
+
+# Initial after joining space or step
+202F 1BC41 1BC46 1BC03::[uni202F.nnbsp@85,135|u1BC41.a.0n0.diph1@115,0|u1BC46.i.180n0.diph2@115,200|u1BC03.t@215,400|_@955,0]
+1BCA2 1BC46 1BC41 1BC03::[u1BC46.i.0p180.diph1@100,-1075|u1BC41.a.0p0.diph2@0,-875|u1BC03.t@100,-875|_@840,0]

@@ -1299,8 +1299,9 @@ def ignore_first_orienting_glyph_in_initial_sequence(
     )
     for schema in new_schemas:
         if (schema.glyph_class != GlyphClass.JOINER
+            or schema.is_secant
             or schema.pseudo_cursive
-            or isinstance(schema.path, Line) and schema.path.secant
+            or schema.path.invisible()
         ):
             continue
         classes['joiner'].append(schema)
