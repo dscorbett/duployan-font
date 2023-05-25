@@ -3261,8 +3261,7 @@ class Complex(Shape):
         return False
 
     def can_be_child(self, size: float) -> bool:
-        # TODO: return not callable(self.instructions[0]) and self.instructions[0][1].can_be_child(size)
-        return False
+        return self._base_component is not None and self._base_component.can_be_child(size)
 
     def max_tree_width(self, size: float) -> int:
         return self.maximum_tree_width(size) if callable(self.maximum_tree_width) else self.maximum_tree_width
@@ -3736,6 +3735,9 @@ class SeparateAffix(Complex):
 
     def fixed_y(self) -> bool:
         return True
+
+    def can_be_child(self, size: float) -> bool:
+        return False
 
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return 0

@@ -933,7 +933,7 @@ class Schema:
     def pseudo_cursive(self) -> bool:
         """Returns whether this schema joins pseudo-cursively.
         """
-        return self.glyph_class == GlyphClass.JOINER and self.path.is_pseudo_cursive(self.size)
+        return self.glyph_class == GlyphClass.JOINER and bool(self.cps) and self.path.is_pseudo_cursive(self.size)
 
     @functools.cached_property
     def is_primary(self) -> bool:

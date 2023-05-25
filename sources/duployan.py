@@ -818,11 +818,17 @@ class Builder:
             self._add_mkmk_anchor_points(schema, glyph, stroke_width)
         if schema.glyph_class == GlyphClass.MARK and not schema.path.invisible():
             self._convert_base_to_basemark(glyph)
-        if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef):
+        if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef) or schema.path.guaranteed_glyph_class() is not None and schema.path.invisible():
             return
-        anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}
+        anchor_tests = {anchor: (anchor in cmapped_anchors or anchor in schema.anchors) and not schema.pseudo_cursive for anchor in anchors.ALL_MARK}
         anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
         anchor_tests[anchors.SECANT] |= schema.can_take_secant
+        anchor_tests[anchors.CONTINUING_OVERLAP] = schema.joining_type != Type.NON_JOINING and (schema.can_take_secant or schema.max_tree_width() != 0)
+        anchor_tests[anchors.CURSIVE] = schema.joining_type != Type.NON_JOINING and not schema.is_secant
+        anchor_tests[anchors.PRE_HUB_CONTINUING_OVERLAP] = schema.is_secant
+        anchor_tests[anchors.POST_HUB_CONTINUING_OVERLAP] = anchor_tests[anchors.CONTINUING_OVERLAP] and (schema.path.can_be_child(schema.size) or isinstance(schema.path, Line) and schema.path.dots is not None)
+        anchor_tests[anchors.PRE_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != 0 and not schema.pseudo_cursive
+        anchor_tests[anchors.POST_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != -1
         if schema.encirclable:
             glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.MIDDLE]
         anchor_class_names = {a[0] for a in glyph.anchorPoints}
@@ -833,7 +839,7 @@ class Builder:
         x_center = (x_max + x_min) / 2
         y_center = (y_max + y_min) / 2
         for anchor_class_name, should_have_anchor in anchor_tests.items():
-            should_have_anchor &= not schema.pseudo_cursive and schema.ignorability != Ignorability.DEFAULT_YES
+            should_have_anchor &= schema.ignorability != Ignorability.DEFAULT_YES
             if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
                 if has_anchor:
                     glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]
