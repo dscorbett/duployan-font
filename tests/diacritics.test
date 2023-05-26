@@ -169,17 +169,17 @@
 # U+20DD COMBINING ENCLOSING CIRCLE
 0021 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
 00D7 20DD::[uni00D7.multiplication@0,0|uni20DD_.enclosing_circle.wl@592,0|_@592,0]
-002C 20DD::[comma@140,0|uni20DD_.enclosing_circle.wl@373,-353|_@572,0]
+002C 20DD::[comma@140,0|uni20DD_.enclosing_circle.wl@372,-353|_@572,0]
 003A 20DD::[colon@246,0|uni20DD_.enclosing_circle.wl@532,-104|_@760,0]
 003B 20DD::[semicolon@276,0|uni20DD_.enclosing_circle.wl@604,-160|_@844,0]
 003F 20DD::[question@210,0|uni20DD_.enclosing_circle.wl@667,0|_@917,0]
 00A1 20DD::[uni00A1.inverted_exclamation@324,0|uni20DD_.enclosing_circle.wl@666,-193|_@916,0]
 00BF 20DD::[uni00BF.inverted_question@210,0|uni20DD_.enclosing_circle.wl@667,-193|_@917,0]
-2013 20DD::[uni2013.en_dash@140,0|uni20DD_.enclosing_circle.wl@754,38|_@1020,0]
-201C 20DD::[uni201C.left_double_quote@140,0|uni20DD_.enclosing_circle.wl@508,317|_@732,0]
-201D 20DD::[uni201D.right_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,324|_@733,0]
-201E 20DD::[uni201E.double_low_9_quote@140,0|uni20DD_.enclosing_circle.wl@508,-353|_@732,0]
-2026 20DD::[uni2026.horizontal_ellipsis@140,0|uni20DD_.enclosing_circle.wl@685,-308|_@940,0]
+2013 20DD::[uni2013.en_dash@140,0|uni20DD_.enclosing_circle.wl@755,38|_@1020,0]
+201C 20DD::[uni201C.left_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,317|_@732,0]
+201D 20DD::[uni201D.right_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,324|_@732,0]
+201E 20DD::[uni201E.double_low_9_quote@140,0|uni20DD_.enclosing_circle.wl@509,-353|_@732,0]
+2026 20DD::[uni2026.horizontal_ellipsis@140,0|uni20DD_.enclosing_circle.wl@687,-308|_@940,0]
 
 # U+2463 CIRCLED DIGIT FOUR is implemented using U+20DD.
 2463::[uni2463.circled_four@140,0|uni20DD_.enclosing_circle.wl@719,0|_@978,0]

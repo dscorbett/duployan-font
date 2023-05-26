@@ -150,7 +150,7 @@ class Builder:
         right_parenthesis = Complex([(1, Curve(parenthesis_angle, 180 - parenthesis_angle, clockwise=False))])
         asterisk = Complex([(0.467, Line(270), True), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), True), (0.467, Line(126)), (0.467, Line(306), True), (0.467, Line(54)), (0.467, Line(234), True), (0.467, Line(342)), (0.467, Line(162), True)])
         asterism = Complex([*asterisk.instructions, (1.2, Line(60), True), *asterisk.instructions, (1.2, Line(300), True), *asterisk.instructions])
-        plus = Complex([(146, Space(90)), (0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
+        plus = Complex([(0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
         comma = Complex([(0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True), False, True)])
         slash = Line(60)
         zero = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
@@ -182,18 +182,18 @@ class Builder:
         upper_right_brace_section = Complex([(upper_left_brace_section.instructions[0][0], upper_left_brace_section.instructions[0][1].clone(angle_in=(180 - upper_left_brace_section.instructions[0][1].angle_in) % 360, angle_out=(180 - upper_left_brace_section.instructions[0][1].angle_out) % 360, clockwise=not upper_left_brace_section.instructions[0][1].clockwise)), (upper_left_brace_section.instructions[1][0], upper_left_brace_section.instructions[1][1].clone(angle_in=(180 - upper_left_brace_section.instructions[1][1].angle_in) % 360, angle_out=(180 - upper_left_brace_section.instructions[1][1].angle_out) % 360, clockwise=not upper_left_brace_section.instructions[1][1].clockwise))])  # type: ignore[call-arg, index, union-attr]
         lower_right_brace_section = Complex([(lower_left_brace_section.instructions[0][0], lower_left_brace_section.instructions[0][1].clone(angle_in=(180 - lower_left_brace_section.instructions[0][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[0][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[0][1].clockwise)), (lower_left_brace_section.instructions[1][0], lower_left_brace_section.instructions[1][1].clone(angle_in=(180 - lower_left_brace_section.instructions[1][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[1][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[1][1].clockwise))])  # type: ignore[call-arg, index, union-attr]
         right_brace = Complex([*upper_right_brace_section.instructions, *lower_right_brace_section.instructions])
-        guillemet_vertical_space = (75, Space(90))
+        guillemet_y_min = 40
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
         right_guillemet = [*reversed(left_guillemet)]
         left_guillemet += [(op[0], op[1].as_reversed(), True) for op in left_guillemet]  # type: ignore[misc]
         right_guillemet += [(op[0], op[1].as_reversed(), True) for op in right_guillemet]  # type: ignore[misc]
-        left_double_guillemet = Complex([guillemet_vertical_space, *left_guillemet, guillemet_horizontal_space, *left_guillemet])
-        right_double_guillemet = Complex([guillemet_vertical_space, *right_guillemet, guillemet_horizontal_space, *right_guillemet])
-        left_single_guillemet = Complex([guillemet_vertical_space, *left_guillemet])
-        right_single_guillemet = Complex([guillemet_vertical_space, *right_guillemet])
+        left_double_guillemet = Complex([*left_guillemet, guillemet_horizontal_space, *left_guillemet])
+        right_double_guillemet = Complex([*right_guillemet, guillemet_horizontal_space, *right_guillemet])
+        left_single_guillemet = Complex(left_guillemet)
+        right_single_guillemet = Complex(right_guillemet)
         circle = Circle(180, 180, clockwise=False)
-        masculine_ordinal_indicator = Complex([(625.5, Space(90)), (2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
+        masculine_ordinal_indicator = Complex([(2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
         multiplication = Complex([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True)])
         reference_mark = Complex([*multiplication.instructions, (0.3, Line(0), True), (0, Dot(1, centered=True)), (0.3 * 2, Line(180), True), (0, Dot(1, centered=True)), (0.3, Line(0), True), (0.3, Line(90), True), (0, Dot(1, centered=True)), (0.3 * 2, Line(270), True), (0, Dot(1, centered=True))])
         grave = Line(150)
@@ -208,15 +208,14 @@ class Builder:
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
-        high_left_quote = Complex([(755, Space(90)), (3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
-        high_right_quote = Complex([(742, Space(90)), (0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True)), (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
-        low_right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
+        left_quote = Complex([(3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
+        right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
         ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
         nnbsp = Space(0)
-        dotted_circle = Complex([(33, Space(90)), (0, Dot(0)), (446, Space(90)), (0, Dot(0)), (223, Space(270)), (223, Space(60)), (0, Dot(0)), (446, Space(240)), (0, Dot(0)), (223, Space(60)), (223, Space(30)), (0, Dot(0)), (446, Space(210)), (0, Dot(0)), (223, Space(30)), (223, Space(0)), (0, Dot(0)), (446, Space(180)), (0, Dot(0)), (223, Space(0)), (223, Space(330)), (0, Dot(0)), (446, Space(150)), (0, Dot(0)), (223, Space(330)), (223, Space(300)), (0, Dot(0)), (446, Space(120)), (0, Dot(0))])
+        dotted_circle = Complex([(0, Dot(0)), (446, Space(90)), (0, Dot(0)), (223, Space(270)), (223, Space(60)), (0, Dot(0)), (446, Space(240)), (0, Dot(0)), (223, Space(60)), (223, Space(30)), (0, Dot(0)), (446, Space(210)), (0, Dot(0)), (223, Space(30)), (223, Space(0)), (0, Dot(0)), (446, Space(180)), (0, Dot(0)), (223, Space(0)), (223, Space(330)), (0, Dot(0)), (446, Space(150)), (0, Dot(0)), (223, Space(330)), (223, Space(300)), (0, Dot(0)), (446, Space(120)), (0, Dot(0))])
         skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 99 / 172, Space(270)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0, Dot(1.3561, centered=True)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 59 / 215, Space(270)), (0, Dot(0)), (150, Space(160)), (0, Dot(0)), (150, Space(340)), (150, Space(20)), (0, Dot(0)), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True)), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
         stenographic_period = Complex([(0.5, Line(135), True), *multiplication.instructions])
-        double_hyphen = Complex([(305, Space(90)), (0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
+        double_hyphen = Complex([(0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
         bound = Bound()
         cross_knob_line_factor = 0.42
         cross_knob_op = (0, Dot(3.64, centered=True))
@@ -309,10 +308,12 @@ class Builder:
         low_vertical = high_vertical.clone(low=True)
         low_arrow = SeparateAffix([(0.4, Line(0)), (0.4, Line(240))], low=True)
         likalisti = Complex([(5, Circle(0, 0, clockwise=False)), (375, Space(90)), (0.5, p), (math.hypot(125, 125), Space(135)), (0.5, Line(0))])
-        dotted_square = [(152, Space(270)), (0.26 - light_line / 1000, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.26 - light_line / 1000, Line(90)), (0.26 - light_line / 1000, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.26 - light_line / 1000, Line(0)), (0.26 - light_line / 1000, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.26 - light_line / 1000, Line(270)), (0.26 - light_line / 1000, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.26 - light_line / 1000, Line(180))]
+        dotted_square_y_min = -187
+        dotted_square = [(0.26 - light_line / 1000, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.264 - light_line / LINE_FACTOR, Line(90)), (58 + light_line, Space(90)), (0.26 - light_line / 1000, Line(90)), (0.26 - light_line / 1000, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.264 - light_line / LINE_FACTOR, Line(0)), (58 + light_line, Space(0)), (0.26 - light_line / 1000, Line(0)), (0.26 - light_line / 1000, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.264 - light_line / LINE_FACTOR, Line(270)), (58 + light_line, Space(270)), (0.26 - light_line / 1000, Line(270)), (0.26 - light_line / 1000, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.264 - light_line / LINE_FACTOR, Line(180)), (58 + light_line, Space(180)), (0.26 - light_line / 1000, Line(180))]
         dtls = InvalidDTLS(instructions=[*dotted_square, (341, Space(0)), (173, Space(90)), (0.238, Line(180)), (0.412, Line(90)), (130, Space(90)), (0.412, Line(90)), (0.18, Line(0)), (2.06, Curve(0, 180, clockwise=True, stretch=-27 / 115, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.18, Line(180)), (369, Space(0)), (0.412, Line(90)), (0.148, Line(180), True), (0.296, Line(0)), (341, Space(270)), (14.5, Space(180)), (.345 * 2.58, Curve(164, 196, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.88, Curve(196, 341, clockwise=False, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 *0.224, Line(341)), (.345 * 2.88, Curve(341, 196, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (.345 * 2.58, Curve(196, 164, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
-        chinook_period = Complex([(100, Space(90)), (1, Line(0)), (179, Space(90)), (1, Line(180))])
-        chinook_period_double_stroke = Complex([*chinook_period.instructions, (chinook_period.instructions[-1][0] / 2, Line(0), True), (chinook_period.instructions[-2][0] / 2, Space(270)), (chinook_period.instructions[-2][0] * 0.9 / 2, Space(180)), (chinook_period.instructions[-1][0] * 1.1 / 2, Line(64), True), (chinook_period.instructions[-1][0] * 1.1, Line(64 + 180)), (chinook_period.instructions[-2][0] * 0.9, Space(0)), (chinook_period.instructions[-1][0] * 1.1, Line(64))])  # type: ignore[index]
+        chinook_period_y_min = 65
+        chinook_period = Complex([(1, Line(0)), (179, Space(90)), (1, Line(180))])
+        chinook_period_double_stroke = Complex([*chinook_period.instructions, (chinook_period.instructions[-1][0] / 2, Line(0), True, True), (chinook_period.instructions[-2][0] / 2, Space(270)), (chinook_period.instructions[-2][0] * 0.9 / 2, Space(180)), (chinook_period.instructions[-1][0] * 1.1 / 2, Line(64), True), (chinook_period.instructions[-1][0] * 1.1, Line(64 + 180)), (chinook_period.instructions[-2][0] * 0.9, Space(0)), (chinook_period.instructions[-1][0] * 1.1, Line(64))])  # type: ignore[index]
         overlap = InvalidOverlap(continuing=False, instructions=[*dotted_square, (162.5, Space(0)), (397, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (1.134, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220)), (170, Space(180)), (0.4116, Line(90))])
         continuing_overlap = InvalidOverlap(continuing=True, instructions=[*dotted_square, (189, Space(0)), (522, Space(90)), (0.192, Line(90)), (0.096, Line(270), True), (0.726, Line(0)), (124, Space(180)), (145, Space(90)), (0.852, Line(270)), (0.552, Line(0)), (0.32, Line(140)), (0.32, Line(320), True), (0.32, Line(220))])
         down_step = InvalidStep(270, [*dotted_square, (444, Space(0)), (749, Space(90)), (1.184, Line(270)), (0.32, Line(130)), (0.32, Line(310), True), (0.32, Line(50))])
@@ -335,7 +336,7 @@ class Builder:
             Schema(0x0028, left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0),
             Schema(0x0029, right_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0),
             Schema(0x002A, asterisk, 1, Type.NON_JOINING, y_min=None, y_max=1.073 * CAP_HEIGHT),
-            Schema(0x002B, plus, 1, Type.NON_JOINING),
+            Schema(0x002B, plus, 1, Type.NON_JOINING, y_min=111),
             Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x002E, h, 0, Type.NON_JOINING),
             Schema(0x002F, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0),
@@ -361,10 +362,10 @@ class Builder:
             Schema(0x007D, right_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
-            Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING),
+            Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
-            Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING),
-            Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING),
+            Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING, y_min=220),
+            Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00BF, inverted_question, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
             Schema(0x00D7, multiplication, 1, Type.NON_JOINING),
             Schema(0x0300, grave, 0.2, anchor=anchors.ABOVE),
@@ -391,13 +392,13 @@ class Builder:
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, ignorability=Ignorability.OVERRIDDEN_NO),
             Schema(0x2013, en_dash, 1, Type.NON_JOINING, encirclable=True),
-            Schema(0x201C, high_left_quote, 1, Type.NON_JOINING, encirclable=True),
-            Schema(0x201D, high_right_quote, 1, Type.NON_JOINING, encirclable=True),
-            Schema(0x201E, low_right_quote, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x201C, left_quote, 1, Type.NON_JOINING, y_min=558, encirclable=True),
+            Schema(0x201D, right_quote, 1, Type.NON_JOINING, y_min=677, encirclable=True),
+            Schema(0x201E, right_quote, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x2026, ellipsis, 1, Type.NON_JOINING, encirclable=True),
             Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
-            Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING),
-            Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING),
+            Schema(0x2039, left_single_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
+            Schema(0x203A, right_single_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x203B, reference_mark, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
             Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT, maximum_tree_width=0),
@@ -407,11 +408,11 @@ class Builder:
             Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x230B, right_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x2463, four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, marks=[enclosing_circle]),
-            Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING),
+            Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING, y_min=33),
             Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
-            Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING),
+            Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
             Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
             Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
             Schema(0xE002, converging_lines, 1, Type.NON_JOINING),
@@ -427,7 +428,7 @@ class Builder:
             Schema(0xEC1A, n_reverse, 6),
             Schema(0xEC1B, j_reverse, 6),
             Schema(0xEC1C, s_reverse, 6),
-            Schema(0xEC9A, chinook_period_double_stroke, 1, Type.NON_JOINING),
+            Schema(0xEC9A, chinook_period_double_stroke, 1, Type.NON_JOINING, y_min=chinook_period_y_min),
             Schema(0x1BC00, h, 0, shading_allowed=False),
             Schema(0x1BC01, x, 0.75, shading_allowed=False),
             Schema(0x1BC02, p, 1, Type.ORIENTING),
@@ -568,13 +569,13 @@ class Builder:
             Schema(0x1BC98, low_vertical, 1),
             Schema(0x1BC99, low_arrow, 1),
             Schema(0x1BC9C, likalisti, 1, Type.NON_JOINING),
-            Schema(0x1BC9D, dtls, 1, Type.NON_JOINING),
+            Schema(0x1BC9D, dtls, 1, Type.NON_JOINING, y_min=dotted_square_y_min),
             Schema(0x1BC9E, line, 0.45, Type.ORIENTING, anchor=anchors.MIDDLE),
-            Schema(0x1BC9F, chinook_period, 1, Type.NON_JOINING),
-            Schema(0x1BCA0, overlap, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-            Schema(0x1BCA1, continuing_overlap, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-            Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
-            Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BC9F, chinook_period, 1, Type.NON_JOINING, y_min=chinook_period_y_min),
+            Schema(0x1BCA0, overlap, 1, Type.NON_JOINING, y_min=dotted_square_y_min, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA1, continuing_overlap, 1, Type.NON_JOINING, y_min=dotted_square_y_min, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, y_min=dotted_square_y_min, ignorability=Ignorability.OVERRIDDEN_NO),
+            Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, y_min=dotted_square_y_min, ignorability=Ignorability.OVERRIDDEN_NO),
         ]
         if noto:
             self._schemas = [
