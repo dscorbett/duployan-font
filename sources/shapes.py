@@ -1047,9 +1047,6 @@ class Space(Shape):
             )
         return None
 
-    def can_be_child(self, size: float) -> bool:
-        return size == 0 and self.angle == 0 and not self.margins
-
     def is_pseudo_cursive(self, size: float) -> bool:
         return bool(size) and self.hub_priority(size) == -1
 
@@ -3208,8 +3205,14 @@ class Complex(Shape):
                         ]
                         else len(points) == 1
                 ) or (
+                    self.can_be_child(size)
+                    and (
+                        singular_anchor == anchors.PARENT_EDGE
+                        or singular_anchor in [anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP] and type == 'entry'
+                    )
+                ) or (
                     self.max_tree_width(size) and (
-                        singular_anchor == anchors.CONTINUING_OVERLAP
+                        singular_anchor == anchors.CONTINUING_OVERLAP and type == 'exit'
                         or any(singular_anchor in l for l in anchors.CHILD_EDGES)
                     )
                 ):
@@ -3556,7 +3559,7 @@ class Ou(Complex):
                         clockwise=clockwise,
                     )),
                 ]
-            drawer = Complex(instructions=instructions)
+            drawer = type(self)(instructions)
         return drawer.draw(
             glyph,
             stroke_width,
@@ -3570,6 +3573,9 @@ class Ou(Complex):
             diphthong_1,
             diphthong_2,
         )
+
+    def can_be_child(self, size: float) -> bool:
+        return True
 
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         return super().contextualize(context_in, context_out).clone(  # type: ignore[call-arg]

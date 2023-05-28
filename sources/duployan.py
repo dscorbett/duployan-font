@@ -835,7 +835,9 @@ class Builder:
         anchor_tests = {anchor: (anchor in cmapped_anchors or anchor in schema.anchors) and not schema.pseudo_cursive for anchor in anchors.ALL_MARK}
         anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
         anchor_tests[anchors.SECANT] |= schema.can_take_secant
-        anchor_tests[anchors.CONTINUING_OVERLAP] = schema.joining_type != Type.NON_JOINING and (schema.can_take_secant or schema.max_tree_width() != 0)
+        anchor_tests[anchors.CONTINUING_OVERLAP] = schema.joining_type != Type.NON_JOINING and (
+            schema.can_take_secant or schema.max_tree_width() != 0 or schema.path.can_be_child(schema.size)
+        )
         anchor_tests[anchors.CURSIVE] = schema.joining_type != Type.NON_JOINING and not schema.is_secant
         anchor_tests[anchors.PRE_HUB_CONTINUING_OVERLAP] = schema.is_secant
         anchor_tests[anchors.POST_HUB_CONTINUING_OVERLAP] = anchor_tests[anchors.CONTINUING_OVERLAP] and (schema.path.can_be_child(schema.size) or isinstance(schema.path, Line) and schema.path.dots is not None)
