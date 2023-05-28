@@ -726,7 +726,6 @@ class Builder:
             _scalar * schema.size,
             schema.anchor,
             schema.joining_type,
-            schema.child,
             # TODO: `isinstance(schema.path, Circle)` is redundant. The
             # shape can check that itself.
             schema.context_in == NO_CONTEXT and schema.diphthong_1 and isinstance(schema.path, Circle),
@@ -825,6 +824,12 @@ class Builder:
             self._add_mkmk_anchor_points(schema, glyph, stroke_width)
         if schema.glyph_class == GlyphClass.MARK and not schema.path.invisible():
             self._convert_base_to_basemark(glyph)
+        if not schema.path.invisible():
+            glyph.anchorPoints = [a for a in glyph.anchorPoints if (
+                a[0] not in [anchors.PARENT_EDGE, *anchors.CHILD_EDGES[1]]
+                    if schema.anchor or schema.glyph_class != GlyphClass.MARK
+                    else a[1] not in ['entry', 'exit'] and a[0] not in anchors.CHILD_EDGES[0]
+            )]
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef) or schema.path.guaranteed_glyph_class() is not None and schema.path.invisible():
             return
         anchor_tests = {anchor: (anchor in cmapped_anchors or anchor in schema.anchors) and not schema.pseudo_cursive for anchor in anchors.ALL_MARK}

@@ -209,7 +209,6 @@ class Shape:
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -230,8 +229,6 @@ class Shape:
                 stroked.
             anchor: The anchor to generate anchor points for, if any.
             joining_type: This shape’s schema’s joining type.
-            child: Whether this shape’s schema is a child in an overlap
-                sequence.
             initial_circle_diphthong: Whether this shape is a circle at
                 the beginning of a diphthong ligature.
             final_circle_diphthong: Whether this shape is a circle at
@@ -436,7 +433,6 @@ class Start(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -517,7 +513,6 @@ class Hub(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -715,7 +710,6 @@ class RightBoundDigit(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -947,7 +941,6 @@ class Notdef(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1036,7 +1029,6 @@ class Space(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1093,7 +1085,6 @@ class Bound(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1195,7 +1186,6 @@ class ChildEdge(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1296,7 +1286,6 @@ class ParentEdge(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1399,13 +1388,11 @@ class Dot(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
-        assert not child
         pen = glyph.glyphPen()
         stroke_width *= self.SCALAR ** self.size_exponent
         pen.moveTo((0, 0))
@@ -1568,7 +1555,6 @@ class Line(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -1601,26 +1587,25 @@ class Line(Shape):
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
                 child_interval = length / (max_tree_width + 2)
-                for child_index in range(max_tree_width):
-                    glyph.addAnchorPoint(
-                        anchors.CHILD_EDGES[int(child)][child_index],
-                        'base',
-                        child_interval * (child_index + 2),
-                        0,
-                    )
-                if child:
-                    glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', child_interval, 0)
-                else:
-                    glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', child_interval, 0)
-                    glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', child_interval * (max_tree_width + 1), 0)
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'exit', length, end_y)
-                    glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', child_interval, 0)
-                    if self.hub_priority(size) != -1:
-                        glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
-                    if self.hub_priority(size) != 0:
-                        glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', length, end_y)
-                    glyph.addAnchorPoint(anchors.SECANT, 'base', child_interval * (max_tree_width + 1), 0)
+                for child in [0, 1]:
+                    for child_index in range(max_tree_width):
+                        glyph.addAnchorPoint(
+                            anchors.CHILD_EDGES[child][child_index],
+                            'base',
+                            child_interval * (child_index + 2),
+                            0,
+                        )
+                glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', child_interval, 0)
+                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', child_interval, 0)
+                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', child_interval * (max_tree_width + 1), 0)
+                glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
+                glyph.addAnchorPoint(anchors.CURSIVE, 'exit', length, end_y)
+                glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', child_interval, 0)
+                if self.hub_priority(size) != -1:
+                    glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
+                if self.hub_priority(size) != 0:
+                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', length, end_y)
+                glyph.addAnchorPoint(anchors.SECANT, 'base', child_interval * (max_tree_width + 1), 0)
             if size == 2 and 0 < self.angle <= 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
                 glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
@@ -2038,7 +2023,6 @@ class Curve(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -2092,44 +2076,44 @@ class Curve(Shape):
             max_tree_width = self.max_tree_width(size)
             child_interval = da / (max_tree_width + 2)
             if self.overlap_angle is None:
-                for child_index in range(max_tree_width):
-                    glyph.addAnchorPoint(
-                        anchors.CHILD_EDGES[int(child)][child_index],
-                        'base',
-                        *_rect(r, math.radians(a1 + child_interval * (child_index + 2))),
-                    )
+                for child in [0, 1]:
+                    for child_index in range(max_tree_width):
+                        glyph.addAnchorPoint(
+                            anchors.CHILD_EDGES[child][child_index],
+                            'base',
+                            *_rect(r, math.radians(a1 + child_interval * (child_index + 2))),
+                        )
             else:
                 overlap_exit_angle = self._get_angle_to_overlap_point(a1, a2, is_entry=False)
-                glyph.addAnchorPoint(
-                    anchors.CHILD_EDGES[int(child)][0],
-                    'base',
-                    *_rect(r, math.radians(overlap_exit_angle)),
-                )
+                for child in [0, 1]:
+                    glyph.addAnchorPoint(
+                        anchors.CHILD_EDGES[child][0],
+                        'base',
+                        *_rect(r, math.radians(overlap_exit_angle)),
+                    )
             overlap_entry_angle = (a1 + child_interval
                 if self.overlap_angle is None
                 else self._get_angle_to_overlap_point(a1, a2, is_entry=True))
-            if child:
-                glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
-            else:
-                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
-                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *_rect(r, math.radians(
-                    a1 + child_interval * (max_tree_width + 1)
-                        if self.overlap_angle is None
-                        else overlap_exit_angle)))
-                glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
-                glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
-                glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
-                if self.hub_priority(size) != -1:
-                    glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *_rect(r, math.radians(a1)))
-                if self.hub_priority(size) != 0:
-                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-                glyph.addAnchorPoint(
-                    anchors.SECANT,
-                    'base',
-                    *_rect(0, 0)
-                        if abs(da) > 180
-                        else _rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
-                )
+            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
+            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
+            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *_rect(r, math.radians(
+                a1 + child_interval * (max_tree_width + 1)
+                    if self.overlap_angle is None
+                    else overlap_exit_angle)))
+            glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
+            glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
+            glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
+            if self.hub_priority(size) != -1:
+                glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *_rect(r, math.radians(a1)))
+            if self.hub_priority(size) != 0:
+                glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
+            glyph.addAnchorPoint(
+                anchors.SECANT,
+                'base',
+                *_rect(0, 0)
+                    if abs(da) > 180
+                    else _rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
+            )
         glyph.addAnchorPoint(anchors.MIDDLE, 'base', *_rect(r, math.radians(relative_mark_angle)))
         if not anchor:
             if self.stretch:
@@ -2490,7 +2474,6 @@ class Circle(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -2514,7 +2497,6 @@ class Circle(Shape):
                     size,
                     anchor,
                     joining_type,
-                    child,
                     initial_circle_diphthong,
                     final_circle_diphthong,
                     diphthong_1,
@@ -2554,18 +2536,16 @@ class Circle(Shape):
             pen.lineTo(exit)
             pen.endPath()
         if joining_type != Type.NON_JOINING:
-            if child:
-                glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', 0, 0)
-            else:
-                glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', 0, 0)
-                glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
-                glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
-                glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
-                if self.hub_priority(size) != -1:
-                    glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
-                if self.hub_priority(size) != 0:
-                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-                glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
+            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', 0, 0)
+            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', 0, 0)
+            glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
+            glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
+            glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
+            if self.hub_priority(size) != -1:
+                glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
+            if self.hub_priority(size) != 0:
+                glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
+            glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
         glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
         if anchor:
             glyph.addAnchorPoint(anchors.MIDDLE, 'mark', 0, 0)
@@ -3143,7 +3123,6 @@ class Complex(Shape):
                 False,
                 False,
                 False,
-                False,
             )
             this_entry_list = proxy.anchor_points[(anchors.CURSIVE, 'entry')]
             assert len(this_entry_list) == 1
@@ -3199,7 +3178,6 @@ class Complex(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -3208,7 +3186,7 @@ class Complex(Shape):
         effective_bounding_box, singular_anchor_points = self.draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
-        if not (anchor or child or joining_type == Type.NON_JOINING):
+        if not (anchor or joining_type == Type.NON_JOINING):
             entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][0 if self.enter_on_first_path() else -1]
             exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][-1]
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
@@ -3530,7 +3508,6 @@ class Ou(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -3588,7 +3565,6 @@ class Ou(Complex):
             size,
             anchor,
             joining_type,
-            child,
             initial_circle_diphthong,
             final_circle_diphthong,
             diphthong_1,
@@ -3702,7 +3678,6 @@ class SeparateAffix(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -3716,7 +3691,6 @@ class SeparateAffix(Complex):
             size,
             anchor,
             joining_type,
-            child,
             initial_circle_diphthong,
             final_circle_diphthong,
             diphthong_1,
@@ -3805,7 +3779,6 @@ class Wa(Complex):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                False,
                 False,
                 False,
                 False,
@@ -4039,7 +4012,6 @@ class XShape(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        child: bool,
         initial_circle_diphthong: bool,
         final_circle_diphthong: bool,
         diphthong_1: bool,
@@ -4053,7 +4025,6 @@ class XShape(Complex):
             size,
             anchor,
             joining_type,
-            child,
             initial_circle_diphthong,
             final_circle_diphthong,
             diphthong_1,
