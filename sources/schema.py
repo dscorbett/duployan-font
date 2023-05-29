@@ -359,7 +359,7 @@ class Schema:
             marks: Sequence[Schema] | None = None,
             ignorability: Ignorability = Ignorability.DEFAULT_NO,
             encirclable: bool = False,
-            maximum_tree_width: int = MAX_TREE_WIDTH,
+            maximum_tree_width: int | None = None,
             shading_allowed: bool | None = None,
             context_in: Context | None = None,
             context_out: Context | None = None,
@@ -385,16 +385,20 @@ class Schema:
                 ``can_lead_orienting_sequence`` attribute, or ``None``
                 to set the attribute to ``joining_type ==
                 Type.ORIENTING``.
-            ignored_for_topography: The ``ignored_for_topography`` attribute.
+            ignored_for_topography: The ``ignored_for_topography``
+                attribute.
             anchor: The ``anchor`` attribute.
             widthless: The ``widthless`` attribute.
             marks: The ``marks`` attribute, or ``None`` to set the
                 attribute to an empty sequence.
             ignorability: The ``ignorability`` attribute.
             encirclable: The ``encirclable`` attribute.
-            maximum_tree_width: The ``maximum_tree_width`` attribute.
-            shading_allowed: The ``shading_allowed`` attribute, or ``None`` to
-                set the attribute to whether ``cps`` is Duployan.
+            maximum_tree_width: The ``maximum_tree_width`` attribute, or
+                ``None`` to set the attribute to ``MAX_TREE_WIDTH`` if
+                ``cps`` is Duployan, or else 0.
+            shading_allowed: The ``shading_allowed`` attribute, or
+                ``None`` to set the attribute to whether ``cps`` is
+                Duployan.
             context_in: The ``context_in`` attribute, or ``None`` to set
                 the attribute to `NO_CONTEXT`.
             context_out: The ``context_out`` attribute, or ``None`` to
@@ -425,7 +429,6 @@ class Schema:
         self.marks: Final = marks or []
         self.ignorability: Final = ignorability
         self.encirclable: Final = encirclable
-        self.maximum_tree_width: Final = maximum_tree_width
         self.context_in: Final = context_in or NO_CONTEXT
         self.context_out: Final = context_out or NO_CONTEXT
         self.diphthong_1: Final = diphthong_1
@@ -435,6 +438,7 @@ class Schema:
         self.original_shape: Final = original_shape or type(path)
         self.anchors: Final = _anchors if _anchors is not None else set()
         self.scripts: Final = cps_to_scripts(self.cps)
+        self.maximum_tree_width: Final = maximum_tree_width if maximum_tree_width is not None else MAX_TREE_WIDTH if self.scripts == {'dupl'} else 0
         self.shading_allowed: Final = shading_allowed if shading_allowed is not None else self.scripts == {'dupl'}
         self.phase_index: Final = CURRENT_PHASE_INDEX
         self.features: set[str] | None = None

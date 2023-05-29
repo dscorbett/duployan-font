@@ -219,7 +219,7 @@ def validate_double_marks(
     for maximum in sorted(new_maximums, reverse=True):
         for i in range(0, maximum):
             add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], lookups=[None]))
-    guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING)
+    guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING, maximum_tree_width=MAX_TREE_WIDTH)
     add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
     return [lookup]
 
@@ -524,7 +524,7 @@ def add_secant_guidelines(
             guideline_angle = schema.path.get_guideline_angle()
             lookup_name = f'add_guideline_{guideline_angle}'
             if lookup_name not in named_lookups:
-                guideline = Schema(None, Line(guideline_angle, dots=7), 1.5)
+                guideline = Schema(None, Line(guideline_angle, dots=7), 1.5, maximum_tree_width=MAX_TREE_WIDTH)
                 named_lookups[f'{lookup_name}_and_dtls'] = Lookup(None, None)
                 named_lookups[lookup_name] = Lookup(None, None)
                 add_rule(named_lookups[f'{lookup_name}_and_dtls'], Rule([invalid_continuing_overlap], [dtls, valid_continuing_overlap, guideline]))
