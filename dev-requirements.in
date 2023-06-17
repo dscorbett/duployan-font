@@ -15,7 +15,7 @@
 
 -r requirements.in
 -c dev-constraints.txt
-fontbakery[freetype] >= 0.8.5, <= 0.8.11
+fontbakery[freetype] >= 0.8.5, < 0.8.14
 mypy == 1.*
 packaging >= 22, < 23.2
-pip-tools ~= 6.8
+pip-tools >= 6.13

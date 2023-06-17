@@ -20,7 +20,7 @@
 #
 cffsubr==0.2.9.post1
     # via -r requirements.in
-fonttools[repacker]==4.39.4
+fonttools[repacker]==4.40.0
     # via
     #   -r requirements.in
     #   cffsubr
