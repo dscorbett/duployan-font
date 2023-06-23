@@ -15,6 +15,8 @@
 
 name: Main workflow
 on: push
+permissions:
+  contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
   HARFBUZZ_VERSION: 7.3.0
