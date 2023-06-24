@@ -123,6 +123,7 @@ from typing import overload
 
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
+from typing_extensions import override
 
 
 import schema
@@ -190,6 +191,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
         """
         self._delegate = tuple(self._delegate)
 
+    @override
     def __contains__(self, key: object, /) -> bool:
         """Returns whether this list contains an object.
 
@@ -206,6 +208,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
     def __delitem__(self, index: slice, /) -> None:
         ...
 
+    @override
     def __delitem__(self, index: int | slice, /) -> None:
         """Deletes the element(s) at an index or range of indices.
 
@@ -230,6 +233,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
     def __getitem__(self, index: slice, /) -> MutableSequence[_T]:
         ...
 
+    @override
     def __getitem__(self, index: int | slice, /) -> _T | MutableSequence[_T]:
         """Returns the element(s) at an index or range of indices.
 
@@ -246,11 +250,13 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
             case slice():
                 return self._delegate[index] if isinstance(self._delegate, MutableSequence) else [*self._delegate[index]]
 
+    @override
     def __iter__(self) -> Iterator[_T]:
         """Returns an iterator over this list.
         """
         return iter(self._delegate)
 
+    @override
     def __len__(self) -> int:
         """Returns the length of this list.
         """
@@ -264,6 +270,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
     def __setitem__(self, index: slice, object: Iterable[_T], /) -> None:
         ...
 
+    @override
     def __setitem__(self, index: int | slice, object: _T | Iterable[_T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
@@ -281,6 +288,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
         else:
             raise ValueError('Modifying a frozen list') from None
 
+    @override
     def insert(self, index: int, object: _T, /) -> None:
         """Inserts something into this list.
 
@@ -297,6 +305,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
         else:
             raise ValueError('Modifying a frozen list') from None
 
+    @override
     def append(self, object: _T, /) -> None:
         """Appends something to this list.
 
@@ -311,6 +320,7 @@ class _FreezableList(Generic[_T], MutableSequence[_T]):
         else:
             raise ValueError('Appending to a frozen list') from None
 
+    @override
     def extend(self, iterable: Iterable[_T], /) -> None:
         """Extends this list.
 

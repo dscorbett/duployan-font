@@ -70,6 +70,7 @@ from typing import overload
 
 
 import fontTools.subset
+from typing_extensions import override
 import uharfbuzz
 
 
@@ -613,6 +614,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
         assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'
         return key if is_global else self._prefix + key
 
+    @override
     def __getitem__(self, key: str, /) -> _T:
         """Returns the item associated with a prefixed key.
 
@@ -621,6 +623,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
         """
         return self._delegate[self._prefixed(key)]
 
+    @override
     def __setitem__(self, key: str, value: _T, /) -> None:
         """Maps a prefixed key to a value.
 
@@ -630,6 +633,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
         """
         self._delegate[self._prefixed(key)] = value
 
+    @override
     def __delitem__(self, key: str, /) -> None:
         """Deletes an entry from this mapping.
 
@@ -641,6 +645,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
         """
         del self._delegate[self._prefixed(key)]
 
+    @override
     def __contains__(self, item: object, /) -> bool:
         """Returns whether a prefixed key is mapped to a value.
 
@@ -649,14 +654,18 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
         """
         return isinstance(item, str) and self._prefixed(item) in self._delegate
 
+    @override
     def __iter__(self, /) -> Iterator[str]:
         return iter(self._delegate)
 
+    @override
     def __len__(self, /) -> int:
         return len(self._delegate)
 
+    @override
     def keys(self) -> KeysView[str]:
         return self._delegate.keys()
 
+    @override
     def items(self) -> ItemsView[str, _T]:
         return self._delegate.items()

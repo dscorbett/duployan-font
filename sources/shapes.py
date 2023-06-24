@@ -91,6 +91,7 @@ from typing import cast
 
 import fontTools.misc.transform
 import fontforge
+from typing_extensions import override
 
 
 import anchors
@@ -339,6 +340,7 @@ class ContextMarker(Shape):
         context: The context this marker represents.
     """
 
+    @override
     def __init__(
         self,
         is_context_in: bool,
@@ -353,6 +355,7 @@ class ContextMarker(Shape):
         self.is_context_in: Final = is_context_in
         self.context: Final = context
 
+    @override
     def clone(
         self,
         *,
@@ -364,6 +367,7 @@ class ContextMarker(Shape):
             self.context if context is CLONE_DEFAULT else context,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 'in' if self.is_context_in else 'out'
@@ -372,15 +376,19 @@ class ContextMarker(Shape):
             }'''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return self.get_name(0, Type.ORIENTING)
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -396,16 +404,20 @@ class Dummy(Shape):
     # Consider deleting glyphs instead of using `Dummy`. `Dummy` might
     # still be more efficient in some cases.
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -414,16 +426,20 @@ class Start(Shape):
     """The start of a cursively joined sequence.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'START'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -441,6 +457,7 @@ class Start(Shape):
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -468,6 +485,7 @@ class Hub(Shape):
             secant. This determines which set of cursive anchors to use.
     """
 
+    @override
     def __init__(
         self,
         priority: int,
@@ -483,6 +501,7 @@ class Hub(Shape):
         self.priority: Final = priority
         self.initial_secant: Final = initial_secant
 
+    @override
     def clone(
         self,
         *,
@@ -494,16 +513,20 @@ class Hub(Shape):
             initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'HUB.{self.priority}{"s" if self.initial_secant else ""}'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -526,6 +549,7 @@ class Hub(Shape):
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -534,16 +558,20 @@ class End(Shape):
     """The end of a cursively joined sequence.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'END'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -552,16 +580,20 @@ class Carry(Shape):
     """A marker for the carry digit 1 when adding width digits.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'c'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -595,6 +627,7 @@ class EntryWidthDigit(Shape):
         digit: The digit’s value.
     """
 
+    @override
     def __init__(self, place: int, digit: int) -> None:
         """Initializes this `EntryWidthDigit`.
 
@@ -605,16 +638,20 @@ class EntryWidthDigit(Shape):
         self.place: Final = place
         self.digit: Final = digit
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'idx.{self.digit}e{self.place}'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -632,6 +669,7 @@ class LeftBoundDigit(Shape):
         status: What stage of calculating the width a digit is in.
     """
 
+    @override
     def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
         """Initializes this `LeftBoundDigit`.
 
@@ -644,6 +682,7 @@ class LeftBoundDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "LDX" if self.status == DigitStatus.DONE else "ldx"
@@ -652,12 +691,15 @@ class LeftBoundDigit(Shape):
             }{self.place}'''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
@@ -675,6 +717,7 @@ class RightBoundDigit(Shape):
         status: What stage of calculating the width a digit is in.
     """
 
+    @override
     def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
         """Initializes this `RightBoundDigit`.
 
@@ -687,6 +730,7 @@ class RightBoundDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "RDX" if self.status == DigitStatus.DONE else "rdx"
@@ -695,12 +739,15 @@ class RightBoundDigit(Shape):
             }{self.place}'''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -719,6 +766,7 @@ class RightBoundDigit(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
@@ -736,6 +784,7 @@ class AnchorWidthDigit(Shape):
         status: What stage of calculating the width a digit is in.
     """
 
+    @override
     def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
         """Initializes this `AnchorWidthDigit`.
 
@@ -748,6 +797,7 @@ class AnchorWidthDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 "ADX" if self.status == DigitStatus.DONE else "adx"
@@ -756,12 +806,15 @@ class AnchorWidthDigit(Shape):
             }{self.place}'''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
@@ -781,6 +834,7 @@ class WidthNumber(Shape, Generic[_D]):
         width: The x distance.
     """
 
+    @override
     def __init__(
         self,
         digit_path: type[_D],
@@ -795,18 +849,22 @@ class WidthNumber(Shape, Generic[_D]):
         self.digit_path: Final = digit_path
         self.width: Final = width
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 'ilra'[[EntryWidthDigit, LeftBoundDigit, RightBoundDigit, AnchorWidthDigit].index(self.digit_path)]
             }dx.{self.width}'''.replace('-', 'n')
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -843,6 +901,7 @@ class MarkAnchorSelector(Shape):
         anchor: The anchor.
     """
 
+    @override
     def __init__(self, anchor: str) -> None:
         """Initializes this `MarkAnchorSelector`.
 
@@ -851,16 +910,20 @@ class MarkAnchorSelector(Shape):
         """
         self.anchor: Final = anchor
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'anchor.{self.anchor}'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -872,6 +935,7 @@ class GlyphClassSelector(Shape):
         glyph_class: The glyph class.
     """
 
+    @override
     def __init__(self, glyph_class: GlyphClass) -> None:
         """Initializes this `GlyphClassSelector`.
 
@@ -880,16 +944,20 @@ class GlyphClassSelector(Shape):
         """
         self.glyph_class: Final = glyph_class
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'gc.{self.glyph_class.name}'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -898,19 +966,24 @@ class InitialSecantMarker(Shape):
     """A marker inserted after an initial secant.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'SECANT'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -919,19 +992,24 @@ class Notdef(Shape):
     """The shape of the .notdef glyph.
     """
 
+    @override
     def clone(self) -> Self:
         return self
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'notdef'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -957,6 +1035,7 @@ class Notdef(Shape):
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -972,6 +1051,7 @@ class Space(Shape):
             the glyph. Each margin is 1 stroke width wide.
     """
 
+    @override
     def __init__(
         self,
         angle: float,
@@ -987,6 +1067,7 @@ class Space(Shape):
         self.angle: Final = angle
         self.margins: Final = margins
 
+    @override
     def clone(
         self,
         *,
@@ -998,6 +1079,7 @@ class Space(Shape):
             margins=self.margins if margins is CLONE_DEFAULT else margins,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.angle % 180 == 90:
             return ''
@@ -1008,18 +1090,22 @@ class Space(Shape):
             }'''.replace('-', 'n')
 
 
+    @override
     def group(self) -> Hashable:
         return (
             self.angle,
             self.margins,
         )
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def hub_priority(self, size: float) -> int:
         return 0 if self.angle % 180 == 90 else -1
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1047,12 +1133,15 @@ class Space(Shape):
             )
         return None
 
+    @override
     def is_pseudo_cursive(self, size: float) -> bool:
         return bool(size) and self.hub_priority(size) == -1
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
 
@@ -1064,15 +1153,19 @@ class Bound(Shape):
     The glyph is two squares, one on the baseline and on at cap height.
     """
 
+    @override
     def clone(self) -> Self:
         return self
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1096,6 +1189,7 @@ class Bound(Shape):
         glyph.stroke('caligraphic', stroke_width, stroke_width, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -1108,19 +1202,24 @@ class ValidDTLS(Shape):
     follows a character) and the preceding character supports shading.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -1143,6 +1242,7 @@ class ChildEdge(Shape):
             F has the lineage ``[(2, 3), (1, 1), (1, 2)]``.
     """
 
+    @override
     def __init__(self, lineage: Sequence[tuple[int, int]]) -> None:
         """Initializes this `ChildEdge`.
 
@@ -1152,6 +1252,7 @@ class ChildEdge(Shape):
         assert lineage, 'A lineage may not be empty'
         self.lineage: Final = lineage
 
+    @override
     def clone(
         self,
         *,
@@ -1161,6 +1262,7 @@ class ChildEdge(Shape):
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''{
                 '_'.join(str(x[0]) for x in self.lineage)
@@ -1168,12 +1270,15 @@ class ChildEdge(Shape):
                 '_' if len(self.lineage) == 1 else '_'.join(str(x[1]) for x in self.lineage[:-1])
             }'''
 
+    @override
     def group(self) -> Hashable:
         return self.get_name(0, Type.ORIENTING)
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1194,6 +1299,7 @@ class ChildEdge(Shape):
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -1208,18 +1314,23 @@ class ContinuingOverlapS(Shape):
     initial secant character.
     """
 
+    @override
     def clone(self) -> Self:
         return type(self)()
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return ''
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -1240,6 +1351,7 @@ class ParentEdge(Shape):
             empty, it represents the root of a tree.
     """
 
+    @override
     def __init__(self, lineage: Sequence[tuple[int, int]]) -> None:
         """Initializes this `ParentEdge`.
 
@@ -1248,6 +1360,7 @@ class ParentEdge(Shape):
         """
         self.lineage: Final = lineage
 
+    @override
     def clone(
         self,
         *,
@@ -1257,6 +1370,7 @@ class ParentEdge(Shape):
             self.lineage if lineage is CLONE_DEFAULT else lineage,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'''pe.{
                 '_'.join(str(x[0]) for x in self.lineage) if self.lineage else '0'
@@ -1265,15 +1379,19 @@ class ParentEdge(Shape):
             }'''
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return self.get_name(0, Type.ORIENTING)
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1295,6 +1413,7 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
         return None
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -1304,19 +1423,24 @@ class RootOnlyParentEdge(Shape):
     tree, not a child.
     """
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return 'pe'
 
     @staticmethod
+    @override
     def name_implies_type() -> bool:
         return True
 
+    @override
     def group(self) -> Hashable:
         return ()
 
+    @override
     def invisible(self) -> bool:
         return True
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
@@ -1338,6 +1462,7 @@ class Dot(Shape):
     #: the ``size_exponent`` attribute.
     SCALAR: ClassVar[float] = 2 ** 0.5
 
+    @override
     def __init__(
         self,
         size_exponent: float = 1,
@@ -1353,6 +1478,7 @@ class Dot(Shape):
         self.size_exponent: Final = size_exponent
         self.centered: Final = centered
 
+    @override
     def clone(
         self,
         *,
@@ -1364,18 +1490,22 @@ class Dot(Shape):
             centered=self.centered if centered is CLONE_DEFAULT else centered,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         return f'{int(self.size_exponent)}'
 
+    @override
     def group(self) -> Hashable:
         return (
             self.centered,
             self.size_exponent,
         )
 
+    @override
     def hub_priority(self, size: float) -> int:
         return -1
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1403,15 +1533,19 @@ class Dot(Shape):
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
         return None
 
+    @override
     def is_pseudo_cursive(self, size: float) -> bool:
         return True
 
+    @override
     def is_shadable(self) -> bool:
         return True
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
 
@@ -1440,6 +1574,7 @@ class Line(Shape):
             this shape is derived through some number of phases.
     """
 
+    @override
     def __init__(
         self,
         angle: float,
@@ -1470,6 +1605,7 @@ class Line(Shape):
         self.dots: Final = dots
         self.original_angle: Final = original_angle
 
+    @override
     def clone(
         self,
         *,
@@ -1491,6 +1627,7 @@ class Line(Shape):
             original_angle=self.original_angle if original_angle is CLONE_DEFAULT else original_angle,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.dots or not self.stretchy and joining_type == Type.ORIENTING:
             s = str(int(self.angle))
@@ -1499,6 +1636,7 @@ class Line(Shape):
             return s
         return ''
 
+    @override
     def group(self) -> Hashable:
         return (
             self.angle,
@@ -1509,9 +1647,11 @@ class Line(Shape):
             self.original_angle if self.original_angle != self.angle else None,
         )
 
+    @override
     def can_take_secant(self) -> bool:
         return True
 
+    @override
     def hub_priority(self, size: float) -> int:
         if self.dots:
             return 0
@@ -1543,6 +1683,7 @@ class Line(Shape):
             length_denominator = 1
         return int(LINE_FACTOR * size / length_denominator)
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1629,15 +1770,19 @@ class Line(Shape):
                     glyph.transform(fontTools.misc.transform.Offset(y=-y_offset - LINE_FACTOR + stroke_width / 2))
         return None
 
+    @override
     def fixed_y(self) -> bool:
         return self.secant is not None and self.angle % 90 == 0
 
+    @override
     def can_be_child(self, size: float) -> bool:
         return not (self.secant or self.dots)
 
+    @override
     def max_tree_width(self, size: float) -> int:
         return 2 if size == 2 and not self.secant else 1
 
+    @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return (0
             if self.secant or any(
@@ -1645,6 +1790,7 @@ class Line(Shape):
                     for m in marks
             ) else int(self._get_length(size) // (250 * 0.45)) - 1)
 
+    @override
     def is_shadable(self) -> bool:
         return not self.dots
 
@@ -1665,6 +1811,7 @@ class Line(Shape):
         """
         return lambda c: c.clone(angle=angle)
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if self.secant:
             if context_out != NO_CONTEXT:
@@ -1684,10 +1831,12 @@ class Line(Shape):
                 return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
         return self
 
+    @override
     def context_in(self) -> Context:
         # FIXME: This should use the current angle, not the original angle.
         return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
 
+    @override
     def context_out(self) -> Context:
         # FIXME: This should use the current angle, not the original angle.
         return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
@@ -1725,6 +1874,7 @@ class Line(Shape):
             angle = (self.angle + new_da) % 360
         return self.clone(angle=angle)
 
+    @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
         angle = float(self.angle % 180)
         return {
@@ -1797,6 +1947,7 @@ class Curve(Shape):
             be ``True`` if `would_flip` is also ``True``.
     """
 
+    @override
     def __init__(
         self,
         angle_in: float,
@@ -1845,6 +1996,7 @@ class Curve(Shape):
         self.would_flip: Final = would_flip
         self.early_exit: Final = early_exit
 
+    @override
     def clone(
         self,
         *,
@@ -1876,6 +2028,7 @@ class Curve(Shape):
             early_exit=self.early_exit if early_exit is CLONE_DEFAULT else early_exit,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.overlap_angle is not None:
             return f'{int(self.overlap_angle)}'
@@ -1893,6 +2046,7 @@ class Curve(Shape):
                 '.ee' if self.early_exit else ''
             }'''
 
+    @override
     def group(self) -> Hashable:
         if self.stretch:
             long = self.long
@@ -1920,9 +2074,11 @@ class Curve(Shape):
             self.early_exit,
         )
 
+    @override
     def can_take_secant(self) -> bool:
         return True
 
+    @override
     def hub_priority(self, size: float) -> int:
         return 0 if size >= 6 else 1
 
@@ -2011,6 +2167,7 @@ class Curve(Shape):
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -2155,19 +2312,23 @@ class Curve(Shape):
                 glyph.addAnchorPoint(anchor, 'mark', *_rect(r, math.radians(relative_mark_angle)))
         return None
 
+    @override
     def can_be_child(self, size: float) -> bool:
         a1, a2 = self.get_normalized_angles()
         return abs(a2 - a1) <= 180
 
+    @override
     def max_tree_width(self, size: float) -> int:
         return 1
 
+    @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         if any(m.anchor == anchors.MIDDLE for m in marks):
             return 0
         a1, a2 = self.get_normalized_angles()
         return min(3, int(abs(a1 - a2) / 360 * size))
 
+    @override
     def is_shadable(self) -> bool:
         return True
 
@@ -2189,6 +2350,7 @@ class Curve(Shape):
             return start <= key <= stop
         return start <= key or key <= stop
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         angle_in = context_in.angle
         angle_out = context_out.angle
@@ -2296,12 +2458,15 @@ class Curve(Shape):
             would_flip=would_flip,
         )
 
+    @override
     def context_in(self) -> Context:
         return Context(self.angle_in, self.clockwise)
 
+    @override
     def context_out(self) -> Context:
         return Context(self.angle_out, self.clockwise)
 
+    @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
         halfway_angle = (self.angle_in + self.angle_out) / 2 % 180
         return {
@@ -2365,6 +2530,7 @@ class Circle(Shape):
         role: The role of this circle in its orienting sequence.
     """
 
+    @override
     def __init__(
         self,
         angle_in: float,
@@ -2398,6 +2564,7 @@ class Circle(Shape):
         self.long: Final = long
         self.role: Final = role
 
+    @override
     def clone(
         self,
         *,
@@ -2421,6 +2588,7 @@ class Circle(Shape):
             role=self.role if role is CLONE_DEFAULT else role,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if joining_type != Type.ORIENTING:
             return ''
@@ -2443,6 +2611,7 @@ class Circle(Shape):
                 '.circle' if self.role != CircleRole.INDEPENDENT and self.angle_in != self.angle_out else ''
             }'''
 
+    @override
     def group(self) -> Hashable:
         angle_in = self.angle_in
         angle_out = self.angle_out
@@ -2456,12 +2625,15 @@ class Circle(Shape):
             self.long,
         )
 
+    @override
     def can_take_secant(self) -> bool:
         return True
 
+    @override
     def hub_priority(self, size: float) -> int:
         return 0 if size >= 6 else 1
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -2570,15 +2742,19 @@ class Circle(Shape):
         glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
         return None
 
+    @override
     def can_be_child(self, size: float) -> bool:
         return True
 
+    @override
     def max_tree_width(self, size: float) -> int:
         return 0
 
+    @override
     def is_shadable(self) -> bool:
         return True
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         angle_in = context_in.angle
         angle_out = context_out.angle
@@ -2717,9 +2893,11 @@ class Circle(Shape):
                         long=True,
                     )
 
+    @override
     def context_in(self) -> Context:
         return Context(self.angle_in, self.clockwise)
 
+    @override
     def context_out(self) -> Context:
         return Context(self.angle_out, self.clockwise)
 
@@ -2810,6 +2988,7 @@ class Complex(Shape):
             callable that returns the width given the schema’s size.
     """
 
+    @override
     def __init__(
         self,
         instructions: Instructions,
@@ -2830,6 +3009,7 @@ class Complex(Shape):
         self.maximum_tree_width: Final = maximum_tree_width
         self._final_rotation: Final = _final_rotation
 
+    @override
     def clone(
         self,
         *,
@@ -2845,6 +3025,7 @@ class Complex(Shape):
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self._final_rotation:
             return str(int(self._final_rotation))
@@ -2860,6 +3041,7 @@ class Complex(Shape):
             assert not callable(op)
         return op.shape.get_name(size, joining_type)
 
+    @override
     def group(self) -> Hashable:
         return (
             *(op if callable(op) else (op.size, op.shape.group(), op[2:]) for op in self.instructions),
@@ -2883,6 +3065,7 @@ class Complex(Shape):
                     return None
         return base_component
 
+    @override
     def can_take_secant(self) -> bool:
         if self._base_component is not None and all(
             callable(op)
@@ -2895,6 +3078,7 @@ class Complex(Shape):
             return self._base_component.can_take_secant()
         return False
 
+    @override
     def hub_priority(self, size: float) -> int:
         first_scalar, first_component, *_ = next(op for op in self.instructions if not (callable(op) or op.shape.invisible()))
         return first_component.hub_priority(first_scalar * size)
@@ -3166,6 +3350,7 @@ class Complex(Shape):
         """
         return True
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -3234,6 +3419,7 @@ class Complex(Shape):
             glyph.addAnchorPoint(mkmk(anchor), 'basemark', x_center, y_min - (stroke_width / 2 + stroke_gap + light_line / 2))
         return effective_bounding_box
 
+    @override
     def fixed_y(self) -> bool:
         for op in self.instructions:
             if callable(op):
@@ -3241,20 +3427,25 @@ class Complex(Shape):
             return op.shape.invisible()
         return False
 
+    @override
     def can_be_child(self, size: float) -> bool:
         return self._base_component is not None and self._base_component.can_be_child(size)
 
+    @override
     def max_tree_width(self, size: float) -> int:
         return self.maximum_tree_width(size) if callable(self.maximum_tree_width) else self.maximum_tree_width
 
+    @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         if self._base_component is not None:
             return self._base_component.max_double_marks(size, joining_type, marks)
         return super().max_double_marks(size, joining_type, marks)
 
+    @override
     def is_shadable(self) -> bool:
         return all(callable(op) or op.shape.is_shadable() for op in self.instructions)
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         instructions: MutableSequence[_Instruction] = []
         initial_hook = context_in == NO_CONTEXT and self.hook
@@ -3311,12 +3502,15 @@ class Complex(Shape):
             instructions.reverse()
         return self.clone(instructions=instructions)
 
+    @override
     def context_in(self) -> Context:
         return next(op for op in self.instructions if not callable(op))[1].context_in()
 
+    @override
     def context_out(self) -> Context:
         return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
+    @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
         if self._base_component is not None:
             return self._base_component.calculate_diacritic_angles()
@@ -3332,12 +3526,15 @@ class InvalidDTLS(Complex):
     """An invalid instance of U+1BC9D DUPLOYAN THICK LETTER SELECTOR.
     """
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -3350,6 +3547,7 @@ class InvalidOverlap(Complex):
         continuing: Whether this is an instance of U+1BCA1.
     """
 
+    @override
     def __init__(
         self,
         *,
@@ -3365,6 +3563,7 @@ class InvalidOverlap(Complex):
         super().__init__(instructions)
         self.continuing: Final = continuing
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3376,6 +3575,7 @@ class InvalidOverlap(Complex):
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
+    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -3389,6 +3589,7 @@ class InvalidStep(Complex):
             valid.
     """
 
+    @override
     def __init__(
         self,
         angle: float,
@@ -3403,6 +3604,7 @@ class InvalidStep(Complex):
         super().__init__(instructions)
         self.angle: Final = angle
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3414,12 +3616,15 @@ class InvalidStep(Complex):
             self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         return Space(self.angle, margins=True)
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
 
@@ -3428,6 +3633,7 @@ class RomanianU(Complex):
     """U+1BC56 DUPLOYAN LETTER ROMANIAN U.
     """
 
+    @override
     def draw_to_proxy(
         self,
         glyph: fontforge.glyph,
@@ -3440,6 +3646,7 @@ class RomanianU(Complex):
         singular_anchor_points[(anchors.RELATIVE_1, 'base')] = singular_anchor_points[(anchors.CURSIVE, 'exit')]
         return effective_bounding_box, singular_anchor_points
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
             return super().contextualize(context_in, context_out)
@@ -3453,6 +3660,7 @@ class Ou(Complex):
         role: The role of this shape in its orienting sequence.
     """
 
+    @override
     def __init__(
         self,
         instructions: Instructions,
@@ -3471,6 +3679,7 @@ class Ou(Complex):
         self._initial: Final = _initial
         self._isolated: Final = _isolated
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3486,6 +3695,7 @@ class Ou(Complex):
             self._isolated if _isolated is CLONE_DEFAULT else _isolated,
         )
 
+    @override
     def get_name(self, size: float, joining_type: Type) -> str:
         circle_op = self.instructions[2 if self._initial and self.role == CircleRole.LEADER else 0]
         assert not callable(circle_op)
@@ -3494,6 +3704,7 @@ class Ou(Complex):
             rv += '.open'
         return rv
 
+    @override
     def group(self) -> Hashable:
         leader = self.role == CircleRole.LEADER and not self._isolated
         return (
@@ -3502,6 +3713,7 @@ class Ou(Complex):
             leader and self._initial,
         )
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -3574,15 +3786,18 @@ class Ou(Complex):
             diphthong_2,
         )
 
+    @override
     def can_be_child(self, size: float) -> bool:
         return True
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         return super().contextualize(context_in, context_out).clone(  # type: ignore[call-arg]
             _initial=self._initial or context_in == NO_CONTEXT,
             _isolated=False,
         )
 
+    @override
     def context_in(self) -> Context:
         if self._initial:
             rv = super().context_out()
@@ -3590,6 +3805,7 @@ class Ou(Complex):
             return rv.clone(angle=(rv.angle + 180) % 360)
         return super().context_in()
 
+    @override
     def context_out(self) -> Context:
         if self._isolated:
             return super().context_out()
@@ -3631,6 +3847,7 @@ class SeparateAffix(Complex):
             encoding model may not be appropriate.
     """
 
+    @override
     def __init__(
         self,
         instructions: Instructions,
@@ -3649,6 +3866,7 @@ class SeparateAffix(Complex):
         self.low: Final = low
         self.tight: Final = tight
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3662,6 +3880,7 @@ class SeparateAffix(Complex):
             tight=self.tight if tight is CLONE_DEFAULT else tight,
         )
 
+    @override
     def group(self) -> Hashable:
         return (
             super().group(),
@@ -3669,12 +3888,15 @@ class SeparateAffix(Complex):
             self.tight,
         )
 
+    @override
     def can_take_secant(self) -> bool:
         return False
 
+    @override
     def hub_priority(self, size: float) -> int:
         return -1
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -3713,24 +3935,31 @@ class SeparateAffix(Complex):
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', exit_x, 0)
         return effective_bounding_box
 
+    @override
     def fixed_y(self) -> bool:
         return True
 
+    @override
     def can_be_child(self, size: float) -> bool:
         return False
 
+    @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return 0
 
+    @override
     def is_pseudo_cursive(self, size: float) -> bool:
         return True
 
+    @override
     def is_shadable(self) -> bool:
         return False
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
 
@@ -3742,6 +3971,7 @@ class Wa(Complex):
     components must be `Circle`\ s.
     """
 
+    @override
     def __init__(
         self,
         instructions: Instructions,
@@ -3753,6 +3983,7 @@ class Wa(Complex):
         """
         super().__init__(instructions)
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3762,6 +3993,7 @@ class Wa(Complex):
             self.instructions if instructions is CLONE_DEFAULT else instructions,
         )
 
+    @override
     def draw_to_proxy(
         self,
         glyph: fontforge.glyph,
@@ -3823,9 +4055,11 @@ class Wa(Complex):
             proxy.draw(pen)
         return None, singular_anchor_points
 
+    @override
     def enter_on_first_path(self) -> bool:
         return False
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         context_in = context_in.clone(ignorable_for_topography=False)
         context_out = context_out.clone(ignorable_for_topography=False)
@@ -3872,6 +4106,7 @@ class Wi(Complex):
     contain at least one `Curve` component.
     """
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if context_in != NO_CONTEXT or context_out == NO_CONTEXT:
             curve_index = next(i for i, op in enumerate(self.instructions) if not callable(op) and not isinstance(op.shape, Circle))
@@ -3934,6 +4169,7 @@ class TangentHook(Complex):
     """U+1BC7C DUPLOYAN AFFIX ATTACHED TANGENT HOOK.
     """
 
+    @override
     def __init__(
         self,
         instructions: Instructions,
@@ -3966,6 +4202,7 @@ class TangentHook(Complex):
             90 < c.angle < 315,
         )
 
+    @override
     def clone(  # type: ignore[override]
         self,
         *,
@@ -3977,6 +4214,7 @@ class TangentHook(Complex):
             _initial=self._initial if _initial is CLONE_DEFAULT else _initial,
         )
 
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if context_in == NO_CONTEXT != context_out and not self._initial:
             assert not callable(self.instructions[1])
@@ -4006,9 +4244,11 @@ class XShape(Complex):
     """U+1BC01 DUPLOYAN LETTER X.
     """
 
+    @override
     def hub_priority(self, size: float) -> int:
         return 1
 
+    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -4045,11 +4285,14 @@ class XShape(Complex):
         glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', x_avg, y_avg)
         return effective_bounding_box
 
+    @override
     def is_pseudo_cursive(self, size: float) -> bool:
         return True
 
+    @override
     def context_in(self) -> Context:
         return NO_CONTEXT
 
+    @override
     def context_out(self) -> Context:
         return NO_CONTEXT
