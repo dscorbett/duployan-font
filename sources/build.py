@@ -23,12 +23,12 @@ import os
 import re
 import subprocess
 import tempfile
-from typing import Any
 
 import fontforge
 import fontTools.cffLib
 import fontTools.misc.timeTools
 import fontTools.ttLib
+import fontTools.ttLib.tables._n_a_m_e
 import fontTools.ttLib.ttFont
 
 import copy_metrics
@@ -75,7 +75,7 @@ def generate_feature_string(font: fontforge.font, lookup: str) -> str:
         return fea_file.read().decode('utf-8')
 
 
-def filter_map_name(name: Any) -> Any:
+def filter_map_name(name: fontTools.ttLib.tables._n_a_m_e.NameRecord) -> fontTools.ttLib.tables._n_a_m_e.NameRecord | None:
     if name.platformID != 3 or name.platEncID != 1:
         return None
     if isinstance(name.string, bytes):
@@ -86,7 +86,7 @@ def filter_map_name(name: Any) -> Any:
     return name
 
 
-def set_subfamily_name(names: Collection[Any], bold: bool) -> None:
+def set_subfamily_name(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], bold: bool) -> None:
     for name in names:
         if name.nameID == 1:
             family_name = name.string
@@ -102,7 +102,7 @@ def set_subfamily_name(names: Collection[Any], bold: bool) -> None:
     postscript_name_record.string += f'-{subfamily_name_record.string}'
 
 
-def set_unique_id(names: Collection[Any], vendor: str) -> None:
+def set_unique_id(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], vendor: str) -> None:
     for name in names:
         if name.nameID == 3:
             unique_id_record = name
@@ -162,7 +162,7 @@ def set_version(
                 break
 
 
-def set_cff_data(names: Collection[Any], cff: fontTools.cffLib.CFFFontSet) -> None:
+def set_cff_data(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], cff: fontTools.cffLib.CFFFontSet) -> None:
     for name in names:
         if name.nameID == 0:
             cff[0].Copyright = name.string
