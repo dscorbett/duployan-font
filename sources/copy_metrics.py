@@ -19,12 +19,37 @@ import argparse
 
 
 __all__ = [
+    'cast_cff_number',
     'copy_metrics',
     'update_metrics',
 ]
 
 
+import fontTools.misc.psCharStrings
 import fontTools.ttLib.ttFont
+
+
+def cast_cff_number(number: float | int) -> float | int:
+    """Losslessly casts a number to the data type in which it uses the
+    fewest bytes in CFF.
+
+    Args:
+        number: A number. It must be representable in CFF as either an
+            integer or a real number.
+
+    Returns:
+        `number` as either a `float` or an `int`, whichever uses the
+        fewest bytes in CFF.
+    """
+    if isinstance(number, float) and not number.is_integer():
+        return number
+    f = float(number)
+    if isinstance(number, int) and not (-2 ** 31 <= number <= 2 ** 31 - 1):
+        return f
+    i = int(number)
+    if len(fontTools.misc.psCharStrings.encodeFloat(f)) < len(fontTools.misc.psCharStrings.encodeIntCFF(i)):
+        return f
+    return i
 
 
 def update_metrics(
@@ -42,6 +67,9 @@ def update_metrics(
     Args:
         tt_font: A font.
     """
+    if 'CFF ' in tt_font:
+        cff = tt_font['CFF '].cff[0]
+        cff.UnderlinePosition = cast_cff_number(-descent - cff.UnderlineThickness / 2)
     tt_font['OS/2'].sTypoAscender = ascent
     tt_font['OS/2'].sTypoDescender = -descent
     tt_font['OS/2'].usWinAscent = ascent

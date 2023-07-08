@@ -162,7 +162,11 @@ def set_version(
                 break
 
 
-def set_cff_data(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], cff: fontTools.cffLib.CFFFontSet) -> None:
+def set_cff_data(
+    names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord],
+    underline_thickness: float,
+    cff: fontTools.cffLib.CFFFontSet,
+) -> None:
     for name in names:
         if name.nameID == 0:
             cff[0].Copyright = name.string
@@ -178,6 +182,7 @@ def set_cff_data(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], 
             cff.fontNames[0] = name.string
         elif name.nameID == 7:
             cff[0].Notice = name.string
+    cff[0].UnderlineThickness = copy_metrics.cast_cff_number(underline_thickness)
 
 
 def add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
@@ -224,21 +229,21 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         elif 'CFF ' in tt_font:
             tt_font['CFF '].cff[0].Notice = ''
 
-        copy_metrics.update_metrics(
-            tt_font,
-            max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax),
-            max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin),
-        )
-        tt_font['OS/2'].yStrikeoutPosition = utils.STRIKEOUT_POSITION
-        tt_font['OS/2'].yStrikeoutSize = utils.REGULAR_LIGHT_LINE
-        tt_font['post'].underlineThickness = utils.REGULAR_LIGHT_LINE
+        tt_font['OS/2'].yStrikeoutPosition = round(utils.STRIKEOUT_POSITION)
+        tt_font['OS/2'].yStrikeoutSize = round(utils.REGULAR_LIGHT_LINE)
+        tt_font['post'].underlineThickness = round(utils.REGULAR_LIGHT_LINE)
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
         set_subfamily_name(tt_font['name'].names, options.bold)
         set_version(tt_font, options.noto, options.version, options.release, dirty)
         set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID)
         if 'CFF ' in tt_font:
-            set_cff_data(tt_font['name'].names, tt_font['CFF '].cff)
+            set_cff_data(tt_font['name'].names, tt_font['post'].underlineThickness, tt_font['CFF '].cff)
+        copy_metrics.update_metrics(
+            tt_font,
+            max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax),
+            max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin),
+        )
 
         add_meta(tt_font)
 
