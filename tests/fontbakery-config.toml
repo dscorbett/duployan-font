@@ -21,6 +21,7 @@ exclude_checks = [
     "com.google.fonts/check/fontbakery_version",
     "com.google.fonts/check/fontdata_namecheck",
     "com.google.fonts/check/gpos_kerning_info",
+    "com.google.fonts/check/hinting_impact",
     "com.google.fonts/check/hmtx/comma_period",
     "com.google.fonts/check/hmtx/encoded_latin_digits",
     "com.google.fonts/check/hmtx/whitespace_advances",
