@@ -143,7 +143,7 @@ class Builder:
         h = Dot()
         exclamation = Complex([(0, Dot(1, centered=True)), (188, Space(90)), (1.109, Line(90))])
         inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].as_reversed())])  # type: ignore[call-arg, index, union-attr]
-        dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
+        dollar = Complex([(2.58, Curve(180 - 18, 180 + 26, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(180 + 26, 360 - 8, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.0995, Line(360 - 8)), (2.88, Curve(360 - 8, 180 + 26, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(180 + 26, 180 - 18, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (173.416, Space(328.952), False, True), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
         percent = Complex([(2.3, Curve(315, 315, clockwise=True, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE)), (2.3, Curve(315, 45, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.087757, Line(60), True), (1.463514, Line(240)), (0.087757, Line(60), True), (2.3, Curve(45, 315, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE), True), (2.3, Curve(315, 315, clockwise=False, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE))])
         parenthesis_angle = 62.68
         left_parenthesis = Complex([(1, Curve(180 + parenthesis_angle, 360 - parenthesis_angle, clockwise=False))])
@@ -742,7 +742,10 @@ class Builder:
                 0,
             )
             glyph.transform(fontTools.misc.transform.Offset(-entry_x, 0))
-        x_min, y_min, x_max, y_max = effective_bounding_box or glyph.boundingBox()
+        true_bounding_box = glyph.boundingBox()
+        _, true_y_min, _, true_y_max = true_bounding_box
+        x_min, y_min, x_max, y_max = effective_bounding_box or true_bounding_box
+        y_proportion_below_min = (y_min - true_y_min) / (true_y_max - true_y_min) if true_y_max != true_y_min else 0
         if not schema.path.fixed_y() and y_min != y_max:
             if schema.y_min is not None:
                 if schema.y_max is not None:
@@ -756,8 +759,8 @@ class Builder:
                             glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
                                 .scale(desired_height / actual_height)
                             )
-                    _, y_min, _, _ = glyph.boundingBox()
-                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
+                    _, y_min, _, y_max = glyph.boundingBox()
+                    glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min - y_proportion_below_min * (y_max - y_min)))
                 else:
                     glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min))
             elif schema.y_max is not None:
