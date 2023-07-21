@@ -37,6 +37,7 @@ EC1C 1BC58::[uniEC1C.reversed_s@0,0|u1BC57.uh.90n90@0,0|dupl_.Dot.0.rel1@100,300
 1BC02 1BC58 1BC1A::[u1BC02.p@200,0|u1BC57.uh.270n0@0,-300|dupl_.Dot.0.rel1@100,0|u1BC1A.n@100,-420|_@640,0]
 1BC02 1BC58 1BC1B::[u1BC02.p@200,0|u1BC57.uh.270n90@0,-300|dupl_.Dot.0.rel1@100,0|u1BC1B.j@0,0|_@960,0]
 1BC02 1BC58 1BC1C::[u1BC02.p@0,0|u1BC57.uh.90n90@0,-300|dupl_.Dot.0.rel1@100,0|u1BC1C.s@0,-300|_@960,0]
+1BC04 1BC58 1BC05::[u1BC04.f@77,0|u1BC57.uh.300p240@288,-215|dupl_.Dot.0.rel1@452,50|u1BC05.k@0,-205|_@865,0]
 EC19 1BC58 1BC02::[uniEC19.reversed_m@0,0|u1BC57.uh.0p270@0,720|dupl_.Dot.0.rel1@300,820|u1BC02.p@0,320|_@840,0]
 EC19 1BC58 EC19::[uniEC19.reversed_m@0,0|u1BC57.uh.0n180@300,520|dupl_.Dot.0.rel1@300,620|uniEC19.reversed_m@0,520|_@840,0]
 EC19 1BC58 EC1A::[uniEC19.reversed_m@0,0|u1BC57.uh.0n0@0,520|dupl_.Dot.0.rel1@300,620|u1BC79.tail@300,720|_@840,0]

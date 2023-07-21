@@ -41,6 +41,6 @@
 1BC08 1BCA0 1BCA1 1BC02 1BC02::[u1BC08.d@0,0|u1BCA0.letter_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC02.p@3496,0|u1BC02.p@3736,0|_@3976,0]
 
 # Numbers
-0031 2044 0032::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|_@951,0]
-0032:--features sups:[two.sups@0,0|_@450,0]
+0031 2044 0032::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|_@953,0]
+0032:--features sups:[two.sups@0,0|_@452,0]
 0033:--features subs:[three.subs@0,0|_@461,0]
