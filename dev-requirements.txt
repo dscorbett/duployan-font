@@ -25,17 +25,13 @@ attrs==23.1.0
 axisregistry==0.4.3
     # via fontbakery
 babelfont==3.0.1
-    # via
-    #   collidoscope
-    #   glyphtools
+    # via collidoscope
 beautifulsoup4==4.12.2
     # via fontbakery
 beziers==0.5.0
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-    #   fontfeatures
-    #   glyphtools
 booleanoperations==0.9.0
     # via ufo2ft
 build==0.10.0
@@ -50,7 +46,7 @@ cffsubr==0.2.9.post1
     #   ufo2ft
 charset-normalizer==3.2.0
     # via requests
-click==8.1.4
+click==8.1.6
     # via pip-tools
 cmarkgfm==2022.10.27
     # via fontbakery
@@ -70,7 +66,7 @@ font-v==2.1.0
     # via fontbakery
 fontbakery[freetype]==0.8.13
     # via -r dev-requirements.in
-fontfeatures==1.7.4
+fontfeatures==1.8.0
     # via babelfont
 fonttools[lxml,repacker,ufo,unicode]==4.40.0
     # via
@@ -113,9 +109,6 @@ glyphslib==6.2.5
     # via
     #   babelfont
     #   glyphsets
-    #   glyphtools
-glyphtools==0.8.0
-    # via fontfeatures
 idna==3.4
     # via requests
 kurbopy==0.9.0
@@ -135,8 +128,6 @@ mypy==1.4.1
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
-numpy==1.25.1
-    # via glyphtools
 openstep-plist==0.3.0.post1
     # via
     #   babelfont
@@ -171,7 +162,7 @@ pygments==2.15.1
     # via rich
 pyproject-hooks==1.0.0
     # via build
-pyyaml==6.0
+pyyaml==6.0.1
     # via fontbakery
 requests==2.31.0
     # via fontbakery
@@ -207,7 +198,7 @@ ufolib2==0.14.0
     #   glyphslib
 ufolint==1.2.0
     # via fontbakery
-uharfbuzz==0.37.0
+uharfbuzz==0.37.1.post1
     # via
     #   -r requirements.in
     #   collidoscope
@@ -217,7 +208,7 @@ unicodedata2==15.0.0
     # via
     #   fontbakery
     #   fonttools
-urllib3==2.0.3
+urllib3==2.0.4
     # via requests
 vharfbuzz==0.2.0
     # via fontbakery
@@ -225,7 +216,7 @@ wheel==0.40.0
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.1.2
+pip==23.2
     # via
     #   pip-api
     #   pip-tools

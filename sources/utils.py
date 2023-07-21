@@ -56,6 +56,7 @@ from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
+from collections.abc import Sequence
 from collections.abc import Set
 import enum
 import functools
@@ -220,7 +221,7 @@ SUBSET_FEATURES: Set[str] = (frozenset(fontTools.subset.Options().layout_feature
 
 
 @functools.cache
-def cps_to_scripts(cps: tuple[int]) -> set[str]:
+def cps_to_scripts(cps: Sequence[int]) -> set[str]:
     """Converts a code point sequence to its set of script tags.
 
     Args:
@@ -240,7 +241,7 @@ def cps_to_scripts(cps: tuple[int]) -> set[str]:
         contain the true specific script tag.
     """
     buffer = uharfbuzz.Buffer()
-    buffer.add_codepoints(cps)
+    buffer.add_codepoints([*cps])
     buffer.guess_segment_properties()
     if buffer.script is None:
         return set(KNOWN_SCRIPTS)
