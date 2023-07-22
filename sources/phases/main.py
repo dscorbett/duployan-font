@@ -545,18 +545,13 @@ def add_placeholders_for_missing_children(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
-    lookup_1 = Lookup(
-        'blwm',
-        'dflt',
-        mark_filtering_set='valid_final_overlap',
-    )
-    lookup_2 = Lookup(
+    lookup = Lookup(
         'blwm',
         'dflt',
         mark_filtering_set='valid_final_overlap',
     )
     if len(original_schemas) != len(schemas):
-        return [lookup_1, lookup_2]
+        return [lookup]
     base_classes = {}
     for schema in new_schemas:
         if isinstance(schema.path, ChildEdge):
@@ -574,13 +569,7 @@ def add_placeholders_for_missing_children(
     placeholder = Schema(None, Space(0), 0, Type.JOINING, side_bearing=0, child=True)
     for max_tree_width, base_class in base_classes.items():
         inputs = [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap']
-        add_rule(lookup_1, Rule(
-            [base_class],
-            inputs,
-            [],
-            lookups=[None] * len(inputs),
-        ))
-        add_rule(lookup_2, Rule(
+        add_rule(lookup, Rule(
             [base_class],
             inputs,
             [],
@@ -589,19 +578,13 @@ def add_placeholders_for_missing_children(
         for sibling_count in range(max_tree_width - 1, 0, -1):
             backtrack_list = [base_class] + [valid_letter_overlap] * (sibling_count - 1)
             input_1: str | Schema = 'valid_final_overlap' if sibling_count > 1 else valid_letter_overlap
-            add_rule(lookup_1, Rule(
+            add_rule(lookup, Rule(
                 backtrack_list,
                 [input_1],
                 [],
-                [input_1] + [root_parent_edge, placeholder] * sibling_count,
+                [valid_letter_overlap, input_1] + [root_parent_edge, placeholder] * sibling_count,
             ))
-            add_rule(lookup_2, Rule(
-                backtrack_list,
-                [input_1],
-                [],
-                [valid_letter_overlap, input_1],
-            ))
-    return [lookup_1, lookup_2]
+    return [lookup]
 
 
 def categorize_edges(
