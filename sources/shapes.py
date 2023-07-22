@@ -1936,7 +1936,7 @@ class Curve(Shape):
         clockwise: Whether this curve turns clockwise.
         stretch: How much to stretch this curve in one axis, as a
             proportion of the other axis. If ``stretch == 0``, this
-            curve is an arc of a circle. It must not be -1.
+            curve is an arc of a circle. It must be greater than -1.
         long: Whether to stretch this curve along the axis perpendicular
             to the one indicated by `stretch_axis`. This has no effect
             if ``stretch == 0``.
@@ -1999,7 +1999,7 @@ class Curve(Shape):
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         assert would_flip or not early_exit, 'An early exit is not needed if the curve would not flip'
-        assert stretch != -1
+        assert stretch > -1
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -2599,7 +2599,8 @@ class Circle(Shape):
             considered more appropriate.
         stretch: How much to stretch this circle in one axis, as a
             proportion of the other axis. If ``stretch == 0``, this
-            circle is a true circle instead of merely an ellipse.
+            circle is a true circle instead of merely an ellipse. It
+            must be greater than -1.
         long: Whether to stretch this ellipse along the axis
             perpendicular to the entry angle, as opposed to parallel.
             This has no effect if ``stretch == 0``.
@@ -2631,6 +2632,7 @@ class Circle(Shape):
             long: The ``long`` attribute.
             role: The ``role`` attribute.
         """
+        assert stretch > -1
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -2709,6 +2711,46 @@ class Circle(Shape):
     def hub_priority(self, size: float) -> int:
         return 0 if size >= 6 else 1
 
+    @functools.cached_property
+    def _pre_stretch_values(self) -> tuple[float, float, float, float, float]:
+        """Returns various values related to drawing this curve before
+        it is stretched.
+
+        Stretching a glyph changes its angles. To make the final glyph
+        use the specified `angle_in` and `angle_out`, it needs to start
+        with different angles that will be stretched into the correct
+        final angles. This method returns those pre-stretch angles. It
+        also returns some other stretching-related values for the sake
+        of convenience.
+
+        If `stretch` is false, the pre-stretch angles are equal to the
+        final angles.
+
+        Returns:
+            A tuple of five floats.
+
+            1. The pre-stretch entry angle.
+            2. The pre-stretch exit angle.
+            3. The non-negative number of degrees by which to rotate the
+               curve clockwise before stretching it. After stretching,
+               the curve is rotated back the same amount
+               counterclockwise.
+            4. How much to stretch this curve in the x axis.
+            5. How much to stretch this curve in the y axis.
+        """
+        scale_x = 1.0 + self.stretch
+        scale_y = 1.0
+        if self.long:
+            scale_x, scale_y = scale_y, scale_x
+        theta = self.angle_in
+        if self.stretch:
+            pre_stretch_angle_in = (_scale_angle(self.angle_in - theta, 1 / scale_x, 1 / scale_y) + theta) % 360
+            pre_stretch_angle_out = (_scale_angle(self.angle_out - theta, 1 / scale_x, 1 / scale_y) + theta) % 360
+        else:
+            pre_stretch_angle_in = self.angle_in
+            pre_stretch_angle_out = self.angle_out
+        return pre_stretch_angle_in, pre_stretch_angle_out, theta, scale_x, scale_y
+
     @override
     def draw(
         self,
@@ -2724,12 +2766,10 @@ class Circle(Shape):
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
-        angle_in = self.angle_in
-        angle_out = self.angle_out
-        if (diphthong_1 or diphthong_2) and angle_in == angle_out:
+        if (diphthong_1 or diphthong_2) and self.angle_in == self.angle_out:
             return Curve(
-                    angle_in,
-                    angle_out,
+                    self.angle_in,
+                    self.angle_out,
                     clockwise=self.clockwise,
                     stretch=self.stretch,
                     long=True,
@@ -2747,17 +2787,18 @@ class Circle(Shape):
                     diphthong_1,
                     diphthong_2,
                 )
+        pre_stretch_angle_in, pre_stretch_angle_out, stretch_axis_angle, scale_x, scale_y = self._pre_stretch_values
         pen = glyph.glyphPen()
         if diphthong_1:
-            angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
+            pre_stretch_angle_out = (pre_stretch_angle_out + 90 * (1 if self.clockwise else -1)) % 360
         if diphthong_2:
-            angle_in = (angle_in - 90 * (1 if self.clockwise else -1)) % 360
-        if self.clockwise and angle_out > angle_in:
-            angle_out -= 360
-        elif not self.clockwise and angle_out < angle_in:
-            angle_out += 360
-        a1 = (90 if self.clockwise else -90) + angle_in
-        a2 = (90 if self.clockwise else -90) + angle_out
+            pre_stretch_angle_in = (pre_stretch_angle_in - 90 * (1 if self.clockwise else -1)) % 360
+        if self.clockwise and pre_stretch_angle_out > pre_stretch_angle_in:
+            pre_stretch_angle_out -= 360
+        elif not self.clockwise and pre_stretch_angle_out < pre_stretch_angle_in:
+            pre_stretch_angle_out += 360
+        a1 = (90 if self.clockwise else -90) + pre_stretch_angle_in
+        a2 = (90 if self.clockwise else -90) + pre_stretch_angle_out
         r = int(RADIUS * size)
         cp = r * (4 / 3) * math.tan(math.pi / 8)
         entry = _rect(r, math.radians(a1))
@@ -2795,18 +2836,14 @@ class Circle(Shape):
         if anchor:
             glyph.addAnchorPoint(anchors.MIDDLE, 'mark', 0, 0)
         if self.stretch:
-            scale_x = 1.0 + self.stretch
-            scale_y = 1.0
-            if self.long:
-                scale_x, scale_y = scale_y, scale_x
-            theta = math.radians(angle_in)
+            theta = math.radians(stretch_axis_angle)
             glyph.transform(
                 fontTools.misc.transform.Identity
                     .rotate(theta)
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(angle_in)))
+            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
         else:
             glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
