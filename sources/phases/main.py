@@ -929,21 +929,31 @@ def interrupt_overlong_primary_curve_sequences(
                 for s in overlong_sequences
                 if any(d in new_deltas_by_size[size] for d in s)
         )
+    if overlong_class_sequences:
+        named_lookups['prepend_dotted_circle'] = Lookup(None, None)
     for overlong_class_sequence in overlong_class_sequences:
+        add_rule(named_lookups['prepend_dotted_circle'], Rule(
+            overlong_class_sequence[-1],
+            [dotted_circle, overlong_class_sequence[-1]],
+        ))
         add_rule(lookup, Rule(
             overlong_class_sequence[:-1],
             overlong_class_sequence[-1],
             [],
-            [dotted_circle, overlong_class_sequence[-1]],
+            lookups=['prepend_dotted_circle'],
         ))
         secondary_class_name_0 = f'secondary_{overlong_class_sequence[0]}'
         secondary_class_name_n1 = f'secondary_{overlong_class_sequence[-1]}'
         if secondary_class_name_0 in classes:
+            add_rule(named_lookups['prepend_dotted_circle'], Rule(
+                overlong_class_sequence[-1],
+                [dotted_circle, overlong_class_sequence[-1]],
+            ))
             add_rule(lookup, Rule(
                 ['c', secondary_class_name_0, *overlong_class_sequence[1:-1]],
                 overlong_class_sequence[-1],
                 [],
-                [dotted_circle, overlong_class_sequence[-1]],
+                lookups=['prepend_dotted_circle'],
             ))
         if secondary_class_name_n1 in classes:
             add_rule(lookup, Rule(
@@ -952,11 +962,15 @@ def interrupt_overlong_primary_curve_sequences(
                 [],
                 lookups=[None],
             ))
+            add_rule(named_lookups['prepend_dotted_circle'], Rule(
+                secondary_class_name_n1,
+                [dotted_circle, secondary_class_name_n1],
+            ))
             add_rule(lookup, Rule(
                 overlong_class_sequence[:-1],
                 secondary_class_name_n1,
                 'c',
-                [dotted_circle, secondary_class_name_n1],
+                lookups=['prepend_dotted_circle'],
             ))
         if secondary_class_name_0 in classes:
             add_rule(lookup, Rule(
@@ -965,11 +979,15 @@ def interrupt_overlong_primary_curve_sequences(
                 'c',
                 lookups=[None],
             ))
+            add_rule(named_lookups['prepend_dotted_circle'], Rule(
+                overlong_class_sequence[-1],
+                [dotted_circle, overlong_class_sequence[-1]],
+            ))
             add_rule(lookup, Rule(
                 [secondary_class_name_0, *overlong_class_sequence[1:-1]],
                 overlong_class_sequence[-1],
                 [],
-                [dotted_circle, overlong_class_sequence[-1]],
+                lookups=['prepend_dotted_circle'],
             ))
     return [lookup]
 
