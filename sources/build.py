@@ -211,6 +211,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
             tables=['OS/2', 'head', 'name'],
         )
 
+        tt_font['OS/2'].recalcAvgCharWidth(tt_font)
         tt_font['OS/2'].usDefaultChar = 0
         if options.bold:
             tt_font['OS/2'].usWeightClass = 700
