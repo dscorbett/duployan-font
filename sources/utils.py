@@ -591,7 +591,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
     ``".."``. The other is ``"global.."``. Only the former is
     automatically added by this view. If a key has the global prefix,
     the view passes it through to the underlying mapping unchanged;
-    otherwise, if a key passed to a method of a view must not contain
+    otherwise, a key passed to a method of a view must not contain
     ``".."``.
     """
 

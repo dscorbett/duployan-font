@@ -617,7 +617,7 @@ class Schema:
         fields overridden. The ``cmap`` and ``marks`` attributes are
         reset. The ``encirclable`` attribute is set to ``True`` if any
         of the marks is a combining enclosing circle. The ``anchors``
-        attribute is extending with the anchors of this schema’s marks.
+        attribute is extended with the anchors of this schema’s marks.
         """
         return self.clone(
                 cmap=None,

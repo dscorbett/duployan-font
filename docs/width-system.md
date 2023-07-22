@@ -37,8 +37,7 @@ The overall width of a cursively connected sequence is the sum of:
 
 The starting side bearing of the whole sequence depends only on the first glyph.
 Its ending side bearing depends only on the last glyph.
-The medial glyphs advance widths and side bearings are irrelevant.
-(This is all assuming there are no GPOS rules, which can check any glyphs.)
+The medial glyphs’ advance widths and side bearings are irrelevant.
 This is a problem if a sequence is not written purely in one direction.
 This is rare, but it can occur, for example, in Arabic script in ⟨ہے⟩,
 whose starting (right) side bearing depends on the final (leftmost) glyph,
@@ -54,7 +53,8 @@ but many letters are written from right to left.
 A stenogram (cursively connected sequence) like “𛰅𛱇𛰊” (<i>keg</i>)
 is entirely written from right to left.
 OpenType’s built-in width system would place the following non-cursive glyph
-to left of the final (leftmost) glyph, overlapping the middle of the stenogram.
+to the left of the final (leftmost) glyph, overlapping the middle of the
+stenogram.
 
 This font therefore eschews OpenType’s width system for cursive glyphs
 and uses its own.
@@ -87,8 +87,8 @@ Each has a code, which is used in glyph names.
 A glyph’s right bound width (`rdx`) is measured from its cursive entry point to
 the right side of its bounding box.
 For example, U+1BC08 DUPLOYAN LETTER D is a long horizontal line.
-In this font, it is a stroke 1000 units long plus two semicircular caps with
-35-unit radii.
+In the regular font, it is a stroke 1000 units long plus two semicircular caps
+with 35-unit radii.
 Its right bound width is therefore 1035 units: the width of the stroke plus the
 right cap.
 
@@ -110,9 +110,10 @@ They have no analogue in other scripts.
 A glyph’s anchor widths (`adx`) are measured from its cursive entry point to
 each mark anchor point.
 Each glyph has 7 anchor widths.
-The font has 8 mark/cursive anchors, but each base glyph uses the same x
-coordinate for its above- and below-base anchor points, so the above- and
-below-base anchors are represented by the same anchor width glyph.
+The font has 8 relevant anchors (mark positioning and cursive), but each base
+glyph uses the same x coordinate for its above- and below-base anchor points, so
+the above- and below-base anchors are represented by the same anchor width
+glyph.
 
 ## Number encoding
 
@@ -251,7 +252,7 @@ The side bearings are handled in the least significant digits
 because it simplifies the mental math required for debugging.
 They could just as well have been handled in any other place,
 or even a combination of places,
-as long as the extra width always totalled 85.
+as long as the extra width always totaled 85.
 
 As described [above](#background-and-motivation), side bearings depend on the
 initial and final cursive glyphs in the usual OpenType width system.
