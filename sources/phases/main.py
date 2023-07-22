@@ -1030,8 +1030,11 @@ def disjoin_equals_sign(
             classes['all'].append(root_parent_edge)
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
     add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
-    for tree in _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, equals_sign.max_tree_width() + 1)):
-        add_rule(lookup, Rule([equals_sign, *filter(None, tree)], [root_parent_edge], [], [zwnj, root_parent_edge]))
+    if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, equals_sign.max_tree_width() + 1)):
+        named_lookups['prepend_zwnj'] = Lookup(None, None)
+        add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
+        for tree in trees:
+            add_rule(lookup, Rule([equals_sign, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))
     return [lookup]
 
 
