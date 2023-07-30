@@ -184,6 +184,7 @@ class Builder:
         lower_right_brace_section = Complex([(lower_left_brace_section.instructions[0][0], lower_left_brace_section.instructions[0][1].clone(angle_in=(180 - lower_left_brace_section.instructions[0][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[0][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[0][1].clockwise)), (lower_left_brace_section.instructions[1][0], lower_left_brace_section.instructions[1][1].clone(angle_in=(180 - lower_left_brace_section.instructions[1][1].angle_in) % 360, angle_out=(180 - lower_left_brace_section.instructions[1][1].angle_out) % 360, clockwise=not lower_left_brace_section.instructions[1][1].clockwise))])  # type: ignore[call-arg, index, union-attr]
         right_brace = Complex([*upper_right_brace_section.instructions, *lower_right_brace_section.instructions])
         cent = Complex([(2.4, Curve(135, 225, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(225, 315, clockwise=False, stretch=0.771, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(315, 45, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(225, 175, clockwise=True, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE), True), (0, Space(0), True, True), (0.156, Line(270)), (2 * 0.156 + 0.905, Line(90))])
+        pound = Complex([(0.4, Curve(49, 180 - 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (1, Curve(180 - 10, 180 + 10, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (1, Curve(180 + 10, 270 + 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (0.075, Line(270 + 10)), (0.07, Line(180), True), (0.18, Line(0)), (0.11, Line(180), True), (0.075, Line(270 + 10)), (2, Curve(270 + 10, 270 - 32, clockwise=True)), (0.4, Curve(270 - 32, 360 - 25, clockwise=True)), (0.15, Line(360 - 25)), (1, Curve(360 - 25, 41, clockwise=False))])
         guillemet_y_min = 40
         guillemet_horizontal_space = (200, Space(0))
         left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
@@ -369,6 +370,7 @@ class Builder:
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
             Schema(0x00A2, cent, 1, Type.NON_JOINING, y_max=0.75 * CAP_HEIGHT),
+            Schema(0x00A3, pound, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
             Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING, y_min=220),
