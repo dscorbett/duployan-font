@@ -1,5 +1,6 @@
 <!--
 Copyright 2022 Google LLC
+Copyright 2023 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -57,7 +58,7 @@ Everything else should be clear to a user who knows Duployan.
 
 ## Limitations
 
-Noto Sans Duployan requires HarfBuzz 2.7.3 and later.
+Noto Sans Duployan requires HarfBuzz 8.1.0 or later.
 It does not work in other shaping engines.
 
 Duployan is unusual in that, although it is a left-to-right script,

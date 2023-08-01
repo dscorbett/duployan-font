@@ -68,6 +68,7 @@ import functools
 import itertools
 from typing import TYPE_CHECKING
 from typing import TypeVar
+import unicodedata
 
 
 import fontTools.otlLib.builder
@@ -1796,42 +1797,33 @@ def create_diagonal_fractions(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> MutableSequence[Lookup]:
-    lookup_slash = Lookup(
-        'rlig',
-        'dflt',
-        reversed=True,
-    )
-    lookup_dnom = Lookup(
-        'rlig',
-        'dflt',
-    )
-    lookup_numr = Lookup(
-        'rlig',
-        'dflt',
-        reversed=True,
-    )
+    lookup_numr = Lookup('numr', 'dflt')
+    lookup_dnom = Lookup('dnom', 'dflt')
+    lookup_rlig = Lookup('rlig', 'dflt')
     if len(original_schemas) != len(schemas):
-        return [lookup_slash, lookup_dnom, lookup_numr]
+        return [lookup_numr, lookup_dnom, lookup_rlig]
     for schema in new_schemas:
-        if schema.cmap in range(0x0030, 0x0039 + 1):
-            classes['i'].append(schema)
+        if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
+            classes['digit'].append(schema)
+            classes['digit_or_slash'].append(schema)
             assert schema.y_max is not None
+            assert schema.y_min is not None
             dnom = schema.clone(cmap=None, size=0.6 * schema.size, y_max=None)
             numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
             classes['dnom'].append(dnom)
             classes['numr'].append(numr)
             classes['dnom_or_slash'].append(dnom)
-            classes['numr_or_slash'].append(numr)
         elif schema.cmap == 0x2044:
             slash = schema
+            classes['digit_or_slash'].append(schema)
     valid_slash = slash.clone(cmap=None, side_bearing=-250)
     classes['dnom_or_slash'].append(valid_slash)
-    classes['numr_or_slash'].append(valid_slash)
-    add_rule(lookup_slash, Rule('i', [slash], 'i', [valid_slash]))
-    add_rule(lookup_dnom, Rule('dnom_or_slash', 'i', [], 'dnom'))
-    add_rule(lookup_dnom, Rule('dnom', [valid_slash], [], [slash]))
-    add_rule(lookup_numr, Rule([], 'i', 'numr_or_slash', 'numr'))
-    return [lookup_slash, lookup_dnom, lookup_numr]
+    add_rule(lookup_numr, Rule('digit', 'numr'))
+    add_rule(lookup_dnom, Rule('digit', 'dnom'))
+    add_rule(lookup_rlig, Rule('numr', [slash], [], [valid_slash]))
+    add_rule(lookup_rlig, Rule('dnom_or_slash', 'numr', [], 'dnom'))
+    add_rule(lookup_rlig, Rule('digit_or_slash', 'dnom', [], 'digit'))
+    return [lookup_numr, lookup_dnom, lookup_rlig]
 
 
 def create_superscripts_and_subscripts(
@@ -1846,7 +1838,7 @@ def create_superscripts_and_subscripts(
     lookup_sups = Lookup('sups', 'dflt')
     lookup_subs = Lookup('subs', 'dflt')
     for schema in new_schemas:
-        if schema.cmap in range(0x0030, 0x0039 + 1):
+        if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
             classes['i'].append(schema)
             assert schema.y_max is not None
             classes['o_sups'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=None, y_max=1.18 * schema.y_max))
@@ -1902,6 +1894,7 @@ def classify_marks_for_trees(
 
 
 PHASE_LIST = [
+    create_diagonal_fractions,
     dont_ignore_default_ignorables,
     reversed_circle_kludge,
     validate_shading,
@@ -1936,7 +1929,6 @@ PHASE_LIST = [
     join_double_marks,
     rotate_diacritics,
     shade,
-    create_diagonal_fractions,
     create_superscripts_and_subscripts,
     make_widthless_variants_of_marks,
     classify_marks_for_trees,

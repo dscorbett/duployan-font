@@ -50,7 +50,7 @@ To only build fonts with cubic Bézier curves, append `SUFFIXES=otf`.
 
 The prerequisites are:
 
-* HarfBuzz 4.0.1 or later
+* HarfBuzz 8.1.0 or later
 
 To test the fonts, run:
 

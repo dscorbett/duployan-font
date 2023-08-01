@@ -40,8 +40,11 @@
 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039 2044 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039::[zero.numr@0,0|one.numr@472,0|two.numr@809,0|three.numr@1261,0|four.numr@1722,0|five.numr@2238,0|six.numr@2680,0|seven.numr@3152,0|eight.numr@3637,0|nine.numr@4077,0|uni2044_.fraction_slash.frac@4531,0|zero.dnom@4695,0|one.dnom@5167,0|two.dnom@5504,0|three.dnom@5956,0|four.dnom@6417,0|five.dnom@6933,0|six.dnom@7375,0|seven.dnom@7847,0|eight.dnom@8332,0|nine.dnom@8772,0|_@9226,0]
 
 # Ambiguous fractions
-0031 2044 0032 2044 0033::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|uni2044.fraction_slash@953,0|three@1787,0|_@2403,0]
-0031 2044 0032 2044 0033 2044 0034::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|uni2044.fraction_slash@953,0|three.numr@1787,0|uni2044_.fraction_slash.frac@2248,0|four.dnom@2412,0|_@2928,0]
+0031 0031 2044 0032 0032 2044 0033 0033::[one.numr@0,0|one.numr@337,0|uni2044_.fraction_slash.frac@674,0|two.dnom@838,0|two.dnom@1290,0|uni2044.fraction_slash@1742,0|three@2576,0|three@3192,0|_@3808,0]
+0031 0031 2044 0032 0032 2044 0033 0033 2044 0034 0034::[one.numr@0,0|one.numr@337,0|uni2044_.fraction_slash.frac@674,0|two.dnom@838,0|two.dnom@1290,0|uni2044.fraction_slash@1742,0|three.numr@2576,0|three.numr@3037,0|uni2044_.fraction_slash.frac@3498,0|four.dnom@3662,0|four.dnom@4178,0|_@4694,0]
+
+# Fraction delimited by default ignorable code points not present in the font
+0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@403,0|two.numr@806,0|two.numr@1258,0|uni2044_.fraction_slash.frac@1710,0|three.dnom@1874,0|three.dnom@2335,0|four@2796,0|four@3494,0|_@4192,0]
 
 # Superscripts
 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[zero.sups@0,0|one.sups@472,0|two.sups@809,0|three.sups@1261,0|four.sups@1722,0|five.sups@2238,0|six.sups@2680,0|seven.sups@3152,0|eight.sups@3637,0|nine.sups@4077,0|_@4531,0]
