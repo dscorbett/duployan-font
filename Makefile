@@ -102,6 +102,9 @@ clean:
 $(addprefix check-,$(FONTS)): check-%: %
 	tests/run-tests.py $(CHECK_ARGS) $< tests/*.test
 
+.PHONY: check-shaping
+check-shaping: $(addprefix check-,$(FONTS))
+
 .PHONY: $(addprefix check-subset-,$(FONTS))
 $(addprefix check-subset-,$(FONTS)): check-subset-%: subset-%
 	tests/run-tests.py $(CHECK_ARGS) $< tests/*.subset-test
@@ -121,7 +124,7 @@ mypy:
 	mypy get-old-requirements.py sources tests
 
 .PHONY: check
-check: $(addprefix check-,$(FONTS)) check-subset fontbakery mypy
+check: check-shaping check-subset fontbakery mypy
 
 .hb:
 ifndef HB_VERSION
