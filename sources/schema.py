@@ -51,6 +51,7 @@ import unicodedata
 
 import fontTools.agl
 import fontforge
+from typing_extensions import override
 
 
 import anchors
@@ -588,6 +589,7 @@ class Schema:
             _anchors=self.anchors if _anchors is CLONE_DEFAULT else _anchors,
         )
 
+    @override
     def __repr__(self) -> str:
         return '<Schema {}>'.format(', '.join(map(str, [
             self._calculate_name(),
@@ -886,6 +888,7 @@ class Schema:
         assert not self._RESERVED_GLYPH_NAME_PATTERN.search(name), f'The glyph name "{name}" misleadingly appears to have a disambiguatory suffix'
         return name
 
+    @override
     def __str__(self) -> str:
         """Returns this schema’s disambiguated glyph name.
 

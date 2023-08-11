@@ -26,7 +26,7 @@ fonttools[repacker]==4.40.0
     #   cffsubr
 typing-extensions==4.7.1
     # via -r requirements.in
-uharfbuzz==0.37.1.post1
+uharfbuzz==0.37.2
     # via
     #   -r requirements.in
     #   fonttools

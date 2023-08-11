@@ -409,6 +409,7 @@ class Context:
             diphthong_end=self.diphthong_end if diphthong_end is CLONE_DEFAULT else diphthong_end,
         )
 
+    @override
     def __repr__(self) -> str:
         return f'''Context({
                 self.angle
@@ -424,6 +425,7 @@ class Context:
                 self.diphthong_end
             })'''
 
+    @override
     def __str__(self) -> str:
         if self.angle is None:
             return ''
@@ -443,6 +445,7 @@ class Context:
             '2' if self.diphthong_end else ''
         }'''
 
+    @override
     def __eq__(self, other: object) -> bool:
         if not (isinstance(self, type(other)) and isinstance(other, type(self))):
             return NotImplemented
@@ -454,10 +457,12 @@ class Context:
             and self.diphthong_end == other.diphthong_end
         )
 
+    @override
     def __ne__(self, other: object) -> bool:
         eq = self == other
         return eq if eq is NotImplemented else not eq
 
+    @override
     def __hash__(self) -> int:
         return (
             hash(self.angle)
