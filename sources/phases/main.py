@@ -738,7 +738,7 @@ def promote_final_letter_overlap_to_continuing_overlap(
         )
         add_rule(named_lookups[f'check_and_promote_{overlap_name}'], Rule([], [overlap], 'secant_or_root_parent_edge', lookups=[None]))
         add_rule(named_lookups[f'check_and_promote_{overlap_name}'], Rule([], [overlap], [], lookups=[f'promote_{overlap_name}_and_parent']))
-        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap_name}']), track_possible_outputs=False)
+        add_rule(lookup, Rule([], [overlap], [], lookups=[f'check_and_promote_{overlap_name}']))
     return [lookup]
 
 

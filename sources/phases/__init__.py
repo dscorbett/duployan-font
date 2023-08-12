@@ -138,7 +138,6 @@ from utils import REQUIRED_SCRIPT_FEATURES
 
 if TYPE_CHECKING:
     from mypy_extensions import Arg
-    from mypy_extensions import DefaultNamedArg
 
     from duployan import Builder
 
@@ -959,7 +958,7 @@ class Lookup:
 
 
 if TYPE_CHECKING:
-    AddRule = Callable[[Lookup, Rule, DefaultNamedArg(bool, 'track_possible_outputs')], None]
+    AddRule = Callable[[Lookup, Rule], None]
 
 
 def _add_rule(
@@ -969,8 +968,6 @@ def _add_rule(
     named_lookups: Mapping[str, Lookup],
     lookup: Lookup,
     rule: Rule,
-    *,
-    track_possible_outputs: bool = True,
 ) -> None:
     """Adds a rule to a lookup.
 
@@ -990,10 +987,6 @@ def _add_rule(
             modify it.
         lookup: The lookup to add `rule` to.
         rule: The rule to add.
-        track_possible_outputs: Whether to allow removing schemas from
-            `output_schemas`. Tracking is usually the right thing to do,
-            but it can sometimes cause a crash in fontTools, so it can
-            be disabled.
     """
     if lookup.mark_filtering_set:
         for mark in classes[lookup.mark_filtering_set]:
@@ -1073,22 +1066,36 @@ def _add_rule(
                 and (previous_rule.contexts_in != rule.contexts_in or previous_rule.contexts_out != rule.contexts_out)
             ):
                 return
-    lookup.append(rule)
 
-    # FIXME: `track_possible_outputs` is a manual workaround for this function’s
-    # inability to track possible outputs between rules in the same lookup.
-    if (track_possible_outputs
-        and lookup.required
-        and not rule.contexts_in
-        and not rule.contexts_out
-        and len(rule.inputs) == 1
-    ):
+    def remove_unconditionally_substituted_schemas() -> None:
+        """Removes schemas from `output_schemas` that are
+        unconditionally substituted by `rule`.
+
+        A schema is unconditionally substituted by `rule` if `rule` is a
+        non-contextual rule of a required lookup, the input of `rule`
+        contains only one element which either is or contains that
+        schema, and no other preceding rule in the same lookup uses that
+        schema in its input.
+        """
+        if not (lookup.required
+            and not rule.contexts_in
+            and not rule.contexts_out
+            and len(rule.inputs) == 1
+        ):
+            return
         input = rule.inputs[0]
-        if isinstance(input, str):
-            for s in classes[input]:
-                output_schemas.remove(s)
-        else:
-            output_schemas.remove(input)
+        unconditionally_substituted_schemas = set(classes[input]) if isinstance(input, str) else {input}
+        for previous_rule in lookup.rules:
+            for previous_input in previous_rule.inputs:
+                if isinstance(previous_input, str):
+                    unconditionally_substituted_schemas.difference_update(classes[previous_input])
+                else:
+                    unconditionally_substituted_schemas.discard(previous_input)
+        for schema_to_remove in unconditionally_substituted_schemas:
+            output_schemas.remove(schema_to_remove)
+
+    remove_unconditionally_substituted_schemas()
+    lookup.append(rule)
 
     registered_lookups: MutableSet[str | None] = {None}
 
