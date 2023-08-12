@@ -152,7 +152,7 @@ def set_version(
                             git_diff = subprocess.check_output(['git', 'diff-index', '--patch', 'HEAD'])
                             try:
                                 import hashlib
-                                metadata += f'.{hashlib.md5(git_diff).hexdigest()}'
+                                metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
                             except AttributeError:
                                 metadata += '.dirty'
                     except (FileNotFoundError, subprocess.CalledProcessError):
