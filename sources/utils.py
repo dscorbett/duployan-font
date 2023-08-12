@@ -77,6 +77,7 @@ import uharfbuzz
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
+    from _typeshed import SupportsRichComparison
 
 
 #: The regular font’s cap height.
@@ -564,7 +565,15 @@ class OrderedSet(dict[_T, None]):
         """
         self.pop(item, None)
 
-    def sorted(self, /, *, key=None, reverse: bool = False) -> list[_T]:  # type: ignore[no-untyped-def]
+    @overload
+    def sorted(self, /, *, key: None = ..., reverse: bool = ...) -> list[_T]:
+        ...
+
+    @overload
+    def sorted(self, /, *, key: Callable[[_T], SupportsRichComparison], reverse: bool = ...) -> list[_T]:
+        ...
+
+    def sorted(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> list[_T]:
         """Returns a sorted list of the elements in this set.
 
         The sort is stable.
@@ -575,7 +584,7 @@ class OrderedSet(dict[_T, None]):
                 ordered.
             reverse: Whether to sort in descending order.
         """
-        return sorted(self.keys(), key=key, reverse=reverse)
+        return sorted(self.keys(), key=key, reverse=reverse)  # type: ignore[arg-type, type-var]
 
 
 class PrefixView(Generic[_T], MutableMapping[str, _T]):

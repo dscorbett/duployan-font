@@ -3905,7 +3905,9 @@ class Ou(Complex):
 
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
-        return super().contextualize(context_in, context_out).clone(  # type: ignore[call-arg]
+        contextualized = super().contextualize(context_in, context_out)
+        assert isinstance(contextualized, Ou)
+        return contextualized.clone(
             _initial=self._initial or context_in == NO_CONTEXT,
             _isolated=False,
         )
@@ -4135,7 +4137,8 @@ class Wa(Complex):
                 False,
                 False,
             )
-            this_crossing_point = proxy.get_crossing_point(component)  # type: ignore[arg-type]
+            assert isinstance(component, Circle | Curve)
+            this_crossing_point = proxy.get_crossing_point(component)
             if last_crossing_point is not None:
                 proxy.transform(fontTools.misc.transform.Offset(
                     last_crossing_point[0] - this_crossing_point[0],

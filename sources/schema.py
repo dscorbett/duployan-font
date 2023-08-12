@@ -46,6 +46,7 @@ from typing import ClassVar
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
+from typing import cast
 import unicodedata
 
 
@@ -59,6 +60,7 @@ from shapes import AnchorWidthDigit
 from shapes import ChildEdge
 from shapes import Circle
 from shapes import CircleRole
+from shapes import Complex
 from shapes import Curve
 from shapes import DigitStatus
 from shapes import EntryWidthDigit
@@ -512,10 +514,11 @@ class Schema:
         shape = type(self.path)
         digit_shapes = [AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit]
         if shape in digit_shapes:
-            status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value  # type: ignore[attr-defined]
-            place = self.path.place  # type: ignore[attr-defined]
+            assert isinstance(self.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+            status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value
+            place = self.path.place
             digit_shape_index = digit_shapes.index(shape)
-            digit = self.path.digit  # type: ignore[attr-defined]
+            digit = self.path.digit
             other_shape_index = -1
         else:
             status = -1
@@ -760,20 +763,19 @@ class Schema:
         del self._lookalike_group
 
     @staticmethod
-    def _agl_name(cp: int) -> str | None:
+    def _agl_name(cp: int) -> str:
         """Returns the Adobe Glyph List name of an ASCII code point.
 
         Args:
             cp: A code point.
 
-        Returns:
-            The Adobe Glyph List name of an ASCII code point, or
-            ``None`` if `cp` is not ASCII.
-
         Raises:
             KeyError: If `cp` is ASCII but has no AGL name.
+            ValueError: If `cp` is not ASCII.
         """
-        return fontTools.agl.UV2AGL[cp] if cp <= 0x7F else None
+        if cp <= 0x7F:
+            return cast(Mapping[int, str], fontTools.agl.UV2AGL)[cp]
+        raise ValueError
 
     @staticmethod
     def _u_name(cp: int) -> str:
@@ -817,8 +819,8 @@ class Schema:
         if cps:
             first_component_implies_type = False
             try:
-                name = '_'.join(map(self._agl_name, cps))  # type: ignore[arg-type]
-            except (KeyError, TypeError):
+                name = '_'.join(map(self._agl_name, cps))
+            except (KeyError, ValueError):
                 name = '_'.join(map(self._u_name, cps))
                 name = self._COLLAPSIBLE_UNI_NAME.sub('', name)
                 readable_name = '__'.join(map(self._readable_name, cps))
@@ -951,7 +953,8 @@ class Schema:
         This method must only be called if `path` is known to support
         the notion of being primary, which not all shapes do.
         """
-        return not (self.path.reversed if isinstance(self.path, Circle) else self.path.secondary or self.path.reversed_circle)  # type: ignore[attr-defined]
+        assert isinstance(self.path, Circle | Curve)
+        return not (self.path.reversed if isinstance(self.path, Circle) else self.path.secondary or self.path.reversed_circle)
 
     @functools.cached_property
     def can_become_part_of_diphthong(self) -> bool:
@@ -1069,9 +1072,10 @@ class Schema:
             context: The context of the base glyph relative to which
                 this schema’s mark glyph should be rotated.
         """
+        assert isinstance(self.path, Complex | Line)
         return self.clone(
             cmap=None,
-            path=self.path.rotate_diacritic(context),  # type: ignore[attr-defined]
+            path=self.path.rotate_diacritic(context),
             base_angle=context.angle,
         )
 

@@ -1692,6 +1692,7 @@ def join_double_marks(
     )
     for schema in new_schemas:
         if schema.cps == (0x1BC9E,):
+            assert isinstance(schema.path, Line)
             classes['all'].append(schema)
             for i in range(2, MAX_DOUBLE_MARKS + 1):
                 add_rule(lookup, Rule([schema] * i, [schema.clone(
@@ -1699,8 +1700,8 @@ def join_double_marks(
                     cps=[*schema.cps] * i,
                     path=Complex([
                         (1, schema.path),
-                        (500, Space((schema.path.angle + 180) % 360)),  # type: ignore[attr-defined]
-                        (250, Space((schema.path.angle - 90) % 360)),  # type: ignore[attr-defined]
+                        (500, Space((schema.path.angle + 180) % 360)),
+                        (250, Space((schema.path.angle - 90) % 360)),
                     ] * i),
                 )]))
     return [lookup]

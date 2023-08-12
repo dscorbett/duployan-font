@@ -42,9 +42,12 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import math
+from typing import Iterable
 from typing import Literal
 from typing import TYPE_CHECKING
 from typing import TypeVar
+from typing import Callable
+from typing import overload
 
 
 import fontTools.otlLib.builder
@@ -91,6 +94,7 @@ from utils import mkmk
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
+    from _typeshed import SupportsRichComparison
 
     from . import AddRule
     from duployan import Builder
@@ -178,7 +182,15 @@ def add_shims_for_pseudo_cursive(
 
     marker = get_shim(0, 0)
 
-    def round_with_base(number: float, base: int, minimum: float, key=None) -> float:  # type: ignore[no-untyped-def]
+    @overload
+    def round_with_base(number: float, base: int, minimum: float, key: None = ...) -> float:
+        ...
+
+    @overload
+    def round_with_base(number: float, base: int, minimum: float, key: Callable[[float], SupportsRichComparison]) -> float:
+        ...
+
+    def round_with_base(number: float, base: int, minimum: float, key: Callable[[float], SupportsRichComparison] | None = None) -> float:
         return max(minimum, base * round(number / base), key=key)
 
     for pseudo_cursive_index, (pseudo_cursive_class_name, (
@@ -804,8 +816,10 @@ def sum_width_markers(
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_schemas
-            place = augend_schema.path.place  # type: ignore[attr-defined]
-            augend = augend_schema.path.digit  # type: ignore[attr-defined]
+            assert isinstance(augend_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+            place = augend_schema.path.place
+            augend = augend_schema.path.digit
+            assert isinstance(inner_iterable, Iterable)
             for (
                 continuing_overlap_is_relevant,
                 augend_skip_backtrack,
@@ -814,7 +828,7 @@ def sum_width_markers(
                 original_addend_schemas,
                 addend_schemas,
                 addend_path,
-            ) in inner_iterable:  # type: ignore[attr-defined]
+            ) in inner_iterable:
                 for carry_in_schema in original_carry_schemas:
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
@@ -960,9 +974,11 @@ def calculate_bound_extrema(
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
-                    place_j = schema_j.path.place  # type: ignore[attr-defined]
+                    assert isinstance(schema_i.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+                    assert isinstance(schema_j.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+                    place_j = schema_j.path.place
                     add_rule(lookup, Rule(
-                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],  # type: ignore[attr-defined]
+                        [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
                         [*[marker_class] * place_j, schema_j],
                         [],
                         lookups=[None if compare(i_signed, j_signed) else copy_lookup_name] * (place_j + 1)))
@@ -1144,13 +1160,15 @@ def mark_maximum_bounds(
         (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
-            if schema.path.status != DigitStatus.NORMAL:  # type: ignore[attr-defined]
+            assert isinstance(schema.path, AnchorWidthDigit | LeftBoundDigit | RightBoundDigit)
+            if schema.path.status != DigitStatus.NORMAL:
                 continue
             add_rule(lookup, Rule(
                 [],
                 [schema],
-                [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],  # type: ignore[attr-defined]
-                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)]))  # type: ignore[attr-defined]
+                [*[class_name] * (WIDTH_MARKER_PLACES - schema.path.place - 1), end],
+                [Schema(None, digit_path(schema.path.place, schema.path.digit, status), 0)],
+            ))
     return [left_lookup, right_lookup, anchor_lookup]
 
 
@@ -1180,8 +1198,9 @@ def copy_maximum_left_bound_to_start(
             elif schema.path.status == DigitStatus.DONE and schema.path.digit == 0:
                 new_left_start_totals[schema.path.place] = schema
     for total in new_left_totals:
-        total_digit = total.path.digit  # type: ignore[attr-defined]
-        total_place = total.path.place  # type: ignore[attr-defined]
+        assert isinstance(total.path, LeftBoundDigit)
+        total_digit = total.path.digit
+        total_place = total.path.place
         if total_digit == 0:
             done = new_left_start_totals[total_place]
             assert done is not None
