@@ -1770,7 +1770,7 @@ class Line(Shape):
             glyph.addAnchorPoint(anchors.MIDDLE, 'base', length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
-            ('round',)
+            ('round',),
         )
         glyph.stroke('circular', stroke_width, 'round')
         if anchor is None or self.secant:
@@ -1813,7 +1813,7 @@ class Line(Shape):
     @staticmethod
     @functools.cache
     def get_context_instruction(angle: float) -> Callable[[Context], Context]:
-        """Returns a function that takes a `Context` and returns a clone
+        r"""Returns a function that takes a `Context` and returns a clone
         of it with its angle set.
 
         This is useful when creating `Complex`\ es that should have the
@@ -4184,7 +4184,8 @@ class Wa(Complex):
             instructions.append((scalar, component.contextualize(context_in, context_out)))
         outer_circle_path = instructions[0][1]
         if isinstance(outer_circle_path, Curve):
-            assert context_in != NO_CONTEXT and context_out != NO_CONTEXT
+            assert context_in != NO_CONTEXT
+            assert context_out != NO_CONTEXT
             a1, a2 = outer_circle_path.get_normalized_angles()
             if abs(a2 - a1) < 180:
                 assert not callable(self.instructions[0])
@@ -4199,7 +4200,7 @@ class Wa(Complex):
                             angle_out=instructions[-1][1].angle_in,
                             clockwise=instructions[-1][1].clockwise,
                         ),
-                        *instructions[0][2:]
+                        *instructions[0][2:],
                     ),
                     *instructions[1:],
                 ])

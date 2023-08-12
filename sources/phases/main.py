@@ -465,7 +465,7 @@ def invalidate_overlap_controls(
                     [valid_letter_overlap] * older_sibling_count,
                     [valid_letter_overlap],
                     [*subtrees, node, *[valid_letter_overlap] * older_sibling_count_of_continuing_overlap, valid_continuing_overlap],
-                    [invalid_letter_overlap]
+                    [invalid_letter_overlap],
                 ))
         # Trees have a maximum depth of `MAX_TREE_DEPTH` letters.
         # TODO: Optimization: Why use a nested `for` loop? Can a combination of
@@ -1235,7 +1235,7 @@ def join_with_previous(
     add_rule(lookup_1, Rule('i2', ['i2', 'o2']))
     for j, context_in_marker in enumerate(contexts_in):
         assert isinstance(context_in_marker.path, ContextMarker)
-        for i, target_schema in enumerate(classes['i']):
+        for target_schema in classes['i']:
             classes[f'o_{j}'].append(target_schema.contextualize(context_in_marker.path.context, target_schema.context_out))
         add_rule(lookup_2, Rule([context_in_marker], 'i', [], f'o_{j}'))
     return [lookup_1, lookup_2]
@@ -1324,7 +1324,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
                     angle_in=0,
                     angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
                     clockwise=True,
-                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {})  # type: ignore[arg-type]
+                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {}),  # type: ignore[arg-type]
                 )
                 classes['o'].append(schema.clone(
                     cmap=None,

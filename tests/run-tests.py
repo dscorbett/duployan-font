@@ -195,7 +195,7 @@ def run_test(
             p.wait()
             assert p.stderr is not None
             print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    return (passed, ':'.join([code_points, options, actual_output]))
+    return (passed, f'{code_points}:{options}:{actual_output}')
 
 
 if __name__ == '__main__':

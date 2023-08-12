@@ -39,10 +39,8 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import enum
 import functools
-import math
 import re
 from typing import Any
-from typing import ClassVar
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
@@ -57,7 +55,6 @@ from typing_extensions import override
 
 import anchors
 from shapes import AnchorWidthDigit
-from shapes import ChildEdge
 from shapes import Circle
 from shapes import CircleRole
 from shapes import Complex
@@ -74,7 +71,6 @@ from shapes import Notdef
 from shapes import Ou
 from shapes import RightBoundDigit
 from shapes import Shape
-from shapes import Space
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
 from utils import CloneDefault
@@ -241,7 +237,7 @@ class Schema:
     #: is 4 characters long. Thus, the suffix can be up to 6 characters
     #: long, and the effective maximum glyph name length is 57
     #: characters.
-    _MAX_GLYPH_NAME_LENGTH: ClassVar[int] = 63 - 2 - 4
+    _MAX_GLYPH_NAME_LENGTH: Final[int] = 63 - 2 - 4
 
     #: A pattern that must not appear in an undisambiguated glyph name.
     #: This ensures that a glyph name can never end with what appears to
@@ -252,10 +248,10 @@ class Schema:
     #: and can be collapsed into a preceding ``uni`` glyph name
     #: component. For example, ``uni1234_uniABCD`` can be collapsed into
     #: ``uni1234ABCD``.
-    _COLLAPSIBLE_UNI_NAME: ClassVar[re.Pattern[str]] = re.compile(r'(?<=(^|(?<=_))uni[0-9A-F]{4})_uni(?=[0-9A-F]{4}(_|$))')
+    _COLLAPSIBLE_UNI_NAME: Final[re.Pattern[str]] = re.compile(r'(?<=(^|(?<=_))uni[0-9A-F]{4})_uni(?=[0-9A-F]{4}(_|$))')
 
     #: A pattern matching the first component of a glyph name.
-    _FIRST_COMPONENT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r'^([^.]*)')
+    _FIRST_COMPONENT_PATTERN: Final[re.Pattern[str]] = re.compile(r'^([^.]*)')
 
     #: An iterable of substitutions to apply to a character name to get
     #: its glyph name. A substitution is a tuple of a search string and
@@ -266,7 +262,7 @@ class Schema:
     #: character name is a Unicode character name or, for nameless code
     #: points, the glyph name recommended by the Adobe Glyph List
     #: Specification.
-    _CHARACTER_NAME_RAW_SUBSTITUTIONS: ClassVar[Iterable[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
+    _CHARACTER_NAME_RAW_SUBSTITUTIONS: Final[Iterable[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         # Custom PUA names
         (r'^uniE000$', 'BOUND'),
         (r'^uniE001$', 'LATIN CROSS POMMEE'),
@@ -319,7 +315,7 @@ class Schema:
 
     #: `_CHARACTER_NAME_RAW_SUBSTITUTIONS` with all the search strings
     #: compiled into pattern objects.
-    _CHARACTER_NAME_SUBSTITUTIONS: ClassVar[Iterable[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
+    _CHARACTER_NAME_SUBSTITUTIONS: Final[Iterable[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
         (re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in _CHARACTER_NAME_RAW_SUBSTITUTIONS
     ]
 
@@ -328,21 +324,21 @@ class Schema:
     #: `_CHARACTER_NAME_RAW_SUBSTITUTIONS` except that this is applied
     #: to a sequence of the outputs of `_CHARACTER_NAME_SUBSTITUTIONS`
     #: joined by ``"__"``.
-    _SEQUENCE_NAME_RAW_SUBSTITUTIONS: ClassVar[Sequence[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
+    _SEQUENCE_NAME_RAW_SUBSTITUTIONS: Final[Sequence[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         (r'__zwj__', '___'),
         (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
     ]
 
     #: `_SEQUENCE_NAME_RAW_SUBSTITUTIONS` with all the search strings
     #: compiled into pattern objects.
-    _SEQUENCE_NAME_SUBSTITUTIONS: ClassVar[Sequence[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
+    _SEQUENCE_NAME_SUBSTITUTIONS: Final[Sequence[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]]] = [
         (re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in _SEQUENCE_NAME_RAW_SUBSTITUTIONS
     ]
 
     # TODO: This seems like a bad design.
     #: A mutable mapping of undisambiguated schema names to mutable
     #: sequences of all the schemas that share that name.
-    _canonical_names: MutableMapping[str, MutableSequence[Schema]] = {}
+    _canonical_names: Final[MutableMapping[str, MutableSequence[Schema]]] = {}
 
     def __init__(
             self,
@@ -657,10 +653,7 @@ class Schema:
         """
         return not (
                 self.child or self.ignored_for_topography or self.widthless
-            ) and (
-                self.glyph_class == GlyphClass.JOINER
-                or self.glyph_class == GlyphClass.MARK
-            )
+            ) and self.glyph_class in [GlyphClass.JOINER, GlyphClass.MARK]
 
     @functools.cached_property
     def group(self) -> Hashable:

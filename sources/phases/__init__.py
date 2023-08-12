@@ -786,8 +786,8 @@ class Lookup:
         ) -> Set[str]:
             if isinstance(s, str):
                 scripts = set()
-                for schema in classes[s]:
-                    scripts |= schema.scripts
+                for s_schema in classes[s]:
+                    scripts |= s_schema.scripts
                 return scripts
             return s.scripts
 
@@ -955,8 +955,7 @@ class Lookup:
             for rule in other.rules:
                 self.rules.insert(0, rule)
         else:
-            for rule in other.rules:
-                self.append(rule)
+            self.rules.extend(other.rules)
 
 
 if TYPE_CHECKING:

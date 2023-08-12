@@ -1009,7 +1009,7 @@ class Builder:
                     new_named_lookups_to_do.append(name)
                     continue
                 self._fea.statements.append(named_lookup_ast)
-                assert name not in named_lookup_asts.keys(), name
+                assert name not in named_lookup_asts, name
                 named_lookup_asts[name] = named_lookup_ast
             assert len(new_named_lookups_to_do) < len(named_lookups_to_do)
             named_lookups_to_do = new_named_lookups_to_do
@@ -1087,8 +1087,7 @@ class Builder:
             if lp[0].feature:
                 features_to_scripts[lp[0].feature] |= lp[0].get_scripts(PrefixView(lp[1], classes))
         for i, lp in enumerate(lookups_with_phases):
-            for statement in lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i):
-                self._fea.statements.append(statement)
+            self._fea.statements.extend(lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i))
         self._add_lookups(class_asts)
         self.font.selection.all()
         self.font.round()
