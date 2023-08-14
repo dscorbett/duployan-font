@@ -657,14 +657,6 @@ def clear_entry_width_markers(
     return [lookup]
 
 
-_T = TypeVar('_T')
-
-
-class _AlwaysTrueList(list[_T]):
-    def __bool__(self) -> Literal[True]:
-        return True
-
-
 def sum_width_markers(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -683,7 +675,7 @@ def sum_width_markers(
     )
     carry_schema = None
     carry_0_placeholder = object()
-    original_carry_schemas = [carry_0_placeholder]
+    carry_schemas = [carry_0_placeholder]
     entry_digit_schemas = {}
     original_entry_digit_schemas = []
     left_digit_schemas = {}
@@ -728,9 +720,6 @@ def sum_width_markers(
                 continuing_overlap = schema
             case Carry():
                 carry_schema = schema
-                original_carry_schemas.append(schema)
-                if schema in new_schemas:
-                    classes['all'].append(schema)
             case EntryWidthDigit():
                 entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
                 original_entry_digit_schemas.append(schema)
@@ -761,6 +750,10 @@ def sum_width_markers(
                 mark_anchor_selectors[schema.path.anchor] = schema
             case GlyphClassSelector():
                 glyph_class_selectors[schema.path.glyph_class] = schema
+    if carry_schema is None:
+        carry_schema = Schema(None, Carry(), 0)
+        classes['all'].append(carry_schema)
+    carry_schemas.append(carry_schema)
     for (
         original_augend_schemas,
         augend_letter,
@@ -829,7 +822,7 @@ def sum_width_markers(
                 addend_schemas,
                 addend_path,
             ) in inner_iterable:
-                for carry_in_schema in original_carry_schemas:
+                for carry_in_schema in carry_schemas:
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
                     for addend_schema in original_addend_schemas:
@@ -846,12 +839,9 @@ def sum_width_markers(
                         if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
                             if carry_out == 0:
                                 carry_out_schema = carry_0_placeholder
-                            elif carry_schema is not None:
-                                carry_out_schema = carry_schema
                             else:
                                 assert carry_out == 1, carry_out
-                                carry_out_schema = Schema(None, Carry(), 0)
-                                carry_schema = carry_out_schema
+                                carry_out_schema = carry_schema
                             sum_index = place * WIDTH_MARKER_RADIX + sum_digit
                             if sum_index in addend_schemas:
                                 sum_digit_schema = addend_schemas[sum_index]
@@ -874,7 +864,7 @@ def sum_width_markers(
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                     mark_filtering_set=context_in_lookup_name,
                                 )
-                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, Schema | str) else _AlwaysTrueList()
+                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, Schema | str) else []
                             add_rule(lookup, Rule(
                                 contexts_in,
                                 [addend_schema],
