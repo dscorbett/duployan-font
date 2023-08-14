@@ -76,7 +76,6 @@ import uharfbuzz
 
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
     from _typeshed import SupportsRichComparison
 
 
@@ -609,7 +608,7 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
     ``".."``.
     """
 
-    def __init__(self, source: Callable[..., Incomplete], delegate: MutableMapping[str, _T]) -> None:
+    def __init__(self, source: function, delegate: MutableMapping[str, _T]) -> None:
         """Initializes this `PrefixView`.
 
         Args:
