@@ -93,7 +93,6 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
     from _typeshed import SupportsRichComparison
 
     from . import AddRule
@@ -336,10 +335,10 @@ def add_width_markers(
     ]
     digit_expansion_lookup = Lookup('dist', 'dflt')
     rule_count = 0
-    entry_width_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
-    left_bound_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
-    right_bound_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
-    anchor_width_markers: MutableMapping[tuple[Incomplete, ...], Schema] = {}
+    entry_width_markers: MutableMapping[tuple[int, int], Schema] = {}
+    left_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
+    right_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
+    anchor_width_markers: MutableMapping[tuple[int, int], Schema] = {}
     path_to_markers = {
         EntryWidthDigit: entry_width_markers,
         AnchorWidthDigit: anchor_width_markers,
@@ -390,9 +389,15 @@ def add_width_markers(
     def get_glyph_class_selector(schema: Schema) -> Schema:
         return register_glyph_class_selector(schema.glyph_class)
 
-    def register_width_marker(width_markers: MutableMapping[tuple[Incomplete, ...], Schema], digit_path: type[Digit], *args: Incomplete) -> Schema:
+    def register_width_marker(
+        width_markers: MutableMapping[tuple[int, int], Schema],
+        digit_path: type[Digit],
+        place: int,
+        digit: int,
+    ) -> Schema:
+        args = place, digit
         if args not in width_markers:
-            width_marker = Schema(None, digit_path(*args), 0)
+            width_marker = Schema(None, digit_path(place, digit), 0)
             width_markers[args] = width_marker
         return width_markers[args]
 
