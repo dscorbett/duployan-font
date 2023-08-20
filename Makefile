@@ -150,6 +150,6 @@ hb-shape hb-view: hb-%: .hb/harfbuzz-$(HB_VERSION)/util/hb-%
 
 .PHONY: $(patsubst %.in,%.txt,$(wildcard *requirements.in))
 $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
-	pip-compile --allow-unsafe --no-emit-index-url --no-emit-trusted-host --quiet --resolver backtracking --upgrade $<
+	pip-compile $<
 	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
 	-git --no-pager diff $@

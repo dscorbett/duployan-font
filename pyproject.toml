@@ -51,3 +51,11 @@ module = [
     "otf2ttf",
 ]
 disallow_untyped_defs = false
+
+[tool.pip-tools]
+allow-unsafe = true
+emit-index-url = false
+emit-trusted-host = false
+quiet = true
+strip-extras = true
+upgrade = true
