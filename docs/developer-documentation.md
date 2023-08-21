@@ -29,7 +29,7 @@ The prerequisites are:
 To build Noto Sans Duployan, run:
 
 ```sh
-python3 -m venv --system-site-packages venv
+python3 -m venv venv
 . venv/bin/activate
 pip install -r requirements.txt
 make NOTO=1
@@ -55,7 +55,7 @@ The prerequisites are:
 To test the fonts, run:
 
 ```sh
-python3 -m venv --system-site-packages venv
+python3 -m venv venv
 . venv/bin/activate
 pip install -r dev-requirements.txt
 make NOTO=1 check
