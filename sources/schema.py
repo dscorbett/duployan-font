@@ -49,6 +49,7 @@ import unicodedata
 
 
 import fontTools.agl
+import fontTools.merge.unicode
 import fontforge
 from typing_extensions import override
 
@@ -187,7 +188,9 @@ class Schema:
         marks: The sequence of marks of this schema, if this schema
             represents a glyph that can be decomposed into a base and
             some marks. For most schemas, this is empty.
-        ignorability: The ignorability of this schema’s character.
+        override_ignored: Whether to override this schema’s character to
+            be treated as not default ignorable. The value is not
+            meaningful if `cmap` is ``None``.
         encirclable: Whether this schema’s character is attested with a
             following U+20DD COMBINING ENCLOSING CIRCLE.
         maximum_tree_width: The maximum width of a shorthand overlap
@@ -356,7 +359,7 @@ class Schema:
             anchor: str | None = None,
             widthless: bool | None = None,
             marks: Sequence[Schema] | None = None,
-            ignorability: Ignorability = Ignorability.DEFAULT_NO,
+            override_ignored: bool = False,
             encirclable: bool = False,
             maximum_tree_width: int | None = None,
             shading_allowed: bool | None = None,
@@ -390,7 +393,7 @@ class Schema:
             widthless: The ``widthless`` attribute.
             marks: The ``marks`` attribute, or ``None`` to set the
                 attribute to an empty sequence.
-            ignorability: The ``ignorability`` attribute.
+            override_ignored: The ``override_ignored`` attribute.
             encirclable: The ``encirclable`` attribute.
             maximum_tree_width: The ``maximum_tree_width`` attribute, or
                 ``None`` to set the attribute to ``MAX_TREE_WIDTH`` if
@@ -413,6 +416,8 @@ class Schema:
         """
         assert not (marks and anchor), f'A schema has both marks {marks} and anchor {anchor}'
         assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
+        assert cmap is None or fontTools.merge.unicode.is_Default_Ignorable(cmap) or not override_ignored, (
+            'A non-ignored schema does need overriding: it is already not ignored')
         self.cmap: Final = cmap
         self.path: Final = path
         self.size: Final = size
@@ -426,7 +431,7 @@ class Schema:
         self.anchor: Final = anchor
         self.widthless: Final = widthless
         self.marks: Final = marks or []
-        self.ignorability: Final = ignorability
+        self.override_ignored: Final = override_ignored
         self.encirclable: Final = encirclable
         self.context_in: Final = context_in or NO_CONTEXT
         self.context_out: Final = context_out or NO_CONTEXT
@@ -547,7 +552,7 @@ class Schema:
         anchor: str | None | CloneDefault = CLONE_DEFAULT,
         widthless: bool | CloneDefault = CLONE_DEFAULT,
         marks: Sequence[Schema] | None | CloneDefault = CLONE_DEFAULT,
-        ignorability: Ignorability | CloneDefault = CLONE_DEFAULT,
+        override_ignored: bool | CloneDefault = CLONE_DEFAULT,
         encirclable: bool | CloneDefault = CLONE_DEFAULT,
         maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
         shading_allowed: bool | CloneDefault = CLONE_DEFAULT,
@@ -574,7 +579,7 @@ class Schema:
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
             widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
-            ignorability=self.ignorability if ignorability is CLONE_DEFAULT else ignorability,
+            override_ignored=self.override_ignored if override_ignored is CLONE_DEFAULT else override_ignored,
             encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
             maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
@@ -642,6 +647,20 @@ class Schema:
             if self.joining_type == Type.NON_JOINING
             else GlyphClass.JOINER
         )
+
+    @functools.cached_property
+    def ignorability(self) -> Ignorability:
+        """Returns the ignorability of this schema’s `cmap`.
+
+        If `cmap` is ``None``, it falls back to
+        `Ignorability.DEFAULT_NO`.
+        """
+        if self.cmap is not None:
+            if self.override_ignored:
+                return Ignorability.OVERRIDDEN_NO
+            if fontTools.merge.unicode.is_Default_Ignorable(self.cmap):
+                return Ignorability.DEFAULT_YES
+        return Ignorability.DEFAULT_NO
 
     @functools.cached_property
     def might_need_width_markers(self) -> bool:
