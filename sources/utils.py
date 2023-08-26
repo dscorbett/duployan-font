@@ -28,9 +28,13 @@ __all__ = [
     'CURVE_OFFSET',
     'CloneDefault',
     'Context',
+    'DEFAULT_SIDE_BEARING',
+    'DISCRETIONARY_FEATURES',
     'EPSILON',
     'GlyphClass',
+    'KNOWN_FEATURES',
     'KNOWN_SCRIPTS',
+    'KNOWN_SHAPE_PLANS',
     'MAX_TREE_DEPTH',
     'MAX_TREE_WIDTH',
     'MINIMUM_STROKE_GAP',
@@ -38,9 +42,10 @@ __all__ = [
     'OrderedSet',
     'PrefixView',
     'REGULAR_LIGHT_LINE',
-    'REQUIRED_SCRIPT_FEATURES',
+    'REQUIRED_FEATURES',
     'SHADING_FACTOR',
     'STRIKEOUT_POSITION',
+    'SUBSET_FEATURES',
     'Type',
     'WIDTH_MARKER_PLACES',
     'WIDTH_MARKER_RADIX',
@@ -176,41 +181,130 @@ WIDTH_MARKER_RADIX: Final[int] = 4
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
 
-#: A mapping from script tags to the features their shapers are
-#: guaranteed to apply (assuming that no required features are disabled,
-#: which is technically possible but not recommended).
-REQUIRED_SCRIPT_FEATURES: Mapping[str, Set[str]] = {
-    'DFLT': {
-        'abvm',
-        'blwm',
-        'curs',
-        'dist',
-        'locl',
-        'mark',
-        'mkmk',
-        'rclt',
-        'rlig',
+_INITIAL_STAGES: Final[Sequence[Set[str]]] = [
+    {
+        'rvrn',
     },
-    'dupl': {
-        'abvm',
-        'abvs',
-        'blwm',
-        'blws',
-        'curs',
-        'dist',
-        'haln',
-        'mark',
-        'mkmk',
-        'pres',
-        'psts',
-        'rclt',
-        'rlig',
+    {
+        'dnom',
+        'frac',
+        'numr',
     },
+]
+
+
+_COMMON_DISCRETIONARY_FEATURES: Final[Set[str]] = {
+    'afrc',
+    'calt',
+    'clig',
+    'cswh',
+    *{f'cv{x:02}' for x in range(1, 100)},
+    'dlig',
+    'hist',
+    'hlig',
+    'kern',
+    'liga',
+    'lnum',
+    'onum',
+    'ordn',
+    'pnum',
+    'salt',
+    'sinf',
+    *{f'ss{x:02}' for x in range(1, 21)},
+    'subs',
+    'sups',
+    'swsh',
+    'titl',
+    'tnum',
+    'zero',
 }
 
 
+_COMMON_REQUIRED_FEATURES: Final[Set[str]] = {
+    'abvm',
+    'blwm',
+    'curs',
+    'dist',
+    'mark',
+    'mkmk',
+    'rclt',
+    'rlig',
+}
+
+
+#: The set of features that are not necessarily applied automatically to
+#: all characters by any shaper that enables them. This includes
+#: features like 'dlig' that are meant to be enabled by the user, as
+#: well as features like 'dnom' that may be enabled automatically but
+#: not to all characters.
+DISCRETIONARY_FEATURES: Final[Set[str]] = {
+    *_COMMON_DISCRETIONARY_FEATURES,
+    'dnom',
+    'numr',
+}
+
+
+#: The set of features that are guaranteed to be applied to all
+#: characters by any shaper that enables them. (This assumes no required
+#: features are disabled by the user, which is technically possible but
+#: not recommended).
+REQUIRED_FEATURES: Final[Set[str]] = {
+    *_COMMON_REQUIRED_FEATURES,
+    'abvs',
+    'blws',
+    'haln',
+    'locl',
+    'pres',
+    'psts',
+    'rvrn',
+}
+
+
+#: The union of `DISCRETIONARY_FEATURES` and `REQUIRED_FEATURES`.
+KNOWN_FEATURES: Final[Set[str]] = DISCRETIONARY_FEATURES | REQUIRED_FEATURES
+
+
+#: A mapping from script tags to their features, organized by shape
+#: plan. This includes all features, required or discretionary. A shape
+#: plan is represented as a list of stages, where a stage is a set of
+#: feature tags. All the features in one stage are applied before the
+#: features in the next stage.
+KNOWN_SHAPE_PLANS: Final[Mapping[str, Sequence[Set[str]]]] = {
+    'DFLT': [
+        *_INITIAL_STAGES,
+        {
+            *_COMMON_DISCRETIONARY_FEATURES,
+            *_COMMON_REQUIRED_FEATURES,
+            'locl',
+        },
+    ],
+    'dupl': [
+        *_INITIAL_STAGES,
+        {
+            *_COMMON_DISCRETIONARY_FEATURES,
+            *_COMMON_REQUIRED_FEATURES,
+            'abvs',
+            'blws',
+            'haln',
+            'pres',
+            'psts',
+        },
+    ],
+}
+
+
+assert all(
+        sum(map(len, shape_plan)) == len(set().union(*shape_plan))
+        for shape_plan in KNOWN_SHAPE_PLANS.values()
+    ), 'A shape plan in `KNOWN_SHAPE_PLANS` contains two stages that share the same feature'
+
+
+assert KNOWN_FEATURES <= (really_known_features := {feature for shape_plan in KNOWN_SHAPE_PLANS.values() for stage in shape_plan for feature in stage}), (
+    f'''`KNOWN_FEATURES` contains extra features: {', '.join(f"'{feature}'" for feature in KNOWN_FEATURES - really_known_features)}''')
+
+
 #: The list of script tags that can appear in the generated font.
-KNOWN_SCRIPTS: Iterable[str] = sorted(REQUIRED_SCRIPT_FEATURES)
+KNOWN_SCRIPTS: Final[Iterable[str]] = sorted(KNOWN_SHAPE_PLANS)
 
 
 #: The set of features that should be included in the subsetted font.

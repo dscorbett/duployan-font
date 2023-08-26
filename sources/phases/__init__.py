@@ -127,13 +127,16 @@ from typing_extensions import override
 
 
 import schema
+from utils import DISCRETIONARY_FEATURES
 from utils import GlyphClass
+from utils import KNOWN_FEATURES
 from utils import KNOWN_SCRIPTS
+from utils import KNOWN_SHAPE_PLANS
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import OrderedSet
 from utils import PrefixView
-from utils import REQUIRED_SCRIPT_FEATURES
+from utils import REQUIRED_FEATURES
 
 
 if TYPE_CHECKING:
@@ -678,34 +681,6 @@ class Lookup:
         rules: The list of rules.
     """
 
-    _DISCRETIONARY_FEATURES: ClassVar[Set[str]] = {
-        'afrc',
-        'calt',
-        'clig',
-        'cswh',
-        *{f'cv{x:02}' for x in range(1, 100)},
-        'dlig',
-        'dnom',
-        'hist',
-        'hlig',
-        'kern',
-        'liga',
-        'lnum',
-        'numr',
-        'onum',
-        'ordn',
-        'pnum',
-        'salt',
-        'sinf',
-        *{f'ss{x:02}' for x in range(1, 21)},
-        'subs',
-        'sups',
-        'swsh',
-        'titl',
-        'tnum',
-        'zero',
-    }
-
     @overload
     def __init__(
             self,
@@ -761,11 +736,12 @@ class Lookup:
         assert language is None or len(language) == 4, f"Language tag must be 4 characters long: '{language}'"
         assert feature is None or len(feature) == 4, f"Feature tag must be 4 characters long: '{feature}'"
         assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
+        assert feature is None or feature in KNOWN_FEATURES
         self.feature: Final = feature
         self.language: Final = language
         self.flags: Final = flags
         self.mark_filtering_set: Final = mark_filtering_set
-        self.required: Final = feature is not None and feature not in self._DISCRETIONARY_FEATURES
+        self.required: Final = feature in REQUIRED_FEATURES
         self.reversed: Final = reversed
         self.prepending: Final = prepending
         self.rules: Final[_FreezableList[Rule]] = _FreezableList()
@@ -831,7 +807,8 @@ class Lookup:
         scripts = sorted(features_to_scripts[self.feature])
         if self.required:
             for script in scripts:
-                assert self.feature in REQUIRED_SCRIPT_FEATURES[script], (
+                assert any(self.feature in stage and self.feature in REQUIRED_FEATURES
+                    for stage in KNOWN_SHAPE_PLANS[script]), (
                     f"The phase system does not support the feature '{self.feature}' for the script '{script}'")
         return scripts
 
@@ -1180,6 +1157,7 @@ def run_phases(
         5. A mapping from named lookups’ names to 2-tuples of named
            lookups and their generating phases.
     """
+    previous_feature = None
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases: MutableSequence[tuple[Lookup, Phase]] = []
@@ -1217,6 +1195,17 @@ def run_phases(
              )
             if lookups is None:
                 lookups = output_lookups
+                for lookup in lookups:
+                    previous_feature_index = -1
+                    feature_index = -1
+                    for shape_plan in KNOWN_SHAPE_PLANS.values():
+                        for i, stage in enumerate(shape_plan):
+                            if previous_feature in stage:
+                                previous_feature_index = i
+                            if lookup.feature in stage:
+                                feature_index = i
+                    assert previous_feature_index <= feature_index, f"Feature '{previous_feature}' must not follow feature '{lookup.feature}'"
+                    previous_feature = lookup.feature
             else:
                 assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
                 for i, lookup in enumerate(lookups):
