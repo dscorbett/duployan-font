@@ -1537,16 +1537,24 @@ class Dot(Shape):
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
-        stroke_width *= self.SCALAR ** self.size_exponent
+        scaled_stroke_width = stroke_width * self.SCALAR ** self.size_exponent
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
-        glyph.stroke('circular', stroke_width, 'round')
-        if anchor:
-            glyph.addAnchorPoint(anchor, 'mark', *_rect(0, 0))
-        elif joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(stroke_width / 2))
-            glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
-            glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(stroke_width / 2))
+        glyph.stroke('circular', scaled_stroke_width, 'round')
+        x_min, y_min, x_max, y_max = glyph.boundingBox()
+        x_center = (x_max + x_min) / 2
+        match anchor:
+            case None:
+                if joining_type != Type.NON_JOINING:
+                    glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(scaled_stroke_width / 2))
+                    glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0 if self.centered else -(scaled_stroke_width / 2))
+                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(scaled_stroke_width / 2))
+            case anchors.ABOVE:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
+            case anchors.BELOW:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
+            case _:
+                glyph.addAnchorPoint(anchor, 'mark', *_rect(0, 0))
         return None
 
     @override
