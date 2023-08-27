@@ -50,6 +50,12 @@
 1BC02 202F 1BC5F::[u1BC02.p@0,0|uni202F.nnbsp@240,35|u1BC5F.wei@232,-400|_@872,0]
 1BC5F 202F 1BC02::[u1BC5F.wei@0,340|uni202F.nnbsp@638,535|u1BC02.p@668,0|_@908,0]
 
+# U+1BC01 DUPLOYAN LETTER X with diacritics
+1BC01 0324 030C::[u1BC01.x@71,0|uni0324.diaeresis_below@6,-203|uni030C.caron@0,402|_@422,0]
+1BC01 0324 030C 1BC04::[u1BC01.x@71,387|uni0324.diaeresis_below@6,184|uni030C.caron@0,789|u1BC04.f@265,0|_@793,0]
+1BC0B 1BC01 0324 030C::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1083,1289|_@1505,0]
+1BC0B 1BC01 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1083,1289|u1BC04.f@1348,500|_@1876,0]
+
 # Space next to non-space
 1BC02 202F 1BC00 EC02::[u1BC02.p@0,0|uni202F.nnbsp@240,35|u1BC00.h@268,-13|uniEC02.reversed_p@450,0|_@690,0]
 1BC02 1BC00 202F EC02::[u1BC02.p@0,0|u1BC00.h@154,-13|uni202F.nnbsp@420,35|uniEC02.reversed_p@450,0|_@690,0]

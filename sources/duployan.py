@@ -840,7 +840,7 @@ class Builder:
             )]
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef) or schema.path.guaranteed_glyph_class() is not None and schema.path.invisible():
             return
-        anchor_tests = {anchor: (anchor in cmapped_anchors or anchor in schema.anchors) and not schema.pseudo_cursive for anchor in anchors.ALL_MARK}
+        anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}
         anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
         anchor_tests[anchors.SECANT] |= schema.can_take_secant
         anchor_tests[anchors.CONTINUING_OVERLAP] = schema.joining_type != Type.NON_JOINING and (

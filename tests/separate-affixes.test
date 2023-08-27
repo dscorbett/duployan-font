@@ -62,6 +62,12 @@
 1BC90 1BC92 1BC02::[u1BC90.low_acute@0,535|u1BC92.low_grave@317,535|u1BC02.p@729,0|_@969,0]
 1BC94 1BC94 1BC02::[u1BC94.low_dot@0,535|u1BC94.low_dot@168,535|u1BC02.p@431,0|_@671,0]
 
+# With diacritics
+1BC88 0324 030C::[u1BC88.high_vertical@91,0|uni0324.diaeresis_below@6,-3|uni030C.caron@0,625|_@422,0]
+1BC88 0324 030C 1BC04::[u1BC88.high_vertical@91,535|uni0324.diaeresis_below@6,532|uni030C.caron@0,1160|u1BC04.f@196,0|_@724,0]
+1BC0B 1BC88 0324 030C::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|uni0324.diaeresis_below@1020,1032|uni030C.caron@1014,1660|_@1436,0]
+1BC0B 1BC88 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|uni0324.diaeresis_below@1020,1032|uni030C.caron@1014,1660|u1BC04.f@1210,500|_@1738,0]
+
 # Even if the base letter has room for the affix to nestle within, the affix
 # should stay somewhat separate, to maintain the general left-to-right reading
 # direction.

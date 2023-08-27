@@ -75,6 +75,7 @@ from shapes import InitialSecantMarker
 from shapes import LeftBoundDigit
 from shapes import Line
 from shapes import MarkAnchorSelector
+from shapes import ParentEdge
 from shapes import RightBoundDigit
 from shapes import SeparateAffix
 from shapes import Space
@@ -111,7 +112,11 @@ def add_shims_for_pseudo_cursive(
     marker_lookup = Lookup(
         'dist',
         'dflt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
+    deduplicate_marker_lookup = Lookup(
+        'dist',
+        'dflt',
+        mark_filtering_set='root_parent_edge',
     )
     space_lookup = Lookup(
         'dist',
@@ -120,15 +125,25 @@ def add_shims_for_pseudo_cursive(
         reversed=True,
     )
     if len(original_schemas) != len(schemas):
-        return [marker_lookup, space_lookup]
+        return [marker_lookup, deduplicate_marker_lookup, space_lookup]
     pseudo_cursive_schemas_to_classes = {}
     pseudo_cursive_info = {}
     exit_schemas = []
     entry_schemas = []
     for schema in new_schemas:
-        if schema.glyph is None or schema.glyph_class != GlyphClass.JOINER:
+        if schema.glyph is None:
+            continue
+        if schema.glyph_class != GlyphClass.JOINER:
+            if schema.glyph_class == GlyphClass.MARK:
+                if schema.path.invisible():
+                    if isinstance(schema.path, ParentEdge) and not schema.path.lineage:
+                        classes['pseudo_cursive_or_root_parent_edge'].append(schema)
+                        classes['root_parent_edge'].append(schema)
+                else:
+                    classes['diacritic'].append(schema)
             continue
         if schema.pseudo_cursive:
+            classes['pseudo_cursive_or_root_parent_edge'].append(schema)
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             exit_x = exit_y = entry_x = entry_y = None
             for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
@@ -180,6 +195,10 @@ def add_shims_for_pseudo_cursive(
         )
 
     marker = get_shim(0, 0)
+    add_rule(marker_lookup, Rule('diacritic', ['diacritic', marker]))
+    add_rule(deduplicate_marker_lookup, Rule([], [marker], [marker], []))
+    add_rule(deduplicate_marker_lookup, Rule('pseudo_cursive_or_root_parent_edge', [marker], [], lookups=[None]))
+    add_rule(deduplicate_marker_lookup, Rule([marker], []))
 
     @overload
     def round_with_base(number: float, base: int, minimum: float, key: None = ...) -> float:
@@ -242,7 +261,7 @@ def add_shims_for_pseudo_cursive(
                 add_rule(space_lookup, Rule(exit_class, [marker], pseudo_cursive_class_name, [shim]))
         for entry_class, shim in entry_classes.items():
             add_rule(space_lookup, Rule(pseudo_cursive_class_name, [marker], entry_class, [shim]))
-    return [marker_lookup, space_lookup]
+    return [marker_lookup, deduplicate_marker_lookup, space_lookup]
 
 
 def shrink_wrap_enclosing_circle(
