@@ -488,11 +488,11 @@ class Hub(Shape):
 
     1. Dotted guidelines and most non-orienting letters
     2. Orienting letters and U+1BC01 DUPLOYAN LETTER X
-    3. U+1BC03 DUPLOYAN LETTER T and its cognates
+    3. U+1BC03 DUPLOYAN LETTER T and its cognates and U+1BC00 DUPLOYAN
+       LETTER H
 
-    Anything else (like secants and U+1BC00 DUPLOYAN LETTER H) or
-    anything following an overlap control is ignored for determining the
-    baseline.
+    Anything else (like secants) or anything following an overlap
+    control is ignored for determining the baseline.
 
     Attributes:
         priority: The priority level. Lower numbers have higher
@@ -1470,8 +1470,6 @@ class Dot(Shape):
             width multiplied by `SCALAR` raised to the power of
             `size_exponent`. A standalone dot should normally be scaled
             up lest it be hard to see at small font sizes.
-        centered: Whether the cursive anchor points are placed in the
-            center of the dot, as opposed to at the bottom.
     """
 
     #: The factor to use when determining the actual stroke width. See
@@ -1482,28 +1480,22 @@ class Dot(Shape):
     def __init__(
         self,
         size_exponent: float = 1,
-        *,
-        centered: bool = False,
     ) -> None:
         """Initializes this `Dot`.
 
         Args:
             size_exponent: The ``size_exponent`` attribute.
-            centered: The ``centered`` attribute.
         """
         self.size_exponent: Final = size_exponent
-        self.centered: Final = centered
 
     @override
     def clone(
         self,
         *,
         size_exponent: bool | CloneDefault = CLONE_DEFAULT,
-        centered: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             size_exponent=self.size_exponent if size_exponent is CLONE_DEFAULT else size_exponent,
-            centered=self.centered if centered is CLONE_DEFAULT else centered,
         )
 
     @override
@@ -1513,13 +1505,12 @@ class Dot(Shape):
     @override
     def group(self) -> Hashable:
         return (
-            self.centered,
             self.size_exponent,
         )
 
     @override
     def hub_priority(self, size: float) -> int:
-        return -1
+        return 2
 
     @override
     def draw(
@@ -1546,9 +1537,10 @@ class Dot(Shape):
         match anchor:
             case None:
                 if joining_type != Type.NON_JOINING:
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0 if self.centered else -(scaled_stroke_width / 2))
-                    glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0 if self.centered else -(scaled_stroke_width / 2))
-                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0 if self.centered else -(scaled_stroke_width / 2))
+                    glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
+                    glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
+                    glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
+                    glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', 0, 0)
             case anchors.ABOVE:
                 glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
             case anchors.BELOW:

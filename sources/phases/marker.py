@@ -171,7 +171,6 @@ def add_shims_for_pseudo_cursive(
                 x_max - exit_x,
                 bottom_bound,
                 top_bound,
-                (y_max - y_min) / 2 if isinstance(schema.path, Dot) else 0,
                 200 if isinstance(schema.path, SeparateAffix) else 6,
             )
         if (schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT) and (
@@ -217,7 +216,6 @@ def add_shims_for_pseudo_cursive(
         pseudo_cursive_right_bound,
         pseudo_cursive_bottom_bound,
         pseudo_cursive_top_bound,
-        pseudo_cursive_y_offset,
         rounding_base,
     )) in enumerate(pseudo_cursive_info.items()):
         add_rule(marker_lookup, Rule(pseudo_cursive_class_name, [marker, pseudo_cursive_class_name, marker]))
@@ -225,16 +223,15 @@ def add_shims_for_pseudo_cursive(
         exit_classes_containing_pseudo_cursive_schemas: set[str] = set()
         exit_classes_containing_true_cursive_schemas: set[str] = set()
         entry_classes: MutableMapping[str, Schema] = {}
-        for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, height_sign, get_distance_to_edge in [
-            ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, -1, lambda bounds, x: bounds[1] - x),
-            ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, 1, lambda bounds, x: x - bounds[0]),
+        for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, get_distance_to_edge in [
+            ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, lambda bounds, x: bounds[1] - x),
+            ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, lambda bounds, x: x - bounds[0]),
         ]:
             for e_schema, x, y in e_schemas:
                 assert e_schema.glyph is not None
                 bounds: tuple[float, float] | None = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
-                shim_height = pseudo_cursive_y_offset * height_sign
                 if (pseudo_cursive_is_space
                     and e_schemas is exit_schemas
                     and isinstance(e_schema.path, Space)
@@ -242,14 +239,11 @@ def add_shims_for_pseudo_cursive(
                     # Margins do not collapse between spaces.
                     shim_width += DEFAULT_SIDE_BEARING
                 exit_is_pseudo_cursive = e_classes is exit_classes and e_schema in pseudo_cursive_schemas_to_classes
-                if exit_is_pseudo_cursive:
-                    shim_height += pseudo_cursive_info[pseudo_cursive_schemas_to_classes[e_schema]][5]
                 shim_width = round_with_base(shim_width, rounding_base, MINIMUM_STROKE_GAP)
-                shim_height = round_with_base(shim_height, rounding_base, 0, abs)
-                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}_{shim_height}'.replace('-', 'n')
+                e_class = f'{prefix}_shim_{pseudo_cursive_index}_{shim_width}'.replace('-', 'n')
                 classes[e_class].append(e_schema)
                 if e_class not in e_classes:
-                    e_classes[e_class] = get_shim(shim_width, shim_height)
+                    e_classes[e_class] = get_shim(shim_width, 0)
                 (exit_classes_containing_pseudo_cursive_schemas
                         if exit_is_pseudo_cursive
                         else exit_classes_containing_true_cursive_schemas
