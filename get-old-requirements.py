@@ -20,6 +20,7 @@ from collections.abc import MutableMapping
 from collections.abc import Sequence
 import importlib.metadata
 import json
+import re
 import urllib.request
 
 import packaging.markers
@@ -30,10 +31,12 @@ from packaging.utils import NormalizedName
 import packaging.version
 
 
+COMMENT_PATTERN = re.compile(r'(^|\s)#.*')
+
+
 def parse_constraints(lines: Sequence[str]) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
     constraints = {}
     for line in lines:
-        line = line.strip()
         if line.startswith(('-c ', '--constraint ')):
             with open(line.split(' ', 1)[1]) as constraint_file:
                 for constraint_line in constraint_file:
@@ -80,7 +83,7 @@ def add_requirement(
 
 
 def parse_requirements(
-    lines: list[str],
+    lines: Sequence[str],
     constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
 ) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
     requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet] = {}
@@ -99,8 +102,16 @@ def main() -> None:
     parser.add_argument('--output', metavar='FILE', required=True, help='output requirements file')
     args = parser.parse_args()
 
+    continuation = False
+    lines: list[str] = []
     with open(args.input) as input:
-        lines = input.readlines()
+        for line in input:
+            if continuation:
+                lines[-1] += line
+            else:
+                lines.append(line)
+            continuation = line.endswith('\\')
+    lines = [stripped_line for line in lines if (stripped_line := COMMENT_PATTERN.sub('', line).strip())]
 
     requirements = parse_requirements(lines, parse_constraints(lines))
 
