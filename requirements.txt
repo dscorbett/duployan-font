@@ -25,7 +25,7 @@ fonttools==4.40.0
     #   -c constraints.txt
     #   -r requirements.in
     #   cffsubr
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via -r requirements.in
 uharfbuzz==0.37.2
     # via
