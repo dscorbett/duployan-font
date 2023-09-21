@@ -14,13 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+
 import argparse
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Sequence
+import functools
 import importlib.metadata
 import json
 import re
+import subprocess
+import sys
+from typing import TYPE_CHECKING
 import urllib.request
 
 import packaging.markers
@@ -31,21 +38,46 @@ from packaging.utils import NormalizedName
 import packaging.version
 
 
+if TYPE_CHECKING:
+    from _typeshed import FileDescriptorOrPath
+
+
 COMMENT_PATTERN = re.compile(r'(^|\s)#.*')
+
+
+def get_lines(file: FileDescriptorOrPath) -> Sequence[str]:
+    continuation = False
+    lines: list[str] = []
+    with open(file) as input:
+        for line in input:
+            if continuation:
+                lines[-1] += line
+            else:
+                lines.append(line)
+            continuation = line.endswith('\\')
+    return [stripped_line for line in lines if (stripped_line := COMMENT_PATTERN.sub('', line).strip())]
 
 
 def parse_constraints(lines: Sequence[str]) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
     constraints = {}
     for line in lines:
         if line.startswith(('-c ', '--constraint ')):
-            with open(line.split(' ', 1)[1]) as constraint_file:
-                for constraint_line in constraint_file:
-                    try:
-                        constraint = packaging.requirements.Requirement(constraint_line)
-                    except packaging.requirements.InvalidRequirement:
-                        continue
-                    constraints[packaging.utils.canonicalize_name(constraint.name)] = constraint.specifier
+            for constraint_line in get_lines(line.split(' ', 1)[1]):
+                try:
+                    constraint = packaging.requirements.Requirement(constraint_line)
+                except packaging.requirements.InvalidRequirement:
+                    continue
+                constraints[packaging.utils.canonicalize_name(constraint.name)] = constraint.specifier
     return constraints
+
+
+@functools.cache
+def get_metadata(requirement: packaging.requirements.Requirement) -> importlib.metadata.PackageMetadata | None:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', str(requirement)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        return importlib.metadata.metadata(requirement.name)
+    except importlib.metadata.PackageNotFoundError:
+        return None
 
 
 def add_required_dists(
@@ -68,18 +100,22 @@ def add_requirement(
     constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
 ) -> None:
     name = packaging.utils.canonicalize_name(requirement.name)
-    if name not in requirements:
+    new = name not in requirements
+    if new:
         requirements[name] = constraints.get(name, packaging.specifiers.SpecifierSet())
-    requirements[name] &= requirement.specifier
-    metadata = importlib.metadata.metadata(name)
-    required_dists = metadata.get_all('Requires-Dist')
-    if required_dists:
-        add_required_dists(requirements, required_dists, constraints)
-        if requirement.extras:
-            for extra in metadata.get_all('Provides-Extra'):
-                if extra not in requirement.extras:
-                    continue
-                add_required_dists(requirements, required_dists, constraints, extra)
+    if (specifier_union := requirements[name] & requirement.specifier) != requirements[name] or new:
+        requirements[name] = specifier_union
+    else:
+        return
+    if (metadata := get_metadata(requirement)):
+        required_dists = metadata.get_all('Requires-Dist')
+        if required_dists:
+            add_required_dists(requirements, required_dists, constraints)
+            if requirement.extras:
+                for extra in metadata.get_all('Provides-Extra') or []:
+                    if extra not in requirement.extras:
+                        continue
+                    add_required_dists(requirements, required_dists, constraints, extra)
 
 
 def parse_requirements(
@@ -88,39 +124,51 @@ def parse_requirements(
 ) -> Mapping[NormalizedName, packaging.specifiers.SpecifierSet]:
     requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet] = {}
     for line in lines:
-        try:
-            requirement = packaging.requirements.Requirement(line)
-        except packaging.requirements.InvalidRequirement:
-            continue
-        add_requirement(requirements, requirement, constraints)
+        if line.startswith(('-r ', '--requirement ')):
+            for requirement_name, specifier in parse_requirements(get_lines(line.split(' ', 1)[1]), constraints).items():
+                try:
+                    requirement = packaging.requirements.Requirement(f'{requirement_name}{specifier}')
+                except packaging.requirements.InvalidRequirement:
+                    continue
+                add_requirement(requirements, requirement, constraints)
+        else:
+            try:
+                requirement = packaging.requirements.Requirement(line)
+            except packaging.requirements.InvalidRequirement:
+                continue
+            add_requirement(requirements, requirement, constraints)
     return requirements
 
 
+def get_valid_version(release: tuple[str, object]) -> packaging.version.Version | None:
+    if not release[1]:
+        return None
+    try:
+        return packaging.version.Version(release[0])
+    except packaging.version.InvalidVersion:
+        return None
+
+
 def main() -> None:
+    if sys.prefix == sys.base_prefix:
+        sys.exit('Must be run in a virtual environment')
+
     parser = argparse.ArgumentParser(description='Pin the requirements in a requirements file to their oldest versions.')
     parser.add_argument('--input', metavar='FILE', required=True, help='input requirements file')
     parser.add_argument('--output', metavar='FILE', required=True, help='output requirements file')
     args = parser.parse_args()
 
     continuation = False
-    lines: list[str] = []
-    with open(args.input) as input:
-        for line in input:
-            if continuation:
-                lines[-1] += line
-            else:
-                lines.append(line)
-            continuation = line.endswith('\\')
-    lines = [stripped_line for line in lines if (stripped_line := COMMENT_PATTERN.sub('', line).strip())]
+    lines = get_lines(args.input)
 
     requirements = parse_requirements(lines, parse_constraints(lines))
 
     with open(args.output, 'w') as output:
         for requirement_name, specifier in requirements.items():
-            for release in sorted(map(
-                packaging.version.Version,
-                json.loads(urllib.request.urlopen(f'https://pypi.org/pypi/{requirement_name}/json').read())['releases']),
-            ):
+            for release in sorted(filter(None, map(
+                get_valid_version,
+                json.loads(urllib.request.urlopen(f'https://pypi.org/pypi/{requirement_name}/json').read())['releases'].items(),
+            ))):
                 if release in specifier:
                     output.write(f'{requirement_name} == {release}\n')
                     break

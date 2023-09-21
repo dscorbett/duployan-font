@@ -106,6 +106,16 @@ jobs:
       - name: Install unifdef
         run: |
           sudo apt-get -qy --no-install-recommends install unifdef
+      - name: Prepare oldest requirements
+        if: matrix.requirements == 'oldest'
+        run: |
+          python -m venv oldest-venv
+          . oldest-venv/bin/activate
+          pip install packaging==22
+          ./get-old-requirements.py --input dev-requirements.in --output dev-requirements.txt
+          cat dev-requirements.txt
+          ./get-old-requirements.py --input requirements.in --output requirements.txt
+          cat requirements.txt
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
         run: |
@@ -114,16 +124,20 @@ jobs:
       - name: Install dev requirements
         if: matrix.skip-check == ''
         run: pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
-      - name: Prepare oldest requirements
-        if: matrix.requirements == 'oldest'
+      - name: Test updating the requirements files
+        if: matrix.skip-check == ''
         run: |
-          ./get-old-requirements.py --input requirements.in --output requirements.txt
+          mv dev-requirements.txt dev-requirements.txt.bak
+          mv requirements.txt requirements.txt.bak
+          make -j dev-requirements.txt requirements.txt
+          mv dev-requirements.txt.bak dev-requirements.txt
+          mv requirements.txt.bak requirements.txt
       - name: Make a virtual environment for building
         run: python -m venv build-venv
       - name: Install requirements
         run: |
           . build-venv/bin/activate
-          pip install ${{ matrix.requirements == 'frozen' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r requirements.txt
+          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
         run: |
           . build-venv/bin/activate
