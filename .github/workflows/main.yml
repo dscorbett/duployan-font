@@ -122,10 +122,9 @@ jobs:
           python -m venv oldest-venv
           . oldest-venv/bin/activate
           pip install packaging==22
-          ./get-old-requirements.py --input dev-requirements.in --output dev-requirements.txt
-          cat dev-requirements.txt
-          ./get-old-requirements.py --input requirements.in --output requirements.txt
-          cat requirements.txt
+          PYTHONUNBUFFERED=1 ./get-old-requirements.py --input dev-requirements.in --output dev-requirements.txt
+          PYTHONUNBUFFERED=1 ./get-old-requirements.py --input requirements.in --output requirements.txt
+          tail -n +1 dev-requirements.txt requirements.txt
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
         run: |

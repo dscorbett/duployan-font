@@ -27,6 +27,7 @@ import json
 import re
 import subprocess
 import sys
+from typing import Iterator
 from typing import TYPE_CHECKING
 import urllib.request
 
@@ -72,12 +73,28 @@ def parse_constraints(lines: Sequence[str]) -> Mapping[NormalizedName, packaging
 
 
 @functools.cache
-def get_metadata(requirement: packaging.requirements.Requirement) -> importlib.metadata.PackageMetadata | None:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', str(requirement)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    try:
-        return importlib.metadata.metadata(requirement.name)
-    except importlib.metadata.PackageNotFoundError:
-        return None
+def get_metadata(
+    requirement_name: NormalizedName,
+    specifier: packaging.specifiers.SpecifierSet,
+) -> tuple[importlib.metadata.PackageMetadata | None, packaging.specifiers.SpecifierSet]:
+    new_specifier = packaging.specifiers.SpecifierSet()
+    for release in get_matching_releases(requirement_name, specifier):
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', f'{requirement_name}=={release}'])  #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return importlib.metadata.metadata(requirement_name), new_specifier
+        except (importlib.metadata.PackageNotFoundError, subprocess.CalledProcessError):
+            new_specifier &= packaging.specifiers.SpecifierSet(f'!={release}')
+    return None, new_specifier
+
+
+def get_metadata_and_update_specifier(
+    requirement_name: NormalizedName,
+    specifier: packaging.specifiers.SpecifierSet,
+    requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet],
+) -> importlib.metadata.PackageMetadata | None:
+    metadata, new_specifier = get_metadata(requirement_name, specifier)
+    requirements[requirement_name] &= new_specifier
+    return metadata
 
 
 def add_required_dists(
@@ -107,7 +124,7 @@ def add_requirement(
         requirements[name] = specifier_union
     else:
         return
-    if (metadata := get_metadata(requirement)):
+    if (metadata := get_metadata_and_update_specifier(name, requirements[name], requirements)):
         required_dists = metadata.get_all('Requires-Dist')
         if required_dists:
             add_required_dists(requirements, required_dists, constraints)
@@ -149,6 +166,20 @@ def get_valid_version(release: tuple[str, object]) -> packaging.version.Version 
         return None
 
 
+@functools.cache
+def fetch_releases(requirement_name: str) -> Iterator[tuple[str, object]]:
+    return json.loads(urllib.request.urlopen(f'https://pypi.org/pypi/{requirement_name}/json').read())['releases'].items()  # type: ignore[no-any-return]
+
+
+def get_matching_releases(requirement_name: str, specifier: packaging.specifiers.SpecifierSet) -> Iterator[packaging.version.Version]:
+    for release in sorted(filter(None, map(
+        get_valid_version,
+        fetch_releases(requirement_name),
+    ))):
+        if release in specifier:
+            yield release
+
+
 def main() -> None:
     if sys.prefix == sys.base_prefix:
         sys.exit('Must be run in a virtual environment')
@@ -165,13 +196,9 @@ def main() -> None:
 
     with open(args.output, 'w') as output:
         for requirement_name, specifier in requirements.items():
-            for release in sorted(filter(None, map(
-                get_valid_version,
-                json.loads(urllib.request.urlopen(f'https://pypi.org/pypi/{requirement_name}/json').read())['releases'].items(),
-            ))):
-                if release in specifier:
-                    output.write(f'{requirement_name} == {release}\n')
-                    break
+            for release in get_matching_releases(requirement_name, specifier):
+                output.write(f'{requirement_name}=={release}\n')
+                break
 
 
 if __name__ == '__main__':
