@@ -41,9 +41,19 @@ jobs:
             skip-check: skip-check
     steps:
       - uses: actions/checkout@v3
+      - name: Select the setup-python cache
+        run: |
+          echo '# ${{ matrix.requirements }}' >>dev-requirements.txt
+          echo '# ${{ matrix.skip-check }}' >>dev-requirements.txt
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            dev-requirements.in
+            dev-requirements.txt
+            requirements.in
+            requirements.txt
       - name: Cache FontForge
         id: cache-fontforge
         uses: actions/cache@v3
