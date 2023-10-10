@@ -22,7 +22,6 @@ cffsubr==0.2.9.post1
     # via -r requirements.in
 fonttools==4.40.0
     # via
-    #   -c constraints.txt
     #   -r requirements.in
     #   cffsubr
 typing-extensions==4.8.0

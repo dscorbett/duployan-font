@@ -40,7 +40,7 @@ build==1.0.3
     #   pip-tools
 certifi==2023.7.22
     # via requests
-cffi==1.15.1
+cffi==1.16.0
     # via
     #   -c dev-constraints.txt
     #   cmarkgfm
@@ -48,7 +48,7 @@ cffsubr==0.2.9.post1
     # via
     #   -r requirements.in
     #   ufo2ft
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
     # via requests
 click==8.1.7
     # via pip-tools
@@ -81,7 +81,6 @@ fontfeatures==1.8.0
     #   babelfont
 fonttools==4.40.0
     # via
-    #   -c constraints.txt
     #   -r requirements.in
     #   axisregistry
     #   babelfont
@@ -110,7 +109,7 @@ fs==2.4.16
     #   -c dev-constraints.txt
     #   fontfeatures
     #   fonttools
-gflanguages==0.5.6
+gflanguages==0.5.7
     # via
     #   fontbakery
     #   shaperglot
@@ -124,7 +123,7 @@ glyphsets==0.6.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-glyphslib==6.4.0
+glyphslib==6.4.1
     # via
     #   babelfont
     #   glyphsets
@@ -145,7 +144,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.5.1
+mypy==1.6.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -160,11 +159,11 @@ opentype-sanitizer==9.1.0
     # via fontbakery
 opentypespec==1.9.1
     # via fontbakery
-orjson==3.9.7
+orjson==3.9.8
     # via
     #   -c dev-constraints.txt
     #   babelfont
-packaging==23.1
+packaging==23.2
     # via
     #   -r dev-requirements.in
     #   build
@@ -201,7 +200,7 @@ requests==2.31.0
     # via
     #   fontbakery
     #   youseedee
-rich==13.5.3
+rich==13.6.0
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -257,9 +256,9 @@ uharfbuzz==0.37.2
     #   collidoscope
     #   fonttools
     #   vharfbuzz
-unicodedata2==15.0.0
+unicodedata2==15.1.0
     # via fonttools
-urllib3==2.0.5
+urllib3==2.0.6
     # via requests
 vharfbuzz==0.2.0
     # via
