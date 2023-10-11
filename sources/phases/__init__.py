@@ -94,10 +94,10 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import cast
 from typing import overload
+from typing import override
 
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
-from typing_extensions import override
 
 import schema
 from utils import GlyphClass

@@ -27,11 +27,11 @@ from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
 from typing import cast
+from typing import override
 import unicodedata
 
 import fontTools.agl
 import fontTools.merge.unicode
-from typing_extensions import override
 
 import anchors
 from shapes import AnchorWidthDigit

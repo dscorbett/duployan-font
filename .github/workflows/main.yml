@@ -28,10 +28,10 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: 3.12
 jobs:
   main:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         include:
@@ -124,11 +124,14 @@ jobs:
           sudo apt-get -qy --no-install-recommends install \
             build-essential \
             cmake \
+            libfreetype6-dev \
+            libglib2.0-dev \
             ninja-build \
             packaging-dev \
             pkg-config \
             python${{ env.PYTHON_VERSION }}-dev \
           ;
+          pip install $(grep '^setuptools==' dev-requirements.txt)
           curl -Lo fontforge.zip https://github.com/fontforge/fontforge/archive/${{ env.FONTFORGE_COMMIT }}.zip
           unzip fontforge.zip
           mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge

@@ -29,9 +29,9 @@ from typing import Self
 from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import overload
+from typing import override
 
 import fontTools.subset
-from typing_extensions import override
 import uharfbuzz
 
 

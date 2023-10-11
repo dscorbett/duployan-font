@@ -16,5 +16,4 @@
 cffsubr >= 0.3, < 0.3.1
 fonttools[repacker] >= 4.39.4, < 5
 gfsubsets >= 2024.9.25
-typing_extensions ~= 4.4
-uharfbuzz >= 0.31, < 0.37.3  # https://github.com/harfbuzz/harfbuzz/pull/4385#issuecomment-1692191895
+uharfbuzz >= 0.37.1, < 0.37.3  # https://github.com/harfbuzz/uharfbuzz/pull/165 https://github.com/harfbuzz/harfbuzz/pull/4385#issuecomment-1692191895

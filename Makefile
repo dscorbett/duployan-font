@@ -169,7 +169,7 @@ endif
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --auto-jobs --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists --skip-network $(filter %.$*,$(FONTS))
+	fontbakery check-notofonts --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists --skip-network $(filter %.$*,$(FONTS))
 
 .PHONY: fontbakery
 fontbakery: $(addprefix fontbakery-,$(SUFFIXES))

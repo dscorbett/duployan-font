@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from _typeshed import StrOrBytesPath
 
 
-def cast_cff_number(number: float | int) -> float | int:  # noqa: PYI041
+def cast_cff_number(number: float) -> float:
     """Losslessly casts a number to the data type in which it uses the
     fewest bytes in CFF.
 
@@ -41,7 +41,7 @@ def cast_cff_number(number: float | int) -> float | int:  # noqa: PYI041
         `number` as either a `float` or an `int`, whichever uses the
         fewest bytes in CFF.
     """
-    if isinstance(number, float) and not number.is_integer():
+    if not number.is_integer():
         return number
     f = float(number)
     if not (-2 ** 31 <= number <= 2 ** 31 - 1):

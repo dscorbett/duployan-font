@@ -81,7 +81,7 @@ disallow_untyped_defs = false
 
 [tool.ruff]
 src = [".", "sources"]
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 allowed-confusables = [
