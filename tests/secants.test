@@ -22,6 +22,8 @@
 1BC00 1BC75::[u1BC00.h@0,0|uni200C.zwnj@268,0|u1BC75.high_vertical_secant@518,-166|dupl_.Line.0.dotted@268,0|_@1258,0]
 1BC00 1BC76::[u1BC00.h@0,0|uni200C.zwnj@268,0|u1BC76.secant@393,-216|dupl_.Line.0.dotted@268,0|_@1258,0]
 1BC00 1BC77::[u1BC00.h@0,0|uni200C.zwnj@268,0|u1BC77.left_to_right_secant@357,-191|dupl_.Line.0.dotted@268,0|_@1258,0]
+1BC00 1BC76 1BC9D::[u1BC00.h@0,0|uni200C.zwnj@268,0|u1BC76_u1BC9D_.SECANT.240@368,-241|dupl_.Line.0.dotted@268,0|_@1258,0]
+1BC00 1BC77 1BC9D::[u1BC00.h@0,0|uni200C.zwnj@268,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@332,-216|dupl_.Line.0.dotted@268,0|_@1258,0]
 
 # Isolated
 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,167|dupl_.Line.270.dotted@667,0|_@1240,0]
@@ -32,6 +34,8 @@
 1BC75::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@250,-166|dupl_.Line.0.dotted@0,0|_@990,0]
 1BC76::[uni200C.zwnj@0,0|u1BC76.secant@125,-216|dupl_.Line.0.dotted@0,0|_@990,0]
 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@89,-191|dupl_.Line.0.dotted@0,0|_@990,0]
+1BC76 1BC9D::[uni200C.zwnj@0,0|u1BC76_u1BC9D_.SECANT.240@100,-241|dupl_.Line.0.dotted@0,0|_@990,0]
+1BC77 1BC9D::[uni200C.zwnj@0,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@64,-216|dupl_.Line.0.dotted@0,0|_@990,0]
 
 # Initial
 1BC70 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,0|u1BC04.f@571,0|_@1240,0]
@@ -42,6 +46,8 @@
 1BC75 1BC04::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@96,167|u1BC04.f@0,0|_@528,0]
 1BC76 1BC04::[uni200C.zwnj@0,0|u1BC76.secant@0,117|u1BC04.f@29,0|_@557,0]
 1BC77 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.330@0,208|u1BC04.f@121,0|_@673,0]
+1BC76 1BC9D 1BC04::[uni200C.zwnj@0,0|u1BC76_u1BC9D_.SECANT.240@0,92|u1BC04.f@54,0|_@582,0]
+1BC77 1BC9D 1BC04::[uni200C.zwnj@0,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.330@0,183|u1BC04.f@146,0|_@723,0]
 
 # Medial
 1BC0A 1BC70 1BC04::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@0,-84|u1BC04.f@523,-500|_@1340,0]
@@ -52,6 +58,8 @@
 1BC0A 1BC75 1BC04::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@144,83|u1BC04.f@0,-500|_@817,0]
 1BC0A 1BC76 1BC04::[u1BC0A.g@72,0|u1BC76_.secant.210@0,124|u1BC04.f@72,-500|_@889,0]
 1BC0A 1BC77 1BC04::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@0,58|u1BC04.f@17,-500|_@834,0]
+1BC0A 1BC76 1BC9D 1BC04::[u1BC0A.g@97,0|u1BC76_u1BC9D_.SECANT.210@0,99|u1BC04.f@97,-500|_@914,0]
+1BC0A 1BC77 1BC9D 1BC04::[u1BC0A.g@42,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@0,33|u1BC04.f@42,-500|_@859,0]
 
 # Final
 1BC0A 1BC70::[u1BC0A.g@523,0|u1BC70.left_horizontal_secant.0@0,-84|_@1340,0]
@@ -62,6 +70,8 @@
 1BC0A 1BC75::[u1BC0A.g@0,0|u1BC75.high_vertical_secant.90@144,83|_@817,0]
 1BC0A 1BC76::[u1BC0A.g@72,0|u1BC76_.secant.210@0,124|_@889,0]
 1BC0A 1BC77::[u1BC0A.g@17,0|u1BC77.left_to_right_secant.310@0,58|_@834,0]
+1BC0A 1BC76 1BC9D::[u1BC0A.g@97,0|u1BC76_u1BC9D_.SECANT.210@0,99|_@914,0]
+1BC0A 1BC77 1BC9D::[u1BC0A.g@42,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@0,33|_@859,0]
 
 # Initial before isolated non-hub letter
 1BC70 1BC41::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,-233|u1BC41.a@567,0|_@1240,0]
@@ -72,6 +82,8 @@
 1BC75 1BC41::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@100,-66|u1BC41.a@0,0|_@440,0]
 1BC76 1BC41::[uni200C.zwnj@0,0|u1BC76.secant@0,-116|u1BC41.a@25,0|_@490,0]
 1BC77 1BC41::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.280@57,-146|u1BC41.a@0,0|_@440,0]
+1BC76 1BC9D 1BC41::[uni200C.zwnj@0,0|u1BC76_u1BC9D_.SECANT.240@0,-141|u1BC41.a@50,0|_@540,0]
+1BC77 1BC9D 1BC41::[uni200C.zwnj@0,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.280@32,-171|u1BC41.a@0,0|_@440,0]
 
 # Initial before initial non-hub letter
 1BC70 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,217|u1BC41.a.120n120@567,450|u1BC04.f@580,0|_@1240,0]
@@ -82,6 +94,8 @@
 1BC75 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@100,384|u1BC41.a.120n120@0,450|u1BC04.f@13,0|_@541,0]
 1BC76 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76.secant@0,334|u1BC41.a.120n120@25,450|u1BC04.f@38,0|_@566,0]
 1BC77 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@0,359|u1BC41.a.120n120@61,450|u1BC04.f@74,0|_@602,0]
+1BC76 1BC9D 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76_u1BC9D_.SECANT.240@0,309|u1BC41.a.120n120@50,450|u1BC04.f@63,0|_@591,0]
+1BC77 1BC9D 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@0,334|u1BC41.a.120n120@86,450|u1BC04.f@99,0|_@627,0]
 
 # Initial indirectly before medial non-hub letter
 1BC70 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,416|u1BC0A.g@234,0|u1BC41.a.240n300@47,-50|u1BC04.f@234,-400|_@1240,0]
@@ -92,11 +106,14 @@
 1BC75 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC75.high_vertical_secant@620,583|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1004,0]
 1BC76 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76.secant.210@404,624|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1077,0]
 1BC77 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@459,558|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1020,0]
+1BC76 1BC9D 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC76_u1BC9D_.SECANT.210@379,599|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1102,0]
+1BC77 1BC9D 1BC0A 1BC41 1BC04::[uni200C.zwnj@0,0|u1BC77_u1BC9D_.LEFT_TO_RIGHT_SECANT.310@434,533|u1BC0A.g@187,0|u1BC41.a.240n300@0,-50|u1BC04.f@187,-400|_@1045,0]
 
 # Skipping marks
 1BC04 1BC9D 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC72.right_horizontal_secant.0@0,525|_@1240,0]
 1BC04 1BC9E 1BC72::[u1BC04.f@141,0|u1BC9E_.double.30@188,194|u1BC72.right_horizontal_secant.0@0,500|_@1240,0]
 1BC04 1BC9D 1BC9E 1BC72::[u1BC04_u1BC9D.F@116,0|u1BC9E_.double.30@188,219|u1BC72.right_horizontal_secant.0@0,525|_@1240,0]
+1BC04 1BC9D 1BC9E 1BC76 1BC9D::[u1BC04_u1BC9D.F@0,0|u1BC9E_.double.30@72,219|u1BC76_u1BC9D_.SECANT.240@67,-49|_@607,0]
 
 # Skipping child nodes
 1BC1B 1BCA0 1BC0A 1BC72::[u1BC1B.j@0,0|u1BC0A.g.sub@107,-489|u1BC72.right_horizontal_secant.0@207,593|_@1447,0]
