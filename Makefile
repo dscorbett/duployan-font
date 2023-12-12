@@ -40,7 +40,8 @@ endif
 SUFFIXES = otf ttf
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 
-BUILD = sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
+BUILD = PYTHONPATH="sources:$(PYTHONPATH)" sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
+RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
 
 .PHONY: all
@@ -100,14 +101,14 @@ clean:
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
-	tests/run-tests.py $(CHECK_ARGS) $< tests/*.test
+	$(RUN_TESTS) $(CHECK_ARGS) $< tests/*.test
 
 .PHONY: check-shaping
 check-shaping: $(addprefix check-,$(FONTS))
 
 .PHONY: $(addprefix check-subset-,$(FONTS))
 $(addprefix check-subset-,$(FONTS)): check-subset-%: subset-%
-	tests/run-tests.py $(CHECK_ARGS) $< tests/*.subset-test
+	$(RUN_TESTS) $(CHECK_ARGS) $< tests/*.subset-test
 
 .PHONY: check-subset
 check-subset: $(addprefix check-subset-,$(FONTS))

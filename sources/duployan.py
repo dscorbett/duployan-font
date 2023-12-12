@@ -80,6 +80,7 @@ from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
+from utils import FULL_FONT_CODE_POINTS
 from utils import GlyphClass
 from utils import KNOWN_SCRIPTS
 from utils import MAX_TREE_DEPTH
@@ -596,7 +597,7 @@ class Builder:
             self._schemas = [
                 s for s in self._schemas
                 if s.cmap is None or not (
-                    s.cmap == 0x034F
+                    s.cmap in FULL_FONT_CODE_POINTS
                     or unicodedata.category(chr(s.cmap)) == 'Co'
                     or unicodedata.category(chr(s.cmap)) == 'Zs' and s.joining_type != Type.NON_JOINING
                 )

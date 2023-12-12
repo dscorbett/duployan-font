@@ -26,6 +26,9 @@ import sys
 from typing import Literal
 
 
+from utils import FULL_FONT_CODE_POINTS
+
+
 CI = os.getenv('CI') == 'true'
 
 
@@ -39,9 +42,6 @@ NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
 
 
 SPACE_NAME_COMPONENT_PATTERN = re.compile(r'(?<=[\[|])(?:uni00A0|uni200[0-9A]|uni202F|uni205F|uni3000)(?![0-9A-Za-z_])')
-
-
-FULL_FONT_CODE_POINTS = [0x034F]
 
 
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'

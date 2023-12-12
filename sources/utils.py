@@ -31,6 +31,7 @@ __all__ = [
     'DEFAULT_SIDE_BEARING',
     'DISCRETIONARY_FEATURES',
     'EPSILON',
+    'FULL_FONT_CODE_POINTS',
     'GlyphClass',
     'KNOWN_FEATURES',
     'KNOWN_SCRIPTS',
@@ -126,6 +127,13 @@ DEFAULT_SIDE_BEARING: Final[float] = 85
 
 #: A small positive number.
 EPSILON: Final[float] = 1e-5
+
+
+#: The set of code points which should be omitted from the Noto build
+#: for no reason that is otherwise derivable.
+FULL_FONT_CODE_POINTS: Final[Set[int]] = {
+    0x034F,
+}
 
 
 #: The maximum depth of a shorthand overlap sequence, i.e. the maximum
