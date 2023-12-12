@@ -116,8 +116,17 @@ jobs:
       - name: Install unifdef
         run: |
           sudo apt-get -qy --no-install-recommends install unifdef
-      - name: Prepare oldest requirements
+      - name: Cache oldest requirements
         if: matrix.requirements == 'oldest'
+        id: cache-oldest
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-oldest-${{ hashFiles('get-old-requirements.py', '*constraints.txt', '*requirements.in') }}
+          path: |
+            dev-requirements.txt
+            requirements.txt
+      - name: Prepare oldest requirements
+        if: steps.cache-oldest.outputs.cache-hit != 'true' && matrix.requirements == 'oldest'
         run: |
           python -m venv oldest-venv
           . oldest-venv/bin/activate
