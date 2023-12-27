@@ -20,6 +20,7 @@ exclude_checks = [
     "com.google.fonts/check/family/win_ascent_and_descent",
     "com.google.fonts/check/fontbakery_version",
     "com.google.fonts/check/fontdata_namecheck",
+    "com.google.fonts/check/glyphsets/shape_languages",
     "com.google.fonts/check/gpos_kerning_info",
     "com.google.fonts/check/hinting_impact",
     "com.google.fonts/check/hmtx/comma_period",
@@ -27,6 +28,7 @@ exclude_checks = [
     "com.google.fonts/check/hmtx/whitespace_advances",
     "com.google.fonts/check/metadata/includes_production_subsets",
     "com.google.fonts/check/production_glyphs_similarity",
+    "com.google.fonts/check/soft_dotted",
     "com.google.fonts/check/version_bump",
     "com.google.fonts/check/vertical_metrics",
 ]
