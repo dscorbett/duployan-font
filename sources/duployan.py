@@ -1008,8 +1008,6 @@ class Builder:
                         PrefixView(phase, named_lookup_asts),
                         name,
                     )
-                    assert len(named_lookup_ast) == 1, f'A named lookup should generate 1 AST, not {len(named_lookup_ast)}'
-                    named_lookup_ast = named_lookup_ast[0]
                 except KeyError:
                     new_named_lookups_to_do.append(name)
                     continue

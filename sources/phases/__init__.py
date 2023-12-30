@@ -819,7 +819,7 @@ class Lookup:
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: str,
-    ) -> Sequence[fontTools.feaLib.ast.Block]:
+    ) -> fontTools.feaLib.ast.LookupBlock:
         ...
 
     @overload
@@ -829,7 +829,7 @@ class Lookup:
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: int,
-    ) -> Sequence[fontTools.feaLib.ast.Block]:
+    ) -> tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock]:
         ...
 
     def to_asts(
@@ -838,7 +838,7 @@ class Lookup:
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: str | int,
-    ) -> Sequence[fontTools.feaLib.ast.Block]:
+    ) -> fontTools.feaLib.ast.LookupBlock | tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock]:
         """Converts this lookup to fontTools feaLib ASTs.
 
         Args:
@@ -858,10 +858,10 @@ class Lookup:
                 lookup among all anonymous lookups.
 
         Returns:
-            A list of one or two fontTools feaLib ASTs corresponding to
-            this lookup. The first AST is always a
+            One or two fontTools feaLib ASTs corresponding to this
+            lookup. The first (or only) AST is a
             `fontTools.feaLib.ast.LookupBlock`. If this is an anonymous
-            lookup, the second AST is a
+            lookup, the return value is a tuple, whose second AST is a
             `fontTools.feaLib.ast.FeatureBlock`.
         """
         named_lookup = self.feature is None
@@ -870,7 +870,7 @@ class Lookup:
         multiple = any(r.is_multiple() for r in self.rules)
         if named_lookup:
             lookup_block = fontTools.feaLib.ast.LookupBlock(name)
-            asts = [lookup_block]
+            asts: fontTools.feaLib.ast.LookupBlock | tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock] = lookup_block
         else:
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
@@ -879,7 +879,7 @@ class Lookup:
                 feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
                 feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
                 feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
-            asts = [lookup_block, feature_block]
+            asts = (lookup_block, feature_block)
         lookup_block.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
             markFilteringSet=fontTools.feaLib.ast.GlyphClassName(class_asts[self.mark_filtering_set])
