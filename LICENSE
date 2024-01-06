@@ -10,7 +10,7 @@ License: OFL-1.1
 
 Files: sources/build.py
 Copyright: Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-  Copyright 2018-2019, 2022-2023 David Corbett
+  Copyright 2018-2019, 2022-2024 David Corbett
   Copyright 2020-2022 Google LLC
 License: Apache-2.0
 

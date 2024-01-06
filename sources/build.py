@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,11 +45,9 @@ TIMESTAMP_FORMAT = '%Y%m%dT%H%M%SZ'
 VERSION_PREFIX = 'Version '
 
 
-def build_font(
-    options: argparse.Namespace,
-    font: fontforge.font,
-    dirty: bool,
-) -> None:
+def set_environment_variables(dirty: bool) -> None:
+    os.environ['GIT_CONFIG_GLOBAL'] = ''
+    os.environ['GIT_CONFIG_NOSYSTEM'] = 'true'
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         try:
             if dirty:
@@ -61,6 +59,13 @@ def build_font(
                     ).rstrip()
         except (FileNotFoundError, subprocess.CalledProcessError):
             os.environ['SOURCE_DATE_EPOCH'] = '0'
+    os.environ['TZ'] = 'UTC'
+
+
+def build_font(
+    options: argparse.Namespace,
+    font: fontforge.font,
+) -> None:
     font.selection.all()
     font.correctReferences()
     font.selection.none()
@@ -137,7 +142,6 @@ def set_version(
                 if release:
                     release_suffix = ''
                 else:
-                    os.environ['TZ'] = 'UTC'
                     try:
                         if dirty:
                             date = get_date()
@@ -149,7 +153,7 @@ def set_version(
                         git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
                         metadata = f'{date}.{git_hash}'
                         if dirty:
-                            git_diff = subprocess.check_output(['git', 'diff-index', '--patch', 'HEAD'])
+                            git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
                             try:
                                 import hashlib
                                 metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
@@ -264,7 +268,8 @@ def make_font(options: argparse.Namespace) -> None:
     builder = duployan.Builder(font, options.bold, options.noto)
     builder.augment()
     dirty = is_dirty()
-    build_font(options, builder.font, dirty)
+    set_environment_variables(dirty)
+    build_font(options, builder.font)
     tweak_font(options, builder, dirty)
 
 
