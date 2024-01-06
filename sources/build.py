@@ -54,7 +54,7 @@ def set_environment_variables(dirty: bool) -> None:
                 os.environ['SOURCE_DATE_EPOCH'] = f'{datetime.datetime.now(datetime.UTC).timestamp():.0f}'
             else:
                 os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
-                        ['git', 'log', '-1', '--format=%ct'],
+                        ['git', 'rev-list', '-1', '--format=%ct', '--no-commit-header', 'HEAD'],
                         encoding='utf-8',
                     ).rstrip()
         except (FileNotFoundError, subprocess.CalledProcessError):
@@ -147,7 +147,7 @@ def set_version(
                             date = get_date()
                         else:
                             date = subprocess.check_output(
-                                    ['git', 'log', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd'],
+                                    ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
                                     encoding='utf-8',
                                 ).rstrip()
                         git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
