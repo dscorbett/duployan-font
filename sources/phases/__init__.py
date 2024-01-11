@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,7 +112,6 @@ from collections.abc import Sequence
 from collections.abc import Set
 import itertools
 import functools
-from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import TYPE_CHECKING

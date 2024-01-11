@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,6 @@ from collections.abc import Sequence
 from collections.abc import Set
 import enum
 import functools
-from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import Literal
@@ -373,14 +372,14 @@ class GlyphClass(enum.StrEnum):
 
     #: The class of a spacing glyph that does not participate in cursive
     #: joining.
-    BLOCKER: ClassVar[str] = 'noclass'
+    BLOCKER: Final[str] = 'noclass'
 
     #: The class of a spacing glyph that participates in cursive
     #: joining.
-    JOINER: ClassVar[str] = 'baseligature'
+    JOINER: Final[str] = 'baseligature'
 
     #: The class of a mark glyph.
-    MARK: ClassVar[str] = 'mark'
+    MARK: Final[str] = 'mark'
 
 
 class Type(enum.Enum):

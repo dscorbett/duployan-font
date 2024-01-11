@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,6 @@ from collections.abc import Sequence
 import enum
 import functools
 import math
-from typing import ClassVar
 from typing import Final
 from typing import Generic
 from typing import Literal
@@ -1474,7 +1473,7 @@ class Dot(Shape):
 
     #: The factor to use when determining the actual stroke width. See
     #: the ``size_exponent`` attribute.
-    SCALAR: ClassVar[float] = 2 ** 0.5
+    SCALAR: Final[float] = 2 ** 0.5
 
     @override
     def __init__(
