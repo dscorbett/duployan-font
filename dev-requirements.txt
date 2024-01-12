@@ -20,7 +20,7 @@
 #
 appdirs==1.4.4
     # via fs
-attrs==23.1.0
+attrs==23.2.0
     # via ufolib2
 axisregistry==0.4.5
     # via fontbakery
@@ -71,10 +71,14 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
+filelock==3.13.1
+    # via youseedee
 font-v==2.1.0
     # via fontbakery
-fontbakery==0.10.6
-    # via -r dev-requirements.in
+fontbakery==0.10.9
+    # via
+    #   -r dev-requirements.in
+    #   fontbakery
 fontfeatures==1.8.0
     # via
     #   -c dev-constraints.txt
@@ -93,6 +97,7 @@ fonttools==4.40.0
     #   font-v
     #   fontbakery
     #   fontfeatures
+    #   fonttools
     #   glyphsets
     #   glyphslib
     #   kurbopy
@@ -109,17 +114,17 @@ fs==2.4.16
     #   -c dev-constraints.txt
     #   fontfeatures
     #   fonttools
-gflanguages==0.5.12
+gflanguages==0.5.15
     # via
     #   fontbakery
     #   shaperglot
 gitdb==4.0.11
     # via gitpython
-gitpython==3.1.40
+gitpython==3.1.41
     # via
     #   -c dev-constraints.txt
     #   font-v
-glyphsets==0.6.6
+glyphsets==0.6.11
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -131,7 +136,7 @@ idna==3.6
     # via requests
 kurbopy==0.10.40
     # via collidoscope
-lxml==4.9.3
+lxml==4.9.4
     # via
     #   -c dev-constraints.txt
     #   fontfeatures
@@ -144,7 +149,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.7.1
+mypy==1.8.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -236,7 +241,7 @@ toml==0.10.2
     #   fontbakery
 tqdm==4.66.1
     # via collidoscope
-typing-extensions==4.8.0
+typing-extensions==4.9.0
     # via
     #   -r requirements.in
     #   mypy
@@ -270,15 +275,15 @@ wheel==0.42.0
     # via
     #   -c dev-constraints.txt
     #   pip-tools
-youseedee==0.4.1
+youseedee==0.5.3
     # via shaperglot
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3.1
+pip==23.3.2
     # via
     #   pip-api
     #   pip-tools
-setuptools==69.0.2
+setuptools==69.0.3
     # via
     #   -c dev-constraints.txt
     #   fs

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,7 +115,7 @@ check-subset: $(addprefix check-subset-,$(FONTS))
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --auto-jobs --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists $(filter %.$*,$(FONTS))
+	fontbakery check-notofonts --auto-jobs --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists --skip-network $(filter %.$*,$(FONTS))
 
 .PHONY: fontbakery
 fontbakery: $(addprefix fontbakery-,$(SUFFIXES))

@@ -24,7 +24,8 @@ fonttools==4.40.0
     # via
     #   -r requirements.in
     #   cffsubr
-typing-extensions==4.8.0
+    #   fonttools
+typing-extensions==4.9.0
     # via -r requirements.in
 uharfbuzz==0.37.2
     # via
