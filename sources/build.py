@@ -24,6 +24,7 @@ import re
 import subprocess
 import tempfile
 
+import cffsubr
 import fontforge
 import fontTools.cffLib
 import fontTools.misc.timeTools
@@ -251,6 +252,10 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         )
 
         add_meta(tt_font)
+
+        if 'CFF ' in tt_font:
+            cffsubr.subroutinize(tt_font)
+            tt_font['CFF '].cff[0].decompileAllCharStrings()
 
         tt_font.save(options.output)
 

@@ -80,7 +80,6 @@ dummy-%: ;
 
 %.otf: sources/Duployan.fea sources/*.py | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
-	cffsubr --inplace $@
 
 %-Bold.otf %-Bold.tmp.otf: BOLD_ARG=--bold
 
