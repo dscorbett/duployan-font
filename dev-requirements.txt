@@ -1,5 +1,5 @@
 # Copyright 2021-2022 Google LLC
-# Copyright 2022-2023 David Corbett
+# Copyright 2022-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ babelfont==3.0.1
     # via
     #   collidoscope
     #   fontbakery
-beautifulsoup4==4.12.2
+beautifulsoup4==4.12.3
     # via fontbakery
 beziers==0.5.0
     # via fontbakery
@@ -44,7 +44,7 @@ cffi==1.16.0
     # via
     #   -c dev-constraints.txt
     #   cmarkgfm
-cffsubr==0.2.9.post1
+cffsubr==0.3.0
     # via
     #   -r requirements.in
     #   ufo2ft
@@ -52,7 +52,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via pip-tools
-cmarkgfm==2022.10.27
+cmarkgfm==2024.1.14
     # via fontbakery
 collidoscope==0.6.5
     # via
@@ -83,7 +83,7 @@ fontfeatures==1.8.0
     # via
     #   -c dev-constraints.txt
     #   babelfont
-fonttools==4.40.0
+fonttools==4.47.2
     # via
     #   -r requirements.in
     #   axisregistry
@@ -245,7 +245,7 @@ typing-extensions==4.9.0
     # via
     #   -r requirements.in
     #   mypy
-ufo2ft==2.33.3
+ufo2ft==2.33.4
     # via
     #   fontbakery
     #   shaperglot
