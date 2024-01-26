@@ -15,8 +15,6 @@
 
 .DELETE_ON_ERROR:
 
-unexport TMPDIR
-
 SHELL=/bin/bash
 
 VERTICAL_METRIC_SOURCE = Bold

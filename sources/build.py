@@ -60,6 +60,7 @@ def set_environment_variables(dirty: bool) -> None:
                     ).rstrip()
         except (FileNotFoundError, subprocess.CalledProcessError):
             os.environ['SOURCE_DATE_EPOCH'] = '0'
+    os.environ.pop('TMPDIR', None)
     os.environ['TZ'] = 'UTC'
 
 
