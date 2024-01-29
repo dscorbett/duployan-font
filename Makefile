@@ -76,7 +76,7 @@ dummy-%: ;
 	sources/copy_metrics.py $^
 	mv $< $@
 
-%.otf: sources/Duployan.fea sources/*.py | dummy-%
+%.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
 
 %-Bold.otf %-Bold.tmp.otf: BOLD_ARG=--bold
