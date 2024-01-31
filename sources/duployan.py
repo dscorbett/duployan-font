@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -238,6 +238,7 @@ class Builder:
         parenthesis_double_stroke = [(parenthesis_stroke_gap / 2, Line(90), True), *parenthesis_stroke, (parenthesis_stroke_gap, Line(270), True), *parenthesis_stroke, (parenthesis_stroke_gap / 2, Line(90), True)]
         left_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
         right_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(parenthesis_angle, 90, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
+        stenographic_semicolon = Complex([*comma.instructions, (3, Curve(41, 101, clockwise=False), True), (0.5, Circle(101, 180, clockwise=False), True), (372, Space(90)), *(op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions)])  # type: ignore[list-item]
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270, stretchy=True)
         p_reverse = Line(90, stretchy=True)
@@ -435,6 +436,7 @@ class Builder:
             Schema(0xE005, right_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0xE006, left_parenthesis_with_double_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0xE007, right_parenthesis_with_double_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+            Schema(0xE008, stenographic_semicolon, 1, Type.NON_JOINING),
             Schema(0xEC02, p_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),
             Schema(0xEC03, t_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),
             Schema(0xEC04, f_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),

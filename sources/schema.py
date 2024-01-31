@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -275,6 +275,7 @@ class Schema:
         (r'^uniE005$', 'RIGHT PARENTHESIS WITH STROKE'),
         (r'^uniE006$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),
         (r'^uniE007$', 'RIGHT PARENTHESIS WITH DOUBLE STROKE'),
+        (r'^uniE008$', 'STENOGRAPHIC SEMICOLON'),
         (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
         (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
         (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),
