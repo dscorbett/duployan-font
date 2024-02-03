@@ -4231,7 +4231,7 @@ class Wi(Complex):
             curve_path = self.clone(instructions=self.instructions[curve_index - 1:]).contextualize(context_in, context_out)
             assert isinstance(curve_path, Wi)
             assert not callable(self.instructions[0])
-            circle = self.instructions[0][1]
+            circle = self.instructions[0].shape
             assert isinstance(circle, Circle)
             curve_op = curve_path.instructions[1]
             assert isinstance(curve_op, tuple)
@@ -4242,17 +4242,28 @@ class Wi(Complex):
                 angle_out=curve.angle_in,
                 clockwise=curve.clockwise,
             )
-            return self.clone(instructions=[(self.instructions[0][0], circle_path), *curve_path.instructions])
+            return self.clone(instructions=[(self.instructions[0].size, circle_path), *curve_path.instructions])
         assert context_out.angle is not None
-        assert not callable(self.instructions[-1])
-        assert isinstance(self.instructions[-1][1], Curve)
-        if Curve.in_degree_range(
-            context_out.angle,
-            self.instructions[-1][1].angle_out,
-            (self.instructions[-1][1].angle_out + 180 - EPSILON * (-1 if self.instructions[-1][1].clockwise else 1)) % 360,
-            self.instructions[-1][1].clockwise,
-        ):
-            return self.as_reversed()
+        if len([op for op in self.instructions if not callable(op)]) == 2:
+            curve_op = self.instructions[-1]
+            assert not callable(curve_op)
+            curve = curve_op.shape
+            assert isinstance(curve, Curve)
+            clockwise_sign = -1 if curve.clockwise else 1
+            if Curve.in_degree_range(
+                context_out.angle,
+                (curve.angle_out - 50) % 360,
+                (curve.angle_out + 50) % 360,
+                False,
+            ):
+                return self.clone(instructions=[
+                    self.instructions[0],
+                    (
+                        curve_op.size,
+                        curve.clone(angle_out=(curve.angle_out + 50 * clockwise_sign) % 360),
+                        *curve_op[2:],
+                    ),
+                ])
         return self
 
     def as_reversed(self) -> Self:
