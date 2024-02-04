@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2023 David Corbett
+# Copyright 2019, 2022-2024 David Corbett
 # Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,12 +40,12 @@ jobs:
           - requirements: frozen
             skip-check: skip-check
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Select the setup-python cache
         run: |
           echo '# ${{ matrix.requirements }}' >>dev-requirements.txt
           echo '# ${{ matrix.skip-check }}' >>dev-requirements.txt
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -56,7 +56,7 @@ jobs:
             requirements.txt
       - name: Cache FontForge
         id: cache-fontforge
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
           path: fontforge
@@ -103,7 +103,7 @@ jobs:
       - name: Cache HarfBuzz
         if: matrix.skip-check == ''
         id: cache-harfbuzz
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}
           path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
@@ -119,7 +119,7 @@ jobs:
       - name: Cache oldest requirements
         if: matrix.requirements == 'oldest'
         id: cache-oldest
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-oldest-${{ hashFiles('get-old-requirements.py', '*constraints.txt', '*requirements.in') }}
           path: |
@@ -191,7 +191,7 @@ jobs:
           git push
       - name: Upload build artifacts
         if: steps.push-or-upload.outputs.upload-name
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.push-or-upload.outputs.upload-name }}
           path: fonts
