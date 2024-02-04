@@ -4082,13 +4082,15 @@ class Wa(Complex):
     r"""A circled circle in the style of U+1BC5C DUPLOYAN LETTER WA.
 
     `instructions` must not contain any callables. The first and last
-    components must be `Circle`\ s.
+    components must be `Circle`\ s or `Curve`\ s, at least one of which
+    must be a `Circle`.
     """
 
     @override
     def __init__(
         self,
         instructions: Instructions,
+        _initial: bool = False,
     ) -> None:
         """Initializes this `Wa`.
 
@@ -4096,15 +4098,18 @@ class Wa(Complex):
             instructions: The ``instructions`` attribute.
         """
         super().__init__(instructions)
+        self._initial = _initial
 
     @override
     def clone(  # type: ignore[override]
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
+        _initial: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
+            self._initial if _initial is CLONE_DEFAULT else _initial,
         )
 
     @override
@@ -4116,6 +4121,8 @@ class Wa(Complex):
         stroke_gap: float,
         size: float,
     ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
+        if self._initial:
+            return super().draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
         last_crossing_point: _Point | None = None
         singular_anchor_points = collections.defaultdict(list)
         pen = glyph.glyphPen()
@@ -4178,26 +4185,61 @@ class Wa(Complex):
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         context_in = context_in.clone(ignorable_for_topography=False)
         context_out = context_out.clone(ignorable_for_topography=False)
+        original_instructions = cast(list[Component], self.instructions)
+        if context_in == NO_CONTEXT and context_out != NO_CONTEXT:
+            assert context_out.angle is not None
+            outer_circle_op = original_instructions[0]
+            assert not callable(outer_circle_op)
+            inner_circle_op = original_instructions[-1]
+            assert not callable(inner_circle_op)
+            inner_circle = inner_circle_op.shape
+            assert isinstance(inner_circle, Circle)
+            inner_curve = inner_circle.contextualize(outer_circle_op.shape.context_out(), context_out)
+            minimum_da = 180
+            if isinstance(inner_curve, Curve) and inner_curve.clockwise == inner_circle.clockwise and inner_curve.get_da() % 360 >= minimum_da:
+                instructions = [
+                    *original_instructions[:-1],
+                    Component(
+                        inner_circle_op.size,
+                        inner_curve,
+                        *inner_circle_op[2:],
+                    ),
+                ]
+            else:
+                instructions = [
+                    *[
+                        Component(
+                            op.size,
+                            op.shape.clone(angle_in=(context_out.angle - minimum_da) % 360, angle_out=(context_out.angle - minimum_da) % 360),  # type: ignore[call-arg]
+                            *op[2:],
+                        )
+                        for op in original_instructions[:-1]
+                    ],
+                    Component(
+                        inner_circle_op.size,
+                        Curve((context_out.angle - minimum_da) % 360, context_out.angle, clockwise=inner_circle.clockwise),
+                        *inner_circle_op[2:],
+                    ),
+                ]
+            return self.clone(instructions=instructions, _initial=True)
         instructions = []
-        for scalar, component, *_ in self.instructions:  # type: ignore[misc]
-            instructions.append((scalar, component.contextualize(context_in, context_out)))
-        outer_circle_path = instructions[0][1]
+        for scalar, component, *_ in original_instructions:
+            instructions.append(Component(scalar, component.contextualize(context_in, context_out)))
+        outer_circle_path = instructions[0].shape
         if isinstance(outer_circle_path, Curve):
             assert context_in != NO_CONTEXT
             assert context_out != NO_CONTEXT
             a1, a2 = outer_circle_path.get_normalized_angles()
             if abs(a2 - a1) < 180:
-                assert not callable(self.instructions[0])
-                assert not callable(self.instructions[-1])
-                assert isinstance(self.instructions[0][1], Circle)
-                assert isinstance(instructions[-1][1], Curve)
+                assert isinstance(original_instructions[0].shape, Circle)
+                assert isinstance(instructions[-1].shape, Curve)
                 return Complex(instructions=[
                     (
-                        instructions[0][0],
-                        self.instructions[0][1].clone(
-                            angle_in=instructions[-1][1].angle_in,
-                            angle_out=instructions[-1][1].angle_in,
-                            clockwise=instructions[-1][1].clockwise,
+                        instructions[0].size,
+                        original_instructions[0].shape.clone(
+                            angle_in=instructions[-1].shape.angle_in,
+                            angle_out=instructions[-1].shape.angle_in,
+                            clockwise=instructions[-1].shape.clockwise,
                         ),
                         *instructions[0][2:],
                     ),
