@@ -154,6 +154,7 @@ class Builder:
         asterism = Complex([*asterisk.instructions, (1.2, Line(60), True), *asterisk.instructions, (1.2, Line(300), True), *asterisk.instructions])
         plus = Complex([(0.828, Line(90)), (0.414, Line(270)), (0.414, Line(180)), (0.828, Line(0))])
         comma = Complex([(0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True), False, True)])
+        turned_comma = Complex([(3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False))])
         slash = Line(60)
         zero = Circle(180, 180, clockwise=False, stretch=132 / 193, long=True)
         one = Complex([(1.288, Line(90)), (0.416, Line(218))])
@@ -212,7 +213,7 @@ class Builder:
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
         en_dash = Complex([(395, Space(90)), (1, Line(0))])
-        left_quote = Complex([(3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False)), (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
+        left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
         right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
         ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
         nnbsp = Space(0)
@@ -406,6 +407,8 @@ class Builder:
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
             Schema(0x2013, en_dash, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x2018, turned_comma, 1, Type.NON_JOINING, y_min=558, encirclable=True),
+            Schema(0x2019, comma, 1, Type.NON_JOINING, y_min=677, encirclable=True),
             Schema(0x201C, left_quote, 1, Type.NON_JOINING, y_min=558, encirclable=True),
             Schema(0x201D, right_quote, 1, Type.NON_JOINING, y_min=677, encirclable=True),
             Schema(0x201E, right_quote, 1, Type.NON_JOINING, encirclable=True),

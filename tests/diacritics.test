@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2022-2023 David Corbett
+# Copyright 2022-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -176,6 +176,8 @@
 00A1 20DD::[uni00A1.inverted_exclamation@324,0|uni20DD_.enclosing_circle.wl@666,-193|_@916,0]
 00BF 20DD::[uni00BF.inverted_question@210,0|uni20DD_.enclosing_circle.wl@667,-193|_@917,0]
 2013 20DD::[uni2013.en_dash@140,0|uni20DD_.enclosing_circle.wl@755,38|_@1020,0]
+2018 20DD::[uni2018.left_single_quote@140,0|uni20DD_.enclosing_circle.wl@372,317|_@572,0]
+2019 20DD::[uni2019.right_single_quote@140,0|uni20DD_.enclosing_circle.wl@372,324|_@572,0]
 201C 20DD::[uni201C.left_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,317|_@732,0]
 201D 20DD::[uni201D.right_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,324|_@732,0]
 201E 20DD::[uni201E.double_low_9_quote@140,0|uni20DD_.enclosing_circle.wl@509,-353|_@732,0]
