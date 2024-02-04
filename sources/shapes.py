@@ -4250,17 +4250,25 @@ class Wi(Complex):
             curve = curve_op.shape
             assert isinstance(curve, Curve)
             clockwise_sign = -1 if curve.clockwise else 1
+            bias = 50
             if Curve.in_degree_range(
                 context_out.angle,
-                (curve.angle_out - 50) % 360,
-                (curve.angle_out + 50) % 360,
-                False,
+                (curve.angle_out - EPSILON * clockwise_sign) % 360,
+                (curve.angle_out + bias * clockwise_sign) % 360,
+                curve.clockwise,
             ):
+                if Curve.in_degree_range(
+                    context_out.angle,
+                    (curve.angle_out + bias / 2 * clockwise_sign) % 360,
+                    (curve.angle_out + bias * clockwise_sign) % 360,
+                    curve.clockwise,
+                ):
+                    bias *= -1
                 return self.clone(instructions=[
                     self.instructions[0],
                     (
                         curve_op.size,
-                        curve.clone(angle_out=(curve.angle_out + 50 * clockwise_sign) % 360),
+                        curve.clone(angle_out=(curve.angle_out + bias * clockwise_sign) % 360),
                         *curve_op[2:],
                     ),
                 ])
