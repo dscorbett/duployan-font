@@ -1,4 +1,4 @@
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ fontFeatures != 1.0.6  # https://github.com/simoncozens/fontFeatures/commit/889b
 freetype-py >= 2.1
 fs >= 2.4.16
 GitPython >= 3.0.6
-glyphsets >= 0.6
+glyphsets >= 0.6, < 0.6.13
 lxml >= 4.9.1
 munkres >= 1.0.6
 numpy >= 1.22

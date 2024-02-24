@@ -22,7 +22,7 @@ appdirs==1.4.4
     # via fs
 attrs==23.2.0
     # via ufolib2
-axisregistry==0.4.5
+axisregistry==0.4.8
     # via fontbakery
 babelfont==3.0.1
     # via
@@ -38,7 +38,7 @@ build==1.0.3
     # via
     #   -c dev-constraints.txt
     #   pip-tools
-certifi==2023.11.17
+certifi==2024.2.2
     # via requests
 cffi==1.16.0
     # via
@@ -76,14 +76,12 @@ filelock==3.13.1
 font-v==2.1.0
     # via fontbakery
 fontbakery==0.10.9
-    # via
-    #   -r dev-requirements.in
-    #   fontbakery
+    # via -r dev-requirements.in
 fontfeatures==1.8.0
     # via
     #   -c dev-constraints.txt
     #   babelfont
-fonttools==4.47.2
+fonttools==4.49.0
     # via
     #   -r requirements.in
     #   axisregistry
@@ -97,14 +95,12 @@ fonttools==4.47.2
     #   font-v
     #   fontbakery
     #   fontfeatures
-    #   fonttools
     #   glyphsets
     #   glyphslib
     #   kurbopy
     #   ufo2ft
     #   ufolib2
     #   ufolint
-    #   vharfbuzz
 freetype-py==2.3.0
     # via
     #   -c dev-constraints.txt
@@ -114,13 +110,13 @@ fs==2.4.16
     #   -c dev-constraints.txt
     #   fontfeatures
     #   fonttools
-gflanguages==0.5.15
+gflanguages==0.5.17
     # via
     #   fontbakery
     #   shaperglot
 gitdb==4.0.11
     # via gitpython
-gitpython==3.1.41
+gitpython==3.1.42
     # via
     #   -c dev-constraints.txt
     #   font-v
@@ -128,7 +124,7 @@ glyphsets==0.6.11
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-glyphslib==6.6.0
+glyphslib==6.6.5
     # via
     #   babelfont
     #   glyphsets
@@ -136,7 +132,7 @@ idna==3.6
     # via requests
 kurbopy==0.10.40
     # via collidoscope
-lxml==4.9.4
+lxml==5.1.0
     # via
     #   -c dev-constraints.txt
     #   fontfeatures
@@ -164,7 +160,7 @@ opentype-sanitizer==9.1.0
     # via fontbakery
 opentypespec==1.9.1
     # via fontbakery
-orjson==3.9.10
+orjson==3.9.15
     # via
     #   -c dev-constraints.txt
     #   babelfont
@@ -173,9 +169,9 @@ packaging==23.2
     #   -r dev-requirements.in
     #   build
     #   fontbakery
-pip-api==0.0.30
+pip-api==0.0.33
     # via fontbakery
-pip-tools==7.3.0
+pip-tools==7.4.0
     # via -r dev-requirements.in
 protobuf==3.20.3
     # via
@@ -194,13 +190,16 @@ pycparser==2.21
 pygments==2.17.2
     # via rich
 pyproject-hooks==1.0.0
-    # via build
+    # via
+    #   build
+    #   pip-tools
 python-dateutil==2.8.2
     # via strictyaml
 pyyaml==6.0.1
     # via
     #   -c dev-constraints.txt
     #   fontbakery
+    #   shaperglot
 requests==2.31.0
     # via
     #   fontbakery
@@ -213,7 +212,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-shaperglot==0.3.1
+shaperglot==0.4.2
     # via fontbakery
 six==1.16.0
     # via
@@ -239,13 +238,13 @@ toml==0.10.2
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-tqdm==4.66.1
+tqdm==4.66.2
     # via collidoscope
 typing-extensions==4.9.0
     # via
     #   -r requirements.in
     #   mypy
-ufo2ft==2.33.4
+ufo2ft==3.1.0
     # via
     #   fontbakery
     #   shaperglot
@@ -265,9 +264,9 @@ unicodedata2==15.1.0
     # via
     #   fonttools
     #   glyphsets
-urllib3==2.1.0
+urllib3==2.2.1
     # via requests
-vharfbuzz==0.2.0
+vharfbuzz==0.3.0
     # via
     #   fontbakery
     #   shaperglot
@@ -279,11 +278,11 @@ youseedee==0.5.3
     # via shaperglot
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3.2
+pip==24.0
     # via
     #   pip-api
     #   pip-tools
-setuptools==69.0.3
+setuptools==69.1.1
     # via
     #   -c dev-constraints.txt
     #   fs
