@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ __all__ = [
 
 
 from collections.abc import MutableSequence
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 
@@ -47,7 +48,7 @@ def merge_lookalikes(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',

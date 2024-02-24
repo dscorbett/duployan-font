@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2023 David Corbett
+# Copyright 2018-2019, 2022-2024 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,7 +127,7 @@ def dont_ignore_default_ignorables(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup_1 = Lookup('abvm', 'dflt')
     lookup_2 = Lookup('abvm', 'dflt')
     for schema in schemas:
@@ -145,7 +145,7 @@ def reversed_circle_kludge(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
     for schema in new_schemas:
@@ -174,7 +174,7 @@ def validate_shading(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -202,7 +202,7 @@ def validate_double_marks(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -233,7 +233,7 @@ def decompose(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('abvm', 'dflt')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
@@ -249,7 +249,7 @@ def expand_secants(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -291,7 +291,7 @@ def validate_overlap_controls(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -353,7 +353,7 @@ def add_parent_edges(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -423,7 +423,7 @@ def invalidate_overlap_controls(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -505,7 +505,7 @@ def add_secant_guidelines(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('abvs', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -545,7 +545,7 @@ def add_placeholders_for_missing_children(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'blwm',
         'dflt',
@@ -596,7 +596,7 @@ def categorize_edges(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'blwm',
         'dflt',
@@ -684,7 +684,7 @@ def promote_final_letter_overlap_to_continuing_overlap(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('rclt', 'dflt')
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -750,7 +750,7 @@ def reposition_chinook_jargon_overlap_points(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     # TODO: This should be a general thing, not limited to specific Chinook
     # Jargon abbreviations and a few similar patterns.
     lookup = Lookup(
@@ -829,7 +829,7 @@ def make_mark_variants_of_children(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
     old_child_count = len(classes['child'])
     for schema in new_schemas:
@@ -857,7 +857,7 @@ def interrupt_overlong_primary_curve_sequences(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -984,7 +984,7 @@ def reposition_stenographic_period(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1012,7 +1012,7 @@ def disjoin_equals_sign(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1048,7 +1048,7 @@ def join_with_next_step(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1102,7 +1102,7 @@ def separate_subantiparallel_lines(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1166,7 +1166,7 @@ def prepare_for_secondary_diphthong_ligature(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1198,7 +1198,7 @@ def join_with_previous(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup_1 = Lookup(
         'rclt',
         'dflt',
@@ -1249,7 +1249,7 @@ def unignore_last_orienting_glyph_in_initial_sequence(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1295,7 +1295,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1346,7 +1346,7 @@ def tag_main_glyph_in_orienting_sequence(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1378,7 +1378,7 @@ def join_with_next(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     pre_lookup = Lookup(
         'rclt',
         'dflt',
@@ -1457,7 +1457,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1497,7 +1497,7 @@ def ligate_diphthongs(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1558,7 +1558,7 @@ def thwart_what_would_flip(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1589,7 +1589,7 @@ def unignore_noninitial_orienting_sequences(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1636,7 +1636,7 @@ def unignore_initial_orienting_sequences(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
         'dflt',
@@ -1684,7 +1684,7 @@ def join_double_marks(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -1715,7 +1715,7 @@ def rotate_diacritics(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -1763,7 +1763,7 @@ def shade(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -1797,7 +1797,7 @@ def create_diagonal_fractions(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup_numr = Lookup('numr', 'dflt')
     lookup_dnom = Lookup('dnom', 'dflt')
     lookup_rlig = Lookup('rlig', 'dflt')
@@ -1835,7 +1835,7 @@ def create_superscripts_and_subscripts(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup_sups = Lookup('sups', 'dflt')
     lookup_subs = Lookup('subs', 'dflt')
     for schema in new_schemas:
@@ -1857,7 +1857,7 @@ def make_widthless_variants_of_marks(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
     first_iteration = 'i' not in classes
     for schema in new_schemas:
@@ -1882,7 +1882,7 @@ def classify_marks_for_trees(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     for schema in schemas:
         for anchor in anchors.ALL_MKMK:
             if schema.glyph_class == GlyphClass.MARK and (

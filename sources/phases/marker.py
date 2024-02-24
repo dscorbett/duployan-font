@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2023 David Corbett
+# Copyright 2019, 2022-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,7 +108,7 @@ def add_shims_for_pseudo_cursive(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     marker_lookup = Lookup(
         'dist',
         'dflt',
@@ -266,7 +266,7 @@ def shrink_wrap_enclosing_circle(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
         'dflt',
@@ -340,7 +340,7 @@ def add_width_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookups_per_position = 6
     lookups = [
         Lookup('dist', 'dflt')
@@ -590,7 +590,7 @@ def add_end_markers_for_marks(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     end = next(s for s in new_schemas if isinstance(s.path, End))
     for schema in new_schemas:
@@ -612,7 +612,7 @@ def remove_false_end_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -635,7 +635,7 @@ def clear_entry_width_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -683,7 +683,7 @@ def sum_width_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -926,7 +926,7 @@ def calculate_bound_extrema(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     left_lookup = Lookup(
         'dist',
         'dflt',
@@ -1006,7 +1006,7 @@ def remove_false_start_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -1029,7 +1029,7 @@ def mark_hubs_after_initial_secants(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -1065,7 +1065,7 @@ def find_real_hub(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -1110,7 +1110,7 @@ def expand_start_markers(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     add_rule(lookup, Rule([start], [
@@ -1128,7 +1128,7 @@ def mark_maximum_bounds(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     left_lookup = Lookup(
         'dist',
         'dflt',
@@ -1188,7 +1188,7 @@ def copy_maximum_left_bound_to_start(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
         'dflt',
@@ -1236,7 +1236,7 @@ def dist(
     classes: PrefixView[MutableSequence[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
-) -> MutableSequence[Lookup]:
+) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:
         if (isinstance(schema.path, LeftBoundDigit | RightBoundDigit | AnchorWidthDigit)

@@ -1118,7 +1118,7 @@ if TYPE_CHECKING:
             Arg(PrefixView[Lookup], 'named_lookups'),
             Arg(AddRule, 'add_rule'),
         ],
-        MutableSequence[Lookup],
+        Sequence[Lookup],
     ]
 
 
