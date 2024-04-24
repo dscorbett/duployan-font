@@ -22,10 +22,11 @@ appdirs==1.4.4
     # via fs
 attrs==23.2.0
     # via ufolib2
-axisregistry==0.4.8
+axisregistry==0.4.9
     # via fontbakery
 babelfont==3.0.1
     # via
+    #   -c dev-constraints.txt
     #   collidoscope
     #   fontbakery
 beautifulsoup4==4.12.3
@@ -34,7 +35,7 @@ beziers==0.5.0
     # via fontbakery
 booleanoperations==0.9.0
     # via ufo2ft
-build==1.0.3
+build==1.2.1
     # via
     #   -c dev-constraints.txt
     #   pip-tools
@@ -71,7 +72,7 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
-filelock==3.13.1
+filelock==3.13.4
     # via youseedee
 font-v==2.1.0
     # via fontbakery
@@ -81,7 +82,9 @@ fontfeatures==1.8.0
     # via
     #   -c dev-constraints.txt
     #   babelfont
-fonttools==4.49.0
+fontmath==0.9.3
+    # via ufo2ft
+fonttools==4.51.0
     # via
     #   -r requirements.in
     #   axisregistry
@@ -95,6 +98,7 @@ fonttools==4.49.0
     #   font-v
     #   fontbakery
     #   fontfeatures
+    #   fontmath
     #   glyphsets
     #   glyphslib
     #   kurbopy
@@ -116,7 +120,7 @@ gflanguages==0.5.17
     #   shaperglot
 gitdb==4.0.11
     # via gitpython
-gitpython==3.1.42
+gitpython==3.1.43
     # via
     #   -c dev-constraints.txt
     #   font-v
@@ -124,15 +128,15 @@ glyphsets==0.6.11
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-glyphslib==6.6.5
+glyphslib==6.7.0
     # via
     #   babelfont
     #   glyphsets
-idna==3.6
+idna==3.7
     # via requests
 kurbopy==0.10.40
     # via collidoscope
-lxml==5.1.0
+lxml==5.2.1
     # via
     #   -c dev-constraints.txt
     #   fontfeatures
@@ -145,7 +149,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.8.0
+mypy==1.10.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -160,18 +164,18 @@ opentype-sanitizer==9.1.0
     # via fontbakery
 opentypespec==1.9.1
     # via fontbakery
-orjson==3.9.15
+orjson==3.10.1
     # via
     #   -c dev-constraints.txt
     #   babelfont
-packaging==23.2
+packaging==24.0
     # via
     #   -r dev-requirements.in
     #   build
     #   fontbakery
 pip-api==0.0.33
     # via fontbakery
-pip-tools==7.4.0
+pip-tools==7.4.1
     # via -r dev-requirements.in
 protobuf==3.20.3
     # via
@@ -185,7 +189,7 @@ pyclipper==1.3.0.post5
     #   -c dev-constraints.txt
     #   beziers
     #   booleanoperations
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pygments==2.17.2
     # via rich
@@ -193,7 +197,7 @@ pyproject-hooks==1.0.0
     # via
     #   build
     #   pip-tools
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via strictyaml
 pyyaml==6.0.1
     # via
@@ -204,7 +208,7 @@ requests==2.31.0
     # via
     #   fontbakery
     #   youseedee
-rich==13.7.0
+rich==13.7.1
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -212,7 +216,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-shaperglot==0.4.2
+shaperglot==0.5.0
     # via fontbakery
 six==1.16.0
     # via
@@ -240,11 +244,11 @@ toml==0.10.2
     #   fontbakery
 tqdm==4.66.2
     # via collidoscope
-typing-extensions==4.9.0
+typing-extensions==4.11.0
     # via
     #   -r requirements.in
     #   mypy
-ufo2ft==3.1.0
+ufo2ft==3.2.1
     # via
     #   fontbakery
     #   shaperglot
@@ -270,7 +274,7 @@ vharfbuzz==0.3.0
     # via
     #   fontbakery
     #   shaperglot
-wheel==0.42.0
+wheel==0.43.0
     # via
     #   -c dev-constraints.txt
     #   pip-tools
@@ -282,7 +286,7 @@ pip==24.0
     # via
     #   pip-api
     #   pip-tools
-setuptools==69.1.1
+setuptools==69.5.1
     # via
     #   -c dev-constraints.txt
     #   fs

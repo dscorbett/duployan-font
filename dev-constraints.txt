@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+babelfont != 3.0.2.*, != 3.0.3.*, != 3.0.4.*  # https://github.com/simoncozens/babelfont/issues/55
 build >= 1
 cffi >= 1.14.1
 collidoscope >= 0.6
