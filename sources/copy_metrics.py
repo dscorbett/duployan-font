@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ def cast_cff_number(number: float | int) -> float | int:
     if isinstance(number, float) and not number.is_integer():
         return number
     f = float(number)
-    if isinstance(number, int) and not (-2 ** 31 <= number <= 2 ** 31 - 1):
+    if not (-2 ** 31 <= number <= 2 ** 31 - 1):
         return f
     i = int(number)
     if len(fontTools.misc.psCharStrings.encodeFloat(f)) < len(fontTools.misc.psCharStrings.encodeIntCFF(i)):
