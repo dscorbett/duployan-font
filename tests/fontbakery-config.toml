@@ -24,6 +24,11 @@ exclude_checks = [
     "com.google.fonts/check/hmtx/whitespace_advances",
     "com.google.fonts/check/soft_dotted",
     "com.google.fonts/check/vertical_metrics",
+#ifndef NOTO
+    "com.google.fonts/check/name/line_breaks",
+    "com.google.fonts/check/name/noto_trademark",
+    "com.google.fonts/check/os2/noto_vendor",
+#endif
 ]
 
 [overrides."com.google.fonts/check/valid_glyphnames"]
@@ -32,14 +37,4 @@ legacy-long-names = "PASS"
 #ifndef NOTO
 [overrides."com.google.fonts/check/cmap/alien_codepoints"]
 pua-encoded = "PASS"
-
-[overrides."com.google.fonts/check/name/line_breaks"]
-line-break = "PASS"
-
-[overrides."com.google.fonts/check/name/noto_trademark"]
-bad-trademark = "PASS"
-no-trademark = "PASS"
-
-[overrides."com.google.fonts/check/os2/noto_vendor"]
-bad-vendor-id = "PASS"
 #endif
