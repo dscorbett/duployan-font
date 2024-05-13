@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019, 2022-2023 David Corbett
+# Copyright 2019, 2022-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ def get_metadata(
     new_specifier = packaging.specifiers.SpecifierSet()
     for release in get_matching_releases(requirement_name, specifier):
         try:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', f'{requirement_name}=={release}'])  #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', f'{requirement_name}=={release}'])
             return importlib.metadata.metadata(requirement_name), new_specifier
         except (importlib.metadata.PackageNotFoundError, subprocess.CalledProcessError):
             new_specifier &= packaging.specifiers.SpecifierSet(f'!={release}')
@@ -122,17 +122,26 @@ def add_requirement(
         requirements[name] = constraints.get(name, packaging.specifiers.SpecifierSet())
     if (specifier_union := requirements[name] & requirement.specifier) != requirements[name] or new:
         requirements[name] = specifier_union
-    else:
-        return
-    if (metadata := get_metadata_and_update_specifier(name, requirements[name], requirements)):
-        required_dists = metadata.get_all('Requires-Dist')
-        if required_dists:
+        new = True
+    if (new or requirement.extras) and (metadata := get_metadata_and_update_specifier(name, requirements[name], requirements)):
+        if (required_dists := metadata.get_all('Requires-Dist')):
             add_required_dists(requirements, required_dists, constraints)
             if requirement.extras:
                 for extra in metadata.get_all('Provides-Extra') or []:
-                    if extra not in requirement.extras:
-                        continue
-                    add_required_dists(requirements, required_dists, constraints, extra)
+                    if extra in requirement.extras:
+                        add_required_dists(requirements, required_dists, constraints, extra)
+
+
+def parse_requirement(
+    requirements: MutableMapping[NormalizedName, packaging.specifiers.SpecifierSet],
+    line: str,
+    constraints: Mapping[NormalizedName, packaging.specifiers.SpecifierSet],
+) -> None:
+    try:
+        requirement = packaging.requirements.Requirement(line)
+    except packaging.requirements.InvalidRequirement:
+        return
+    add_requirement(requirements, requirement, constraints)
 
 
 def parse_requirements(
@@ -143,17 +152,9 @@ def parse_requirements(
     for line in lines:
         if line.startswith(('-r ', '--requirement ')):
             for requirement_name, specifier in parse_requirements(get_lines(line.split(' ', 1)[1]), constraints).items():
-                try:
-                    requirement = packaging.requirements.Requirement(f'{requirement_name}{specifier}')
-                except packaging.requirements.InvalidRequirement:
-                    continue
-                add_requirement(requirements, requirement, constraints)
+                parse_requirement(requirements, f'{requirement_name}{specifier}', constraints)
         else:
-            try:
-                requirement = packaging.requirements.Requirement(line)
-            except packaging.requirements.InvalidRequirement:
-                continue
-            add_requirement(requirements, requirement, constraints)
+            parse_requirement(requirements, line, constraints)
     return requirements
 
 
