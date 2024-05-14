@@ -29,14 +29,14 @@ Copyright 2019-2022 Google LLC. All Rights Reserved.";
     nameid 10 "Designed by David Corbett";
 #ifdef NOTO
     nameid 11 "http://www.google.com/get/noto/";
-    nameid 13 "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL";
+    nameid 13 "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org";
 #else
     nameid 13 "Copyright (c) 2018-2019, 2022-2024, David Corbett (corbett.dav@northeastern.edu).\000A
 Copyright (c) 2019-2022, Google LLC.\000A
 \000A
 This Font Software is licensed under the SIL Open Font License, Version 1.1.\000A
 This license is copied below, and is also available with a FAQ at:\000A
-http://scripts.sil.org/OFL\000A
+https://openfontlicense.org\000A
 \000A
 \000A
 -----------------------------------------------------------\000A
@@ -126,6 +126,6 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\000A
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\000A
 OTHER DEALINGS IN THE FONT SOFTWARE.";
 #endif
-    nameid 14 "https://scripts.sil.org/OFL";
+    nameid 14 "https://openfontlicense.org";
 } name;
 
