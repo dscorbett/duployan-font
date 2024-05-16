@@ -195,11 +195,16 @@ def main() -> None:
 
     requirements = parse_requirements(lines, parse_constraints(lines))
 
+    failures = {}
     with open(args.output, 'w') as output:
         for requirement_name, specifier in requirements.items():
             for release in get_matching_releases(requirement_name, specifier):
                 output.write(f'{requirement_name}=={release}\n')
                 break
+            else:
+                failures[requirement_name] = specifier
+    if failures:
+        sys.exit('\n'.join(f'Cannot find any version of {requirement_name} that satisfies {specifier}' for requirement_name, specifier in failures.items()))
 
 
 if __name__ == '__main__':
