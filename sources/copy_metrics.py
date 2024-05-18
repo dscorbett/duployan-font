@@ -79,26 +79,33 @@ def update_metrics(
     tt_font['post'].underlinePosition = -descent
 
 
-def copy_metrics(source: str, target: str) -> None:
-    """Copies vertical metrics from one font to another.
+def copy_metrics(main_source: str, metrics_sources: list[str], target: str) -> None:
+    """Copies a font with modified vertical metrics.
 
-    The target font is saved to disk.
+    The target font is saved to disk. Its vertical metrics are set to
+    the most extreme values attested in `main_source` or any font in
+    `metrics_sources`.
 
     Args:
-        source: The path of the font to copy from.
+        main_source: The path of the font to copy from.
+        metrics_sources: The paths of other fonts to check the vertical metrics of.
         target: The path of the font to copy to.
     """
-    with fontTools.ttLib.ttFont.TTFont(source, recalcBBoxes=False) as source_font:
-        ascent = source_font['OS/2'].usWinAscent
-        descent = source_font['OS/2'].usWinDescent
-    with fontTools.ttLib.ttFont.TTFont(target, recalcBBoxes=False) as target_font:
+    ascent = 0
+    descent = 0
+    for source in [main_source, *metrics_sources]:
+        with fontTools.ttLib.ttFont.TTFont(source, recalcBBoxes=False) as source_font:
+            ascent = max(ascent, source_font['OS/2'].usWinAscent, source_font['head'].yMax)
+            descent = max(descent, source_font['OS/2'].usWinDescent, -source_font['head'].yMin)
+    with fontTools.ttLib.ttFont.TTFont(main_source, recalcBBoxes=False) as target_font:
         update_metrics(target_font, ascent, descent)
         target_font.save(target)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Copies vertical metrics from one font to another.')
+    parser = argparse.ArgumentParser(description='Copies a font, setting its vertical metrics to the extrema from a list of fonts.')
     parser.add_argument('target', help='the font to copy to')
     parser.add_argument('source', help='the font to copy from')
+    parser.add_argument('others', nargs='*', help='more fonts to consider when determining the most extreme vertical metrics')
     args = parser.parse_args()
-    copy_metrics(args.source, args.target)
+    copy_metrics(args.source, args.others, args.target)

@@ -17,9 +17,8 @@
 
 SHELL=/bin/bash
 
-VERTICAL_METRIC_SOURCE = Bold
-VERTICAL_METRIC_TARGET = Regular
-STYLES = $(VERTICAL_METRIC_SOURCE) $(VERTICAL_METRIC_TARGET)
+VALID_STYLES = Regular Bold
+STYLES = $(VALID_STYLES)
 ifdef NOTO
     FONT_FAMILY_NAME = NotoSansDuployan
     VERSION = 3.001
@@ -30,13 +29,11 @@ else
     FONT_FAMILY_NAME = Duployan
     VERSION = 1.0
     RELEASE =
-    ifndef RELEASE
-        VERTICAL_METRIC_SOURCE = Regular
-        VERTICAL_METRIC_TARGET = Bold
-    endif
 endif
-SUFFIXES = otf ttf
+VALID_SUFFIXES = otf ttf
+SUFFIXES = $(VALID_SUFFIXES)
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
+INTERMEDIATE_FONTS = $(foreach suffix,$(VALID_SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .tmp.$(suffix),$(VALID_STYLES))))
 
 BUILD = PYTHONPATH="sources:$(PYTHONPATH)" sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
@@ -72,9 +69,9 @@ subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
 
 dummy-%: ;
 
-%-$(VERTICAL_METRIC_TARGET).otf: %-$(VERTICAL_METRIC_TARGET).tmp.otf %-$(VERTICAL_METRIC_SOURCE).otf
-	sources/copy_metrics.py $^
-	mv $< $@
+$(FONTS): $(INTERMEDIATE_FONTS)
+	mkdir -p "$$(dirname "$@")"
+	sources/copy_metrics.py $@ $(basename $@).tmp$(suffix $@) $(filter-out $(basename $@).tmp$(suffix $@),$^)
 
 %.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
@@ -89,12 +86,12 @@ endef
 %.ttf: %.otf
 	$(MAKE_TTF)
 
-$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
+$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .tmp.ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.tmp.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.tmp.otf
 	$(MAKE_TTF)
 
 .PHONY: clean
 clean:
-	$(RM) -r $(FONTS) $(addprefix subset-,$(FONTS)) tests/failed
+	$(RM) -r $(FONTS) $(INTERMEDIATE_FONTS) $(addprefix subset-,$(FONTS)) tests/failed
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %

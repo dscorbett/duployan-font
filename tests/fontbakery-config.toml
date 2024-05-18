@@ -16,7 +16,6 @@
 exclude_checks = [
     "com.google.fonts/check/article/images",
     "com.google.fonts/check/description/has_article",
-    "com.google.fonts/check/family/win_ascent_and_descent",
     "com.google.fonts/check/gpos_kerning_info",
     "com.google.fonts/check/hinting_impact",
     "com.google.fonts/check/hmtx/comma_period",
