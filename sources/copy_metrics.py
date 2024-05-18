@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
+from __future__ import annotations
 
 
 __all__ = [
@@ -25,8 +25,16 @@ __all__ = [
 ]
 
 
+import argparse
+from typing import TYPE_CHECKING
+
 import fontTools.misc.psCharStrings
 import fontTools.ttLib.ttFont
+import uharfbuzz
+
+
+if TYPE_CHECKING:
+    from _typeshed import StrOrBytesPath
 
 
 def cast_cff_number(number: float | int) -> float | int:
@@ -79,7 +87,53 @@ def update_metrics(
     tt_font['post'].underlinePosition = -descent
 
 
-def copy_metrics(main_source: str, metrics_sources: list[str], target: str) -> None:
+def get_metrics(
+    path: StrOrBytesPath,
+    font: fontTools.ttLib.ttFont.TTFont,
+    text: str | None,
+) -> tuple[int, int]:
+    """Gets a font’s most extreme ascent and descent values.
+
+    The values considered are the OS/2 table’s usWinAscent and
+    usWinDescent, the 'head' table’s yMax and yMin, and the bounding box
+    of a string (if provided). A positive descent means a descent below
+    the baseline.
+
+    Args:
+        path: A path to a font.
+        font: The font at `path`.
+        text: A string to shape with the font to get its bounding box.
+            If ``None``, shaping is skipped, and it has no effect on the
+            return value.
+
+    Returns:
+        A tuple of the most extreme ascent and descent values attested
+        for a font.
+    """
+    ascent = max(font['OS/2'].usWinAscent, font['head'].yMax)
+    descent = max(font['OS/2'].usWinDescent, -font['head'].yMin)
+    if text is not None:
+        buffer = uharfbuzz.Buffer()
+        buffer.add_str(text)
+        buffer.guess_segment_properties()
+        hb_font = uharfbuzz.Font(uharfbuzz.Face(uharfbuzz.Blob.from_file_path(path)))
+        uharfbuzz.shape(hb_font, buffer)
+        for info, position in zip(buffer.glyph_infos, buffer.glyph_positions, strict=True):
+            extents = hb_font.get_glyph_extents(info.codepoint)
+            dy = position.y_offset
+            yb = extents.y_bearing
+            h = extents.height
+            ascent = max(ascent, dy + yb)
+            descent = max(descent, -(dy + yb + h))
+    return ascent, descent
+
+
+def copy_metrics(
+    main_source: StrOrBytesPath,
+    metrics_sources: list[StrOrBytesPath],
+    target: str,
+    text: str | None,
+) -> None:
     """Copies a font with modified vertical metrics.
 
     The target font is saved to disk. Its vertical metrics are set to
@@ -95,8 +149,9 @@ def copy_metrics(main_source: str, metrics_sources: list[str], target: str) -> N
     descent = 0
     for source in [main_source, *metrics_sources]:
         with fontTools.ttLib.ttFont.TTFont(source, recalcBBoxes=False) as source_font:
-            ascent = max(ascent, source_font['OS/2'].usWinAscent, source_font['head'].yMax)
-            descent = max(descent, source_font['OS/2'].usWinDescent, -source_font['head'].yMin)
+            source_ascent, source_descent = get_metrics(source, source_font, text)
+            ascent = max(ascent, source_ascent)
+            descent = max(descent, source_descent)
     with fontTools.ttLib.ttFont.TTFont(main_source, recalcBBoxes=False) as target_font:
         update_metrics(target_font, ascent, descent)
         target_font.save(target)
@@ -104,8 +159,9 @@ def copy_metrics(main_source: str, metrics_sources: list[str], target: str) -> N
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Copies a font, setting its vertical metrics to the extrema from a list of fonts.')
+    parser.add_argument('--text', help='an optional string to shape whose ascent and descent are candidates for the most extreme vertical metrics')
     parser.add_argument('target', help='the font to copy to')
     parser.add_argument('source', help='the font to copy from')
     parser.add_argument('others', nargs='*', help='more fonts to consider when determining the most extreme vertical metrics')
     args = parser.parse_args()
-    copy_metrics(args.source, args.others, args.target)
+    copy_metrics(args.source, args.others, args.target, args.text)

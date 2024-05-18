@@ -6,8 +6,6 @@
 table OS/2 {
     Panose 1 1 1 1 1 1 1 1 1 1;
     TypoLineGap 0;
-    winAscent 1379;
-    winDescent 1280;
 #ifdef NOTO
     Vendor "GOOG";
 #else

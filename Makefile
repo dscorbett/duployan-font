@@ -32,6 +32,7 @@ else
 endif
 VALID_SUFFIXES = otf ttf
 SUFFIXES = $(VALID_SUFFIXES)
+TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 INTERMEDIATE_FONTS = $(foreach suffix,$(VALID_SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .tmp.$(suffix),$(VALID_STYLES))))
 
@@ -71,7 +72,7 @@ dummy-%: ;
 
 $(FONTS): $(INTERMEDIATE_FONTS)
 	mkdir -p "$$(dirname "$@")"
-	sources/copy_metrics.py $@ $(basename $@).tmp$(suffix $@) $(filter-out $(basename $@).tmp$(suffix $@),$^)
+	sources/copy_metrics.py --text $(TALL_TEXT) $@ $(basename $@).tmp$(suffix $@) $(filter-out $(basename $@).tmp$(suffix $@),$^)
 
 %.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
