@@ -376,7 +376,7 @@ class Builder:
             Schema(0x007D, right_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
-            Schema(0x00A2, cent, 1, Type.NON_JOINING, y_max=0.75 * CAP_HEIGHT),
+            Schema(0x00A2, cent, 1, Type.NON_JOINING, y_max=X_HEIGHT),
             Schema(0x00A3, pound, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
