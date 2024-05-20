@@ -50,6 +50,7 @@ __all__ = [
     'Type',
     'WIDTH_MARKER_PLACES',
     'WIDTH_MARKER_RADIX',
+    'X_HEIGHT',
     'cps_to_scripts',
     'mkmk',
 ]
@@ -96,6 +97,10 @@ BRACKET_DEPTH: Final[float] = -0.27 * CAP_HEIGHT
 #: The highest point of brackets and related punctuation in the regular
 #: font.
 BRACKET_HEIGHT: Final[float] = 1.27 * CAP_HEIGHT
+
+
+#: The regular font’s x height.
+X_HEIGHT: Final[float] = 507
 
 
 class CloneDefault(enum.Enum):
