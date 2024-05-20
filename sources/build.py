@@ -236,6 +236,8 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         elif 'CFF ' in tt_font:
             tt_font['CFF '].cff[0].Notice = ''
 
+        tt_font['OS/2'].sCapHeight = round(utils.CAP_HEIGHT)
+        tt_font['OS/2'].sxHeight = round(utils.X_HEIGHT)
         tt_font['OS/2'].yStrikeoutPosition = round(utils.STRIKEOUT_POSITION)
         tt_font['OS/2'].yStrikeoutSize = round(utils.REGULAR_LIGHT_LINE)
         tt_font['post'].underlineThickness = round(utils.REGULAR_LIGHT_LINE)
