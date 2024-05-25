@@ -18,6 +18,7 @@ from __future__ import annotations
 
 
 import argparse
+from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Sequence
@@ -27,7 +28,6 @@ import json
 import re
 import subprocess
 import sys
-from typing import Iterator
 from typing import TYPE_CHECKING
 import urllib.request
 

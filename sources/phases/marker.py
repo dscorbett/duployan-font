@@ -37,16 +37,16 @@ __all__ = [
 
 
 import collections
+from collections.abc import Callable
+from collections.abc import Iterable
 from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import math
-from typing import Iterable
 from typing import Literal
 from typing import TYPE_CHECKING
 from typing import TypeVar
-from typing import Callable
 from typing import overload
 
 
