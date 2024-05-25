@@ -245,6 +245,7 @@ class Builder:
         parenthesis_double_stroke = [(parenthesis_stroke_gap / 2, Line(90), True), *parenthesis_stroke, (parenthesis_stroke_gap, Line(270), True), *parenthesis_stroke, (parenthesis_stroke_gap / 2, Line(90), True)]
         left_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
         right_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(parenthesis_angle, 90, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
+        vertical_line_with_stroke = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270)), *parenthesis_stroke, (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270))])
         stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions]])  # type: ignore[list-item]
         x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
         p = Line(270, stretchy=True)
@@ -377,6 +378,7 @@ class Builder:
             Schema(0x005B, left_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x005D, right_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x007B, left_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+            Schema(0x007C, p, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x007D, right_brace, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x00A0, space, 260, Type.NON_JOINING, side_bearing=260),
             Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
@@ -437,6 +439,7 @@ class Builder:
             Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
             Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT),
             Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
             Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
