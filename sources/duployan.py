@@ -90,6 +90,9 @@ from utils import NO_CONTEXT
 from utils import PrefixView
 from utils import REGULAR_LIGHT_LINE
 from utils import SHADING_FACTOR
+from utils import SMALL_DIGIT_FACTOR
+from utils import SUBSCRIPT_DEPTH
+from utils import SUPERSCRIPT_HEIGHT
 from utils import Type
 from utils import X_HEIGHT
 from utils import mkmk
@@ -603,6 +606,21 @@ class Builder:
             Schema(0x1BCA2, down_step, 1, Type.NON_JOINING, y_min=dotted_square_y_min, override_ignored=True),
             Schema(0x1BCA3, up_step, 1, Type.NON_JOINING, y_min=dotted_square_y_min, override_ignored=True),
         ]
+        for script_cp in [
+            0x00B2, 0x00B3, 0x00B9, 0x2070, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079,
+            0x2080, 0x2081, 0x2082, 0x2083, 0x2084, 0x2085, 0x2086, 0x2087, 0x2088, 0x2089,
+        ]:
+            schema = next(filter(lambda s: s.cmap == ord(unicodedata.normalize('NFKC', chr(script_cp))), self._schemas), None)
+            if schema is None:
+                continue
+            is_superscript = unicodedata.decomposition(chr(script_cp)).startswith('<super>')
+            self._schemas.append(schema.clone(
+                cmap=script_cp,
+                size=SMALL_DIGIT_FACTOR * schema.size,
+                y_min=None if is_superscript else SUBSCRIPT_DEPTH,
+                y_max=SUPERSCRIPT_HEIGHT if is_superscript else None,
+                cps=None,
+            ))
         if noto:
             self._schemas = [
                 s for s in self._schemas

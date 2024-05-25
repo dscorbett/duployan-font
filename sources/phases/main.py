@@ -110,6 +110,9 @@ from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import OrderedSet
 from utils import PrefixView
+from utils import SMALL_DIGIT_FACTOR
+from utils import SUBSCRIPT_DEPTH
+from utils import SUPERSCRIPT_HEIGHT
 from utils import Type
 from utils import mkmk
 
@@ -1809,8 +1812,8 @@ def create_diagonal_fractions(
             classes['digit_or_slash'].append(schema)
             assert schema.y_max is not None
             assert schema.y_min is not None
-            dnom = schema.clone(cmap=None, size=0.6 * schema.size, y_max=None)
-            numr = schema.clone(cmap=None, size=0.6 * schema.size, y_min=None)
+            dnom = schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_max=None)
+            numr = schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=None)
             classes['dnom'].append(dnom)
             classes['numr'].append(numr)
             classes['dnom_or_slash'].append(dnom)
@@ -1842,8 +1845,8 @@ def create_superscripts_and_subscripts(
         if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
             classes['i'].append(schema)
             assert schema.y_max is not None
-            classes['o_sups'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=None, y_max=1.18 * schema.y_max))
-            classes['o_subs'].append(schema.clone(cmap=None, size=0.6 * schema.size, y_min=-0.18 * schema.y_max, y_max=None))
+            classes['o_sups'].append(schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=None, y_max=SUPERSCRIPT_HEIGHT))
+            classes['o_subs'].append(schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=SUBSCRIPT_DEPTH, y_max=None))
     add_rule(lookup_sups, Rule('i', 'o_sups'))
     add_rule(lookup_subs, Rule('i', 'o_subs'))
     return [lookup_sups, lookup_subs]

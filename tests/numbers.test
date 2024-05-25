@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@
 0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@403,0|two.numr@806,0|two.numr@1258,0|uni2044_.fraction_slash.frac@1710,0|three.dnom@1874,0|three.dnom@2335,0|four@2796,0|four@3494,0|_@4192,0]
 
 # Superscripts
-0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[zero.sups@0,0|one.sups@472,0|two.sups@809,0|three.sups@1261,0|four.sups@1722,0|five.sups@2238,0|six.sups@2680,0|seven.sups@3152,0|eight.sups@3637,0|nine.sups@4077,0|_@4531,0]
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[uni2070.superscript_zero@0,0|uni00B9.superscript_one@472,0|uni00B2.superscript_two@809,0|uni00B3.superscript_three@1261,0|uni2074.superscript_four@1722,0|uni2075.superscript_five@2238,0|uni2076.superscript_six@2680,0|uni2077.superscript_seven@3152,0|uni2078.superscript_eight@3637,0|uni2079.superscript_nine@4077,0|_@4531,0]
 
 # Subscripts
-0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features subs:[zero.subs@0,0|one.subs@472,0|two.subs@809,0|three.subs@1261,0|four.subs@1722,0|five.subs@2238,0|six.subs@2680,0|seven.subs@3152,0|eight.subs@3637,0|nine.subs@4077,0|_@4531,0]
+0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features subs:[uni2080.subscript_zero@0,0|uni2081.subscript_one@472,0|uni2082.subscript_two@809,0|uni2083.subscript_three@1261,0|uni2084.subscript_four@1722,0|uni2085.subscript_five@2238,0|uni2086.subscript_six@2680,0|uni2087.subscript_seven@3152,0|uni2088.subscript_eight@3637,0|uni2089.subscript_nine@4077,0|_@4531,0]

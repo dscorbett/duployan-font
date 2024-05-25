@@ -1,4 +1,4 @@
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,5 +42,5 @@
 
 # Numbers
 0031 2044 0032::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|_@953,0]
-0032:--features sups:[two.sups@0,0|_@452,0]
-0033:--features subs:[three.subs@0,0|_@461,0]
+0032:--features sups:[uni00B2.superscript_two@0,0|_@452,0]
+0033:--features subs:[uni2083.subscript_three@0,0|_@461,0]

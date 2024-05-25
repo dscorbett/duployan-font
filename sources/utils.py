@@ -23,6 +23,7 @@ from __future__ import annotations
 __all__ = [
     'BRACKET_DEPTH',
     'BRACKET_HEIGHT',
+    'BRACKET_Y_FACTOR',
     'CAP_HEIGHT',
     'CLONE_DEFAULT',
     'CURVE_OFFSET',
@@ -44,9 +45,13 @@ __all__ = [
     'PrefixView',
     'REGULAR_LIGHT_LINE',
     'REQUIRED_FEATURES',
+    'SCRIPT_Y_FACTOR',
     'SHADING_FACTOR',
+    'SMALL_DIGIT_FACTOR',
     'STRIKEOUT_POSITION',
+    'SUBSCRIPT_DEPTH',
     'SUBSET_FEATURES',
+    'SUPERSCRIPT_HEIGHT',
     'Type',
     'WIDTH_MARKER_PLACES',
     'WIDTH_MARKER_RADIX',
@@ -89,14 +94,39 @@ if TYPE_CHECKING:
 CAP_HEIGHT: Final[float] = 714
 
 
+#: The factor of the cap height in the regular font by which brackets
+#: and related punctuation reach above the cap height or below the
+#: baseline.
+BRACKET_Y_FACTOR: Final[float] = 0.27
+
+
 #: The lowest point of brackets and related punctuation in the regular
 #: font.
-BRACKET_DEPTH: Final[float] = -0.27 * CAP_HEIGHT
+BRACKET_DEPTH: Final[float] = -BRACKET_Y_FACTOR * CAP_HEIGHT
 
 
 #: The highest point of brackets and related punctuation in the regular
 #: font.
-BRACKET_HEIGHT: Final[float] = 1.27 * CAP_HEIGHT
+BRACKET_HEIGHT: Final[float] = (1 + BRACKET_Y_FACTOR) * CAP_HEIGHT
+
+
+#: The factor by which to scale digits to get their numerator,
+#: denominator, superscript, and subscript forms.
+SMALL_DIGIT_FACTOR: Final[float] = 0.6
+
+
+#: The factor of the cap height in the regular font by which
+#: superscripts and subscripts reach above the cap height or below the
+#: baseline.
+SCRIPT_Y_FACTOR: Final[float] = 0.18
+
+
+#: The lowest point of subscripts in the regular font.
+SUBSCRIPT_DEPTH: Final[float] = -SCRIPT_Y_FACTOR * CAP_HEIGHT
+
+
+#: The highest point of superscripts in the regular font.
+SUPERSCRIPT_HEIGHT: Final[float] = (1 + SCRIPT_Y_FACTOR) * CAP_HEIGHT
 
 
 #: The regular font’s x height.
