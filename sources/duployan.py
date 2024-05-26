@@ -16,9 +16,6 @@
 from __future__ import annotations
 
 
-__all__ = ['Builder']
-
-
 import collections
 from collections.abc import Collection
 from collections.abc import Mapping

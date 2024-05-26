@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2023 David Corbett
+# Copyright 2018-2019, 2023-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,29 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__all__ = [
-    'ABOVE',
-    'ALL',
-    'ALL_CURSIVE',
-    'ALL_MARK',
-    'ALL_MKMK',
-    'BELOW',
-    'CHILD_EDGES',
-    'CONTINUING_OVERLAP',
-    'CURSIVE',
-    'INTER_EDGES',
-    'MIDDLE',
-    'PARENT_EDGE',
-    'POST_HUB_CONTINUING_OVERLAP',
-    'POST_HUB_CURSIVE',
-    'PRE_HUB_CONTINUING_OVERLAP',
-    'PRE_HUB_CURSIVE',
-    'RELATIVE_1',
-    'RELATIVE_2',
-    'SECANT',
-]
-
 
 from collections.abc import Collection
 from collections.abc import Sequence

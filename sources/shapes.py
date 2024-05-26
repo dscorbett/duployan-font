@@ -20,54 +20,6 @@
 from __future__ import annotations
 
 
-__all__ = [
-    'AnchorWidthDigit',
-    'Bound',
-    'Carry',
-    'ChildEdge',
-    'Circle',
-    'CircleRole',
-    'Complex',
-    'ContextMarker',
-    'ContinuingOverlap',
-    'ContinuingOverlapS',
-    'Curve',
-    'Digit',
-    'DigitStatus',
-    'Dot',
-    'Dummy',
-    'End',
-    'EntryWidthDigit',
-    'GlyphClassSelector',
-    'Hub',
-    'InitialSecantMarker',
-    'InvalidDTLS',
-    'InvalidOverlap',
-    'InvalidStep',
-    'LINE_FACTOR',
-    'LeftBoundDigit',
-    'Line',
-    'MarkAnchorSelector',
-    'Notdef',
-    'Ou',
-    'ParentEdge',
-    'RADIUS',
-    'RightBoundDigit',
-    'RomanianU',
-    'RootOnlyParentEdge',
-    'SeparateAffix',
-    'Shape',
-    'Space',
-    'Start',
-    'TangentHook',
-    'ValidDTLS',
-    'Wa',
-    'Wi',
-    'WidthNumber',
-    'XShape',
-]
-
-
 import collections
 from collections.abc import Callable
 from collections.abc import Hashable

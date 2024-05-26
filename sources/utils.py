@@ -20,47 +20,6 @@
 from __future__ import annotations
 
 
-__all__ = [
-    'BRACKET_DEPTH',
-    'BRACKET_HEIGHT',
-    'BRACKET_Y_FACTOR',
-    'CAP_HEIGHT',
-    'CLONE_DEFAULT',
-    'CURVE_OFFSET',
-    'CloneDefault',
-    'Context',
-    'DEFAULT_SIDE_BEARING',
-    'DISCRETIONARY_FEATURES',
-    'EPSILON',
-    'FULL_FONT_CODE_POINTS',
-    'GlyphClass',
-    'KNOWN_FEATURES',
-    'KNOWN_SCRIPTS',
-    'KNOWN_SHAPE_PLANS',
-    'MAX_TREE_DEPTH',
-    'MAX_TREE_WIDTH',
-    'MINIMUM_STROKE_GAP',
-    'NO_CONTEXT',
-    'OrderedSet',
-    'PrefixView',
-    'REGULAR_LIGHT_LINE',
-    'REQUIRED_FEATURES',
-    'SCRIPT_Y_FACTOR',
-    'SHADING_FACTOR',
-    'SMALL_DIGIT_FACTOR',
-    'STRIKEOUT_POSITION',
-    'SUBSCRIPT_DEPTH',
-    'SUBSET_FEATURES',
-    'SUPERSCRIPT_HEIGHT',
-    'Type',
-    'WIDTH_MARKER_PLACES',
-    'WIDTH_MARKER_RADIX',
-    'X_HEIGHT',
-    'cps_to_scripts',
-    'mkmk',
-]
-
-
 from collections.abc import Callable
 from collections.abc import ItemsView
 from collections.abc import Iterable

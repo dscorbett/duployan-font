@@ -16,12 +16,6 @@
 from __future__ import annotations
 
 
-__all__ = [
-    'PHASE_LIST',
-    'merge_lookalikes',
-]
-
-
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
