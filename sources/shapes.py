@@ -2784,8 +2784,6 @@ class Circle(Shape):
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
         glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
-        if anchor:
-            glyph.addAnchorPoint(anchors.MIDDLE, 'mark', 0, 0)
         if self.stretch:
             theta = math.radians(stretch_axis_angle)
             glyph.transform(
@@ -2802,8 +2800,16 @@ class Circle(Shape):
             glyph.removeOverlap()
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
-        glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
-        glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
+        match anchor:
+            case None:
+                glyph.addAnchorPoint(anchors.ABOVE, 'base', x_center, y_max + stroke_gap)
+                glyph.addAnchorPoint(anchors.BELOW, 'base', x_center, y_min - stroke_gap)
+            case anchors.ABOVE:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_min + stroke_width / 2)
+            case anchors.BELOW:
+                glyph.addAnchorPoint(anchor, 'mark', x_center, y_max - stroke_width / 2)
+            case _:
+                glyph.addAnchorPoint(anchor, 'mark', 0, 0)
         return None
 
     @override
