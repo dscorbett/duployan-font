@@ -384,6 +384,7 @@ class Builder:
             Schema(0x00A3, pound, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
             Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
+            Schema(0x00B7, h, 0, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
             Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING, y_min=220),
             Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
             Schema(0x00BF, inverted_question, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
