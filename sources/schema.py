@@ -267,6 +267,7 @@ class Schema:
         (r'^uniE006$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),
         (r'^uniE007$', 'RIGHT PARENTHESIS WITH DOUBLE STROKE'),
         (r'^uniE008$', 'STENOGRAPHIC SEMICOLON'),
+        (r'^uniE009$', 'COMBINING RING-AND-DOT ABOVE'),
         (r'^uniE021$', 'COMBINING DIGIT ONE ABOVE'),
         (r'^uniE031$', 'COMBINING DIGIT ONE BELOW'),
         (r'^uniE033$', 'COMBINING DIGIT THREE BELOW'),
@@ -301,7 +302,7 @@ class Schema:
         # Unnecessary words
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r' ACCENT\b', ''),
-        (r' (AND|WITH) ', ' '),
+        (r'[- ](AND|WITH)[- ]', ' '),
         (r'\bCOMBINING ', ''),
         (r'\bDIGIT ', ''),
         (r'^DUPLOYAN ((AFFIX( ATTACHED)?|LETTER|PUNCTUATION|SIGN) )?', ''),
