@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2022-2023 David Corbett
+# Copyright 2022-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,6 +94,20 @@
 1BC02 1BCA0 003D::[u1BC02.p@0,0|u1BCA0.letter_overlap@240,0|uni200C.zwnj@1368,0|equal@1368,0|_@2108,0]
 1BC02 1BCA1 003D::[u1BC02.p@0,0|u1BCA1.continuing_overlap@240,0|uni200C.zwnj@1368,0|equal@1368,0|_@2108,0]
 1BC0B 003D::[u1BC0B.r@0,0|uni200C.zwnj@1240,0|equal@1240,0|_@1980,0]
+
+# <U+003E, overlap, U+003C> is a valid tree, but similar trees are
+# invalid.
+003E 1BCA0 003C::[uni200C.zwnj@0,0|greater@0,0|less@143,0|uni200C.zwnj@1274,0|_@1274,0]
+003E 1BCA1 003C::[uni200C.zwnj@0,0|greater@0,0|less@143,0|uni200C.zwnj@1274,0|_@1274,0]
+003E 1BCA1 003E::[uni200C.zwnj@0,0|greater@0,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|greater@2259,0|_@3390,0]
+003C 1BCA1 003E::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|greater@2259,0|_@3390,0]
+003C 1BCA1 003C::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|less@2259,0|uni200C.zwnj@3390,0|_@3390,0]
+003E 1BCA0 1BCA1 003C 003C::[uni200C.zwnj@0,0|greater@0,0|u1BCA0.letter_overlap@1131,0|u1BCA1.continuing_overlap@2259,0|uni200C.zwnj@3387,0|less@3387,0|uni200C.zwnj@4518,0|uni200C.zwnj@4518,0|less@4518,0|uni200C.zwnj@5649,0|_@5649,0]
+003C 003C::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|uni200C.zwnj@1131,0|less@1131,0|uni200C.zwnj@2262,0|_@2262,0]
+003C 1BC41::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
+003E 1BC41::[uni200C.zwnj@0,0|greater@0,0|uni200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
+1BC41 003C::[u1BC41.a@0,0|uni200C.zwnj@440,0|less@440,0|uni200C.zwnj@1571,0|_@1571,0]
+1BC41 003E::[u1BC41.a@0,0|uni200C.zwnj@440,0|greater@440,0|_@1571,0]
 
 # U+1BC5B DUPLOYAN LETTER OU is a valid child but not a valid root.
 1BC5B 1BCA0 1BC08::[u1BC5B.ou@0,0|u1BCA0.letter_overlap@540,0|u1BC08.d@1668,0|_@2908,0]

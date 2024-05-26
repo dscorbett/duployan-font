@@ -3107,6 +3107,7 @@ class Complex(Shape):
         *,
         hook: bool = False,
         maximum_tree_width: int | Callable[[float], int] = 0,
+        main_component_index: int | None = None,
         _final_rotation: float = 0,
     ) -> None:
         """Initializes this `Complex`.
@@ -3115,10 +3116,21 @@ class Complex(Shape):
             instructions: The ``instructions`` attribute.
             hook: The ``hook`` attribute.
             maximum_tree_width: The ``maximum_tree_width`` attribute.
+            main_component_index: The index in `instructions` of this
+                shape’s main component. A complex shape may have
+                multiple component shapes, but if only one is the main
+                one that determines how phases should treat it, that is
+                the main one. This should be ``None`` if there is no
+                main component or to choose the main component
+                automatically.
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
         self.hook: Final = hook
         self.maximum_tree_width: Final = maximum_tree_width
+        if main_component_index is not None:
+            main_component = self.instructions[main_component_index]
+            assert isinstance(main_component, Component)
+            self._base_shape = main_component.shape
         self._final_rotation: Final = _final_rotation
 
     @override
@@ -3161,33 +3173,33 @@ class Complex(Shape):
         )
 
     @functools.cached_property
-    def _base_component(self) -> Shape | None:
+    def _base_shape(self) -> Shape | None:
         """Returns the shape of this shape’s main component.
 
         A complex shape may have multiple component shapes, but if only
         one is the main one that determines how phases should treat it,
         that is the one that is returned. If not, ``None`` is returned.
         """
-        base_component: Shape | None = None
+        base_shape: Shape | None = None
         for i, op in enumerate(self.instructions):
             if not callable(op) and not op.tick:
-                if base_component is None and not (i == 0 and (op.shape.invisible() or op.shape.fixed_y())):
-                    base_component = op.shape
+                if base_shape is None and not (i == 0 and (op.shape.invisible() or op.shape.fixed_y())):
+                    base_shape = op.shape
                 else:
                     return None
-        return base_component
+        return base_shape
 
     @override
     def can_take_secant(self) -> bool:
-        if self._base_component is not None and all(
+        if self._base_shape is not None and all(
             callable(op)
             or op.tick
-            or op.shape is self._base_component
+            or op.shape is self._base_shape
             or op.shape.invisible()
             or op.shape.fixed_y()
             for op in self.instructions
         ):
-            return self._base_component.can_take_secant()
+            return self._base_shape.can_take_secant()
         return False
 
     @override
@@ -3541,7 +3553,7 @@ class Complex(Shape):
 
     @override
     def can_be_child(self, size: float) -> bool:
-        return self._base_component is not None and self._base_component.can_be_child(size)
+        return self._base_shape is not None and self._base_shape.can_be_child(size)
 
     @override
     def max_tree_width(self, size: float) -> int:
@@ -3549,8 +3561,8 @@ class Complex(Shape):
 
     @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
-        if self._base_component is not None:
-            return self._base_component.max_double_marks(size, joining_type, marks)
+        if self._base_shape is not None:
+            return self._base_shape.max_double_marks(size, joining_type, marks)
         return super().max_double_marks(size, joining_type, marks)
 
     @override
@@ -3624,8 +3636,8 @@ class Complex(Shape):
 
     @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
-        if self._base_component is not None:
-            return self._base_component.calculate_diacritic_angles()
+        if self._base_shape is not None:
+            return self._base_shape.calculate_diacritic_angles()
         return super().calculate_diacritic_angles()
 
     def rotate_diacritic(self, context: Context) -> Self:

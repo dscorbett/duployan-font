@@ -26,7 +26,7 @@ __all__ = [
     'create_diagonal_fractions',
     'create_superscripts_and_subscripts',
     'decompose',
-    'disjoin_equals_sign',
+    'disjoin_grammalogues',
     'dont_ignore_default_ignorables',
     'expand_secants',
     'ignore_first_orienting_glyph_in_initial_sequence',
@@ -1007,7 +1007,7 @@ def reposition_stenographic_period(
     return [lookup]
 
 
-def disjoin_equals_sign(
+def disjoin_grammalogues(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
@@ -1024,22 +1024,37 @@ def disjoin_equals_sign(
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
-        if schema.cmap == 0x003D:
-            equals_sign = schema
-        elif schema.glyph_class == GlyphClass.JOINER:
-            classes['joiner'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            classes['all'].append(schema)
-        elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
-            root_parent_edge = schema
-            classes['all'].append(root_parent_edge)
+        match schema:
+            case Schema(cmap=0x003C):
+                less_than_sign = schema
+            case Schema(cmap=0x003D):
+                equals_sign = schema
+            case Schema(cmap=0x003E):
+                greater_than_sign = schema
+            case Schema(glyph_class=GlyphClass.JOINER):
+                classes['joiner'].append(schema)
+            case Schema(path=ContinuingOverlap()):
+                continuing_overlap = schema
+                classes['all'].append(continuing_overlap)
+            case Schema(path=ParentEdge(lineage=[])):
+                root_parent_edge = schema
+                classes['all'].append(root_parent_edge)
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-    add_rule(lookup, Rule([equals_sign], [zwnj, equals_sign]))
-    if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, equals_sign.max_tree_width() + 1)):
-        named_lookups['prepend_zwnj'] = Lookup(None, None)
-        add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
-        for tree in trees:
-            add_rule(lookup, Rule([equals_sign, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))
+    for root, child in [
+        (equals_sign, 'joiner'),
+        (greater_than_sign, less_than_sign),
+    ]:
+        add_rule(lookup, Rule([root], [zwnj, root]))
+        if isinstance(child, Schema):
+            add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
+            add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
+            add_rule(lookup, Rule([child], [child, zwnj]))
+        if trees := _make_trees(child, None, MAX_TREE_DEPTH, top_widths=range(0, root.max_tree_width() + 1)):
+            if 'prepend_zwnj' not in named_lookups:
+                named_lookups['prepend_zwnj'] = Lookup(None, None)
+                add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
+            for tree in trees:
+                add_rule(lookup, Rule([root, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))  # type: ignore[list-item]
     return [lookup]
 
 
@@ -1911,7 +1926,7 @@ PHASE_LIST = [
     add_secant_guidelines,
     add_placeholders_for_missing_children,
     categorize_edges,
-    disjoin_equals_sign,
+    disjoin_grammalogues,
     promote_final_letter_overlap_to_continuing_overlap,
     reposition_chinook_jargon_overlap_points,
     make_mark_variants_of_children,
