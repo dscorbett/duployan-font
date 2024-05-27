@@ -213,7 +213,6 @@ class Builder:
         left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
         inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
         right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
-        en_dash = Complex([(395, Space(90)), (1, Line(0))])
         left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
         right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
         ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
@@ -414,7 +413,8 @@ class Builder:
             Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
-            Schema(0x2013, en_dash, 1, Type.NON_JOINING, encirclable=True),
+            Schema(0x2013, t, 0.6, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
+            Schema(0x2014, t, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2, encirclable=True),
             Schema(0x2018, turned_comma, 1, Type.NON_JOINING, y_min=558, encirclable=True),
             Schema(0x2019, comma, 1, Type.NON_JOINING, y_min=677, encirclable=True),
             Schema(0x201C, left_quote, 1, Type.NON_JOINING, y_min=558, encirclable=True),
