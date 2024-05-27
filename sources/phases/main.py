@@ -997,21 +997,24 @@ def disjoin_grammalogues(
                 root_parent_edge = schema
                 classes['all'].append(root_parent_edge)
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-    for root, child in [
-        (equals_sign, 'joiner'),
-        (greater_than_sign, less_than_sign),
+    for root in [
+        equals_sign,
+        greater_than_sign,
     ]:
         add_rule(lookup, Rule([root], [zwnj, root]))
-        if isinstance(child, Schema):
-            add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
-            add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
-            add_rule(lookup, Rule([child], [child, zwnj]))
-        if trees := _make_trees(child, None, MAX_TREE_DEPTH, top_widths=range(0, root.max_tree_width() + 1)):
+        if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, root.max_tree_width() + 1)):
             if 'prepend_zwnj' not in named_lookups:
                 named_lookups['prepend_zwnj'] = Lookup(None, None)
                 add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
             for tree in trees:
-                add_rule(lookup, Rule([root, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))  # type: ignore[list-item]
+                add_rule(lookup, Rule([root, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))
+    for child in [
+        less_than_sign,
+    ]:
+        if isinstance(child, Schema):
+            add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
+            add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
+            add_rule(lookup, Rule([child], [child, zwnj]))
     return [lookup]
 
 
