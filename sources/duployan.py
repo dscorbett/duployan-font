@@ -414,6 +414,7 @@ class Builder:
             Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
             Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
             Schema(0x2010, t, 0.5, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
+            Schema(0x2011, t, 0.5, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
             Schema(0x2013, t, 0.6, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
             Schema(0x2014, t, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2, encirclable=True),
             Schema(0x2018, turned_comma, 1, Type.NON_JOINING, y_min=558, encirclable=True),
