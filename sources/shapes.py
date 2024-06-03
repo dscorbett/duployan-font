@@ -3289,7 +3289,14 @@ class Complex(Shape):
                     }''')
                 self._layer.draw(pen)
             elif (deferred_proxy := deferred_proxies.get(self._stroke_args)) is not None:
-                deferred_proxy._layer += self._layer
+                if (
+                    deferred_proxy._layer and self._layer
+                    and (deferred_contour := deferred_proxy._layer[-1]) and (contour := self._layer[0])
+                    and deferred_contour[-1] == contour[0]
+                ):
+                    deferred_contour += contour
+                else:
+                    deferred_proxy._layer += self._layer
             else:
                 deferred_proxies[self._stroke_args] = self
 
@@ -4428,13 +4435,13 @@ class TangentHook(Complex):
                     angle_in=self.instructions[1][1].angle_in,
                     angle_out=(self.instructions[1][1].angle_out + 180) % 360,
                     clockwise=not self.instructions[1][1].clockwise,
-                )),
+                ), *self.instructions[1][2:]),
                 self.instructions[2],
                 (self.instructions[3][0], self.instructions[3][1].clone(
                     angle_in=self.instructions[3][1].angle_out,
                     angle_out=(self.instructions[3][1].angle_out + 180) % 360,
                     clockwise=not self.instructions[3][1].clockwise,
-                )),
+                ), *self.instructions[3][2:]),
             ], _initial=True)
         else:
             shape = cast(Self, super())

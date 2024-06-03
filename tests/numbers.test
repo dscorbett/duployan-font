@@ -44,7 +44,7 @@
 0031 0031 2044 0032 0032 2044 0033 0033 2044 0034 0034::[one.numr@0,0|one.numr@337,0|uni2044_.fraction_slash.frac@674,0|two.dnom@838,0|two.dnom@1290,0|uni2044.fraction_slash@1742,0|three.numr@2576,0|three.numr@3037,0|uni2044_.fraction_slash.frac@3498,0|four.dnom@3662,0|four.dnom@4178,0|_@4694,0]
 
 # Fraction delimited by default ignorable code points not present in the font
-0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@403,0|two.numr@806,0|two.numr@1258,0|uni2044_.fraction_slash.frac@1710,0|three.dnom@1874,0|three.dnom@2335,0|four@2796,0|four@3494,0|_@4192,0]
+0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@404,0|two.numr@808,0|two.numr@1260,0|uni2044_.fraction_slash.frac@1712,0|three.dnom@1876,0|three.dnom@2337,0|four@2798,0|four@3496,0|_@4194,0]
 
 # Superscripts
 0030 0031 0032 0033 0034 0035 0036 0037 0038 0039:--features sups:[uni2070.superscript_zero@0,0|uni00B9.superscript_one@472,0|uni00B2.superscript_two@809,0|uni00B3.superscript_three@1261,0|uni2074.superscript_four@1722,0|uni2075.superscript_five@2238,0|uni2076.superscript_six@2680,0|uni2077.superscript_seven@3152,0|uni2078.superscript_eight@3637,0|uni2079.superscript_nine@4077,0|_@4531,0]
