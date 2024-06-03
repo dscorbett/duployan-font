@@ -4157,6 +4157,7 @@ class Wa(Complex):
         last_crossing_point: _Point | None = None
         singular_anchor_points = collections.defaultdict(list)
         pen = glyph.glyphPen()
+        deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] = {}
         for op in self.instructions:
             assert not callable(op)
             scalar, component, skip_drawing, tick = op
@@ -4186,7 +4187,7 @@ class Wa(Complex):
                 if len(points) == 1:
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
-                proxy.draw(pen)
+                proxy.draw(pen, deferred_proxies)
         first_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][0]
         last_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][-1]
         if math.hypot(first_entry[0] - last_entry[0], first_entry[1] - last_entry[1]) >= 10:
@@ -4197,7 +4198,7 @@ class Wa(Complex):
             proxy.moveTo((first_entry[0], first_entry[1] + 0.01))
             proxy.lineTo((last_entry[0], last_entry[1] + 0.01))
             proxy.stroke('circular', stroke_width, 'round')
-            proxy.draw(pen)
+            proxy.draw(pen, deferred_proxies)
         first_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][0]
         last_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][-1]
         if math.hypot(first_exit[0] - last_exit[0], first_exit[1] - last_exit[1]) >= 10:
@@ -4205,7 +4206,9 @@ class Wa(Complex):
             proxy.moveTo((first_exit[0], first_exit[1] + 0.01))
             proxy.lineTo((last_exit[0], last_exit[1] + 0.01))
             proxy.stroke('circular', stroke_width, 'round')
-            proxy.draw(pen)
+            proxy.draw(pen, deferred_proxies)
+        for deferred_proxy in deferred_proxies.values():
+            deferred_proxy.draw(pen)
         return None, singular_anchor_points
 
     @override
