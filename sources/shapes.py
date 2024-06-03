@@ -1866,7 +1866,7 @@ class Line(Shape):
 
 
 class StretchAxis(enum.Enum):
-    """The axis alone which a `Curve` is stretched.
+    """The axis along which a `Curve` is stretched.
     """
 
     #: The y axis.
