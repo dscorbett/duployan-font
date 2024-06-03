@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ EC02 EC02::[uniEC02.reversed_p.tick@0,0|uniEC02.reversed_p@100,500|_@340,0]
 EC03 EC03::[uniEC03.reversed_t.tick@500,0|uniEC03.reversed_t@0,-100|_@1240,0]
 EC04 EC04::[uniEC04.reversed_f.tick@288,0|uniEC04.reversed_f@0,450|_@903,0]
 EC05 EC05::[uniEC05.reversed_k.tick@0,0|uniEC05.reversed_k@375,450|_@903,0]
-EC06 EC06::[uniEC06.reversed_l.tick@431,0|uniEC06.reversed_l@0,-571|_@1169,0]
+EC06 EC06::[uniEC06.reversed_l.tick@429,0|uniEC06.reversed_l@0,-571|_@1169,0]
 1BC02 1BC07::[u1BC02.p.tick@0,0|u1BC07.b@100,-1000|_@340,0]
 1BC03 1BC08::[u1BC03.t.tick@0,0|u1BC08.d@500,-100|_@1740,0]
 1BC04 1BC09::[u1BC04.f.tick@0,0|u1BC09.v@202,-1049|_@1019,0]
-1BC05 1BC0A::[u1BC05.k.tick@490,0|u1BC0A.g@0,-1049|_@1019,0]
+1BC05 1BC0A::[u1BC05.k.tick@491,0|u1BC0A.g@0,-1049|_@1019,0]
 1BC06 1BC0B::[u1BC06.l.tick@0,0|u1BC0B.r@571,429|_@1811,0]
 1BC07 1BC02::[u1BC07.b.tick@0,0|u1BC02.p@100,-500|_@340,0]
 1BC08 1BC03::[u1BC08.d.tick@0,0|u1BC03.t@1000,-100|_@1740,0]

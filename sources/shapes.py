@@ -33,6 +33,7 @@ from typing import Final
 from typing import Generic
 from typing import Literal
 from typing import LiteralString
+from typing import MutableMapping
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
@@ -3184,9 +3185,10 @@ class Complex(Shape):
             """Initializes this `Proxy`.
             """
             self.anchor_points: Final[collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]]] = collections.defaultdict(list)
+            self._stroke_args: tuple[tuple[object, ...], tuple[tuple[str, object], ...]] | None = None
             layer = fontforge.layer()
             layer += fontforge.contour()
-            self._layer: Final = layer
+            self._layer = layer
 
         def addAnchorPoint(
             self,
@@ -3212,38 +3214,84 @@ class Complex(Shape):
 
         def stroke(
             self,
-            nib_type: LiteralString,
-            width_or_contour: float,
-            *args: float | str | tuple[str, ...],
-            **kwargs: bool | float | str,
+            *args: object,
+            **kwargs: object,
         ) -> None:
             """Simulates `fontforge.glyph.stroke`.
 
             Args:
-                nib_type: The first argument.
-                width_or_contour: The ``width`` or ``contour`` argument,
-                    depending on `stroke_type`.
-                args: Further arguments.
-                kwargs: Further keyword arguments.
+                args: Positional arguments.
+                kwargs: Keyword arguments.
             """
-            self._layer.stroke(nib_type, width_or_contour, *args, **kwargs)
+            self._stroke_args = (args, tuple(kwargs.items()))
+
+        def _stroke(self, *, copy: bool = False) -> fontforge.layer:
+            """Strokes a layer using the saved `_stroke_args`.
+
+            If `_stroke_args` is ``None``, the layer is not modified.
+
+            Args:
+                copy: Whether to stroke a copy of `_layer` instead of
+                    modifying `_layer`.
+
+            Returns:
+                The stroked layer.
+            """
+            layer = self._layer
+            if self._stroke_args is not None:
+                if copy:
+                    layer = layer.dup()
+                layer.stroke(*self._stroke_args[0], **dict(self._stroke_args[1]))
+                if not copy:
+                    self._stroke_args = None
+            return layer
 
         def boundingBox(self) -> tuple[float, float, float, float]:
             """Simulates `fontforge.glyph.boundingBox`.
             """
-            return cast(tuple[float, float, float, float], self._layer.boundingBox())
+            layer = self._stroke(copy=True)
+            return cast(tuple[float, float, float, float], layer.boundingBox())
 
-        def draw(self, pen: fontforge.glyphPen) -> None:
+        def draw(
+            self,
+            pen: fontforge.glyphPen,
+            deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] | None = None,
+        ) -> None:
             """Draws the collected data to a FontForge glyph.
+
+            If possible, it actually defers the drawing and records the
+            deferral in `deferred_proxies`. Its keys are an encoding of
+            the arguments to `stroke`. If this proxy’s `stroke` call was
+            deferred, the cached arguments are used as the key into
+            `deferred_proxies` to find a compatible proxy. If there is a
+            compatible proxy, this proxy’s layer is appended to it; if
+            not, this proxy is added to the mapping for later compatible
+            proxies to be added to. It is up to the caller to make sure
+            all the deferred proxies ultimately get drawn.
+
+            If this proxy has no cached `stroke` arguments, it is drawn
+            immediately. This mainly happens when the stroking actually
+            happened, in which case deferring is impossible because
+            stroking is not idempotent. It also happens when `stroke`
+            was not called at all, e.g. for a space glyph, in which case
+            there is nothing to defer.
 
             Args:
                 pen: The pen to draw with.
+                deferred_proxies: An optional mapping to proxies whose
+                    `draw` calls have been deferred.
             """
-            assert all(len(contour) == 0 or contour.closed for contour in self._layer), (
-                f'''A proxy contains an open contour: {
-                    [(point.x, point.y) for point in next(filter(lambda contour: len(contour) and not contour.closed, self._layer))]
-                }''')
-            self._layer.draw(pen)
+            if deferred_proxies is None or self._stroke_args is None:
+                self._stroke()
+                assert all(len(contour) == 0 or contour.closed for contour in self._layer), (
+                    f'''A proxy contains an open contour: {
+                        [(point.x, point.y) for point in next(filter(lambda contour: len(contour) and not contour.closed, self._layer))]
+                    }''')
+                self._layer.draw(pen)
+            elif (deferred_proxy := deferred_proxies.get(self._stroke_args)) is not None:
+                deferred_proxy._layer += self._layer
+            else:
+                deferred_proxies[self._stroke_args] = self
 
         def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Unused) -> None:
             """Simulates `fontforge.glyph.transform`.
@@ -3367,11 +3415,15 @@ class Complex(Shape):
         singular_anchor_points: collections.defaultdict[tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
         pen = glyph.glyphPen()
         effective_bounding_box = None
+        deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] = {}
         for op in self.instructions:
             if callable(op):
                 continue
             scalar, component, skip_drawing, tick = op
             if tick and effective_bounding_box is None:
+                for deferred_proxy in deferred_proxies.values():
+                    deferred_proxy.draw(pen)
+                deferred_proxies.clear()
                 effective_bounding_box = glyph.boundingBox()
             proxy = Complex.Proxy()
             component.draw(
@@ -3400,7 +3452,9 @@ class Complex(Shape):
                 if len(points) == 1 and not (tick and anchor_and_type[0] != anchors.CURSIVE):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
-                proxy.draw(pen)
+                proxy.draw(pen, deferred_proxies)
+        for deferred_proxy in deferred_proxies.values():
+            deferred_proxy.draw(pen)
         return effective_bounding_box, singular_anchor_points
 
     @staticmethod
