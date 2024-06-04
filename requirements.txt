@@ -20,11 +20,11 @@
 #
 cffsubr==0.3.0
     # via -r requirements.in
-fonttools==4.51.0
+fonttools==4.53.0
     # via
     #   -r requirements.in
     #   cffsubr
-typing-extensions==4.11.0
+typing-extensions==4.12.1
     # via -r requirements.in
 uharfbuzz==0.37.2
     # via

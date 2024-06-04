@@ -15,7 +15,7 @@
 
 -c dev-constraints.txt
 -r requirements.in
-fontbakery[notofonts] == 0.12.6.*
+fontbakery[notofonts] >= 0.12.6, < 0.12.8
 mypy ~= 1.5
 packaging >= 22
 pip-tools == 7.*
