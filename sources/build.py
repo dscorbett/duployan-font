@@ -259,6 +259,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         if 'CFF ' in tt_font:
             cffsubr.subroutinize(tt_font)
             tt_font['CFF '].cff[0].decompileAllCharStrings()
+            tt_font['CFF '].cff[0].Encoding = 0
 
         tt_font.save(options.output)
 
