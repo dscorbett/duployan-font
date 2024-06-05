@@ -18,6 +18,7 @@ fontFeatures != 1.0.6  # https://github.com/simoncozens/fontFeatures/commit/889b
 freetype-py >= 2.1  # https://github.com/rougier/freetype-py/issues/107
 importlib-resources >= 2  # https://github.com/googlefonts/nam-files/commit/6d12b577cb778f178e9653b7b89c40b182c44a7a
 Jinja2 >= 3a0  # https://github.com/fonttools/fontbakery/issues/4717
+numpy >= 1.22
 openstep-plist != 0.3  # https://github.com/fonttools/openstep-plist/issues/16
 requests >= 2.19  # https://github.com/fonttools/fontbakery/issues/4718
 rich >= 13.2  # https://github.com/Textualize/rich/commit/6aac8da6984482ad767c06dd592ffa019a0b5318#diff-a008d33d5743c15fbc11efc91f15d4d66e6751eac937baa1fc4467e563157f0dR411
