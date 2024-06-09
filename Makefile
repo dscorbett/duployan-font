@@ -36,6 +36,7 @@ TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
+SUBSET_PREFIX = subset-
 
 BUILD = PYTHONPATH="sources:$(PYTHONPATH)" sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
@@ -50,7 +51,7 @@ otf: $(filter %.otf,$(FONTS))
 .PHONY: ttf
 ttf: $(filter %.ttf,$(FONTS))
 
-subset-fonts/%.subset-glyphs.txt: fonts/%
+$(SUBSET_PREFIX)fonts/%.subset-glyphs.txt: fonts/%
 	mkdir -p "$$(dirname "$@")"
 	ttx -o - -q -t GlyphOrder "$<" \
 	| grep '<GlyphID ' \
@@ -58,7 +59,7 @@ subset-fonts/%.subset-glyphs.txt: fonts/%
 	| grep '^\(_[^.]*_\(\.\|$$\)\|[^_][^.]*_\.[^.]*\.\|\([^_][^.]*[^_]\(\.[^.]*\)\?\|\.[^.]*\)\(\._[0-9A-F][1-9A-F]*\)\?$$\)' \
 	>"$@"
 
-subset-fonts/%: fonts/% subset-fonts/%.subset-glyphs.txt
+$(SUBSET_PREFIX)fonts/%: fonts/% $(SUBSET_PREFIX)fonts/%.subset-glyphs.txt
 	pyftsubset \
 		--glyph-names \
 		--glyphs-file="$(word 2,$^)" \
@@ -93,7 +94,7 @@ $(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_
 
 .PHONY: clean
 clean:
-	$(RM) -r $(FONTS) $(INTERMEDIATE_FONTS) $(addprefix subset-,$(FONTS)) tests/failed
+	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
