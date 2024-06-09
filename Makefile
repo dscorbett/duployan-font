@@ -34,7 +34,8 @@ VALID_SUFFIXES = otf ttf
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
-INTERMEDIATE_FONTS = $(foreach suffix,$(VALID_SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .tmp.$(suffix),$(VALID_STYLES))))
+INTERMEDIATE_PREFIX = tmp-
+INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 
 BUILD = PYTHONPATH="sources:$(PYTHONPATH)" sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
@@ -72,12 +73,12 @@ dummy-%: ;
 
 $(FONTS): $(INTERMEDIATE_FONTS)
 	mkdir -p "$$(dirname "$@")"
-	sources/copy_metrics.py --text $(TALL_TEXT) $@ $(basename $@).tmp$(suffix $@) $(filter-out $(basename $@).tmp$(suffix $@),$^)
+	sources/copy_metrics.py --text $(TALL_TEXT) $@ $(INTERMEDIATE_PREFIX)$@ $(filter-out $(INTERMEDIATE_PREFIX)$@,$^)
 
 %.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
 
-%-Bold.otf %-Bold.tmp.otf: BOLD_ARG=--bold
+%-Bold.otf: BOLD_ARG=--bold
 
 define MAKE_TTF
     mkdir -p "$$(dirname "$@")"
@@ -87,7 +88,7 @@ endef
 %.ttf: %.otf
 	$(MAKE_TTF)
 
-$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .tmp.ttf,$(STYLES))): fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.tmp.ttf: fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.tmp.otf
+$(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
 	$(MAKE_TTF)
 
 .PHONY: clean
