@@ -203,6 +203,14 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         if 'FFTM' in tt_font:
             del tt_font['FFTM']
 
+        # Discard strings supplied by FontForge.
+        if 'CFF ' in tt_font:
+            for name, value in [*tt_font['CFF '].cff[0].rawDict.items()]:
+                if isinstance(value, str):
+                    del tt_font['CFF '].cff[0].rawDict[name]
+                    if hasattr(tt_font['CFF '].cff[0], name):
+                        delattr(tt_font['CFF '].cff[0], name)
+
         # Merge all the lookups.
         font = builder.font
         lookups = font.gpos_lookups + font.gsub_lookups
@@ -233,8 +241,6 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         if options.noto:
             for name in tt_font['name'].names:
                 name.string = name.string.replace('\n', ' ')
-        elif 'CFF ' in tt_font:
-            tt_font['CFF '].cff[0].Notice = ''
 
         tt_font['OS/2'].sCapHeight = round(utils.CAP_HEIGHT)
         tt_font['OS/2'].sxHeight = round(utils.X_HEIGHT)
