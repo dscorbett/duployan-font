@@ -37,9 +37,6 @@ import duployan
 import utils
 
 
-LEADING_ZEROS = re.compile('(?<= )0+')
-
-
 TIMESTAMP_FORMAT = '%Y%m%dT%H%M%SZ'
 
 
@@ -82,42 +79,28 @@ def generate_feature_string(font: fontforge.font, lookup: str) -> str:
         return fea_file.read().decode('utf-8')
 
 
-def filter_map_name(name: fontTools.ttLib.tables._n_a_m_e.NameRecord) -> fontTools.ttLib.tables._n_a_m_e.NameRecord | None:
-    if name.platformID != 3 or name.platEncID != 1:
-        return None
-    if isinstance(name.string, bytes):
-        name.string = name.string.decode('utf-16be')
-    if name.nameID == 5:
-        name.string = LEADING_ZEROS.sub('', name.string)
-    name.string = name.string.strip()
-    return name
-
-
-def set_subfamily_name(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], bold: bool) -> None:
-    for name in names:
+def set_subfamily_name(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, bold: bool) -> None:
+    for name in name_table.names:
         if name.nameID == 1:
             family_name = name.string
-        elif name.nameID == 2:
-            subfamily_name_record = name
-            subfamily_name_record.string = 'Bold' if bold else 'Regular'
-        elif name.nameID == 4:
-            full_name_record = name
-        elif name.nameID == 6:
-            postscript_name_record = name
-    full_name_record.string = f'{family_name} {subfamily_name_record.string}'
-    postscript_name_record.string = re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', family_name)
-    postscript_name_record.string += f'-{subfamily_name_record.string}'
+            platform_id = name.platformID
+            encoding_id = name.platEncID
+            language_id = name.langID
+            break
+    subfamily_name = 'Bold' if bold else 'Regular'
+    name_table.setName(subfamily_name, 2, platform_id, encoding_id, language_id)
+    name_table.setName(f'{family_name} {subfamily_name}', 4, platform_id, encoding_id, language_id)
+    name_table.setName(re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', f'{family_name}-{subfamily_name}'), 6, platform_id, encoding_id, language_id)
 
 
-def set_unique_id(names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord], vendor: str) -> None:
-    for name in names:
-        if name.nameID == 3:
-            unique_id_record = name
-        elif name.nameID == 5:
-            version = name.string.removeprefix(VERSION_PREFIX)
-        elif name.nameID == 6:
-            postscript_name = name.string
-    unique_id_record.string = f'{version};{vendor};{postscript_name}'
+def set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, vendor: str) -> None:
+    for name in name_table.names:
+        match name.nameID:
+            case 5:
+                version = name.string.removeprefix(VERSION_PREFIX)
+            case 6:
+                postscript_name = name.string
+    name_table.setName(f'{version};{vendor};{postscript_name}', 3, name.platformID, name.platEncID, name.langID)
 
 
 def get_date() -> str:
@@ -133,39 +116,36 @@ def set_version(
 ) -> None:
     tt_font['head'].fontRevision = version
     if noto:
-        for name in tt_font['name'].names:
-            if name.nameID == 5:
-                release_suffix = '' if release else ';DEV'
-                name.string = f'{VERSION_PREFIX}{version:.03f}{release_suffix}'
-                break
+        version_string = f'{version:.03f}'
+        release_suffix = '' if release else ';DEV'
     else:
-        for name in tt_font['name'].names:
-            if name.nameID == 5:
-                if release:
-                    release_suffix = ''
+        version_string = f'{version}.0'
+        if release:
+            release_suffix = ''
+        else:
+            try:
+                if dirty:
+                    date = get_date()
                 else:
+                    date = subprocess.check_output(
+                            ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
+                            encoding='utf-8',
+                        ).rstrip()
+                git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
+                metadata = f'{date}.{git_hash}'
+                if dirty:
+                    git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
                     try:
-                        if dirty:
-                            date = get_date()
-                        else:
-                            date = subprocess.check_output(
-                                    ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
-                                    encoding='utf-8',
-                                ).rstrip()
-                        git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-                        metadata = f'{date}.{git_hash}'
-                        if dirty:
-                            git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
-                            try:
-                                import hashlib
-                                metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
-                            except AttributeError:
-                                metadata += '.dirty'
-                    except (FileNotFoundError, subprocess.CalledProcessError):
-                        metadata = get_date()
-                    release_suffix = f'-alpha+{metadata}'
-                name.string = f'{VERSION_PREFIX}{version}.0{release_suffix}'
-                break
+                        import hashlib
+                        metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
+                    except AttributeError:
+                        metadata += '.dirty'
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                metadata = get_date()
+            release_suffix = f'-alpha+{metadata}'
+    name_table = tt_font['name']
+    name = name_table.names[0]
+    name_table.setName(f'{VERSION_PREFIX}{version_string}{release_suffix}', 5, name.platformID, name.platEncID, name.langID)
 
 
 def set_cff_data(
@@ -174,20 +154,21 @@ def set_cff_data(
     cff: fontTools.cffLib.CFFFontSet,
 ) -> None:
     for name in names:
-        if name.nameID == 0:
-            cff[0].Copyright = name.string
-        elif name.nameID == 1:
-            cff[0].FamilyName = name.string
-        elif name.nameID == 2:
-            cff[0].Weight = name.string
-        elif name.nameID == 4:
-            cff[0].FullName = name.string
-        elif name.nameID == 5:
-            cff[0].version = name.string.removeprefix(VERSION_PREFIX)
-        elif name.nameID == 6:
-            cff.fontNames[0] = name.string
-        elif name.nameID == 7:
-            cff[0].Notice = name.string
+        match name.nameID:
+            case 0:
+                cff[0].Copyright = name.string
+            case 1:
+                cff[0].FamilyName = name.string
+            case 2:
+                cff[0].Weight = name.string
+            case 4:
+                cff[0].FullName = name.string
+            case 5:
+                cff[0].version = name.string.removeprefix(VERSION_PREFIX)
+            case 6:
+                cff.fontNames[0] = name.string
+            case 7:
+                cff[0].Notice = name.string
     cff[0].UnderlineThickness = copy_metrics.cast_cff_number(underline_thickness)
 
 
@@ -204,6 +185,8 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
             del tt_font['FFTM']
 
         # Discard strings supplied by FontForge.
+        if 'name' in tt_font:
+            del tt_font['name']
         if 'CFF ' in tt_font:
             for name, value in [*tt_font['CFF '].cff[0].rawDict.items()]:
                 if isinstance(value, str):
@@ -236,8 +219,6 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
             tt_font['OS/2'].fsSelection |= 1 << 6
             tt_font['OS/2'].fsSelection &= ~(1 << 0 | 1 << 5)
 
-        tt_font['name'].names = [*filter(None, map(filter_map_name, tt_font['name'].names))]
-
         if options.noto:
             for name in tt_font['name'].names:
                 name.string = name.string.replace('\n', ' ')
@@ -249,9 +230,9 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         tt_font['post'].underlineThickness = round(utils.REGULAR_LIGHT_LINE)
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
-        set_subfamily_name(tt_font['name'].names, options.bold)
+        set_subfamily_name(tt_font['name'], options.bold)
         set_version(tt_font, options.noto, options.version, options.release, dirty)
-        set_unique_id(tt_font['name'].names, tt_font['OS/2'].achVendID)
+        set_unique_id(tt_font['name'], tt_font['OS/2'].achVendID)
         if 'CFF ' in tt_font:
             set_cff_data(tt_font['name'].names, tt_font['post'].underlineThickness, tt_font['CFF '].cff)
         copy_metrics.update_metrics(
