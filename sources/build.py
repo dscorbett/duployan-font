@@ -208,7 +208,16 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
             tables=['OS/2', 'head', 'name'],
         )
 
+        upem = tt_font['head'].unitsPerEm
         tt_font['OS/2'].recalcAvgCharWidth(tt_font)
+        tt_font['OS/2'].ySubscriptXSize = round(upem * utils.SMALL_DIGIT_FACTOR)
+        tt_font['OS/2'].ySubscriptYSize = tt_font['OS/2'].ySubscriptXSize
+        tt_font['OS/2'].ySubscriptXOffset = 0
+        tt_font['OS/2'].ySubscriptYOffset = round(-utils.SUBSCRIPT_DEPTH)
+        tt_font['OS/2'].ySuperscriptXSize = tt_font['OS/2'].ySubscriptXSize
+        tt_font['OS/2'].ySuperscriptYSize = tt_font['OS/2'].ySuperscriptXSize
+        tt_font['OS/2'].ySuperscriptXOffset = 0
+        tt_font['OS/2'].ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
         tt_font['OS/2'].usDefaultChar = 0
         if options.bold:
             tt_font['OS/2'].usWeightClass = 700
