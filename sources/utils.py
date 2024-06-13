@@ -69,9 +69,10 @@ BRACKET_DEPTH: Final[float] = -BRACKET_Y_FACTOR * CAP_HEIGHT
 BRACKET_HEIGHT: Final[float] = (1 + BRACKET_Y_FACTOR) * CAP_HEIGHT
 
 
-#: The factor by which to scale digits to get their numerator,
-#: denominator, superscript, and subscript forms.
-SMALL_DIGIT_FACTOR: Final[float] = 0.6
+#: The factor of the cap height in the regular font by which to scale
+#: digits to get their numerator, denominator, superscript, and
+#: subscript forms.
+SMALL_DIGIT_FACTOR: Final[float] = 0.633
 
 
 #: The factor of the cap height in the regular font by which

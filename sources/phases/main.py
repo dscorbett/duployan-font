@@ -59,6 +59,7 @@ from shapes import Space
 from shapes import ValidDTLS
 from shapes import Wa
 from shapes import Wi
+from utils import CAP_HEIGHT
 from utils import Context
 from utils import EPSILON
 from utils import GlyphClass
@@ -1787,8 +1788,8 @@ def create_diagonal_fractions(
             classes['digit_or_slash'].append(schema)
             assert schema.y_max is not None
             assert schema.y_min is not None
-            dnom = schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_max=None)
-            numr = schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=None)
+            dnom = schema.clone(cmap=None, y_max=SMALL_DIGIT_FACTOR * CAP_HEIGHT)
+            numr = schema.clone(cmap=None, y_min=(1 - SMALL_DIGIT_FACTOR) * CAP_HEIGHT)
             classes['dnom'].append(dnom)
             classes['numr'].append(numr)
             classes['dnom_or_slash'].append(dnom)
@@ -1820,8 +1821,16 @@ def create_superscripts_and_subscripts(
         if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
             classes['i'].append(schema)
             assert schema.y_max is not None
-            classes['o_sups'].append(schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=None, y_max=SUPERSCRIPT_HEIGHT))
-            classes['o_subs'].append(schema.clone(cmap=None, size=SMALL_DIGIT_FACTOR * schema.size, y_min=SUBSCRIPT_DEPTH, y_max=None))
+            classes['o_sups'].append(schema.clone(
+                cmap=None,
+                y_min=SUPERSCRIPT_HEIGHT - SMALL_DIGIT_FACTOR * CAP_HEIGHT,
+                y_max=SUPERSCRIPT_HEIGHT,
+            ))
+            classes['o_subs'].append(schema.clone(
+                cmap=None,
+                y_min=SUBSCRIPT_DEPTH,
+                y_max=SUBSCRIPT_DEPTH + SMALL_DIGIT_FACTOR * CAP_HEIGHT,
+            ))
     add_rule(lookup_sups, Rule('i', 'o_sups'))
     add_rule(lookup_subs, Rule('i', 'o_subs'))
     return [lookup_sups, lookup_subs]

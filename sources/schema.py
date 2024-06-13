@@ -853,18 +853,15 @@ class Schema:
             name += name_from_path
         if self.cmap is None and cps == (0x2044,):
             name += '.frac'
-        if cps and self.cmap is None and cps[0] in range(0x0030, 0x0039 + 1):
-            if self.y_min is None:
-                assert self.y_max is not None
-                if self.y_max > CAP_HEIGHT:
-                    name += '.sups'
-                else:
-                    name += '.numr'
+        if cps and self.cmap is None and self.y_min is not None and self.y_max is not None and unicodedata.category(chr(cps[0])) == 'Nd':
+            if self.y_min < 0:
+                name += '.subs'
+            elif self.y_max > CAP_HEIGHT:
+                name += '.sups'
+            elif self.y_min == 0:
+                name += '.dnom'
             else:
-                if self.y_min < 0:
-                    name += '.subs'
-                else:
-                    name += '.dnom'
+                name += '.numr'
         if not cps and self.anchor:
             name += f'.{self.anchor}'
         if self.diphthong_1 or self.diphthong_2:

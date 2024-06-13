@@ -631,9 +631,8 @@ class Builder:
             is_superscript = unicodedata.decomposition(chr(small_digit_cp)).startswith('<super>')
             self._schemas.append(schema.clone(
                 cmap=small_digit_cp,
-                size=SMALL_DIGIT_FACTOR * schema.size,
-                y_min=0 if is_mark else None if is_superscript else SUBSCRIPT_DEPTH,
-                y_max=SUPERSCRIPT_HEIGHT if is_superscript else None,
+                y_min=SUPERSCRIPT_HEIGHT - SMALL_DIGIT_FACTOR * CAP_HEIGHT if is_superscript else SUBSCRIPT_DEPTH,
+                y_max=SUPERSCRIPT_HEIGHT if is_superscript else SUBSCRIPT_DEPTH + SMALL_DIGIT_FACTOR * CAP_HEIGHT,
                 anchor=None if not is_mark else anchors.ABOVE if small_digit_cp % 16 ** 2 // 16 == 2 else anchors.BELOW,
                 cps=None,
             ))
