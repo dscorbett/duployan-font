@@ -23,7 +23,6 @@ from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 from collections.abc import Set
-import io
 import math
 from typing import Final
 from typing import TYPE_CHECKING
@@ -35,7 +34,6 @@ import fontforge
 import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
-import fontTools.feaLib.parser
 import fontTools.misc.transform
 import fontTools.otlLib.builder
 import fontTools.ttLib.ttFont
@@ -1144,16 +1142,10 @@ class Builder:
         self.font.canonicalStart()
         self.font.canonicalContours()
 
-    def merge_features(
+    def complete_layout(
         self,
         tt_font: fontTools.ttLib.ttFont.TTFont,
-        old_fea: str,
     ) -> None:
-        self._fea.statements.extend(
-            fontTools.feaLib.parser.Parser(
-                io.StringIO(old_fea),
-                tt_font.getReverseGlyphMap())
-            .parse().statements)
         self._complete_gpos()
         self._recreate_gdef()
         fontTools.feaLib.builder.addOpenTypeFeatures(

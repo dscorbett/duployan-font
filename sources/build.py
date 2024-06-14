@@ -22,7 +22,6 @@ import datetime
 import os
 import re
 import subprocess
-import tempfile
 
 import cffsubr
 import fontforge
@@ -71,12 +70,6 @@ def build_font(
     flags = ['no-hints', 'omit-instructions', 'opentype']
     os.makedirs(os.path.dirname(os.path.realpath(options.output)), exist_ok=True)
     font.generate(options.output, flags=flags)
-
-
-def generate_feature_string(font: fontforge.font, lookup: str) -> str:
-    with tempfile.NamedTemporaryFile() as fea_file:
-        font.generateFeatureFile(fea_file.name, lookup)
-        return fea_file.read().decode('utf-8')
 
 
 def set_subfamily_name(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, bold: bool) -> None:
@@ -194,13 +187,8 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
                     if hasattr(tt_font['CFF '].cff[0], name):
                         delattr(tt_font['CFF '].cff[0], name)
 
-        # Merge all the lookups.
-        font = builder.font
-        lookups = font.gpos_lookups + font.gsub_lookups
-        old_fea = ''.join(generate_feature_string(font, lookup) for lookup in lookups)
-        for lookup in lookups:
-            font.removeLookup(lookup)
-        builder.merge_features(tt_font, old_fea)
+        # Complete the OpenType Layout tables.
+        builder.complete_layout(tt_font)
 
         fontTools.feaLib.builder.addOpenTypeFeatures(
             tt_font,
