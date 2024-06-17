@@ -123,13 +123,15 @@ def add_requirement(
     if (specifier_union := requirements[name] & requirement.specifier) != requirements[name] or new:
         requirements[name] = specifier_union
         new = True
-    if (new or requirement.extras) and (metadata := get_metadata_and_update_specifier(name, requirements[name], requirements)):
-        if (required_dists := metadata.get_all('Requires-Dist')):
-            add_required_dists(requirements, required_dists, constraints)
-            if requirement.extras:
-                for extra in metadata.get_all('Provides-Extra') or []:
-                    if extra in requirement.extras:
-                        add_required_dists(requirements, required_dists, constraints, extra)
+    if ((new or requirement.extras)
+        and (metadata := get_metadata_and_update_specifier(name, requirements[name], requirements))
+        and (required_dists := metadata.get_all('Requires-Dist'))
+    ):
+        add_required_dists(requirements, required_dists, constraints)
+        if requirement.extras:
+            for extra in metadata.get_all('Provides-Extra') or []:
+                if extra in requirement.extras:
+                    add_required_dists(requirements, required_dists, constraints, extra)
 
 
 def parse_requirement(
@@ -190,7 +192,6 @@ def main() -> None:
     parser.add_argument('--output', metavar='FILE', required=True, help='output requirements file')
     args = parser.parse_args()
 
-    continuation = False
     lines = get_lines(args.input)
 
     requirements = parse_requirements(lines, parse_constraints(lines))

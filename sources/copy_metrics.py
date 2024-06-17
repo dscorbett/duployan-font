@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from _typeshed import StrOrBytesPath
 
 
-def cast_cff_number(number: float | int) -> float | int:
+def cast_cff_number(number: float | int) -> float | int:  # noqa: PYI041
     """Losslessly casts a number to the data type in which it uses the
     fewest bytes in CFF.
 
@@ -67,6 +67,9 @@ def update_metrics(
 
     Args:
         tt_font: A font.
+        ascent: The ascent (“A” in the Noto requirements).
+        descent: The descent (“B” in the Noto requirements). This is a
+            positive number for descents that reach below the baseline.
     """
     if 'CFF ' in tt_font:
         cff = tt_font['CFF '].cff[0]
@@ -135,8 +138,12 @@ def copy_metrics(
 
     Args:
         main_source: The path of the font to copy from.
-        metrics_sources: The paths of other fonts to check the vertical metrics of.
+        metrics_sources: The paths of other fonts to check the vertical
+            metrics of.
         target: The path of the font to copy to.
+        text: An extra source of vertical metrics. If it is not
+            ``None``, its bounding box when shaped with the main font is
+            taken into account.
     """
     ascent = 0
     descent = 0

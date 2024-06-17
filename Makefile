@@ -121,8 +121,12 @@ fontbakery: $(addprefix fontbakery-,$(SUFFIXES))
 mypy:
 	mypy get-old-requirements.py sources tests
 
+.PHONY: ruff
+ruff:
+	ruff check get-old-requirements.py sources tests
+
 .PHONY: check
-check: check-shaping check-subset fontbakery mypy
+check: check-shaping check-subset fontbakery mypy ruff
 
 .hb:
 ifndef HB_VERSION

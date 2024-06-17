@@ -301,8 +301,10 @@ assert all(
     ), 'A shape plan in `KNOWN_SHAPE_PLANS` contains two stages that share the same feature'
 
 
-assert KNOWN_FEATURES <= (really_known_features := {feature for shape_plan in KNOWN_SHAPE_PLANS.values() for stage in shape_plan for feature in stage}), (
-    f'''`KNOWN_FEATURES` contains extra features: {', '.join(f"'{feature}'" for feature in KNOWN_FEATURES - really_known_features)}''')
+if __debug__:
+    _really_known_features = {feature for shape_plan in KNOWN_SHAPE_PLANS.values() for stage in shape_plan for feature in stage}
+    assert KNOWN_FEATURES <= _really_known_features, (
+        f'''`KNOWN_FEATURES` contains extra features: {', '.join(f"'{feature}'" for feature in KNOWN_FEATURES - _really_known_features)}''')
 
 
 #: The list of script tags that can appear in the generated font.
@@ -704,7 +706,11 @@ class PrefixView(Generic[_T], MutableMapping[str, _T]):
     ``".."``.
     """
 
-    def __init__(self, source: function, delegate: MutableMapping[str, _T]) -> None:
+    def __init__(
+        self,
+        source: function,  # noqa: F821
+        delegate: MutableMapping[str, _T],
+    ) -> None:
         """Initializes this `PrefixView`.
 
         Args:

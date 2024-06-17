@@ -65,7 +65,7 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
-filelock==3.14.0
+filelock==3.15.1
     # via youseedee
 fontbakery==0.12.7
     # via -r dev-requirements.in
@@ -155,9 +155,9 @@ opentype-sanitizer==9.1.0
     # via fontbakery
 opentypespec==1.9.1
     # via fontbakery
-orjson==3.10.3
+orjson==3.10.5
     # via babelfont
-packaging==24.0
+packaging==24.1
     # via
     #   -r dev-requirements.in
     #   build
@@ -203,6 +203,8 @@ rich==13.7.1
     #   fontbakery
 rstr==3.2.2
     # via stringbrewer
+ruff==0.4.9
+    # via -r dev-requirements.in
 shaperglot==0.5.0
     # via fontbakery
 six==1.16.0
@@ -227,12 +229,12 @@ toml==0.10.2
     #   fontbakery
 tqdm==4.66.4
     # via collidoscope
-typing-extensions==4.12.1
+typing-extensions==4.12.2
     # via
     #   -r requirements.in
     #   mypy
     #   vfblib
-ufo2ft==3.2.4
+ufo2ft==3.2.5
     # via
     #   fontbakery
     #   shaperglot

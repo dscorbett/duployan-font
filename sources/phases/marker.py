@@ -24,9 +24,7 @@ from collections.abc import MutableSequence
 from collections.abc import Sequence
 import functools
 import math
-from typing import Literal
 from typing import TYPE_CHECKING
-from typing import TypeVar
 from typing import overload
 
 
@@ -45,7 +43,6 @@ from shapes import Circle
 from shapes import ContinuingOverlap
 from shapes import Digit
 from shapes import DigitStatus
-from shapes import Dot
 from shapes import Dummy
 from shapes import End
 from shapes import EntryWidthDigit
@@ -153,7 +150,7 @@ def add_shims_for_pseudo_cursive(
                 top_bound,
                 200 if isinstance(schema.path, SeparateAffix) else 6,
             )
-        if (schema.context_in == NO_CONTEXT or schema.context_out == NO_CONTEXT) and (
+        if NO_CONTEXT in {schema.context_in, schema.context_out} and (
             (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
             | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
         ):
@@ -327,7 +324,6 @@ def add_width_markers(
         for _ in range(lookups_per_position)
     ]
     digit_expansion_lookup = Lookup('dist', 'dflt')
-    rule_count = 0
     entry_width_markers: MutableMapping[tuple[int, int], Schema] = {}
     left_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
     right_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
@@ -343,7 +339,7 @@ def add_width_markers(
         start = Schema(None, Start(), 0)
         classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(start)
     hubs: MutableMapping[int, list[Schema]] = {-1: []}
-    for hub_priority in range(0, MAX_HUB_PRIORITY + 1):
+    for hub_priority in range(MAX_HUB_PRIORITY + 1):
         hub = next((s for s in schemas if isinstance(s.path, Hub) and s.path.priority == hub_priority), None)
         if hub is None:
             hub = Schema(None, Hub(hub_priority), 0, side_bearing=0)
@@ -492,7 +488,7 @@ def add_width_markers(
             classes[f'global..canonical_anchor_{anchor}'] = []
     else:
         canonical_mark_anchors = [a for a in anchors.ALL_MARK if f'global..canonical_anchor_{a}' in classes]
-    for schema, entry_xs, exit_xs, start_x in schemas_needing_width_markers:
+    for rule_count, (schema, entry_xs, exit_xs, start_x) in enumerate(schemas_needing_width_markers):
         if schema.glyph is None:
             x_min = x_max = 0.0
         else:
@@ -529,7 +525,6 @@ def add_width_markers(
                 ), f'Glyph {schema} is too wide: {width} units'
             widths.append(get_width_number(digit_path, width))
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
-        rule_count += 1
         rules_to_add.append((
             widths,
             (lambda widths,
@@ -944,13 +939,13 @@ def calculate_bound_extrema(
                 if schema in new_schemas:
                     classes['rdx'].append(schema)
     for place in range(WIDTH_MARKER_PLACES - 1, -1, -1):
-        for i in range(0, WIDTH_MARKER_RADIX):
+        for i in range(WIDTH_MARKER_RADIX):
             left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
             right_schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
             i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
             if left_schema_i is None and right_schema_i is None:
                 continue
-            for j in range(0, WIDTH_MARKER_RADIX):
+            for j in range(WIDTH_MARKER_RADIX):
                 if i == j:
                     continue
                 j_signed = j if place != WIDTH_MARKER_PLACES - 1 or j < WIDTH_MARKER_RADIX / 2 else j - WIDTH_MARKER_RADIX

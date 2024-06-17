@@ -179,7 +179,7 @@ def validate_double_marks(
         new_maximums.add(maximum)
         classes[str(maximum)].append(schema)
     for maximum in sorted(new_maximums, reverse=True):
-        for i in range(0, maximum):
+        for i in range(maximum):
             add_rule(lookup, Rule([str(maximum)] + [double_mark] * i, [double_mark], [], lookups=[None]))
     guideline = Schema(None, Line(0, dots=7), 1.5, Type.NON_JOINING, maximum_tree_width=MAX_TREE_WIDTH)
     add_rule(lookup, Rule([double_mark], [guideline, double_mark]))
@@ -1003,7 +1003,7 @@ def disjoin_grammalogues(
         greater_than_sign,
     ]:
         add_rule(lookup, Rule([root], [zwnj, root]))
-        if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(0, root.max_tree_width() + 1)):
+        if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width() + 1)):
             if 'prepend_zwnj' not in named_lookups:
                 named_lookups['prepend_zwnj'] = Lookup(None, None)
                 add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))

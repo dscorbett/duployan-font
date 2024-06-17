@@ -113,7 +113,6 @@ from typing_extensions import override
 
 
 import schema
-from utils import DISCRETIONARY_FEATURES
 from utils import GlyphClass
 from utils import KNOWN_FEATURES
 from utils import KNOWN_SCRIPTS

@@ -32,7 +32,6 @@ import math
 from typing import Final
 from typing import Generic
 from typing import Literal
-from typing import LiteralString
 from typing import MutableMapping
 from typing import NamedTuple
 from typing import Self
@@ -1642,7 +1641,6 @@ class Line(Shape):
         Args:
             size: The size of the shape.
         """
-
         if self.stretchy:
             length_denominator = abs(math.sin(math.radians(self.angle if self.original_angle is None else self.original_angle)))
             if length_denominator < EPSILON:
@@ -3791,7 +3789,7 @@ class RomanianU(Complex):
 
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
-        if context_in == NO_CONTEXT or context_out == NO_CONTEXT:
+        if NO_CONTEXT in {context_in, context_out}:
             return super().contextualize(context_in, context_out)
         return Circle(0, 0, clockwise=False).contextualize(context_in, context_out)
 
@@ -4357,7 +4355,7 @@ class Wi(Complex):
         first_callable = True
         return self.clone(
             instructions=[
-                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)
+                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)  # noqa: PLC3002
                         if (first_callable | (first_callable := False))
                         else op
                     )

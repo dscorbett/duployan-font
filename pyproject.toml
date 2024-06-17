@@ -60,3 +60,82 @@ emit-trusted-host = false
 quiet = true
 strip-extras = true
 upgrade = true
+
+[tool.ruff.lint]
+ignore = [
+    "A001",
+    "A002",
+    "ANN101",
+    "ANN102",
+    "B011",
+    "COM812",
+    "D1",
+    "D200",
+    "D205",
+    "E501",
+    "E741",
+    "N802",
+    "PERF203",
+    "PLR09",
+    "PLR2004",
+    "PLR5501",
+    "PLW2901",
+    "PYI025",
+    "Q000",
+    "Q001",
+    "RET505",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "RUF005",
+    "S101",
+    "S310",
+    "S603",
+    "S607",
+    "SIM105",
+    "SIM108",
+    "SIM300",
+    "TCH001",
+    "TCH002",
+    "TCH003",
+]
+select = [
+    "A",
+    "ANN",
+    "B",
+    "BLE",
+    "C4",
+    "COM",
+    "D",
+    "DTZ",
+    "E",
+    "EXE",
+    "F",
+    "FLY",
+    "ICN",
+    "ISC",
+    "N",
+    "PERF",
+    "PGH004",
+    "PIE",
+    "PL",
+    "PYI",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLOT",
+    "TCH",
+    "TID",
+    "UP",
+    "W",
+    "YTT",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"sources/otf2ttf.py" = ["ALL"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
