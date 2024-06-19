@@ -4296,35 +4296,40 @@ class Wi(Complex):
     contain at least one `Curve` component.
     """
 
-    @override
-    def contextualize(self, context_in: Context, context_out: Context) -> Shape:
-        if context_in != NO_CONTEXT or context_out == NO_CONTEXT:
-            curve_index = next(i for i, op in enumerate(self.instructions) if not callable(op) and not isinstance(op.shape, Circle))
-            if curve_index == 1:
-                return super().contextualize(context_in, context_out)
-            curve_path = self.clone(instructions=self.instructions[curve_index - 1:]).contextualize(context_in, context_out)
-            assert isinstance(curve_path, Wi)
-            assert not callable(self.instructions[0])
-            circle = self.instructions[0].shape
-            assert isinstance(circle, Circle)
-            curve_op = curve_path.instructions[1]
-            assert isinstance(curve_op, tuple)
-            curve = curve_op.shape
-            assert isinstance(curve, Curve)
-            circle_path = circle.clone(
-                angle_in=curve.angle_in,
-                angle_out=curve.angle_in,
-                clockwise=curve.clockwise,
-            )
-            return self.clone(instructions=[(self.instructions[0].size, circle_path), *curve_path.instructions])
-        assert context_out.angle is not None
-        if len([op for op in self.instructions if not callable(op)]) == 2:
-            curve_op = self.instructions[-1]
-            assert not callable(curve_op)
+    _CURVE_BIAS: Final[float] = 50
+
+    @functools.cached_property
+    def _has_only_one_curve(self) -> bool:
+        return len([op for op in self.instructions if not callable(op)]) == 2
+
+    @functools.cached_property
+    def _first_curve_index(self) -> int:
+        return next(i for i, op in enumerate(self.instructions) if not callable(op) and not isinstance(op.shape, Circle))
+
+    def _contextualize_with_curve_bias(
+        self,
+        context_out: Context,
+    ) -> Complex | None:
+        """Contextualizes this `Wi` with a non-default output angle for
+        the curve.
+
+        In some initial or medial contexts, a `Wi` with a single curve
+        (as in U+1BC5E DUPLOYAN LETTER WI but not U+1BC5F DUPLOYAN
+        LETTER WEI) way seem ambiguous with U+1BC5C DUPLOYAN LETTER WA,
+        to avoid which the curve gets a output angle different from its
+        usual contextualization.
+
+        Args:
+            context_out: The entry context of the following schema, or
+                ``NO_CONTEXT`` if there is none.
+        """
+        bias = self._CURVE_BIAS
+        if self._has_only_one_curve and context_out.angle is not None:
+            curve_op = self.instructions[self._first_curve_index]
+            assert isinstance(curve_op, Component)
             curve = curve_op.shape
             assert isinstance(curve, Curve)
             clockwise_sign = -1 if curve.clockwise else 1
-            bias = 50
             if Curve.in_degree_range(
                 context_out.angle,
                 (curve.angle_out - EPSILON * clockwise_sign) % 360,
@@ -4338,15 +4343,34 @@ class Wi(Complex):
                     curve.clockwise,
                 ):
                     bias *= -1
-                return self.clone(instructions=[
-                    self.instructions[0],
-                    (
-                        curve_op.size,
-                        curve.clone(angle_out=(curve.angle_out + bias * clockwise_sign) % 360),
-                        *curve_op[2:],
-                    ),
-                ])
-        return self
+                curve = curve.clone(angle_out=(curve.angle_out + bias * clockwise_sign) % 360)
+                return self.clone(instructions=[self.instructions[self._first_curve_index - 1], curve_op._replace(shape=curve)])
+        return None
+
+    @override
+    def contextualize(self, context_in: Context, context_out: Context) -> Shape:
+        if self._first_curve_index == 1:
+            return super().contextualize(context_in, context_out)
+        curve_path = self._contextualize_with_curve_bias(context_out)
+        if context_in == NO_CONTEXT and context_out != NO_CONTEXT:
+            return self if curve_path is None else self.clone(instructions=[self.instructions[0], *curve_path.instructions])
+        if curve_path is None:
+            curve_path_ = self.clone(instructions=self.instructions[self._first_curve_index - 1:]).contextualize(context_in, context_out)
+            assert isinstance(curve_path_, Complex)
+            curve_path = curve_path_
+        assert not callable(self.instructions[0])
+        circle = self.instructions[0].shape
+        assert isinstance(circle, Circle)
+        curve_op = curve_path.instructions[1]
+        assert isinstance(curve_op, Component)
+        curve = curve_op.shape
+        assert isinstance(curve, Curve)
+        circle_path = circle.clone(
+            angle_in=curve.angle_in,
+            angle_out=curve.angle_in,
+            clockwise=curve.clockwise,
+        )
+        return self.clone(instructions=[(self.instructions[0].size, circle_path), *curve_path.instructions])
 
     def as_reversed(self) -> Self:
         """Returns a `Wi` that looks the same but is drawn in the
