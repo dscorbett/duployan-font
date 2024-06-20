@@ -65,7 +65,7 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
-filelock==3.15.1
+filelock==3.15.3
     # via youseedee
 fontbakery==0.12.7
     # via -r dev-requirements.in
@@ -126,7 +126,7 @@ jinja2==3.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-kurbopy==0.10.40
+kurbopy==0.11.0
     # via collidoscope
 lxml==5.2.2
     # via
@@ -203,7 +203,7 @@ rich==13.7.1
     #   fontbakery
 rstr==3.2.2
     # via stringbrewer
-ruff==0.4.9
+ruff==0.4.10
     # via -r dev-requirements.in
 shaperglot==0.5.0
     # via fontbakery
@@ -259,7 +259,7 @@ unicodedata2==15.1.0
     #   fontbakery
     #   fonttools
     #   glyphsets
-urllib3==2.2.1
+urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
@@ -279,7 +279,7 @@ pip==24.0
     # via
     #   pip-api
     #   pip-tools
-setuptools==70.0.0
+setuptools==70.1.0
     # via
     #   -c dev-constraints.txt
     #   fs
