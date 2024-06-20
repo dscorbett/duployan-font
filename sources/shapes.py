@@ -4231,32 +4231,36 @@ class Wa(Complex):
             if isinstance(inner_curve, Curve) and inner_curve.clockwise == inner_circle.clockwise and inner_curve.get_da() % 360 >= minimum_da:
                 instructions = [
                     *original_instructions[:-1],
-                    Component(
-                        inner_circle_op.size,
-                        inner_curve,
-                        *inner_circle_op[2:],
-                    ),
+                    inner_circle_op._replace(shape=inner_curve),
                 ]
             else:
                 instructions = [
                     *[
-                        Component(
-                            op.size,
-                            op.shape.clone(angle_in=(context_out.angle - minimum_da) % 360, angle_out=(context_out.angle - minimum_da) % 360),  # type: ignore[call-arg]
-                            *op[2:],
-                        )
+                        op._replace(shape=op.shape.clone(
+                            angle_in=(context_out.angle - minimum_da) % 360,  # type: ignore[call-arg]
+                            angle_out=(context_out.angle - minimum_da) % 360,
+                        ))
                         for op in original_instructions[:-1]
                     ],
-                    Component(
-                        inner_circle_op.size,
-                        Curve((context_out.angle - minimum_da) % 360, context_out.angle, clockwise=inner_circle.clockwise),
-                        *inner_circle_op[2:],
-                    ),
+                    inner_circle_op._replace(shape=Curve((context_out.angle - minimum_da) % 360, context_out.angle, clockwise=inner_circle.clockwise)),
                 ]
             return self.clone(instructions=instructions, _initial=True)
+        if context_in != NO_CONTEXT != context_out and all(isinstance(op.shape, Circle) and not op.shape.reversed for op in original_instructions):
+            inner_circle = original_instructions[-1].shape.contextualize(context_in, context_out)
+            return Complex(instructions=[
+                *[
+                    op._replace(shape=op.shape.clone(
+                        angle_in=inner_circle.angle_in,  # type: ignore[attr-defined, call-arg]
+                        angle_out=inner_circle.angle_in,  # type: ignore[attr-defined]
+                        clockwise=inner_circle.clockwise,  # type: ignore[attr-defined]
+                    ))
+                    for op in original_instructions[:-1]
+                ],
+                original_instructions[-1]._replace(shape=inner_circle),
+            ])
         instructions = []
-        for scalar, component, *_ in original_instructions:
-            instructions.append(Component(scalar, component.contextualize(context_in, context_out)))
+        for scalar, component, skip_drawing, tick in original_instructions:
+            instructions.append(Component(scalar, component.contextualize(context_in, context_out), skip_drawing, tick))
         outer_circle_path = instructions[0].shape
         if isinstance(outer_circle_path, Curve):
             assert context_in != NO_CONTEXT
@@ -4266,15 +4270,11 @@ class Wa(Complex):
                 assert isinstance(original_instructions[0].shape, Circle)
                 assert isinstance(instructions[-1].shape, Curve)
                 return Complex(instructions=[
-                    (
-                        instructions[0].size,
-                        original_instructions[0].shape.clone(
-                            angle_in=instructions[-1].shape.angle_in,
-                            angle_out=instructions[-1].shape.angle_in,
-                            clockwise=instructions[-1].shape.clockwise,
-                        ),
-                        *instructions[0][2:],
-                    ),
+                    instructions[0]._replace(shape=original_instructions[0].shape.clone(
+                        angle_in=instructions[-1].shape.angle_in,
+                        angle_out=instructions[-1].shape.angle_in,
+                        clockwise=instructions[-1].shape.clockwise,
+                    )),
                     *instructions[1:],
                 ])
         return self.clone(instructions=instructions)
@@ -4284,7 +4284,7 @@ class Wa(Complex):
         opposite direction.
         """
         return self.clone(
-            instructions=[op if callable(op) else (op.size, op.shape.as_reversed(), *op[2:]) for op in self.instructions],  # type: ignore[attr-defined]
+            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined]
         )
 
 
