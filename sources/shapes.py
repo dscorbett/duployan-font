@@ -4332,7 +4332,7 @@ class Wi(Complex):
             clockwise_sign = -1 if curve.clockwise else 1
             if Curve.in_degree_range(
                 context_out.angle,
-                (curve.angle_out - EPSILON * clockwise_sign) % 360,
+                (curve.angle_out - bias * clockwise_sign) % 360,
                 (curve.angle_out + bias * clockwise_sign) % 360,
                 curve.clockwise,
             ):
