@@ -53,8 +53,8 @@ from shapes import InvalidStep
 from shapes import Line
 from shapes import Ou
 from shapes import ParentEdge
-from shapes import RomanianU
 from shapes import RootOnlyParentEdge
+from shapes import Shape
 from shapes import Space
 from shapes import ValidDTLS
 from shapes import Wa
@@ -1091,16 +1091,34 @@ def separate_subantiparallel_lines(
     for schema in new_schemas:
         if schema.glyph_class != GlyphClass.JOINER:
             continue
-        if isinstance(schema.path, Line):
-            if (schema.path.dots is None
-                and schema.path.secant is None
-                and schema.path.original_angle is None
-            ):
-                lines_by_angle[schema.path.angle].append(schema)
-        elif (isinstance(schema.path, Circle) and schema.is_primary
-            or isinstance(schema.path, RomanianU | Ou | Wa | Wi)
+        if (isinstance(schema.path, Line)
+            and schema.path.dots is None
+            and schema.path.secant is None
+            and schema.path.original_angle is None
+            or isinstance(schema.path, Complex) and issubclass(schema.original_shape, Line)
         ):
-            classes['vowel'].append(schema)
+            angle = schema.path_context_in().angle
+            assert angle is not None
+            lines_by_angle[angle].append(schema)
+        elif schema.joining_type == Type.ORIENTING:
+            match schema.path:
+                case Circle():
+                    clockwise = schema.path.clockwise
+                    loop = False
+                case Curve():
+                    clockwise = schema.path.clockwise
+                    loop = not (schema.diphthong_1 or schema.diphthong_2 or schema.path.reversed_circle or issubclass(schema.original_shape, Curve))
+                case Complex() if (first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, Circle | Curve)), None)) is not None:
+                    clockwise = first_curve_op.shape.clockwise  # type: ignore[attr-defined]
+                    loop = isinstance(schema.path, Ou) or not isinstance(schema.path, Wi) and schema.is_primary
+                case _:
+                    continue
+            classes[f'clockwise_{clockwise}_i'].append(schema)
+            classes[f'clockwise_{clockwise}_o'].append(schema)
+            if isinstance(schema.path, Wa | Wi):
+                classes[f'clockwise_{not clockwise}_i'].append(schema)
+            if loop:
+                classes['loop'].append(schema)
     closeness_threshold = 20
 
     def axis_alignment(x: float) -> float:
@@ -1119,21 +1137,32 @@ def separate_subantiparallel_lines(
                 classes[f'i_{a1}_{a2}'].extend(lines_1)
                 classes[f'c_{a1}_{a2}'].extend(lines_2)
                 for line_1 in lines_1:
-                    assert isinstance(line_1.path, Line)
-                    classes[f'o_{a1}_{a2}'].append(line_1.clone(
-                        cmap=None,
-                        path=line_1.path.clone(
-                            angle=(a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360,
-                            original_angle=line_1.path.angle,
-                        ),
-                    ))
-                add_rule(lookup, Rule([], f'i_{a1}_{a2}', f'c_{a1}_{a2}', f'o_{a1}_{a2}'))
-                add_rule(lookup, Rule(f'c_{a1}_{a2}', f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
-                add_rule(lookup, Rule([], f'i_{a1}_{a2}', ['vowel', f'c_{a1}_{a2}'], f'o_{a1}_{a2}'))
-                add_rule(lookup, Rule([f'c_{a1}_{a2}', 'vowel'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
-                # TODO: Once `Line.context_in` and `Line_context_out` report the true angle, add
-                # the following rule.
-                # add_rule(lookup, Rule(f'o_{a1}_{a2}', f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
+                    new_angle = (a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360
+                    if isinstance(line_1.path, Line):
+                        new_path: Shape = line_1.path.clone(angle=new_angle, original_angle=line_1.path.angle)
+                    else:
+                        assert isinstance(line_1.path, Complex)
+                        line_1_line_op = line_1.path.instructions[0]
+                        assert not callable(line_1_line_op)
+                        line_1_line = line_1_line_op.shape
+                        assert isinstance(line_1_line, Line)
+                        line_1_tick_op = line_1.path.instructions[1]
+                        assert not callable(line_1_tick_op)
+                        line_1_tick = line_1_tick_op.shape
+                        assert isinstance(line_1_tick, Line)
+                        new_path = line_1.path.clone(instructions=[
+                            line_1_line_op._replace(shape=line_1_line.clone(angle=new_angle, original_angle=line_1_line.angle)),
+                            line_1_tick_op._replace(shape=line_1_tick.clone(angle=line_1_tick.angle + new_angle - line_1_line.angle)),
+                            *line_1.path.instructions[2:],
+                        ])
+                    classes[f'o_{a1}_{a2}'].append(line_1.clone(cmap=None, path=new_path))
+                clockwise_from_a1_to_a2 = Context(a1).has_clockwise_loop_to(Context(a2))
+                add_rule(lookup, Rule(f'clockwise_{not clockwise_from_a1_to_a2}_i', f'i_{a1}_{a2}', f'c_{a1}_{a2}', f'o_{a1}_{a2}'))
+                add_rule(lookup, Rule([], f'i_{a1}_{a2}', [f'c_{a1}_{a2}', f'clockwise_{not clockwise_from_a1_to_a2}_o'], f'o_{a1}_{a2}'))
+                add_rule(lookup, Rule(f'c_{a1}_{a2}', f'i_{a1}_{a2}', f'clockwise_{clockwise_from_a1_to_a2}_o', f'o_{a1}_{a2}'))
+                add_rule(lookup, Rule([f'clockwise_{clockwise_from_a1_to_a2}_i', f'c_{a1}_{a2}'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
+                add_rule(lookup, Rule([], f'i_{a1}_{a2}', ['loop', f'c_{a1}_{a2}'], f'o_{a1}_{a2}'))
+                add_rule(lookup, Rule([f'c_{a1}_{a2}', 'loop'], f'i_{a1}_{a2}', [], f'o_{a1}_{a2}'))
     return [lookup]
 
 
@@ -1902,7 +1931,6 @@ PHASE_LIST = [
     interrupt_overlong_primary_curve_sequences,
     reposition_stenographic_period,
     join_with_next_step,
-    separate_subantiparallel_lines,
     prepare_for_secondary_diphthong_ligature,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
@@ -1915,6 +1943,7 @@ PHASE_LIST = [
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
     join_double_marks,
+    separate_subantiparallel_lines,
     rotate_diacritics,
     shade,
     create_superscripts_and_subscripts,

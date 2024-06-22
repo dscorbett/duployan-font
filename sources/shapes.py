@@ -1538,7 +1538,8 @@ class Line(Shape):
             this line segment, or ``None`` if it should be drawn
             continuously.
         original_angle: The original `angle` of the shape from which
-            this shape is derived through some number of phases.
+            this shape is derived through some number of phases, or
+            ``None`` if `angle` is the original angle.
     """
 
     @override
@@ -1560,7 +1561,8 @@ class Line(Shape):
             minor: The ``minor`` attribute.
             stretchy: The ``stretchy`` attribute.
             secant: The ``secant`` attribute.
-            secant_curvature_offset: The ``secant_curvature_offset`` attribute.
+            secant_curvature_offset: The ``secant_curvature_offset``
+                attribute.
             dots: The ``dots`` attribute.
             original_angle: The ``original_angle`` attribute.
         """
@@ -1799,13 +1801,11 @@ class Line(Shape):
 
     @override
     def context_in(self) -> Context:
-        # FIXME: This should use the current angle, not the original angle.
-        return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
+        return Context(self.angle, minor=self.minor)
 
     @override
     def context_out(self) -> Context:
-        # FIXME: This should use the current angle, not the original angle.
-        return Context(self.angle if self.original_angle is None else self.original_angle, minor=self.minor)
+        return Context(self.angle, minor=self.minor)
 
     def rotate_diacritic(self, context: Context) -> Self:
         angle = context.angle

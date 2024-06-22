@@ -50,6 +50,7 @@ from shapes import AnchorWidthDigit
 from shapes import Circle
 from shapes import CircleRole
 from shapes import Complex
+from shapes import Component
 from shapes import Curve
 from shapes import DigitStatus
 from shapes import EntryWidthDigit
@@ -957,11 +958,23 @@ class Schema:
     def is_primary(self) -> bool:
         """Returns whether this schema’s path is primary.
 
-        This method must only be called if `path` is known to support
-        the notion of being primary, which not all shapes do.
+        Raises:
+            ValueError: If `path` does not support the notion of being
+                primary.
         """
-        assert isinstance(self.path, Circle | Curve)
-        return not (self.path.reversed if isinstance(self.path, Circle) else self.path.secondary or self.path.reversed_circle)
+        match self.path:
+            case Circle():
+                return not self.path.reversed
+            case Complex():
+                for op in self.path.instructions:
+                    match op:
+                        case Component(shape=Circle()):
+                            return not op.shape.reversed  # type: ignore[attr-defined]
+                        case Component(shape=Curve()):
+                            return not (op.shape.secondary or op.shape.reversed_circle)  # type: ignore[attr-defined]
+            case Curve():
+                return not (self.path.secondary or self.path.reversed_circle)
+        raise ValueError
 
     @functools.cached_property
     def can_become_part_of_diphthong(self) -> bool:
