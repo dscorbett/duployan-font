@@ -1489,7 +1489,7 @@ def ligate_diphthongs(
         if not schema.can_become_part_of_diphthong:
             continue
         assert isinstance(schema.path, Circle | Curve)
-        is_circle_letter = isinstance(schema.path, Circle) or schema.path.reversed_circle
+        is_circle_letter = isinstance(schema.path, Circle) or bool(schema.path.reversed_circle)
         is_ignored = schema.ignored_for_topography
         is_primary = schema.is_primary
         if is_ignored and not is_primary:

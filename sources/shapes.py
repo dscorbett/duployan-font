@@ -126,7 +126,7 @@ class Shape:
 
     @staticmethod
     def name_implies_type() -> bool:
-        """Returns whether the string returned by `__str__` identifies
+        """Returns whether the string returned by `get_name` identifies
         which subclass of `Shape` this is.
 
         This is used to suppress redundant information in the glyph
@@ -1892,8 +1892,11 @@ class Curve(Shape):
             if ``stretch == 0``.
         stretch_axis: The axis along which this curve is stretched.
         hook: Whether this curve represents a hook character.
-        reversed_circle: Whether this curve represents a reversed circle
-            character.
+        reversed_circle: If this curve represents a reversed circle
+            character, a positive scalar to apply to the size of the
+            swash line; otherwise, 0. If ``0 < reversed_circle < 1``,
+            the swash line is truncated to the length of the nominal
+            (unstretched) radius.
         overlap_angle: The angle from the ellipse’s center to the point
             at which this curve overlaps a parent glyph. This may only
             be ``True`` for semiellipses; there is no geometrical reason
@@ -1924,7 +1927,7 @@ class Curve(Shape):
         long: bool = False,
         stretch_axis: StretchAxis = StretchAxis.ANGLE_IN,
         hook: bool = False,
-        reversed_circle: bool = False,
+        reversed_circle: float = 0,
         overlap_angle: float | None = None,
         secondary: bool | None = None,
         would_flip: bool = False,
@@ -1974,7 +1977,7 @@ class Curve(Shape):
         long: bool | CloneDefault = CLONE_DEFAULT,
         stretch_axis: StretchAxis | CloneDefault = CLONE_DEFAULT,
         hook: bool | CloneDefault = CLONE_DEFAULT,
-        reversed_circle: bool | CloneDefault = CLONE_DEFAULT,
+        reversed_circle: float | CloneDefault = CLONE_DEFAULT,
         overlap_angle: float | None | CloneDefault = CLONE_DEFAULT,
         secondary: bool | None | CloneDefault = CLONE_DEFAULT,
         would_flip: bool | CloneDefault = CLONE_DEFAULT,
@@ -2245,7 +2248,9 @@ class Curve(Shape):
             pen.curveTo(p1, p2, p3)
         if self.reversed_circle and not diphthong_1 and not diphthong_2:
             swash_angle = (360 - abs(da)) / 2
-            swash_length = math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
+            swash_length = self.reversed_circle * math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
+            if self.reversed_circle < 1:
+                swash_length = min(r, swash_length)
             swash_endpoint = _rect(abs(swash_length), math.radians(pre_stretch_angle_out))
             swash_endpoint = (p3[0] + swash_endpoint[0], p3[1] + swash_endpoint[1])
             pen.lineTo(swash_endpoint)
@@ -2913,7 +2918,7 @@ class Circle(Shape):
                         clockwise=clockwise,
                         stretch=self.stretch,
                         long=True,
-                        reversed_circle=True,
+                        reversed_circle=1,
                     )
                 else:
                     return self.clone(
@@ -2938,7 +2943,7 @@ class Circle(Shape):
                         clockwise=clockwise,
                         stretch=self.stretch,
                         long=True,
-                        reversed_circle=True,
+                        reversed_circle=1,
                     )
                 else:
                     return self.clone(
@@ -3117,7 +3122,7 @@ class Complex(Shape):
         non_callables = filter(lambda op: not callable(op), self.instructions)
         op = next(non_callables)
         assert not callable(op)
-        if isinstance(op.shape, Circle):
+        if isinstance(op.shape, Circle) or isinstance(op.shape, Curve) and op.shape.reversed_circle:
             op = next(non_callables)
             assert not callable(op)
         return op.shape.get_name(size, joining_type)
@@ -4186,25 +4191,6 @@ class Wa(Complex):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
                 proxy.draw(pen, deferred_proxies)
-        first_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][0]
-        last_entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][-1]
-        if math.hypot(first_entry[0] - last_entry[0], first_entry[1] - last_entry[1]) >= 10:
-            proxy = Complex.Proxy()
-            # FIXME: Using the anchor points unmodified, FontForge gets stuck in
-            # `font.generate`. If some but not all the points are offset by 0.01,
-            # the stroking code produces buggy results for some glyphs.
-            proxy.moveTo((first_entry[0], first_entry[1] + 0.01))
-            proxy.lineTo((last_entry[0], last_entry[1] + 0.01))
-            proxy.stroke('circular', stroke_width, 'round')
-            proxy.draw(pen, deferred_proxies)
-        first_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][0]
-        last_exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][-1]
-        if math.hypot(first_exit[0] - last_exit[0], first_exit[1] - last_exit[1]) >= 10:
-            proxy = Complex.Proxy()
-            proxy.moveTo((first_exit[0], first_exit[1] + 0.01))
-            proxy.lineTo((last_exit[0], last_exit[1] + 0.01))
-            proxy.stroke('circular', stroke_width, 'round')
-            proxy.draw(pen, deferred_proxies)
         for deferred_proxy in deferred_proxies.values():
             deferred_proxy.draw(pen)
         return None, singular_anchor_points
@@ -4245,7 +4231,47 @@ class Wa(Complex):
                     inner_circle_op._replace(shape=Curve((context_out.angle - minimum_da) % 360, context_out.angle, clockwise=inner_circle.clockwise)),
                 ]
             return self.clone(instructions=instructions, _initial=True)
-        if context_in != NO_CONTEXT != context_out and all(isinstance(op.shape, Circle) and not op.shape.reversed for op in original_instructions):
+        if context_in != NO_CONTEXT != context_out:
+            if context_in.angle != context_out.angle and any(isinstance(op.shape, Circle) and op.shape.reversed for op in original_instructions):
+                outer_circle_op = original_instructions[0]
+                outer_circle = outer_circle_op.shape
+                assert isinstance(outer_circle, Circle)
+                tracer = original_instructions[-1].shape.contextualize(context_in, context_out)
+                assert isinstance(tracer, Circle | Curve)
+                clockwise_sign = -1 if tracer.clockwise else 1
+                new_outer_angle_out = (outer_circle.angle_in + clockwise_sign * 270) % 360
+                new_inner_circle = Curve(
+                    angle_in=new_outer_angle_out,
+                    angle_out=context_out.angle,  # type: ignore[arg-type]
+                    clockwise=tracer.clockwise,
+                    stretch=outer_circle.stretch,
+                )
+                if (new_inner_circle.angle_out - new_inner_circle.angle_in) * clockwise_sign % 360 < 180:
+                    new_outer_angle_out = (context_out.angle - 180) % 360  # type: ignore[operator]
+                    new_inner_circle = new_inner_circle.clone(angle_in=new_outer_angle_out)
+                inner_circle_op = original_instructions[-1]
+                inner_circle = inner_circle_op.shape
+                assert isinstance(inner_circle, Circle)
+                if outer_circle.stretch or inner_circle.stretch:
+                    raise NotImplementedError
+                return Complex(instructions=[
+                    outer_circle_op._replace(shape=Curve(
+                        angle_in=outer_circle.angle_in,
+                        angle_out=new_outer_angle_out,
+                        clockwise=tracer.clockwise,
+                        stretch=outer_circle.stretch,
+                        reversed_circle=(outer_circle_op.size - inner_circle_op.size) / outer_circle_op.size,
+                    )),
+                    *[
+                        op._replace(shape=op.shape.clone(  # type: ignore[call-arg]
+                            angle_in=new_outer_angle_out,
+                            angle_out=new_outer_angle_out,
+                            clockwise=tracer.clockwise,
+                        ))
+                        for op in original_instructions[1:-1]
+                    ],
+                    inner_circle_op._replace(shape=new_inner_circle),
+                ])
             inner_circle = original_instructions[-1].shape.contextualize(context_in, context_out)
             return Complex(instructions=[
                 *[
@@ -4258,26 +4284,10 @@ class Wa(Complex):
                 ],
                 original_instructions[-1]._replace(shape=inner_circle),
             ])
-        instructions = []
-        for scalar, component, skip_drawing, tick in original_instructions:
-            instructions.append(Component(scalar, component.contextualize(context_in, context_out), skip_drawing, tick))
-        outer_circle_path = instructions[0].shape
-        if isinstance(outer_circle_path, Curve):
-            assert context_in != NO_CONTEXT
-            assert context_out != NO_CONTEXT
-            a1, a2 = outer_circle_path.get_normalized_angles()
-            if abs(a2 - a1) < 180:
-                assert isinstance(original_instructions[0].shape, Circle)
-                assert isinstance(instructions[-1].shape, Curve)
-                return Complex(instructions=[
-                    instructions[0]._replace(shape=original_instructions[0].shape.clone(
-                        angle_in=instructions[-1].shape.angle_in,
-                        angle_out=instructions[-1].shape.angle_in,
-                        clockwise=instructions[-1].shape.clockwise,
-                    )),
-                    *instructions[1:],
-                ])
-        return self.clone(instructions=instructions)
+        return self.clone(instructions=[
+            op._replace(shape=op.shape.contextualize(context_in, context_out))
+            for op in original_instructions
+        ])
 
     def as_reversed(self) -> Self:
         """Returns a `Wa` that looks the same but is drawn in the
