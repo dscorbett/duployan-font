@@ -1472,12 +1472,10 @@ def join_circle_with_adjacent_nonorienting_glyph(
         mark_filtering_set='ignored_for_topography',
         reversed=True,
     )
-    if len(original_schemas) != len(schemas):
-        return [lookup]
     contexts_out: OrderedSet[Context] = OrderedSet()
     for schema in new_schemas:
         if schema.ignored_for_topography:
-            if isinstance(schema.path, Circle):
+            if schema.context_out == NO_CONTEXT and isinstance(schema.path, Circle):
                 classes['i'].append(schema)
             classes['ignored_for_topography'].append(schema)
         elif (schema.glyph_class == GlyphClass.JOINER
