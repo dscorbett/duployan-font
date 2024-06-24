@@ -4389,8 +4389,8 @@ class Wi(Complex):
         first_callable = True
         return self.clone(
             instructions=[
-                ((lambda op: (lambda c: (lambda c0: c0.clone(clockwise=not c0.clockwise))(op(c))))(op)  # noqa: PLC3002
-                        if (first_callable | (first_callable := False))
+                ((lambda c, op=op: (c0 := op(c)).clone(clockwise=not c0.clockwise))  # type: ignore[misc]
+                        if (first_callable and not (first_callable := False))
                         else op
                     )
                     if callable(op)
