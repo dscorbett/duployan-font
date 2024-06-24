@@ -1011,10 +1011,10 @@ def _add_rule(
             return
 
     def is_prefix(maybe_prefix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
-        return len(maybe_prefix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(maybe_prefix, full))
+        return len(maybe_prefix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(maybe_prefix, full, strict=False))
 
     def is_suffix(maybe_suffix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
-        return len(maybe_suffix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(reversed(maybe_suffix), reversed(full)))
+        return len(maybe_suffix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(reversed(maybe_suffix), reversed(full), strict=False))
 
     if not lookup.prepending and any(r.is_contextual() for r in lookup.rules):
         # TODO: Check prepending lookups too.

@@ -24,6 +24,7 @@ import collections
 from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Mapping
+from collections.abc import MutableMapping
 from collections.abc import MutableSequence
 from collections.abc import Sequence
 import enum
@@ -32,7 +33,6 @@ import math
 from typing import Final
 from typing import Generic
 from typing import Literal
-from typing import MutableMapping
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
