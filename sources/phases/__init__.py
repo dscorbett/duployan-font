@@ -496,8 +496,19 @@ class Rule:
         it may desugar to multiple statement ASTs if FEA syntax is
         missing a necessary feature.
 
-        ..
-            TODO: Document that syntactic sugar.
+        The only such missing feature is for a class in a ligature
+        substitution’s output that is the same length as the only class
+        in the input. If FEA supported it, an example would be::
+
+            @INPUT = [i j];
+            @OUTPUT = [f_i f_j];
+            sub f @INPUT by @OUTPUT;
+
+        This is desugared by unrolling all uses of the classes in
+        parallel. For example::
+
+            sub f i by f_i;
+            sub f j by f_j;
 
         Args:
             class_asts: A map to glyph classes from their names.
