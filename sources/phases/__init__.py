@@ -672,8 +672,6 @@ class Lookup:
             lookup type is the reverse chaining contextual single
             substitution, but this would cover other reversed lookup
             types if they existed.)
-        prepending: Whether new rules should be added to the beginning
-            instead of the end.
         rules: The list of rules.
     """
 
@@ -686,7 +684,6 @@ class Lookup:
             flags: int = ...,
             mark_filtering_set: str | None = ...,
             reversed: bool = ...,
-            prepending: bool = ...,
     ) -> None:
         ...
 
@@ -699,7 +696,6 @@ class Lookup:
             flags: int = ...,
             mark_filtering_set: str | None = ...,
             reversed: bool = ...,
-            prepending: bool = ...,
     ) -> None:
         ...
 
@@ -711,7 +707,6 @@ class Lookup:
             flags: int = 0,
             mark_filtering_set: str | None = None,
             reversed: bool = False,
-            prepending: bool = False,
     ) -> None:
         """Initializes this `Lookup`.
 
@@ -723,7 +718,6 @@ class Lookup:
                 there is a mark filtering set.
             mark_filtering_set: The ``mark_filtering_set`` attribute.
             reversed: The ``reversed`` attribute.
-            prepending: The ``prepending`` attribute.
         """
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
@@ -739,7 +733,6 @@ class Lookup:
         self.mark_filtering_set: Final = mark_filtering_set
         self.required: Final = feature in REQUIRED_FEATURES
         self.reversed: Final = reversed
-        self.prepending: Final = prepending
         self.rules: Final[_FreezableList[Rule]] = _FreezableList()
 
     def get_scripts(
@@ -896,8 +889,6 @@ class Lookup:
     def append(self, rule: Rule) -> None:
         """Adds a rule to the end of the list of rules.
 
-        This method ignores ``prepending``.
-
         Raises:
             ValueError: If the list of rules is frozen.
         """
@@ -906,28 +897,20 @@ class Lookup:
     def extend(self, other: Lookup) -> None:
         """Extends this lookup with rules from another lookup.
 
-        If prepending, `other`’s rules are added to the front of the
-        list, ending up in reverse order from how they are in `other`.
-        Otherwise, they are added to the end, ending up in the same
-        order.
+        Rules are added to the end of this lookup’s list, ending up in
+        the same order as they are in `other`.
 
         The lookups must agree in their features and languages, or lack
-        thereof, and in whether they prepend, are required, and are
-        reversed.
+        thereof, and in whether they are required and are reversed.
 
         Args:
             other: A lookup.
         """
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
-        assert self.prepending == other.prepending, f'Incompatible prepending values: {self.prepending} != {other.prepending}'
         assert self.required == other.required, f'Incompatible required values: {self.required} != {other.required}'
         assert self.reversed == other.reversed, f'Incompatible reversed values: {self.reversed} != {other.reversed}'
-        if self.prepending:
-            for rule in other.rules:
-                self.rules.insert(0, rule)
-        else:
-            self.rules.extend(other.rules)
+        self.rules.extend(other.rules)
 
 
 if TYPE_CHECKING:
@@ -1027,11 +1010,8 @@ def _add_rule(
     def is_suffix(maybe_suffix: Sequence[schema.Schema | str], full: Sequence[schema.Schema | str]) -> bool:
         return len(maybe_suffix) <= len(full) and all(mp_f[0] == mp_f[1] for mp_f in zip(reversed(maybe_suffix), reversed(full), strict=False))
 
-    if not lookup.prepending and any(r.is_contextual() for r in lookup.rules):
-        # TODO: Check prepending lookups too.
+    if any(r.is_contextual() for r in lookup.rules):
         for previous_rule in lookup.rules:
-            if lookup.prepending:
-                previous_rule, rule = rule, previous_rule  # type: ignore[unreachable]
             assert previous_rule.contexts_out is not None
             if (previous_rule.inputs == rule.inputs
                 and is_suffix(previous_rule.contexts_in, rule.contexts_in)

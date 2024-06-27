@@ -663,8 +663,6 @@ def sum_width_markers(
         'dist',
         'dflt',
         mark_filtering_set='all',
-        # TODO: `prepending` is a hack.
-        prepending=True,
     )
     carry_schema = None
     carry_0_placeholder = object()
