@@ -1069,16 +1069,16 @@ def _add_rule(
                     output_schemas.add(output)
             return froze
         elif rule.lookups is not None:
-            for lookup in rule.lookups:
-                if lookup not in registered_lookups:
-                    assert lookup is not None
-                    registered_lookups.add(lookup)
+            for named_lookup in rule.lookups:
+                if named_lookup not in registered_lookups:
+                    assert named_lookup is not None
+                    registered_lookups.add(named_lookup)
                     froze = False
-                    for rule in named_lookups[lookup].rules:
-                        if register_output_schemas(rule):
+                    for named_lookup_rule in named_lookups[named_lookup].rules:
+                        if register_output_schemas(named_lookup_rule):
                             froze = True
                     if froze:
-                        named_lookups[lookup].freeze()
+                        named_lookups[named_lookup].freeze()
         return False
 
     register_output_schemas(rule)

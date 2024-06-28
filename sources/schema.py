@@ -497,7 +497,7 @@ class Schema:
             not unicodedata.is_normalized('NFD', cmap_string),
             not self.cps,
             len(self.cps),
-            self.original_shape != type(self.path),
+            not isinstance(self.path, self.original_shape),
             self.cps,
             Schema._LazySortable(lambda: len(self._calculate_name())),
         )

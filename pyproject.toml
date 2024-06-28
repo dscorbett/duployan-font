@@ -116,6 +116,7 @@ select = [
     "F",
     "FIX003",
     "FLY",
+    "FURB",
     "ICN",
     "ISC",
     "N",

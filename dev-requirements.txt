@@ -65,7 +65,7 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
-filelock==3.15.3
+filelock==3.15.4
     # via youseedee
 fontbakery==0.12.7
     # via -r dev-requirements.in
@@ -103,7 +103,7 @@ fs==2.4.16
     # via
     #   fontfeatures
     #   fonttools
-gflanguages==0.6.1
+gflanguages==0.6.2
     # via
     #   fontbakery
     #   glyphsets
@@ -140,7 +140,7 @@ mdurl==0.1.2
     # via markdown-it-py
 munkres==1.1.4
     # via fontbakery
-mypy==1.10.0
+mypy==1.10.1
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -203,7 +203,7 @@ rich==13.7.1
     #   fontbakery
 rstr==3.2.2
     # via stringbrewer
-ruff==0.4.10
+ruff==0.5.0
     # via -r dev-requirements.in
 shaperglot==0.5.0
     # via fontbakery
@@ -275,11 +275,11 @@ youseedee==0.5.3
     # via shaperglot
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==24.0
+pip==24.1.1
     # via
     #   pip-api
     #   pip-tools
-setuptools==70.1.0
+setuptools==70.1.1
     # via
     #   -c dev-constraints.txt
     #   fs
