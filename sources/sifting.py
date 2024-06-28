@@ -17,24 +17,23 @@ from __future__ import annotations
 
 
 import collections
-from collections.abc import Collection
-from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
-from collections.abc import Sequence
 from typing import Final
 from typing import Generic
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
 
-from phases import Lookup
-from phases import Rule
-from schema import Schema
-
-
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Mapping
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+
+    from phases import Lookup
     from phases import Phase
+    from phases import Rule
+    from schema import Schema
 
 
 _Group = list

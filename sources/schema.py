@@ -41,7 +41,6 @@ import unicodedata
 
 import fontTools.agl
 import fontTools.merge.unicode
-import fontforge
 from typing_extensions import override
 
 
@@ -80,6 +79,7 @@ from utils import cps_to_scripts
 if TYPE_CHECKING:
     from _typeshed import SupportsDunderLT
     from _typeshed import SupportsRichComparison
+    import fontforge
 
 
 #: An integer representing the lack of a phase index. It is less than

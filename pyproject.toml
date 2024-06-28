@@ -101,9 +101,6 @@ ignore = [
     "SIM105",
     "SIM108",
     "SIM300",
-    "TCH001",
-    "TCH002",
-    "TCH003",
 ]
 preview = true
 select = [

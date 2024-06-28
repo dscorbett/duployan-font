@@ -18,10 +18,6 @@ from __future__ import annotations
 
 
 import argparse
-from collections.abc import Iterator
-from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import Sequence
 import functools
 import importlib.metadata
 import json
@@ -35,12 +31,17 @@ import packaging.markers
 import packaging.requirements
 import packaging.specifiers
 import packaging.utils
-from packaging.utils import NormalizedName
 import packaging.version
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from collections.abc import Mapping
+    from collections.abc import MutableMapping
+    from collections.abc import Sequence
+
     from _typeshed import FileDescriptorOrPath
+    from packaging.utils import NormalizedName
 
 
 COMMENT_PATTERN = re.compile(r'(^|\s)#.*')

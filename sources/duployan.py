@@ -17,12 +17,6 @@ from __future__ import annotations
 
 
 import collections
-from collections.abc import Collection
-from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
-from collections.abc import Sequence
-from collections.abc import Set
 import math
 from typing import Final
 from typing import TYPE_CHECKING
@@ -30,7 +24,6 @@ from typing import cast
 import unicodedata
 
 
-import fontforge
 import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
@@ -94,6 +87,15 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Mapping
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+    from collections.abc import Set
+
+    import fontforge
+
     from phases import Phase
 
 

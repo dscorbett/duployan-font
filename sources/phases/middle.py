@@ -16,8 +16,6 @@
 from __future__ import annotations
 
 
-from collections.abc import MutableSequence
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 
@@ -25,13 +23,16 @@ from . import Lookup
 from . import Rule
 from schema import Schema
 import sifting
-from utils import OrderedSet
-from utils import PrefixView
 
 
 if TYPE_CHECKING:
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+
     from . import AddRule
     from duployan import Builder
+    from utils import OrderedSet
+    from utils import PrefixView
 
 
 def merge_lookalikes(

@@ -17,10 +17,6 @@ from __future__ import annotations
 
 
 import collections
-from collections.abc import Iterable
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
-from collections.abc import Sequence
 import functools
 import itertools
 from typing import TYPE_CHECKING
@@ -76,6 +72,11 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+
     from . import AddRule
     from duployan import Builder
 
