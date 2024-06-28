@@ -443,11 +443,11 @@ def add_width_markers(
             else:
                 should_check_anchor_x = False
                 for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                    if type in ['entry', 'mark']:
+                    if type in {'entry', 'mark'}:
                         entry_xs[anchor_class_name] = x
-                    elif type in ['base', 'basemark', 'exit']:
+                    elif type in {'base', 'basemark', 'exit'}:
                         exit_xs[anchor_class_name] = x
-                        should_check_anchor_x |= type in ['base', 'basemark']
+                        should_check_anchor_x |= type in {'base', 'basemark'}
                 if should_check_anchor_x:
                     for group in anchor_grouper.groups():
                         anchor_groups_by_x: collections.defaultdict[str | None, list[str]] = collections.defaultdict(list)
@@ -871,8 +871,10 @@ def sum_width_markers(
                             context_in_lookup_context_in.append(augend_schema)
                             context_in_lookup_context_in.extend([f'iadx_{place}'] * augend_skip_backtrack)
                             if augend_letter == 'a' and addend_letter == 'a':
-                                context_in_lookup_context_in.append(get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name))
-                                context_in_lookup_context_in.append(f'iadx_{place}')
+                                context_in_lookup_context_in.extend((
+                                    get_glyph_class_selector(GlyphClass.MARK, context_in_lookup_name),
+                                    f'iadx_{place}',
+                                ))
                             elif augend_skip_backtrack == 1:
                                 context_in_lookup_context_in.append(continuing_overlap)
                             elif augend_letter == 'a' and addend_letter == 'i' and augend_skip_backtrack != 0:

@@ -164,7 +164,7 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class _FreezableList(Generic[_T], MutableSequence[_T]):
+class _FreezableList(MutableSequence[_T], Generic[_T]):
     """A list that can be frozen, making it immutable.
 
     This is not a `list` in the Python sense, but it is analogous.

@@ -110,7 +110,7 @@ def reversed_circle_kludge(
     lookup = Lookup('rlig', 'dflt')
     cgj = next(s for s in schemas if s.cmap == 0x034F)
     for schema in new_schemas:
-        if schema.cmap in [0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60]:
+        if schema.cmap in {0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60}:
             assert isinstance(schema.path, Circle | Curve | Ou | Wa | Wi)
             add_rule(lookup, Rule(
                 [schema, cgj, cgj, cgj],
@@ -272,8 +272,7 @@ def validate_overlap_controls(
             else:
                 letter_overlap = schema
         elif not schema.anchor and (max_tree_width := schema.max_tree_width()):
-            if max_tree_width > global_max_tree_width:
-                global_max_tree_width = max_tree_width
+            global_max_tree_width = max(global_max_tree_width, max_tree_width)
             classes['base'].append(schema)
             new_class = f'base_{max_tree_width}'
             classes[new_class].append(schema)
@@ -748,10 +747,10 @@ def reposition_chinook_jargon_overlap_points(
                 classes[line_class].append(schema)
                 line_classes[line_class] = (angle, max_tree_width)
             elif (isinstance(schema.path, Curve)
-                and schema.cps in [(0x1BC1B,), (0x1BC1C,)]
+                and schema.cps in {(0x1BC1B,), (0x1BC1C,)}
                 and schema.size == 6
                 and schema.joining_type == Type.JOINING
-                and (schema.path.angle_in, schema.path.angle_out) in [(90, 270), (270, 90)]
+                and (schema.path.angle_in, schema.path.angle_out) in {(90, 270), (270, 90)}
             ):
                 classes['curve'].append(schema)
     if len(original_schemas) == len(schemas):

@@ -19,6 +19,7 @@
 import argparse
 from collections.abc import Collection
 import datetime
+import hashlib
 import os
 import re
 import subprocess
@@ -129,7 +130,6 @@ def set_version(
                 if dirty:
                     git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
                     try:
-                        import hashlib
                         metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
                     except AttributeError:
                         metadata += '.dirty'

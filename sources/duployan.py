@@ -655,7 +655,7 @@ class Builder:
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
-             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
+            flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
         lookup = fontTools.feaLib.ast.LookupBlock(anchor_class_name)
         if flags:
             lookup.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
@@ -865,7 +865,7 @@ class Builder:
                 elif anchor_class_name in anchors.ALL_MARK:
                     continue
                 glyph.addAnchorPoint(anchor_class_name, 'basemark', x, y)
-        glyph.anchorPoints = [a for a in glyph.anchorPoints if a[1] in ['basemark', 'mark']]
+        glyph.anchorPoints = [a for a in glyph.anchorPoints if a[1] in {'basemark', 'mark'}]
 
     def _wrangle_anchor_points(
         self,
@@ -880,9 +880,9 @@ class Builder:
             self._convert_base_to_basemark(glyph)
         if not schema.path.invisible():
             glyph.anchorPoints = [a for a in glyph.anchorPoints if (
-                a[0] not in [anchors.PARENT_EDGE, *anchors.CHILD_EDGES[1]]
+                a[0] not in {anchors.PARENT_EDGE, *anchors.CHILD_EDGES[1]}
                     if schema.anchor or schema.glyph_class != GlyphClass.MARK
-                    else a[1] not in ['entry', 'exit'] and a[0] not in anchors.CHILD_EDGES[0]
+                    else a[1] not in {'entry', 'exit'} and a[0] not in anchors.CHILD_EDGES[0]
             )]
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef) or schema.path.guaranteed_glyph_class() is not None and schema.path.invisible():
             return

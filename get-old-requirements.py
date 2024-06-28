@@ -49,7 +49,7 @@ COMMENT_PATTERN = re.compile(r'(^|\s)#.*')
 def get_lines(file: FileDescriptorOrPath) -> Sequence[str]:
     continuation = False
     lines: list[str] = []
-    with open(file) as input:
+    with open(file, encoding='utf-8') as input:
         for line in input:
             if continuation:
                 lines[-1] += line
@@ -197,7 +197,7 @@ def main() -> None:
     requirements = parse_requirements(lines, parse_constraints(lines))
 
     failures = {}
-    with open(args.output, 'w') as output:
+    with open(args.output, 'w', encoding='utf-8') as output:
         for requirement_name, specifier in requirements.items():
             for release in get_matching_releases(requirement_name, specifier):
                 output.write(f'{requirement_name}=={release}\n')

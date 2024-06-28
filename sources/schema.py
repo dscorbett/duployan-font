@@ -671,7 +671,7 @@ class Schema:
         """
         return not (
                 self.child or self.ignored_for_topography or self.widthless
-            ) and self.glyph_class in [GlyphClass.JOINER, GlyphClass.MARK]
+            ) and self.glyph_class in {GlyphClass.JOINER, GlyphClass.MARK}
 
     @functools.cached_property
     def group(self) -> Hashable:

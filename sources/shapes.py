@@ -1056,7 +1056,6 @@ class Space(Shape):
                 int(size * math.sin(math.radians(self.angle)))
             }'''.replace('-', 'n')
 
-
     @override
     def group(self) -> Hashable:
         return (
@@ -1680,7 +1679,7 @@ class Line(Shape):
         if anchor:
             if (joining_type == Type.ORIENTING
                 or self.angle % 180 == 0
-                or anchor not in [anchors.ABOVE, anchors.BELOW]
+                or anchor not in {anchors.ABOVE, anchors.BELOW}
             ):
                 length *= self.secant or 0.5
             elif (anchor == anchors.ABOVE) == (self.angle < 180):
@@ -1754,7 +1753,7 @@ class Line(Shape):
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return (0
             if self.secant or any(
-                m.anchor in [anchors.RELATIVE_1, anchors.RELATIVE_2, anchors.MIDDLE]
+                m.anchor in {anchors.RELATIVE_1, anchors.RELATIVE_2, anchors.MIDDLE}
                     for m in marks
             ) else int(self._get_length(size) // (250 * 0.45)) - 1)
 
@@ -1793,7 +1792,7 @@ class Line(Shape):
                             (0.2, Line(angle=(self.angle + 90 if 90 < self.angle <= 270 else self.angle - 90) % 360), False, True),
                             self.get_context_instruction(self.angle),
                         ],
-                        maximum_tree_width=lambda size: self.max_tree_width(size),
+                        maximum_tree_width=self.max_tree_width,
                     )
             elif context_in != NO_CONTEXT:
                 return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
@@ -2434,7 +2433,7 @@ class Curve(Shape):
                     if context_in != NO_CONTEXT
                     else context_out.clockwise
             )
-            if self.secondary != (clockwise_from_adjacent_curve not in [None, candidate_clockwise]):
+            if self.secondary != (clockwise_from_adjacent_curve not in {None, candidate_clockwise}):
                 flip()
         if self.hook or (context_in != NO_CONTEXT != context_out):
             final_hook = self.hook and context_in != NO_CONTEXT
@@ -2444,7 +2443,7 @@ class Curve(Shape):
                 context_in = NO_CONTEXT
                 angle_in, angle_out = (angle_out + 180) % 360, (angle_in + 180) % 360
             context_clockwises = (context_in.clockwise, context_out.clockwise)
-            curve_offset = 0 if context_clockwises in [(None, None), (True, False), (False, True)] else CURVE_OFFSET
+            curve_offset = 0 if context_clockwises in {(None, None), (True, False), (False, True)} else CURVE_OFFSET
             if False in context_clockwises:
                 curve_offset = -curve_offset
             a1, a2 = self.get_normalized_angles()
@@ -3526,20 +3525,20 @@ class Complex(Shape):
         if anchor is None:
             for (singular_anchor, type), points in singular_anchor_points.items():
                 if (
-                    singular_anchor in anchors.ALL_MARK and singular_anchor not in [anchors.ABOVE, anchors.BELOW]
-                        if singular_anchor not in [
+                    singular_anchor in anchors.ALL_MARK and singular_anchor not in {anchors.ABOVE, anchors.BELOW}
+                        if singular_anchor not in {
                             anchors.MIDDLE,
                             anchors.PRE_HUB_CONTINUING_OVERLAP,
                             anchors.POST_HUB_CONTINUING_OVERLAP,
                             anchors.PRE_HUB_CURSIVE,
                             anchors.POST_HUB_CURSIVE,
-                        ]
+                        }
                         else len(points) == 1
                 ) or (
                     self.can_be_child(size)
                     and (
                         singular_anchor == anchors.PARENT_EDGE
-                        or singular_anchor in [anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP] and type == 'entry'
+                        or singular_anchor in {anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP} and type == 'entry'
                     )
                 ) or (
                     self.max_tree_width(size) and (

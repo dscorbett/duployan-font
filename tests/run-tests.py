@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2019, 2023 David Corbett
+# Copyright 2018-2019, 2023-2024 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,20 +105,12 @@ def print_diff(
                 highlighted_actual_output.append(actual_output[i1:i2])
                 highlighted_expected_output.append(expected_output[j1:j2])
             elif tag == 'delete':
-                highlighted_actual_output.append('\x1B[1;96m')
-                highlighted_actual_output.append(actual_output[i1:i2])
-                highlighted_actual_output.append('\x1B[0m')
+                highlighted_actual_output.append(f'\x1B[1;96m{actual_output[i1:i2]}\x1B[0m')
             elif tag == 'insert':
-                highlighted_expected_output.append('\x1B[1;93m')
-                highlighted_expected_output.append(expected_output[j1:j2])
-                highlighted_expected_output.append('\x1B[0m')
+                highlighted_expected_output.append(f'\x1B[1;93m{expected_output[j1:j2]}\x1B[0m')
             elif tag == 'replace':
-                highlighted_actual_output.append('\x1B[1;96m')
-                highlighted_actual_output.append(actual_output[i1:i2])
-                highlighted_actual_output.append('\x1B[0m')
-                highlighted_expected_output.append('\x1B[1;93m')
-                highlighted_expected_output.append(expected_output[j1:j2])
-                highlighted_expected_output.append('\x1B[0m')
+                highlighted_actual_output.append(f'\x1B[1;96m{actual_output[i1:i2]}\x1B[0m')
+                highlighted_expected_output.append(f'\x1B[1;93m{expected_output[j1:j2]}\x1B[0m')
             else:
                 assert False, f'Unknown tag: {tag}'
         actual_output = ''.join(highlighted_actual_output)
@@ -213,7 +205,7 @@ if __name__ == '__main__':
     for fn in args.tests:
         result_lines = []
         passed_file = True
-        with open(fn) as f:
+        with open(fn, encoding='utf-8') as f:
             for line_number, line in enumerate(f, start=1):
                 line = line.rstrip()
                 if line and line[0] != '#':
@@ -230,7 +222,7 @@ if __name__ == '__main__':
                 else:
                     result_lines.append(line + '\n')
         if not passed_file:
-            with open(os.path.join(failed_dir, os.path.basename(fn)), 'w') as f:
+            with open(os.path.join(failed_dir, os.path.basename(fn)), 'w', encoding='utf-8') as f:
                 f.writelines(result_lines)
         passed_all = passed_all and passed_file
     if not passed_all:

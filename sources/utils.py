@@ -684,7 +684,7 @@ class OrderedSet(dict[_T, None]):
         return sorted(self.keys(), key=key, reverse=reverse)  # type: ignore[arg-type, type-var]
 
 
-class PrefixView(Generic[_T], MutableMapping[str, _T]):
+class PrefixView(MutableMapping[str, _T], Generic[_T]):
     """A mutable view of a string-keyed mapping with a prefix applied to
     all keys.
 
