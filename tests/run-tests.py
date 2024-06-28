@@ -25,7 +25,6 @@ import subprocess
 import sys
 from typing import Literal
 
-
 from utils import FULL_FONT_CODE_POINTS
 
 

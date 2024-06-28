@@ -17,7 +17,6 @@ from collections.abc import Collection
 from collections.abc import Sequence
 from typing import Final
 
-
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 
@@ -58,7 +57,8 @@ ALL_MKMK: Final[list[str]] = [
 ]
 
 
-ALL_MARK: Final[list[str]] = ALL_MKMK + [
+ALL_MARK: Final[list[str]] = [
+    *ALL_MKMK,
     SECANT,
 ]
 

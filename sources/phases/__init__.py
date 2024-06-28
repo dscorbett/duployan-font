@@ -86,19 +86,10 @@ modules in this package.
 
 from __future__ import annotations
 
-
 import collections
-from collections.abc import Callable
-from collections.abc import Iterable
-from collections.abc import Iterator
-from collections.abc import Mapping
-from collections.abc import MutableMapping
 from collections.abc import MutableSequence
-from collections.abc import MutableSet
-from collections.abc import Sequence
-from collections.abc import Set
-import itertools
 import functools
+import itertools
 from typing import Final
 from typing import Generic
 from typing import TYPE_CHECKING
@@ -106,11 +97,9 @@ from typing import TypeVar
 from typing import cast
 from typing import overload
 
-
 import fontTools.feaLib.ast
 import fontTools.otlLib.builder
 from typing_extensions import override
-
 
 import schema
 from utils import GlyphClass
@@ -125,6 +114,15 @@ from utils import REQUIRED_FEATURES
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import Iterable
+    from collections.abc import Iterator
+    from collections.abc import Mapping
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSet
+    from collections.abc import Sequence
+    from collections.abc import Set
+
     from mypy_extensions import Arg
 
     from duployan import Builder

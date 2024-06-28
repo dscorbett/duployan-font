@@ -19,16 +19,7 @@
 
 from __future__ import annotations
 
-
-from collections.abc import Callable
-from collections.abc import ItemsView
-from collections.abc import Iterable
-from collections.abc import Iterator
-from collections.abc import KeysView
-from collections.abc import Mapping
 from collections.abc import MutableMapping
-from collections.abc import Sequence
-from collections.abc import Set
 import enum
 import functools
 from typing import Final
@@ -39,13 +30,21 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import overload
 
-
 import fontTools.subset
 from typing_extensions import override
 import uharfbuzz
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import ItemsView
+    from collections.abc import Iterable
+    from collections.abc import Iterator
+    from collections.abc import KeysView
+    from collections.abc import Mapping
+    from collections.abc import Sequence
+    from collections.abc import Set
+
     from _typeshed import SupportsRichComparison
 
 

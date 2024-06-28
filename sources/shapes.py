@@ -19,13 +19,8 @@
 
 from __future__ import annotations
 
-
 import collections
 from collections.abc import Callable
-from collections.abc import Hashable
-from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
 from collections.abc import Sequence
 import enum
 import functools
@@ -39,17 +34,14 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import cast
 
-
 import fontTools.misc.transform
 import fontforge
 from typing_extensions import override
-
 
 import anchors
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
 from utils import CURVE_OFFSET
-from utils import CloneDefault
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import EPSILON
@@ -62,9 +54,15 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+    from collections.abc import Mapping
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+
     from _typeshed import Unused
 
     from schema import Schema
+    from utils import CloneDefault
 
 
 LINE_FACTOR: Final[float] = 500

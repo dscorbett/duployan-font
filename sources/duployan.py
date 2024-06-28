@@ -15,14 +15,12 @@
 
 from __future__ import annotations
 
-
 import collections
 import math
 from typing import Final
 from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
-
 
 import fontTools.agl
 import fontTools.feaLib.ast
@@ -31,9 +29,7 @@ import fontTools.misc.transform
 import fontTools.otlLib.builder
 import fontTools.ttLib.ttFont
 
-
 import anchors
-from phases import Lookup
 import phases.main
 import phases.marker
 import phases.middle
@@ -45,7 +41,6 @@ from shapes import Circle
 from shapes import Complex
 from shapes import Curve
 from shapes import Dot
-from shapes import Instructions
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
@@ -96,7 +91,9 @@ if TYPE_CHECKING:
 
     import fontforge
 
+    from phases import Lookup
     from phases import Phase
+    from shapes import Instructions
 
 
 def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:

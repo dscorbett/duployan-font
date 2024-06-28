@@ -15,21 +15,14 @@
 
 from __future__ import annotations
 
-
 import collections
-from collections.abc import Callable
 from collections.abc import Iterable
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
-from collections.abc import Sequence
 import functools
 import math
 from typing import TYPE_CHECKING
 from typing import overload
 
-
 import fontTools.otlLib.builder
-
 
 from . import Lookup
 from . import Rule
@@ -41,7 +34,6 @@ from shapes import AnchorWidthDigit
 from shapes import Carry
 from shapes import Circle
 from shapes import ContinuingOverlap
-from shapes import Digit
 from shapes import DigitStatus
 from shapes import Dummy
 from shapes import End
@@ -64,17 +56,23 @@ from utils import GlyphClass
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
-from utils import PrefixView
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
 from utils import mkmk
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+
     from _typeshed import SupportsRichComparison
 
     from . import AddRule
     from duployan import Builder
+    from shapes import Digit
+    from utils import PrefixView
 
 
 def add_shims_for_pseudo_cursive(

@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-
 import collections
 import functools
 import itertools
@@ -23,9 +22,7 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 import unicodedata
 
-
 import fontTools.otlLib.builder
-
 
 from . import Lookup
 from . import Rule
@@ -50,7 +47,6 @@ from shapes import Line
 from shapes import Ou
 from shapes import ParentEdge
 from shapes import RootOnlyParentEdge
-from shapes import Shape
 from shapes import Space
 from shapes import ValidDTLS
 from shapes import Wa
@@ -63,7 +59,6 @@ from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import OrderedSet
-from utils import PrefixView
 from utils import SMALL_DIGIT_FACTOR
 from utils import SUBSCRIPT_DEPTH
 from utils import SUPERSCRIPT_HEIGHT
@@ -79,6 +74,8 @@ if TYPE_CHECKING:
 
     from . import AddRule
     from duployan import Builder
+    from shapes import Shape
+    from utils import PrefixView
 
 
 def dont_ignore_default_ignorables(

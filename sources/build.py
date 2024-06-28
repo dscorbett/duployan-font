@@ -25,12 +25,12 @@ import re
 import subprocess
 
 import cffsubr
-import fontforge
 import fontTools.cffLib
 import fontTools.misc.timeTools
 import fontTools.ttLib
 import fontTools.ttLib.tables._n_a_m_e
 import fontTools.ttLib.ttFont
+import fontforge
 
 import copy_metrics
 import duployan

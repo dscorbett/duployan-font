@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-
 import collections
 from typing import Final
 from typing import Generic

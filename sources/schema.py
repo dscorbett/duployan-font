@@ -19,15 +19,7 @@
 
 from __future__ import annotations
 
-
-from collections.abc import Callable
-from collections.abc import Collection
-from collections.abc import Hashable
-from collections.abc import Iterable
 from collections.abc import Mapping
-from collections.abc import MutableMapping
-from collections.abc import MutableSequence
-from collections.abc import Sequence
 import enum
 import functools
 import re
@@ -38,11 +30,9 @@ from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
 
-
 import fontTools.agl
 import fontTools.merge.unicode
 from typing_extensions import override
-
 
 import anchors
 from shapes import AnchorWidthDigit
@@ -62,11 +52,8 @@ from shapes import MarkAnchorSelector
 from shapes import Notdef
 from shapes import Ou
 from shapes import RightBoundDigit
-from shapes import Shape
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
-from utils import CloneDefault
-from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
 from utils import MAX_TREE_WIDTH
@@ -77,9 +64,21 @@ from utils import cps_to_scripts
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import Collection
+    from collections.abc import Hashable
+    from collections.abc import Iterable
+    from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
+    from collections.abc import Sequence
+
     from _typeshed import SupportsDunderLT
     from _typeshed import SupportsRichComparison
     import fontforge
+
+    from shapes import Shape
+    from utils import CloneDefault
+    from utils import Context
 
 
 #: An integer representing the lack of a phase index. It is less than
