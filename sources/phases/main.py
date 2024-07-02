@@ -1134,7 +1134,7 @@ def separate_subantiparallel_lines(
                 classes[f'i_{a1}_{a2}'].extend(lines_1)
                 classes[f'c_{a1}_{a2}'].extend(lines_2)
                 for line_1 in lines_1:
-                    new_angle = (a2 + 180 + 50 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360
+                    new_angle = (a2 + 180 + 46.5 * (-1 if (a2 + 180) % 360 > a1 else 1)) % 360
                     if isinstance(line_1.path, Line):
                         new_path: Shape = line_1.path.clone(angle=new_angle, original_angle=line_1.path.angle)
                     else:
