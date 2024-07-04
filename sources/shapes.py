@@ -3965,19 +3965,26 @@ class Ou(Complex):
                 )),
                 (inner_curve_size, Curve(angle_out, angle_out + clockwise_sign * inner_curve_da, clockwise=clockwise)),
             ]
+        elif self._isolated:
+            intermediate_angle = (270 - clockwise_sign * inner_curve_da - 180) % 360
+            angle_in = (intermediate_angle - clockwise_sign * outer_rewind_da - 180) % 360
+            clockwise = not clockwise
+            instructions = [
+                (inner_curve_size, Curve(intermediate_angle + clockwise_sign * inner_curve_da, intermediate_angle, clockwise=clockwise)),
+                circle_op._replace(shape=Circle(
+                    intermediate_angle,
+                    angle_in,
+                    clockwise=clockwise,
+                )),
+            ]
         else:
-            if self._isolated:
-                intermediate_angle = (270 - clockwise_sign * inner_curve_da) % 360
-                angle_in = (intermediate_angle - clockwise_sign * outer_rewind_da) % 360
-            else:
-                intermediate_angle = angle_in
             instructions = [
                 circle_op._replace(shape=Circle(
                     angle_in,
-                    intermediate_angle,
+                    angle_in,
                     clockwise=clockwise,
                 )),
-                (inner_curve_size, Curve(intermediate_angle, intermediate_angle + clockwise_sign * inner_curve_da, clockwise=clockwise)),
+                (inner_curve_size, Curve(angle_in, (angle_in + clockwise_sign * inner_curve_da) % 360, clockwise=clockwise)),
             ]
         return self.clone(instructions=instructions).draw(
             glyph,
