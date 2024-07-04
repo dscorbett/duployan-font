@@ -52,6 +52,7 @@ from shapes import ValidDTLS
 from shapes import Wa
 from shapes import Wi
 from utils import CAP_HEIGHT
+from utils import CLONE_DEFAULT
 from utils import Context
 from utils import EPSILON
 from utils import GlyphClass
@@ -1265,7 +1266,10 @@ def unignore_last_orienting_glyph_in_initial_sequence(
     for schema in new_schemas:
         if schema.ignored_for_topography:
             classes['i'].append(schema)
-            classes['o'].append(schema.clone(ignored_for_topography=False))
+            classes['o'].append(schema.clone(
+                path=schema.path.clone(role=CircleRole.LEADER, _initial=True, _isolated=False) if isinstance(schema.path, Ou) else CLONE_DEFAULT,
+                ignored_for_topography=False,
+            ))
         elif (schema.glyph_class == GlyphClass.JOINER
             and not isinstance(schema.path, Space)
             and not (isinstance(schema.path, Line) and schema.path.secant)
@@ -1315,22 +1319,29 @@ def ignore_first_orienting_glyph_in_initial_sequence(
         ):
             continue
         classes['joiner'].append(schema)
-        if isinstance(schema.path, Ou):
-            classes['c'].append(schema)
         if (schema.can_lead_orienting_sequence
             and schema.can_be_ignored_for_topography()
         ):
             classes['c'].append(schema)
-            if schema.joining_type == Type.ORIENTING and not isinstance(schema.path, Ou):
-                assert isinstance(schema.path, Circle | Curve)
+            if schema.joining_type == Type.ORIENTING:
+                if isinstance(schema.path, Ou):
+                    circle_op = schema.path.instructions[0]
+                    assert not callable(circle_op)
+                    path = circle_op.shape
+                else:
+                    path = schema.path
+                assert isinstance(path, Circle | Curve)
                 classes['i'].append(schema)
-                angle_out = schema.path.angle_out - schema.path.angle_in
-                path = schema.path.clone(
+                angle_out = path.angle_out - path.angle_in
+                path = path.clone(
                     angle_in=0,
-                    angle_out=(angle_out if schema.path.clockwise else -angle_out) % 360,
+                    angle_out=(angle_out if path.clockwise else -angle_out) % 360,
                     clockwise=True,
-                    **({'role': CircleRole.DEPENDENT} if isinstance(schema.path, Circle) else {}),  # type: ignore[arg-type]
+                    **({} if isinstance(schema.path, Curve) else {'role': CircleRole.DEPENDENT}),  # type: ignore[arg-type]
                 )
+                if isinstance(schema.path, Ou):
+                    assert not callable(circle_op)
+                    path = schema.path.clone(instructions=[circle_op._replace(shape=path)])
                 classes['o'].append(schema.clone(
                     cmap=None,
                     path=path,
@@ -1611,7 +1622,7 @@ def unignore_noninitial_orienting_sequences(
             and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
                 or schema.phase_index < builder._phases.index(join_circle_with_adjacent_nonorienting_glyph)
                 if isinstance(schema.path, Circle)
-                else isinstance(schema.path, Ou) or schema.can_be_ignored_for_topography())
+                else schema.can_be_ignored_for_topography())
         ):
             context_in = schema.path_context_out().clone(diphthong_start=False, diphthong_end=False)
             contexts_in.add(context_in)
@@ -1659,7 +1670,7 @@ def unignore_initial_orienting_sequences(
             and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
                 or schema.phase_index < builder._phases.index(join_circle_with_adjacent_nonorienting_glyph)
                 if isinstance(schema.path, Circle)
-                else isinstance(schema.path, Ou) or schema.can_be_ignored_for_topography())
+                else schema.can_be_ignored_for_topography())
         ):
             context_out = schema.path_context_in().clone(diphthong_start=False, diphthong_end=False)
             contexts_out.add(context_out)

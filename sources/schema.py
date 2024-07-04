@@ -1029,7 +1029,7 @@ class Schema:
         )
         path: Shape
         if ignored_for_topography:
-            if isinstance(self.path, Circle):
+            if isinstance(self.path, Circle | Ou):
                 path = self.path.clone(role=CircleRole.DEPENDENT)
             else:
                 path = self.path
@@ -1058,7 +1058,7 @@ class Schema:
         ignorable_for_topography = (
                 self.glyph_class == GlyphClass.JOINER
                 and self.can_lead_orienting_sequence
-                and (isinstance(self.path, Ou) or self.can_be_ignored_for_topography())
+                and self.can_be_ignored_for_topography()
             ) or CLONE_DEFAULT
         return context_in.clone(
             ignorable_for_topography=ignorable_for_topography,
@@ -1073,7 +1073,7 @@ class Schema:
         ignorable_for_topography = (
             self.glyph_class == GlyphClass.JOINER
                 and self.can_lead_orienting_sequence
-                and (isinstance(self.path, Ou) or self.can_be_ignored_for_topography())
+                and self.can_be_ignored_for_topography()
             ) or CLONE_DEFAULT
         return context_out.clone(
             ignorable_for_topography=ignorable_for_topography,

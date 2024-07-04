@@ -3809,6 +3809,7 @@ class Ou(Complex):
         instructions: Instructions,
         role: CircleRole = CircleRole.INDEPENDENT,
         _initial: bool = False,
+        _angled_against_next: bool = False,
         _isolated: bool = True,
     ) -> None:
         """Initializes this `Ou`.
@@ -3820,6 +3821,7 @@ class Ou(Complex):
         super().__init__(instructions, hook=True)
         self.role: Final = role
         self._initial: Final = _initial
+        self._angled_against_next: Final = _angled_against_next
         self._isolated: Final = _isolated
 
     @override
@@ -3829,31 +3831,55 @@ class Ou(Complex):
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
         role: CircleRole | CloneDefault = CLONE_DEFAULT,
         _initial: bool | CloneDefault = CLONE_DEFAULT,
+        _angled_against_next: bool | CloneDefault = CLONE_DEFAULT,
         _isolated: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
             self.role if role is CLONE_DEFAULT else role,
             self._initial if _initial is CLONE_DEFAULT else _initial,
+            self._angled_against_next if _angled_against_next is CLONE_DEFAULT else _angled_against_next,
             self._isolated if _isolated is CLONE_DEFAULT else _isolated,
         )
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        circle_op = self.instructions[2 if self._initial and self.role == CircleRole.LEADER else 0]
+        if self.role == CircleRole.INDEPENDENT and self._isolated:
+            return ''
+        circle_op = self.instructions[0]
         assert not callable(circle_op)
-        rv = circle_op.shape.get_name(size, joining_type)
+        circle_path = circle_op.shape
+        if isinstance(circle_path, Circle):
+            rv = f'''{
+                    int(circle_path.angle_in)
+                }{
+                    'n' if circle_path.clockwise else 'p'
+                }{
+                    int(circle_path.angle_out)
+                }'''
+        else:
+            rv = circle_path.get_name(size, joining_type)
         if self.role == CircleRole.LEADER and not self._isolated:
-            rv += '.open'
+            rv += '.cusp'
+        if self._initial:
+            rv += '.init'
+        if self._isolated:
+            rv += '.isol'
         return rv
 
     @override
     def group(self) -> Hashable:
-        leader = self.role == CircleRole.LEADER and not self._isolated
+        circle_op = self.instructions[0]
+        assert not callable(circle_op)
+        circle_path = circle_op.shape
+        assert isinstance(circle_path, Circle | Curve)
         return (
             super().group(),
-            leader,
-            leader and self._initial,
+            circle_path.angle_in,
+            self.role,
+            self._initial,
+            self._isolated,
+            self._angled_against_next and (isinstance(circle_path, Curve) and circle_path.reversed_circle or isinstance(circle_path, Circle) and circle_path.reversed),
         )
 
     @override
@@ -3871,51 +3897,89 @@ class Ou(Complex):
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
-        if self.role != CircleRole.LEADER or self._isolated:
-            drawer = cast(Complex, super())
-        else:
-            circle_op = self.instructions[2 if self._initial else 0]
-            assert not callable(circle_op)
-            circle_path = circle_op.shape
-            assert isinstance(circle_path, Circle | Curve)
-            clockwise = circle_path.clockwise
-            curve_op = self.instructions[0 if self._initial else 2]
-            assert not callable(curve_op)
-            curve_path = curve_op.shape
-            assert isinstance(curve_path, Curve)
-            curve_da = curve_path.angle_out - curve_path.angle_in
-            if self._initial:
-                angle_out = circle_path.angle_out
-                intermediate_angle = (angle_out + curve_da) % 360
+        if len(self.instructions) != 1:
+            return super().draw(
+                glyph,
+                stroke_width,
+                light_line,
+                stroke_gap,
+                size,
+                anchor,
+                joining_type,
+                initial_circle_diphthong,
+                final_circle_diphthong,
+                diphthong_1,
+                diphthong_2,
+            )
+        inner_curve_da = 125
+        outer_rewind_da = -35
+        circle_op = self.instructions[0]
+        assert not callable(circle_op)
+        inner_curve_size = 5 / 9 * circle_op.size
+        circle_path = circle_op.shape
+        assert isinstance(circle_path, Circle | Curve)
+        angle_in = circle_path.angle_in
+        angle_out = circle_path.angle_out
+        clockwise = circle_path.clockwise
+        clockwise_sign = -1 if clockwise else 1
+        if self.role == CircleRole.LEADER:
+            if self._isolated:
+                intermediate_angle = (angle_out + clockwise_sign * inner_curve_da) % 360
+                instructions: Instructions = [
+                    (inner_curve_size, Curve(angle_out, intermediate_angle, clockwise=clockwise)),
+                    circle_op._replace(shape=Circle(intermediate_angle, angle_out, clockwise=clockwise)),
+                ]
+            elif self._initial:
+                intermediate_angle = (angle_out + clockwise_sign * inner_curve_da) % 360
                 instructions = [
-                    (curve_op.size, curve_path.clone(
-                        angle_in=angle_out,
-                        angle_out=intermediate_angle,
-                        clockwise=clockwise,
-                    )),
-                    (circle_op.size, Curve(
-                        angle_in=intermediate_angle,
-                        angle_out=angle_out,
-                        clockwise=clockwise,
-                    )),
+                    (inner_curve_size, Curve(angle_out, intermediate_angle, clockwise=clockwise)),
+                    circle_op._replace(shape=Curve(intermediate_angle, angle_out, clockwise=clockwise)),
                 ]
             else:
-                angle_in = circle_path.angle_in
-                intermediate_angle = (angle_in - curve_da) % 360
+                intermediate_angle = (angle_in - clockwise_sign * inner_curve_da) % 360
                 instructions = [
-                    (circle_op.size, Curve(
-                        angle_in=angle_in,
-                        angle_out=intermediate_angle,
-                        clockwise=clockwise,
-                    )),
-                    (curve_op.size, curve_path.clone(
-                        angle_in=intermediate_angle,
-                        angle_out=angle_in,
-                        clockwise=clockwise,
-                    )),
+                    circle_op._replace(shape=Curve(angle_in, intermediate_angle, clockwise=clockwise)),
+                    (inner_curve_size, Curve(intermediate_angle, angle_in, clockwise=clockwise)),
                 ]
-            drawer = type(self)(instructions)
-        return drawer.draw(
+        elif self._initial:
+            instructions = [
+                (inner_curve_size, Curve(angle_out - clockwise_sign * inner_curve_da, angle_out, clockwise=clockwise)),
+                circle_op._replace(shape=Circle(
+                    angle_out,
+                    angle_out,
+                    clockwise=clockwise,
+                )),
+            ]
+        elif self._angled_against_next and (isinstance(circle_path, Curve) and circle_path.reversed_circle or isinstance(circle_path, Circle) and circle_path.reversed):
+            intermediate_angle = (angle_out - clockwise_sign * inner_curve_da) % 360
+            instructions = [
+                circle_op._replace(shape=Circle(angle_in, intermediate_angle, clockwise=clockwise)),
+                (inner_curve_size, Curve(intermediate_angle, angle_out, clockwise=clockwise)),
+            ]
+        elif angle_in != angle_out:
+            instructions = [
+                circle_op._replace(shape=(Curve if self.role == CircleRole.INDEPENDENT else Circle)(
+                    angle_in,
+                    angle_out,
+                    clockwise=clockwise,
+                )),
+                (inner_curve_size, Curve(angle_out, angle_out + clockwise_sign * inner_curve_da, clockwise=clockwise)),
+            ]
+        else:
+            if self._isolated:
+                intermediate_angle = (270 - clockwise_sign * inner_curve_da) % 360
+                angle_in = (intermediate_angle - clockwise_sign * outer_rewind_da) % 360
+            else:
+                intermediate_angle = angle_in
+            instructions = [
+                circle_op._replace(shape=Circle(
+                    angle_in,
+                    intermediate_angle,
+                    clockwise=clockwise,
+                )),
+                (inner_curve_size, Curve(intermediate_angle, intermediate_angle + clockwise_sign * inner_curve_da, clockwise=clockwise)),
+            ]
+        return self.clone(instructions=instructions).draw(
             glyph,
             stroke_width,
             light_line,
@@ -3937,8 +4001,13 @@ class Ou(Complex):
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         contextualized = super().contextualize(context_in, context_out)
         assert isinstance(contextualized, Ou)
+        circle_op = contextualized.instructions[0]
+        assert not callable(circle_op)
+        circle_path = circle_op.shape
+        assert isinstance(circle_path, Circle | Curve)
         return contextualized.clone(
-            _initial=self._initial or context_in == NO_CONTEXT,
+            _initial=context_in == NO_CONTEXT,
+            _angled_against_next=context_out.angle is not None is not context_in.angle != context_out.angle != circle_path.angle_out,
             _isolated=False,
         )
 
@@ -3959,26 +4028,12 @@ class Ou(Complex):
         return rv.clone(angle=(rv.angle + 180) % 360)
 
     def as_reversed(self) -> Self:
-        """Returns an `Ou` that looks the same but is drawn in the
-        opposite direction.
+        """Returns an `Ou` that is drawn in the opposite direction but
+        whose outer circle looks the same.
         """
-        circle_path = self.instructions[0][1]  # type: ignore[index]
-        curve_path = self.instructions[2][1]  # type: ignore[index]
-        assert isinstance(circle_path, Circle)
-        assert isinstance(curve_path, Curve)
-        intermediate_angle = (circle_path.angle_in - circle_path.angle_out) % 360
-        return self.clone(instructions=[
-            (self.instructions[0][0], circle_path.clone(  # type: ignore[index]
-                angle_in=(circle_path.angle_in + 180) % 360,
-                angle_out=intermediate_angle,
-                clockwise=not circle_path.clockwise,
-            )),
-            self.instructions[1],
-            (self.instructions[2][0], curve_path.clone(  # type: ignore[index]
-                angle_in=intermediate_angle,
-                clockwise=not curve_path.clockwise,
-            )),
-        ])
+        return self.clone(
+            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined]
+        )
 
 
 class SeparateAffix(Complex):
@@ -4380,8 +4435,8 @@ class Wi(Complex):
         return self.clone(instructions=[(self.instructions[0].size, circle_path), *curve_path.instructions])
 
     def as_reversed(self) -> Self:
-        """Returns a `Wi` that looks the same but is drawn in the
-        opposite direction.
+        """Returns a `Wi` that is drawn in the opposite direction but
+        whose outer circle looks the same.
         """
         first_callable = True
         return self.clone(

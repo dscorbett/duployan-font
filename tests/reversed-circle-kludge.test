@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 1BC02 1BC5A 034F 034F::[u1BC02.p@0,0|u1BC44.o.90n90@0,-150|dupl_.Dot.0.rel1@150,0|_@540,0]
 1BC02 1BC5A 034F 034F 034F::[u1BC02.p@300,0|u1BC44.o.90p90@0,-150|dupl_.Dot.0.rel1@150,0|_@540,0]
 1BC5B 034F 034F::[u1BC5B.ou@0,0|_@540,0]
-1BC5B 034F 034F 034F::[u1BC5B_uni034F034F034F_.ou__cgj__cgj__cgj.0n35@0,0|_@540,0]
+1BC5B 034F 034F 034F::[u1BC5B_uni034F034F034F.ou__cgj__cgj__cgj@0,0|_@540,0]
 1BC02 1BC5C 034F 034F::[u1BC02.p@0,0|u1BC5C.wa.90n90@0,-200|_@640,0]
 1BC02 1BC5C 034F 034F 034F::[u1BC02.p@400,0|u1BC5C.wa.90p90@0,-200|_@640,0]
 1BC02 1BC5D 034F 034F::[u1BC02.p@0,0|u1BC5D.wo.90n90@0,-200|_@640,0]
