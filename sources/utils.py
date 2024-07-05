@@ -724,6 +724,9 @@ class PrefixView(MutableMapping[str, _T], Generic[_T]):
 
         It is not necessary to prepend the prefix if the key already
         uses the global prefix.
+
+        Args:
+            key: The key to which to prepend the prefix.
         """
         is_global = key.startswith('global..')
         assert len(key.split('..')) == 1 + is_global, f'Invalid key: {key!r}'

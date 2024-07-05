@@ -887,6 +887,9 @@ class Lookup:
     def append(self, rule: Rule) -> None:
         """Adds a rule to the end of the list of rules.
 
+        Args:
+            rule: A rule.
+
         Raises:
             ValueError: If the list of rules is frozen.
         """
@@ -903,6 +906,9 @@ class Lookup:
 
         Args:
             other: A lookup.
+
+        Raises:
+            ValueError: If the list of rules is frozen.
         """
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"

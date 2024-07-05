@@ -243,6 +243,11 @@ class Shape:
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         """Returns the maximum number of consecutive instances of
         U+1BC9E DUPLOYAN DOUBLE MARK supported after this shape’s glyph.
+
+        Args:
+            size: The size of the schema.
+            joining_type: The joining type of the schema.
+            marks: The sequence of marks of the schema.
         """
         return 0
 
@@ -3470,6 +3475,9 @@ class Complex(Shape):
 
         See `FontForge issue #4560
         <https://github.com/fontforge/fontforge/issues/4560>`__.
+
+        Args:
+            glyph: The FontForge glyph to remove contours from.
         """
         if not hasattr(glyph, 'foreground'):
             # This `Complex` is nested within another `Complex`. The outermost one
