@@ -1620,7 +1620,7 @@ def unignore_noninitial_orienting_sequences(
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.can_lead_orienting_sequence
             and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
-                or schema.phase_index < builder._phases.index(join_circle_with_adjacent_nonorienting_glyph)
+                or schema.phase_index < builder.phase_index(join_circle_with_adjacent_nonorienting_glyph)
                 if isinstance(schema.path, Circle)
                 else schema.can_be_ignored_for_topography())
         ):
@@ -1668,7 +1668,7 @@ def unignore_initial_orienting_sequences(
         elif (schema.glyph_class == GlyphClass.JOINER
             and schema.can_lead_orienting_sequence
             and ((schema.path.angle_out - schema.path.angle_in) % 180 == 0
-                or schema.phase_index < builder._phases.index(join_circle_with_adjacent_nonorienting_glyph)
+                or schema.phase_index < builder.phase_index(join_circle_with_adjacent_nonorienting_glyph)
                 if isinstance(schema.path, Circle)
                 else schema.can_be_ignored_for_topography())
         ):

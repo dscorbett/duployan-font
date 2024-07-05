@@ -1138,7 +1138,7 @@ def run_phases(
     if all_classes is None:
         all_classes = collections.defaultdict(_FreezableList)
     all_named_lookups_with_phases: dict[str, tuple[Lookup, Phase]] = {}
-    for phase_index, phase in enumerate(phases):
+    for phase_index, phase in enumerate(phases, start=schema.CURRENT_PHASE_INDEX + 1):
         schema.CURRENT_PHASE_INDEX = phase_index
         all_output_schemas: OrderedSet[schema.Schema] = OrderedSet()
         autochthonous_schemas: OrderedSet[schema.Schema] = OrderedSet()

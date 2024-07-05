@@ -1069,12 +1069,23 @@ class Builder:
         previous_phase: Phase | None = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
-                rename_schemas(grouper, self._phases.index(previous_phase))
+                rename_schemas(grouper, self.phase_index(previous_phase))
             previous_phase = phase
             prefix_classes = PrefixView(phase, classes)
             prefix_named_lookups_with_phases = PrefixView(phase, named_lookups_with_phases)
             sifting.sift_groups(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
         rename_schemas(grouper, NO_PHASE_INDEX)
+
+    def phase_index(self, phase: Phase) -> int:
+        """Returns the index of a phase among all this builder’s phases.
+
+        Args:
+            phase: A phase.
+
+        Raises:
+            ValueError: If `phase` is not one of this builder’s phases.
+        """
+        return [*self._phases, *self._middle_phases, *self._marker_phases].index(phase)
 
     def augment(self) -> None:
         (
