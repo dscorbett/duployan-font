@@ -268,6 +268,9 @@
 # Semicircle and circle and semicircle, medial
 1BC02 1BC47 1BC41 1BC47 1BC02::[u1BC02.p@400,0|u1BC46.i.270n90.diph1@200,-100|u1BC41.a.90p90.diph2@0,-100|u1BC46.i.270p90@100,-200|u1BC02.p@300,-600|_@640,0]
 
+# Semicircle and semicircle and circle, final
+1BC02 1BC46 1BC47 1BC41::[u1BC02.p@0,0|u1BC46.i.270p90@0,-100|u1BC46.i.90n270@200,0|u1BC41.a.90n270.circle@400,-100|_@840,0]
+
 # OU and semicircle, isolated
 1BC5B 1BC47::[u1BC5B.ou.90p90.isol@0,0|u1BC46.i.90n270@300,150|_@740,0]
 

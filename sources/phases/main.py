@@ -1513,6 +1513,8 @@ def ligate_diphthongs(
     diphthong_1_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
     diphthong_2_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
     for schema in new_schemas:
+        if schema.ignored_for_topography:
+            classes['ignored_for_topography'].append(schema)
         if not schema.can_become_part_of_diphthong:
             continue
         assert isinstance(schema.path, Circle | Curve)
@@ -1532,7 +1534,7 @@ def ligate_diphthongs(
             is_ignored,
             output_class_name,
         ))
-        if schema.ignored_for_topography:
+        if output_schema.ignored_for_topography:
             classes['ignored_for_topography'].append(output_schema)
         input_class_name = f'i2_{is_circle_letter}_{is_ignored}'
         classes[input_class_name].append(schema)
@@ -1545,8 +1547,7 @@ def ligate_diphthongs(
             is_ignored,
             output_class_name,
         ))
-        if schema.ignored_for_topography:
-            classes['ignored_for_topography'].append(schema)
+        if output_schema.ignored_for_topography:
             classes['ignored_for_topography'].append(output_schema)
     for input_1, is_circle_1, is_ignored_1, output_1 in diphthong_1_classes:
         for input_2, is_circle_2, is_ignored_2, output_2 in diphthong_2_classes:
