@@ -688,8 +688,8 @@ class Lookup:
     @overload
     def __init__(
             self,
-            feature: None,
-            language: None,
+            feature: None = ...,
+            language: None = ...,
             *,
             flags: int = ...,
             mark_filtering_set: str | None = ...,
@@ -699,8 +699,8 @@ class Lookup:
 
     def __init__(
             self,
-            feature: str | None,
-            language: str | None,
+            feature: str | None = None,
+            language: str | None = None,
             *,
             flags: int = 0,
             mark_filtering_set: str | None = None,

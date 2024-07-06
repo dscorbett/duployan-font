@@ -617,7 +617,7 @@ def clear_entry_width_markers(
     )
     zeros: list[Schema | None] = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
-        named_lookups['zero'] = Lookup(None, None)
+        named_lookups['zero'] = Lookup()
     for schema in schemas:
         match schema.path:
             case EntryWidthDigit():
@@ -844,12 +844,10 @@ def sum_width_markers(
                                 else [sum_digit_schema, carry_out_schema])
                             sum_lookup_name = str(sum_digit)
                             if sum_lookup_name not in named_lookups:
-                                named_lookups[sum_lookup_name] = Lookup(None, None)
+                                named_lookups[sum_lookup_name] = Lookup()
                             if context_in_lookup_name not in named_lookups:
                                 classes[context_in_lookup_name].append(addend_schema)
                                 named_lookups[context_in_lookup_name] = Lookup(
-                                    None,
-                                    None,
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                     mark_filtering_set=context_in_lookup_name,
                                 )
@@ -907,8 +905,6 @@ def calculate_bound_extrema(
         mark_filtering_set='ldx',
     )
     named_lookups['ldx_copy'] = Lookup(
-        None,
-        None,
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='ldx',
     )
@@ -920,8 +916,6 @@ def calculate_bound_extrema(
         mark_filtering_set='rdx',
     )
     named_lookups['rdx_copy'] = Lookup(
-        None,
-        None,
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='rdx',
     )

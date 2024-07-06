@@ -218,7 +218,7 @@ def expand_secants(
     if len(original_schemas) != len(schemas):
         return [lookup]
     continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    named_lookups['non_initial_secant'] = Lookup(None, None)
+    named_lookups['non_initial_secant'] = Lookup()
     for schema in new_schemas:
         if schema.is_secant:
             assert isinstance(schema.path, Line)
@@ -259,7 +259,7 @@ def validate_overlap_controls(
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    named_lookups['validate'] = Lookup(None, None)
+    named_lookups['validate'] = Lookup()
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
@@ -472,7 +472,7 @@ def add_secant_guidelines(
     valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
     initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
-    named_lookups['prepend_zwnj'] = Lookup(None, None)
+    named_lookups['prepend_zwnj'] = Lookup()
     for schema in new_schemas:
         if (isinstance(schema.path, Line)
             and schema.path.secant
@@ -485,8 +485,8 @@ def add_secant_guidelines(
             lookup_name = f'add_guideline_{guideline_angle}'
             if lookup_name not in named_lookups:
                 guideline = Schema(None, Line(guideline_angle, dots=7), 1.5, maximum_tree_width=MAX_TREE_WIDTH)
-                named_lookups[f'{lookup_name}_and_dtls'] = Lookup(None, None)
-                named_lookups[lookup_name] = Lookup(None, None)
+                named_lookups[f'{lookup_name}_and_dtls'] = Lookup()
+                named_lookups[lookup_name] = Lookup()
                 add_rule(named_lookups[f'{lookup_name}_and_dtls'], Rule([invalid_continuing_overlap], [dtls, valid_continuing_overlap, guideline]))
                 add_rule(named_lookups[lookup_name], Rule([invalid_continuing_overlap], [valid_continuing_overlap, guideline]))
             add_rule(lookup, Rule([schema], [invalid_continuing_overlap], [initial_secant_marker, dtls], lookups=[f'{lookup_name}_and_dtls']))
@@ -662,13 +662,11 @@ def promote_final_letter_overlap_to_continuing_overlap(
             case Line() if schema.path.secant and schema.glyph_class == GlyphClass.MARK:
                 classes['secant_or_root_parent_edge'].append(schema)
     add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
-    named_lookups['promote'] = Lookup(None, None)
+    named_lookups['promote'] = Lookup()
     add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
     for overlap in classes['final_letter_overlap']:
         overlap_name = overlap.path.get_name(overlap.size, overlap.joining_type)
         named_lookups[f'promote_{overlap_name}_and_parent'] = Lookup(
-            None,
-            None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set=overlap_name,
         )
@@ -690,8 +688,6 @@ def promote_final_letter_overlap_to_continuing_overlap(
             lookups=['promote', 'promote'],
         ))
         named_lookups[f'check_and_promote_{overlap_name}'] = Lookup(
-            None,
-            None,
             flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
             mark_filtering_set='secant_or_root_parent_edge',
         )
@@ -873,7 +869,7 @@ def interrupt_overlong_primary_curve_sequences(
                 if any(d in new_deltas_by_size[size] for d in s)
         )
     if overlong_class_sequences:
-        named_lookups['prepend_dotted_circle'] = Lookup(None, None)
+        named_lookups['prepend_dotted_circle'] = Lookup()
     for overlong_class_sequence in overlong_class_sequences:
         add_rule(named_lookups['prepend_dotted_circle'], Rule(
             overlong_class_sequence[-1],
@@ -1003,7 +999,7 @@ def disjoin_grammalogues(
         add_rule(lookup, Rule([root], [zwnj, root]))
         if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width() + 1)):
             if 'prepend_zwnj' not in named_lookups:
-                named_lookups['prepend_zwnj'] = Lookup(None, None)
+                named_lookups['prepend_zwnj'] = Lookup()
                 add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
             for tree in trees:
                 add_rule(lookup, Rule([root, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))
@@ -1283,11 +1279,7 @@ def unignore_last_orienting_glyph_in_initial_sequence(
                 classes['c'].append(schema)
                 if schema.can_lead_orienting_sequence and not isinstance(schema.path, Line):
                     classes['fixed_form'].append(schema)
-    named_lookups['check_previous'] = Lookup(
-        None,
-        None,
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-    )
+    named_lookups['check_previous'] = Lookup(flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS)
     add_rule(named_lookups['check_previous'], Rule(['c', 'first'], 'i', [], lookups=[None]))
     add_rule(named_lookups['check_previous'], Rule('c', 'i', [], lookups=[None]))
     add_rule(named_lookups['check_previous'], Rule([], 'i', 'fixed_form', lookups=[None]))
