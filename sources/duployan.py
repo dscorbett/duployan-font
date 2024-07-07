@@ -61,6 +61,8 @@ import sifting
 from utils import BRACKET_DEPTH
 from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
+from utils import CROSS_DEPTH
+from utils import CROSS_HEIGHT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import FULL_FONT_CODE_POINTS
@@ -70,6 +72,8 @@ from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
+from utils import PICTOGRAPH_DEPTH
+from utils import PICTOGRAPH_HEIGHT
 from utils import PrefixView
 from utils import REGULAR_LIGHT_LINE
 from utils import SHADING_FACTOR
@@ -437,16 +441,16 @@ class Builder:
             Schema(0x230B, right_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x2463, four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, marks=[enclosing_circle]),
             Schema(0x25CC, dotted_circle, 1, Type.NON_JOINING, y_min=33),
-            Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_max=1.5 * CAP_HEIGHT, y_min=-0.5 * CAP_HEIGHT),
-            Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT),
-            Schema(0x271D, cross, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_min=PICTOGRAPH_DEPTH, y_max=PICTOGRAPH_HEIGHT),
+            Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=CROSS_HEIGHT),
+            Schema(0x271D, cross, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
             Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
             Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
             Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
-            Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
             Schema(0xE002, converging_lines, 1, Type.NON_JOINING),
-            Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_max=1.1 * CAP_HEIGHT, y_min=-0.4 * CAP_HEIGHT),
+            Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
             Schema(0xE004, left_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0xE005, right_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
             Schema(0xE006, left_parenthesis_with_double_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),

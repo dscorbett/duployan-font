@@ -68,6 +68,27 @@ BRACKET_DEPTH: Final[float] = -BRACKET_Y_FACTOR * CAP_HEIGHT
 BRACKET_HEIGHT: Final[float] = (1 + BRACKET_Y_FACTOR) * CAP_HEIGHT
 
 
+#: The lowest point of crosses and related symbols in the regular font.
+CROSS_DEPTH: Final[float] = -0.4 * CAP_HEIGHT
+
+
+#: The highest point of crosses and related symbols in the regular font.
+CROSS_HEIGHT: Final[float] = 1.1 * CAP_HEIGHT
+
+
+#: The factor of the cap height in the regular font by which pictographs
+#: reach above the cap height or below the baseline.
+PICTOGRAPH_Y_FACTOR: Final[float] = 0.5
+
+
+#: The lowest point of pictographs in the regular font.
+PICTOGRAPH_DEPTH: Final[float] = -PICTOGRAPH_Y_FACTOR * CAP_HEIGHT
+
+
+#: The highest point of pictographs in the regular font.
+PICTOGRAPH_HEIGHT: Final[float] = (1 + PICTOGRAPH_Y_FACTOR) * CAP_HEIGHT
+
+
 #: The factor of the cap height in the regular font by which to scale
 #: digits to get their numerator, denominator, superscript, and
 #: subscript forms.
