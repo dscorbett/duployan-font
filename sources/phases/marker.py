@@ -97,7 +97,7 @@ def add_shims_for_pseudo_cursive(
         'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
+        reverse=True,
     )
     if len(original_schemas) != len(schemas):
         return [marker_lookup, deduplicate_marker_lookup, space_lookup]
@@ -121,14 +121,15 @@ def add_shims_for_pseudo_cursive(
             classes['pseudo_cursive_or_root_parent_edge'].append(schema)
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             exit_x = exit_y = entry_x = entry_y = None
-            for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+            for anchor_class_name, anchor_type, x, y in schema.glyph.anchorPoints:
                 if anchor_class_name == anchors.CURSIVE:
-                    if type == 'exit':
-                        exit_x = x
-                        exit_y = y
-                    elif type == 'entry':
-                        entry_x = x
-                        entry_y = y
+                    match anchor_type:
+                        case 'exit':
+                            exit_x = x
+                            exit_y = y
+                        case 'entry':
+                            entry_x = x
+                            entry_y = y
             assert entry_y == exit_y
             is_space = x_min == x_max
             if is_space:
@@ -152,12 +153,13 @@ def add_shims_for_pseudo_cursive(
             (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
             | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
         ):
-            for anchor_class_name, type, x, y in schema.glyph.anchorPoints:
+            for anchor_class_name, anchor_type, x, y in schema.glyph.anchorPoints:
                 if anchor_class_name == anchors.CURSIVE:
-                    if looks_like_valid_exit and type == 'exit':
-                        exit_schemas.append((schema, x, y))
-                    elif looks_like_valid_entry and type == 'entry':
-                        entry_schemas.append((schema, x, y))
+                    match anchor_type:
+                        case 'exit' if looks_like_valid_exit:
+                            exit_schemas.append((schema, x, y))
+                        case 'entry' if looks_like_valid_entry:
+                            entry_schemas.append((schema, x, y))
 
     @functools.cache
     def get_shim(width: float, height: float) -> Schema:
@@ -246,7 +248,7 @@ def shrink_wrap_enclosing_circle(
         'rlig',
         'dflt',
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     dist_lookup = Lookup(
         'abvm',
@@ -357,8 +359,8 @@ def add_width_markers(
     def get_mark_anchor_selector(schema: Schema) -> Schema:
         only_anchor_class_name: str | None = None
         assert schema.glyph is not None
-        for anchor_class_name, type, _, _ in schema.glyph.anchorPoints:
-            if type == 'mark' and anchor_class_name in anchors.ALL_MARK:
+        for anchor_class_name, anchor_type, _, _ in schema.glyph.anchorPoints:
+            if anchor_type == 'mark' and anchor_class_name in anchors.ALL_MARK:
                 assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
         assert canonical_mark_anchor_mapping is not None, '`canonical_mark_anchor_mapping` is only implemented for the first iteration of the phase'
@@ -440,18 +442,21 @@ def add_width_markers(
                 exit_xs[anchors.CURSIVE] = schema.size
             else:
                 should_check_anchor_x = False
-                for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                    if type in {'entry', 'mark'}:
-                        entry_xs[anchor_class_name] = x
-                    elif type in {'base', 'basemark', 'exit'}:
-                        exit_xs[anchor_class_name] = x
-                        should_check_anchor_x |= type in {'base', 'basemark'}
+                for anchor_class_name, anchor_type, x, _ in schema.glyph.anchorPoints:
+                    match anchor_type:
+                        case 'entry' | 'mark':
+                            entry_xs[anchor_class_name] = x
+                        case 'exit':
+                            exit_xs[anchor_class_name] = x
+                        case 'base' | 'basemark':
+                            exit_xs[anchor_class_name] = x
+                            should_check_anchor_x = True
                 if should_check_anchor_x:
                     for group in anchor_grouper.groups():
                         anchor_groups_by_x: collections.defaultdict[str | None, list[str]] = collections.defaultdict(list)
                         anchor_groups_by_x[None] = [*group]
-                        for anchor_class_name, type, x, _ in schema.glyph.anchorPoints:
-                            if type == 'base' and anchor_class_name in group or type == 'basemark' and mkmk(anchor_class_name) in group:
+                        for anchor_class_name, anchor_type, x, _ in schema.glyph.anchorPoints:
+                            if anchor_type == 'base' and anchor_class_name in group or anchor_type == 'basemark' and mkmk(anchor_class_name) in group:
                                 anchor_groups_by_x[x].append(anchor_class_name)
                                 anchor_groups_by_x[None].remove(anchor_class_name)
                         if not anchor_groups_by_x[None]:
@@ -590,7 +595,7 @@ def remove_false_end_markers(
         'dist',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES + fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
+        reverse=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -979,7 +984,7 @@ def remove_false_start_markers(
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
     start = next(s for s in new_schemas if isinstance(s.path, Start))
@@ -1001,7 +1006,7 @@ def mark_hubs_after_initial_secants(
         'dist',
         'dflt',
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     hubs: OrderedSet[Schema] = OrderedSet()
     for schema in new_schemas:
@@ -1100,19 +1105,19 @@ def mark_maximum_bounds(
         'dist',
         'dflt',
         mark_filtering_set='ldx',
-        reversed=True,
+        reverse=True,
     )
     right_lookup = Lookup(
         'dist',
         'dflt',
         mark_filtering_set='rdx',
-        reversed=True,
+        reverse=True,
     )
     anchor_lookup = Lookup(
         'dist',
         'dflt',
         mark_filtering_set='adx',
-        reversed=True,
+        reverse=True,
     )
     new_left_bounds = []
     new_right_bounds = []

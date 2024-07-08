@@ -1786,19 +1786,18 @@ class Line(Shape):
         if self.secant:
             if context_out != NO_CONTEXT:
                 return self.rotate_diacritic(context_out)
-        else:
-            if self.stretchy:
-                if context_out == Context(self.angle):
-                    return Complex(
-                        [
-                            (1, self),
-                            (0.2, Line(angle=(self.angle + 90 if 90 < self.angle <= 270 else self.angle - 90) % 360), False, True),
-                            self.get_context_instruction(self.angle),
-                        ],
-                        maximum_tree_width=self.max_tree_width,
-                    )
-            elif context_in != NO_CONTEXT:
-                return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
+        elif self.stretchy:
+            if context_out == Context(self.angle):
+                return Complex(
+                    [
+                        (1, self),
+                        (0.2, Line(angle=(self.angle + 90 if 90 < self.angle <= 270 else self.angle - 90) % 360), False, True),
+                        self.get_context_instruction(self.angle),
+                    ],
+                    maximum_tree_width=self.max_tree_width,
+                )
+        elif context_in != NO_CONTEXT:
+            return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
         return self
 
     @override
@@ -2548,9 +2547,9 @@ class Circle(Shape):
         angle_in: The angle tangent to this circle at its entry point.
         angle_out: The angle tangent to this circle at its exit point.
         clockwise: Whether this circle turns clockwise.
-        reversed: Whether this represents a reversed circle character.
-            The only reversed circle character in Unicode is U+1BC42
-            DUPLOYAN LETTER SLOAN OW.
+        reversed_circle: Whether this represents a reversed circle
+            character. The only reversed circle character in Unicode is
+            U+1BC42 DUPLOYAN LETTER SLOAN OW.
         pinned: Whether to force this circle to stay a `Circle` when
             contextualized, even if a `Curve` would normally be
             considered more appropriate.
@@ -2571,7 +2570,7 @@ class Circle(Shape):
         angle_out: float,
         *,
         clockwise: bool,
-        reversed: bool = False,
+        reversed_circle: bool = False,
         pinned: bool = False,
         stretch: float = 0,
         long: bool = False,
@@ -2583,7 +2582,7 @@ class Circle(Shape):
             angle_in: The ``angle_in`` attribute.
             angle_out: The ``angle_out`` attribute.
             clockwise: The ``clockwise`` attribute.
-            reversed: The ``reversed`` attribute.
+            reversed_circle: The ``reversed_circle`` attribute.
             pinned: The ``pinned`` attribute.
             stretch: The ``stretch`` attribute.
             long: The ``long`` attribute.
@@ -2593,7 +2592,7 @@ class Circle(Shape):
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
-        self.reversed: Final = reversed
+        self.reversed_circle: Final = reversed_circle
         self.pinned: Final = pinned
         self.stretch: Final = stretch
         self.long: Final = long
@@ -2606,7 +2605,7 @@ class Circle(Shape):
         angle_in: float | CloneDefault = CLONE_DEFAULT,
         angle_out: float | CloneDefault = CLONE_DEFAULT,
         clockwise: bool | CloneDefault = CLONE_DEFAULT,
-        reversed: bool | CloneDefault = CLONE_DEFAULT,
+        reversed_circle: bool | CloneDefault = CLONE_DEFAULT,
         pinned: bool | CloneDefault = CLONE_DEFAULT,
         stretch: float | CloneDefault = CLONE_DEFAULT,
         long: bool | CloneDefault = CLONE_DEFAULT,
@@ -2616,7 +2615,7 @@ class Circle(Shape):
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
-            reversed=self.reversed if reversed is CLONE_DEFAULT else reversed,
+            reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             pinned=self.pinned if pinned is CLONE_DEFAULT else pinned,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
@@ -2641,7 +2640,7 @@ class Circle(Shape):
             }{
                 int(angle_out)
             }{
-                'r' if self.reversed and self.angle_in != self.angle_out else ''
+                'r' if self.reversed_circle and self.angle_in != self.angle_out else ''
             }{
                 '.circle' if self.role != CircleRole.INDEPENDENT and self.angle_in != self.angle_out else ''
             }'''
@@ -2730,7 +2729,7 @@ class Circle(Shape):
                     clockwise=self.clockwise,
                     stretch=self.stretch,
                     long=True,
-                    reversed_circle=self.reversed,
+                    reversed_circle=self.reversed_circle,
                 ).draw(
                     glyph,
                     stroke_width,
@@ -2841,7 +2840,7 @@ class Circle(Shape):
                 angle_in = angle_out
         if angle_out is None:
             angle_out = angle_in
-        is_reversed = self.reversed and self.role != CircleRole.LEADER
+        is_reversed = self.reversed_circle and self.role != CircleRole.LEADER
         clockwise_from_adjacent_curve = (
             context_in.clockwise
                 if context_in.clockwise is not None
@@ -2985,7 +2984,7 @@ class Circle(Shape):
             angle_in=(self.angle_out + 180) % 360,
             angle_out=(self.angle_in + 180) % 360,
             clockwise=not self.clockwise,
-            reversed=not self.reversed,
+            reversed_circle=not self.reversed_circle,
         )
 
 
@@ -3529,7 +3528,7 @@ class Complex(Shape):
             if self.hub_priority(size) != 0:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
         if anchor is None:
-            for (singular_anchor, type), points in singular_anchor_points.items():
+            for (singular_anchor, anchor_type), points in singular_anchor_points.items():
                 if (
                     singular_anchor in anchors.ALL_MARK and singular_anchor not in {anchors.ABOVE, anchors.BELOW}
                         if singular_anchor not in {
@@ -3544,15 +3543,15 @@ class Complex(Shape):
                     self.can_be_child(size)
                     and (
                         singular_anchor == anchors.PARENT_EDGE
-                        or singular_anchor in {anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP} and type == 'entry'
+                        or singular_anchor in {anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP} and anchor_type == 'entry'
                     )
                 ) or (
                     self.max_tree_width(size) and (
-                        singular_anchor == anchors.CONTINUING_OVERLAP and type == 'exit'
-                        or any(singular_anchor in l for l in anchors.CHILD_EDGES)
+                        singular_anchor == anchors.CONTINUING_OVERLAP and anchor_type == 'exit'
+                        or any(singular_anchor in layer for layer in anchors.CHILD_EDGES)
                     )
                 ):
-                    glyph.addAnchorPoint(singular_anchor, type, *points[-1])
+                    glyph.addAnchorPoint(singular_anchor, anchor_type, *points[-1])
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self._final_rotation)),
             ('round',),
@@ -3887,7 +3886,7 @@ class Ou(Complex):
             self.role,
             self._initial,
             self._isolated,
-            self._angled_against_next and (isinstance(circle_path, Curve) and circle_path.reversed_circle or isinstance(circle_path, Circle) and circle_path.reversed),
+            self._angled_against_next and circle_path.reversed_circle,
         )
 
     @override
@@ -3958,7 +3957,7 @@ class Ou(Complex):
                     clockwise=clockwise,
                 )),
             ]
-        elif self._angled_against_next and (isinstance(circle_path, Curve) and circle_path.reversed_circle or isinstance(circle_path, Circle) and circle_path.reversed):
+        elif self._angled_against_next and circle_path.reversed_circle:
             intermediate_angle = (angle_out - clockwise_sign * inner_curve_da) % 360
             instructions = [
                 circle_op._replace(shape=Circle(angle_in, intermediate_angle, clockwise=clockwise)),
@@ -4299,7 +4298,7 @@ class Wa(Complex):
                 ]
             return self.clone(instructions=instructions, _initial=True)
         if context_in != NO_CONTEXT != context_out:
-            if context_in.angle != context_out.angle and any(isinstance(op.shape, Circle) and op.shape.reversed for op in original_instructions):
+            if context_in.angle != context_out.angle and any(isinstance(op.shape, Circle) and op.shape.reversed_circle for op in original_instructions):
                 outer_circle_op = original_instructions[0]
                 outer_circle = outer_circle_op.shape
                 assert isinstance(outer_circle, Circle)

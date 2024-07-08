@@ -121,7 +121,7 @@ if TYPE_CHECKING:
     from collections.abc import MutableMapping
     from collections.abc import MutableSet
     from collections.abc import Sequence
-    from collections.abc import Set
+    from collections.abc import Set as AbstractSet
 
     from mypy_extensions import Arg
 
@@ -248,60 +248,60 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
         return len(self._delegate)
 
     @overload
-    def __setitem__(self, index: int, object: _T, /) -> None:
+    def __setitem__(self, index: int, value: _T, /) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: slice, object: Iterable[_T], /) -> None:
+    def __setitem__(self, index: slice, value: Iterable[_T], /) -> None:
         ...
 
     @override
-    def __setitem__(self, index: int | slice, object: _T | Iterable[_T], /) -> None:
+    def __setitem__(self, index: int | slice, value: _T | Iterable[_T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
         Args:
             index: The index, or range of indices, of the element(s) to
                 set.
-            object: The new value(s) of the element(s) at `index`.
+            value: The new value(s) of the element(s) at `index`.
 
         Raises:
             IndexError: If the index is out of range.
             ValueError: If this list is frozen.
         """
         if isinstance(self._delegate, MutableSequence):
-            self._delegate[index] = object  # type: ignore[index]
+            self._delegate[index] = value  # type: ignore[index]
         else:
             raise ValueError('Modifying a frozen list') from None
 
     @override
-    def insert(self, index: int, object: _T, /) -> None:
+    def insert(self, index: int, value: _T, /) -> None:
         """Inserts something into this list.
 
         Args:
-            index: The index to insert `object` at in the same manner
-                as `list.insert`.
-            object: The element to insert.
+            index: The index to insert `value` at in the same manner as
+                `list.insert`.
+            value: The element to insert.
 
         Raises:
             ValueError: If this list is frozen.
         """
         if isinstance(self._delegate, MutableSequence):
-            self._delegate.insert(index, object)
+            self._delegate.insert(index, value)
         else:
             raise ValueError('Modifying a frozen list') from None
 
     @override
-    def append(self, object: _T, /) -> None:
+    def append(self, value: _T, /) -> None:
         """Appends something to this list.
 
         Args:
-            object: The element to append.
+            value: The element to append.
 
         Raises:
             ValueError: If this list is frozen.
         """
         if isinstance(self._delegate, MutableSequence):
-            self._delegate.append(object)
+            self._delegate.append(value)
         else:
             raise ValueError('Appending to a frozen list') from None
 
@@ -666,10 +666,10 @@ class Lookup:
             ignores the fact that it is technically possible to disable
             any feature; there are some features that are not *meant* to
             be disabled.
-        reversed: Whether this lookup is reversed. (The only reversed
-            lookup type is the reverse chaining contextual single
-            substitution, but this would cover other reversed lookup
-            types if they existed.)
+        reverse: Whether this lookup is applied in reverse order. (The
+            only reverse lookup type is the reverse chaining contextual
+            single substitution, but this would cover other reverse
+            lookup types if they existed.)
         rules: The list of rules.
     """
 
@@ -681,7 +681,7 @@ class Lookup:
             *,
             flags: int = ...,
             mark_filtering_set: str | None = ...,
-            reversed: bool = ...,
+            reverse: bool = ...,
     ) -> None:
         ...
 
@@ -693,7 +693,7 @@ class Lookup:
             *,
             flags: int = ...,
             mark_filtering_set: str | None = ...,
-            reversed: bool = ...,
+            reverse: bool = ...,
     ) -> None:
         ...
 
@@ -704,7 +704,7 @@ class Lookup:
             *,
             flags: int = 0,
             mark_filtering_set: str | None = None,
-            reversed: bool = False,
+            reverse: bool = False,
     ) -> None:
         """Initializes this `Lookup`.
 
@@ -715,7 +715,7 @@ class Lookup:
                 ``UseMarkFilteringSet`` flag must not be set, even if
                 there is a mark filtering set.
             mark_filtering_set: The ``mark_filtering_set`` attribute.
-            reversed: The ``reversed`` attribute.
+            reverse: The ``reverse`` attribute.
         """
         assert flags & fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET == 0, 'UseMarkFilteringSet is added automatically'
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
@@ -730,13 +730,13 @@ class Lookup:
         self.flags: Final = flags
         self.mark_filtering_set: Final = mark_filtering_set
         self.required: Final = feature in REQUIRED_FEATURES
-        self.reversed: Final = reversed
+        self.reverse: Final = reverse
         self.rules: Final[_FreezableList[Rule]] = _FreezableList()
 
     def get_scripts(
         self,
         classes: Mapping[str, MutableSequence[schema.Schema]],
-    ) -> Set[str]:
+    ) -> AbstractSet[str]:
         """Returns the minimal set of script tags relevant to this
         lookup.
 
@@ -745,7 +745,7 @@ class Lookup:
         """
         def s_to_scripts(
             s: schema.Schema | str,
-        ) -> Set[str]:
+        ) -> AbstractSet[str]:
             if isinstance(s, str):
                 scripts = set()
                 for s_schema in classes[s]:
@@ -755,7 +755,7 @@ class Lookup:
 
         def target_to_scripts(
             target: Sequence[schema.Schema | str] | None,
-        ) -> Set[str]:
+        ) -> AbstractSet[str]:
             scripts = set(KNOWN_SCRIPTS)
             if target:
                 for s in target:
@@ -765,7 +765,7 @@ class Lookup:
 
         def rule_to_scripts(
             rule: Rule,
-        ) -> Set[str]:
+        ) -> AbstractSet[str]:
             scripts = (target_to_scripts(rule.contexts_in)
                 & target_to_scripts(rule.inputs)
                 & target_to_scripts(rule.contexts_out)
@@ -773,12 +773,12 @@ class Lookup:
             assert scripts
             return scripts
 
-        scripts: Set[str] = set()
+        scripts: AbstractSet[str] = set()
         for rule in self.rules:
             scripts |= rule_to_scripts(rule)
         return scripts
 
-    def _get_sorted_scripts(self, features_to_scripts: Mapping[str, Set[str]]) -> Iterable[str]:
+    def _get_sorted_scripts(self, features_to_scripts: Mapping[str, AbstractSet[str]]) -> Iterable[str]:
         """Returns the script tags to use for this lookup.
 
         If this lookup is marked as required, this method validates that
@@ -812,7 +812,7 @@ class Lookup:
     @overload
     def to_asts(
         self,
-        features_to_scripts: Mapping[str, Set[str]],
+        features_to_scripts: Mapping[str, AbstractSet[str]],
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: int,
@@ -821,7 +821,7 @@ class Lookup:
 
     def to_asts(
         self,
-        features_to_scripts: Mapping[str, Set[str]] | None,
+        features_to_scripts: Mapping[str, AbstractSet[str]] | None,
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
         name: str | int,
@@ -875,7 +875,7 @@ class Lookup:
         lookup_block.statements.extend({
                 ast.asFea(): ast
                     for r in self.rules
-                    for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reversed)
+                    for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reverse)
             }.values())
         return asts
 
@@ -913,7 +913,7 @@ class Lookup:
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
         assert self.required == other.required, f'Incompatible required values: {self.required} != {other.required}'
-        assert self.reversed == other.reversed, f'Incompatible reversed values: {self.reversed} != {other.reversed}'
+        assert self.reverse == other.reverse, f'Incompatible reverse values: {self.reverse} != {other.reverse}'
         self.rules.extend(other.rules)
 
 
@@ -1193,7 +1193,7 @@ def run_phases(
             if len(output_lookups) == 1:
                 might_have_feedback = False
                 for rule in (lookup := output_lookups[0]).rules:
-                    if rule.contexts_out if lookup.reversed else rule.contexts_in:
+                    if rule.contexts_out if lookup.reverse else rule.contexts_in:
                         might_have_feedback = True
                         break
             else:

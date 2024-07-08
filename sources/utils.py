@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from collections.abc import KeysView
     from collections.abc import Mapping
     from collections.abc import Sequence
-    from collections.abc import Set
+    from collections.abc import Set as AbstractSet
 
     from _typeshed import SupportsRichComparison
 
@@ -145,7 +145,7 @@ EPSILON: Final[float] = 1e-5
 
 #: The set of code points which should be omitted from the Noto build
 #: for no reason that is otherwise derivable.
-FULL_FONT_CODE_POINTS: Final[Set[int]] = {
+FULL_FONT_CODE_POINTS: Final[AbstractSet[int]] = {
     0x034F,
 }
 
@@ -203,7 +203,7 @@ WIDTH_MARKER_RADIX: Final[int] = 4
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
 
 
-_INITIAL_STAGES: Final[Sequence[Set[str]]] = [
+_INITIAL_STAGES: Final[Sequence[AbstractSet[str]]] = [
     {
         'rvrn',
     },
@@ -215,7 +215,7 @@ _INITIAL_STAGES: Final[Sequence[Set[str]]] = [
 ]
 
 
-_COMMON_DISCRETIONARY_FEATURES: Final[Set[str]] = {
+_COMMON_DISCRETIONARY_FEATURES: Final[AbstractSet[str]] = {
     'afrc',
     'calt',
     'clig',
@@ -242,7 +242,7 @@ _COMMON_DISCRETIONARY_FEATURES: Final[Set[str]] = {
 }
 
 
-_COMMON_REQUIRED_FEATURES: Final[Set[str]] = {
+_COMMON_REQUIRED_FEATURES: Final[AbstractSet[str]] = {
     'abvm',
     'blwm',
     'curs',
@@ -259,7 +259,7 @@ _COMMON_REQUIRED_FEATURES: Final[Set[str]] = {
 #: features like 'dlig' that are meant to be enabled by the user, as
 #: well as features like 'dnom' that may be enabled automatically but
 #: not to all characters.
-DISCRETIONARY_FEATURES: Final[Set[str]] = {
+DISCRETIONARY_FEATURES: Final[AbstractSet[str]] = {
     *_COMMON_DISCRETIONARY_FEATURES,
     'dnom',
     'numr',
@@ -270,7 +270,7 @@ DISCRETIONARY_FEATURES: Final[Set[str]] = {
 #: characters by any shaper that enables them. (This assumes no required
 #: features are disabled by the user, which is technically possible but
 #: not recommended).
-REQUIRED_FEATURES: Final[Set[str]] = {
+REQUIRED_FEATURES: Final[AbstractSet[str]] = {
     *_COMMON_REQUIRED_FEATURES,
     'abvs',
     'blws',
@@ -283,7 +283,7 @@ REQUIRED_FEATURES: Final[Set[str]] = {
 
 
 #: The union of `DISCRETIONARY_FEATURES` and `REQUIRED_FEATURES`.
-KNOWN_FEATURES: Final[Set[str]] = DISCRETIONARY_FEATURES | REQUIRED_FEATURES
+KNOWN_FEATURES: Final[AbstractSet[str]] = DISCRETIONARY_FEATURES | REQUIRED_FEATURES
 
 
 #: A mapping from script tags to their features, organized by shape
@@ -291,7 +291,7 @@ KNOWN_FEATURES: Final[Set[str]] = DISCRETIONARY_FEATURES | REQUIRED_FEATURES
 #: plan is represented as a list of stages, where a stage is a set of
 #: feature tags. All the features in one stage are applied before the
 #: features in the next stage.
-KNOWN_SHAPE_PLANS: Final[Mapping[str, Sequence[Set[str]]]] = {
+KNOWN_SHAPE_PLANS: Final[Mapping[str, Sequence[AbstractSet[str]]]] = {
     'DFLT': [
         *_INITIAL_STAGES,
         {
@@ -332,7 +332,7 @@ KNOWN_SCRIPTS: Final[Iterable[str]] = sorted(KNOWN_SHAPE_PLANS)
 
 
 #: The set of features that should be included in the subsetted font.
-SUBSET_FEATURES: Set[str] = (frozenset(fontTools.subset.Options().layout_features)
+SUBSET_FEATURES: AbstractSet[str] = (frozenset(fontTools.subset.Options().layout_features)
     - {'blwm', 'curs', 'dist', 'rclt'}
     | {'subs', 'sups'}
 )

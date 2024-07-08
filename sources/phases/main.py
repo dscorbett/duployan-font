@@ -139,7 +139,7 @@ def validate_shading(
         'rlig',
         'dflt',
         mark_filtering_set='independent_mark',
-        reversed=True,
+        reverse=True,
     )
     if len(new_schemas) == len(schemas):
         invalid_dtls = next(s for s in schemas if isinstance(s.path, InvalidDTLS))
@@ -388,7 +388,7 @@ def invalidate_overlap_controls(
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     for schema in new_schemas:
         match schema.path:
@@ -712,7 +712,7 @@ def reposition_chinook_jargon_overlap_points(
         'rclt',
         'dflt',
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     line_classes = {}
     for schema in schemas:
@@ -1026,7 +1026,7 @@ def join_with_next_step(
         'rclt',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
+        reverse=True,
     )
     old_input_count = len(classes['i'])
     for schema in new_schemas:
@@ -1173,7 +1173,7 @@ def prepare_for_secondary_diphthong_ligature(
         'rclt',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
+        reverse=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
@@ -1185,7 +1185,7 @@ def prepare_for_secondary_diphthong_ligature(
                 classes['primary_semicircle'].append(schema)
         else:
             assert isinstance(schema.path, Circle)
-            if schema.path.reversed:
+            if schema.path.reversed_circle:
                 classes['reversed_circle'].append(schema)
                 classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
     add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
@@ -1209,7 +1209,7 @@ def join_with_previous(
         'rclt',
         'dflt',
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup_1, lookup_2]
@@ -1301,7 +1301,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
         'rclt',
         'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
-        reversed=True,
+        reverse=True,
     )
     for schema in new_schemas:
         if (schema.glyph_class != GlyphClass.JOINER
@@ -1391,19 +1391,19 @@ def join_with_next(
         'rclt',
         'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
-        reversed=True,
+        reverse=True,
     )
     lookup = Lookup(
         'rclt',
         'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
-        reversed=True,
+        reverse=True,
     )
     post_lookup = Lookup(
         'rclt',
         'dflt',
         mark_filtering_set='continuing_overlap_after_secant',
-        reversed=True,
+        reverse=True,
     )
     contexts_out: OrderedSet[Context] = OrderedSet()
     new_contexts_out = set()
@@ -1470,7 +1470,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
         'rclt',
         'dflt',
         mark_filtering_set='ignored_for_topography',
-        reversed=True,
+        reverse=True,
     )
     contexts_out: OrderedSet[Context] = OrderedSet()
     for schema in new_schemas:
@@ -1508,7 +1508,7 @@ def ligate_diphthongs(
         'rclt',
         'dflt',
         mark_filtering_set='ignored_for_topography',
-        reversed=True,
+        reverse=True,
     )
     diphthong_1_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
     diphthong_2_classes: OrderedSet[tuple[str, bool, bool, str]] = OrderedSet()
@@ -1648,7 +1648,7 @@ def unignore_initial_orienting_sequences(
         'rclt',
         'dflt',
         mark_filtering_set='i',
-        reversed=True,
+        reverse=True,
     )
     contexts_out: OrderedSet[Context] = OrderedSet()
     new_contexts_out = set()
@@ -1727,7 +1727,7 @@ def rotate_diacritics(
         'rlig',
         'dflt',
         mark_filtering_set='all',
-        reversed=True,
+        reverse=True,
     )
     base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
     new_base_anchors_and_contexts = set()

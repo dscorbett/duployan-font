@@ -963,12 +963,12 @@ class Schema:
         """
         match self.path:
             case Circle():
-                return not self.path.reversed
+                return not self.path.reversed_circle
             case Complex():
                 for op in self.path.instructions:
                     match op:
                         case Component(shape=Circle()):
-                            return not op.shape.reversed  # type: ignore[attr-defined]
+                            return not op.shape.reversed_circle  # type: ignore[attr-defined]
                         case Component(shape=Curve()):
                             return not (op.shape.secondary or op.shape.reversed_circle)  # type: ignore[attr-defined]
             case Curve():
