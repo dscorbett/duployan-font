@@ -18,5 +18,5 @@
 fontbakery[notofonts] >= 0.12.6, < 0.12.9
 mypy ~= 1.5
 packaging >= 22
-pip-tools == 7.*
 ruff >= 0.4.9, < 0.5.2
+uv >= 0.2.16

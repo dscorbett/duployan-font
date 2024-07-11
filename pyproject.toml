@@ -56,14 +56,6 @@ module = [
 ]
 disallow_untyped_defs = false
 
-[tool.pip-tools]
-allow-unsafe = true
-emit-index-url = false
-emit-trusted-host = false
-quiet = true
-strip-extras = true
-upgrade = true
-
 [tool.ruff]
 src = [".", "sources"]
 
@@ -164,3 +156,7 @@ max-line-length = 189
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv.pip]
+universal = true
+upgrade = true

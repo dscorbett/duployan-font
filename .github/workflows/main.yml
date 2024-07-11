@@ -121,7 +121,7 @@ jobs:
         id: cache-oldest
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-oldest-${{ hashFiles('get-old-requirements.py', '*constraints.txt', '*requirements.in') }}
+          key: ${{ runner.os }}-oldest-${{ hashFiles('*constraints.txt', '*requirements.in') }}
           path: |
             dev-requirements.txt
             requirements.txt
@@ -130,10 +130,9 @@ jobs:
         run: |
           python -m venv oldest-venv
           . oldest-venv/bin/activate
-          pip install packaging==22
-          PYTHONUNBUFFERED=1 ./get-old-requirements.py --input dev-requirements.in --output dev-requirements.txt
-          PYTHONUNBUFFERED=1 ./get-old-requirements.py --input requirements.in --output requirements.txt
-          tail -n +1 dev-requirements.txt requirements.txt
+          pip install uv==0.2.16
+          uv pip compile --resolution lowest -o dev-requirements.txt dev-requirements.in
+          uv pip compile --resolution lowest -o requirements.txt requirements.in
       - name: Prepare newest requirements
         if: matrix.requirements == 'newest'
         run: |

@@ -119,11 +119,11 @@ fontbakery: $(addprefix fontbakery-,$(SUFFIXES))
 
 .PHONY: mypy
 mypy:
-	mypy get-old-requirements.py sources tests
+	mypy sources tests
 
 .PHONY: ruff
 ruff:
-	ruff check get-old-requirements.py sources tests
+	ruff check sources tests
 
 .PHONY: check
 check: check-shaping check-subset fontbakery mypy ruff
@@ -152,6 +152,6 @@ hb-shape hb-view: hb-%: .hb/harfbuzz-$(HB_VERSION)/util/hb-%
 
 .PHONY: $(patsubst %.in,%.txt,$(wildcard *requirements.in))
 $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
-	pip-compile $<
-	printf '%s\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
+	uv pip compile $< >$@
+	printf '%s\n#\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
 	-git --no-pager diff $@
