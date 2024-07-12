@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[project]
-requires-python = ">= 3.11"
-
 [tool.mypy]
 enable_error_code = [
     "explicit-override",
@@ -58,6 +55,7 @@ disallow_untyped_defs = false
 
 [tool.ruff]
 src = [".", "sources"]
+target-version = "py311"
 
 [tool.ruff.lint]
 allowed-confusables = [

@@ -123,7 +123,7 @@ mypy:
 
 .PHONY: ruff
 ruff:
-	ruff check sources tests
+	ruff check pyproject.toml sources tests
 
 .PHONY: check
 check: check-shaping check-subset fontbakery mypy ruff
