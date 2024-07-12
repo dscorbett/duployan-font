@@ -20,6 +20,7 @@ from collections.abc import Generator
 import difflib
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -123,7 +124,7 @@ def print_diff(
 def run_test(
     font: str,
     line: str,
-    png_file: str,
+    png_path_prefix: Path,
     color: bool,
     incomplete: bool,
     view_all: bool,
@@ -159,8 +160,7 @@ def run_test(
         if not passed:
             print_diff(code_points, options, actual_output, expected_output, color)
         if not CI:
-            os.makedirs(os.path.dirname(png_file), exist_ok=True)
-            png_file = '{}-{}.png'.format(png_file, code_points.replace(' ', '-'))
+            png_path_prefix.parent.mkdir(parents=True, exist_ok=True)
             p = subprocess.Popen(
                 [
                     'hb-view',
@@ -172,7 +172,7 @@ def run_test(
                     f'E000 {code_points} E000',
                     '--remove-default-ignorables',
                     '-o',
-                    png_file,
+                    f'{png_path_prefix}-{code_points.replace(" ", "-")}.png',
                     '-O',
                     'png',
                     '--margin',
@@ -199,23 +199,24 @@ if __name__ == '__main__':
     )
     parser.add_argument('--view', action='store_true', help='Render all test cases, not just the failures.')
     parser.add_argument('font', help='The path to a font.')
-    parser.add_argument('tests', nargs='*', help='The paths to test files.')
+    parser.add_argument('tests', nargs='*', type=Path, help='The paths to test files.')
     args = parser.parse_args()
     color = parse_color(args.color.lower())
     passed_all = True
-    failed_dir = os.path.join(os.path.dirname(sys.argv[0]), 'failed', os.path.basename(args.font))
-    os.makedirs(failed_dir, exist_ok=True)
+    failed_dir = Path(sys.argv[0]).parent / 'failed' / Path(args.font).name
+    failed_dir.mkdir(parents=True, exist_ok=True)
     for fn in args.tests:
+        assert isinstance(fn, Path)
         result_lines = []
         passed_file = True
-        with open(fn, encoding='utf-8') as f:
+        with fn.open(encoding='utf-8') as f:
             for line_number, line in enumerate(f, start=1):
                 line = line.rstrip()
                 if line and line[0] != '#':
                     passed_line, result_line = run_test(
                         args.font,
                         line,
-                        os.path.join(failed_dir, 'png', os.path.basename(fn), f'{line_number:03}'),
+                        failed_dir / 'png' / fn.name / f'{line_number:03}',
                         color,
                         args.incomplete,
                         args.view,
@@ -225,7 +226,7 @@ if __name__ == '__main__':
                 else:
                     result_lines.append(line + '\n')
         if not passed_file:
-            with open(os.path.join(failed_dir, os.path.basename(fn)), 'w', encoding='utf-8') as f:
+            with (failed_dir / fn.name).open('w', encoding='utf-8') as f:
                 f.writelines(result_lines)
         passed_all = passed_all and passed_file
     if not passed_all:

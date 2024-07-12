@@ -21,6 +21,7 @@ from collections.abc import Collection
 import datetime
 import hashlib
 import os
+from pathlib import Path
 import re
 import subprocess
 
@@ -69,7 +70,7 @@ def build_font(
     font.correctReferences()
     font.selection.none()
     flags = ['no-hints', 'omit-instructions', 'opentype']
-    os.makedirs(os.path.dirname(os.path.realpath(options.output)), exist_ok=True)
+    Path(options.output).resolve().parent.mkdir(parents=True, exist_ok=True)
     font.generate(options.output, flags=flags)
 
 
