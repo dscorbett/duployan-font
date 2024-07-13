@@ -87,7 +87,6 @@ modules in this package.
 from __future__ import annotations
 
 import collections
-from collections.abc import MutableSequence
 import functools
 import itertools
 from typing import Final
@@ -116,13 +115,16 @@ from utils import REQUIRED_FEATURES
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Iterable
-    from collections.abc import Iterator
     from collections.abc import Mapping
     from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
     from collections.abc import MutableSet
     from collections.abc import Sequence
     from collections.abc import Set as AbstractSet
+    from typing import Self
+    from typing import SupportsIndex
 
+    from _typeshed import SupportsRichComparison
     from mypy_extensions import Arg
 
     from duployan import Builder
@@ -162,39 +164,21 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class _FreezableList(MutableSequence[_T], Generic[_T]):
+class _FreezableList(list[_T], Generic[_T]):
     """A list that can be frozen, making it immutable.
-
-    This is not a `list` in the Python sense, but it is analogous.
     """
 
-    def __init__(self) -> None:
-        self._delegate: Sequence[_T] = []
+    def __init__(self, iterable: Sequence[_T] = (), /) -> None:
+        super().__init__(iterable)
+        self._frozen: bool = False
 
     def freeze(self) -> None:
         """Makes this list immutable.
         """
-        self._delegate = tuple(self._delegate)
+        self._frozen = True
 
     @override
-    def __contains__(self, key: object, /) -> bool:
-        """Returns whether this list contains an object.
-
-        Args:
-            key: An object to search for.
-        """
-        return key in self._delegate
-
-    @overload
-    def __delitem__(self, index: int, /) -> None:
-        ...
-
-    @overload
-    def __delitem__(self, index: slice, /) -> None:
-        ...
-
-    @override
-    def __delitem__(self, index: int | slice, /) -> None:
+    def __delitem__(self, index: SupportsIndex | slice, /) -> None:
         """Deletes the element(s) at an index or range of indices.
 
         Args:
@@ -205,50 +189,12 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
             IndexError: If `index` is out of range.
             ValueError: If this list is frozen.
         """
-        if isinstance(self._delegate, MutableSequence):
-            del self._delegate[index]
-        else:
-            raise ValueError('Modifying a frozen list') from None
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().__delitem__(index)
 
     @overload
-    def __getitem__(self, index: int, /) -> _T:
-        ...
-
-    @overload
-    def __getitem__(self, index: slice, /) -> MutableSequence[_T]:
-        ...
-
-    @override
-    def __getitem__(self, index: int | slice, /) -> _T | MutableSequence[_T]:
-        """Returns the element(s) at an index or range of indices.
-
-        Args:
-            index: The index, or range of indices, of the element(s) to
-                return.
-
-        Raises:
-            IndexError: If `index` is out of range.
-        """
-        match index:
-            case int():
-                return self._delegate[index]
-            case slice():
-                return self._delegate[index] if isinstance(self._delegate, MutableSequence) else [*self._delegate[index]]
-
-    @override
-    def __iter__(self) -> Iterator[_T]:
-        """Returns an iterator over this list.
-        """
-        return iter(self._delegate)
-
-    @override
-    def __len__(self) -> int:
-        """Returns the length of this list.
-        """
-        return len(self._delegate)
-
-    @overload
-    def __setitem__(self, index: int, value: _T, /) -> None:
+    def __setitem__(self, index: SupportsIndex, value: _T, /) -> None:
         ...
 
     @overload
@@ -256,7 +202,7 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
         ...
 
     @override
-    def __setitem__(self, index: int | slice, value: _T | Iterable[_T], /) -> None:
+    def __setitem__(self, index: SupportsIndex | slice, value: _T | Iterable[_T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
         Args:
@@ -268,13 +214,12 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
             IndexError: If the index is out of range.
             ValueError: If this list is frozen.
         """
-        if isinstance(self._delegate, MutableSequence):
-            self._delegate[index] = value  # type: ignore[index]
-        else:
-            raise ValueError('Modifying a frozen list') from None
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().__setitem__(index, value)  # type: ignore[assignment, index]
 
     @override
-    def insert(self, index: int, value: _T, /) -> None:
+    def insert(self, index: SupportsIndex, value: _T, /) -> None:
         """Inserts something into this list.
 
         Args:
@@ -285,10 +230,9 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
         Raises:
             ValueError: If this list is frozen.
         """
-        if isinstance(self._delegate, MutableSequence):
-            self._delegate.insert(index, value)
-        else:
-            raise ValueError('Modifying a frozen list') from None
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().insert(index, value)
 
     @override
     def append(self, value: _T, /) -> None:
@@ -300,10 +244,36 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
         Raises:
             ValueError: If this list is frozen.
         """
-        if isinstance(self._delegate, MutableSequence):
-            self._delegate.append(value)
-        else:
-            raise ValueError('Appending to a frozen list') from None
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().append(value)
+
+    @override
+    def clear(self, /) -> None:
+        """Removes all elements from this list.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().clear()
+
+    @override
+    def __iadd__(self, iterable: Iterable[_T], /) -> Self:  # type: ignore[override]
+        """Extends this list.
+
+        Args:
+            iterable: The iterable containing the elements to append to
+                this list.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().__iadd__(iterable)
+        return self
 
     @override
     def extend(self, iterable: Iterable[_T], /) -> None:
@@ -316,10 +286,79 @@ class _FreezableList(MutableSequence[_T], Generic[_T]):
         Raises:
             ValueError: If this list is frozen.
         """
-        if isinstance(self._delegate, MutableSequence):
-            self._delegate.extend(iterable)
-        else:
-            raise ValueError('Extending a frozen list') from None
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().extend(iterable)
+
+    @override
+    def __imul__(self, value: SupportsIndex, /) -> Self:
+        """Updates this list with its contents repeated.
+
+        Args:
+            value: How many times to repeat this list’s elements.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        return super().__imul__(value)
+
+    @override
+    def pop(self, index: SupportsIndex = -1, /) -> _T:
+        """"Returns the element at an index and removes it from this
+        list.
+
+        Args:
+            index: The index of the element to return.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        return super().pop(index)
+
+    @override
+    def remove(self, value: _T, /) -> None:
+        """Removes an element from this list.
+
+        Args:
+            value: The element to remove.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        return super().remove(value)
+
+    @override
+    def reverse(self) -> None:
+        """Reverses this list in place.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        return super().reverse()
+
+    @override
+    def sort(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> None:
+        """Sorts this list in place.
+
+        Args:
+            key: A function to apply to each element to get its sort
+                key, or ``None`` for the identity function.
+            reverse: Whether to sort in descending order.
+
+        Raises:
+            ValueError: If this list is frozen.
+        """
+        if self._frozen:
+            raise ValueError('Modifying a frozen list')
+        super().sort(key=key, reverse=reverse)
 
 
 class Rule:

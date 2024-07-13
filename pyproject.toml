@@ -99,7 +99,6 @@ ignore = [
     "PLW2901",  # https://github.com/astral-sh/ruff/issues/7273
     "S310",  # https://github.com/astral-sh/ruff/issues/12245
     "SLF001",  # https://github.com/astral-sh/ruff/issues/9022
-    "TRY004",  # https://github.com/astral-sh/ruff/issues/12287
     # Too many true positives
     "C901",
     "D1",
