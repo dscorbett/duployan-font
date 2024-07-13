@@ -1727,15 +1727,12 @@ def rotate_diacritics(
         'rlig',
         'dflt',
         mark_filtering_set='all',
-        reverse=True,
     )
     base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
     new_base_anchors_and_contexts = set()
-    for schema in original_schemas:
+    for schema in new_schemas:
         if schema.anchor:
-            if (schema.joining_type == Type.ORIENTING
-                    and schema.base_angle is None
-                    and schema in new_schemas):
+            if schema.base_angle is None and schema.joining_type == Type.ORIENTING:
                 classes['all'].append(schema)
                 classes[f'i_{schema.anchor}'].append(schema)
         elif not schema.ignored_for_topography:

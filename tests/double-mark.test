@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2022-2023 David Corbett
+# Copyright 2022-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@
 1BC1C 1BC9E 1BC9E 1BC9E::[u1BC1C.s@0,0|u1BC9E_u1BC9E_u1BC9E_.double__double__double.90@248,-113|_@960,0]
 
 # Skipping other marks
+1BC4E 1BC9E::[u1BC47.e@0,0|dupl_.Line.0.rel2@12,-154|u1BC9E_.double.90@100,-112|_@440,0]
 1BC1C 1BC9D 1BC9E::[u1BC1C_u1BC9D.S@0,0|u1BC9E_.double.90@385,-87|_@1010,0]
 
 # Too many double marks
