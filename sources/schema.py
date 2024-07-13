@@ -23,7 +23,6 @@ from collections.abc import Mapping
 import enum
 import functools
 import re
-from typing import Any
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
@@ -72,7 +71,6 @@ if TYPE_CHECKING:
     from collections.abc import MutableSequence
     from collections.abc import Sequence
 
-    from _typeshed import SupportsDunderLT
     from _typeshed import SupportsRichComparison
     import fontforge
 
@@ -449,36 +447,6 @@ class Schema:
         self._lookalike_group: Collection[Schema] = [self]
         self.glyph: fontforge.glyph | None = None
 
-    class _LazySortable:
-        """A lazy wrapper for a sortable value.
-        """
-
-        def __init__(self, thunk: Callable[[], SupportsDunderLT[Any]]) -> None:
-            """Initializes this `_LazySortable`.
-
-            Args:
-                thunk: The callable that produces a sortable value. This
-                    `_LazySortable` will call it at most once.
-            """
-            self._thunk: Final = thunk
-            self._value: SupportsDunderLT[Any] | None = None
-
-        def __lt__(self, other: object) -> bool:
-            """Returns whether this `_LazySortable`’s value is less than
-            another’s.
-
-            Args:
-                other: A `_LazySortable` whose value is comparable to
-                    this one’s.
-            """
-            if not isinstance(other, Schema._LazySortable):
-                return NotImplemented
-            if self._value is None:
-                self._value = self._thunk()
-            if other._value is None:
-                other._value = other._thunk()
-            return self._value < other._value
-
     def sort_key(self) -> SupportsRichComparison:
         """Returns a sortable key representing this schema.
 
@@ -498,7 +466,6 @@ class Schema:
             len(self.cps),
             not isinstance(self.path, self.original_shape),
             self.cps,
-            Schema._LazySortable(lambda: len(self._calculate_name())),
         )
 
     def glyph_id_sort_key(self) -> SupportsRichComparison:
