@@ -402,7 +402,7 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0xEC1B, j_reverse, 6, maximum_tree_width=MAX_TREE_WIDTH),
         Schema(0xEC1C, s_reverse, 6, maximum_tree_width=MAX_TREE_WIDTH),
         Schema(0xEC9A, chinook_period_double_stroke, 1, Type.NON_JOINING, y_min=chinook_period_y_min),
-        Schema(0x1BC00, h, 0, shading_allowed=False),
+        Schema(0x1BC00, h, 0),
         Schema(0x1BC01, x, 0.75, shading_allowed=False),
         Schema(0x1BC02, p, 1, Type.ORIENTING),
         Schema(0x1BC03, t, 1, Type.ORIENTING),
