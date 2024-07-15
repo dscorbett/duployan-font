@@ -12,6 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+[tool.coverage.run]
+branch = true
+parallel = true
+relative_files = true
+
+[tool.coverage.report]
+exclude_also = [
+    "#[\t ]*type:[\t ]*ignore[\t\\v\f ]*\\[([^]#]*,)?\\s*unreachable\\s*(,[^]#]*)?\\]\\s*(#.*)?$",
+    "^[\t\f ]*@overload$",
+    "^[\t\f ]*assert False(,|$)",
+    "^[\t\f ]*case _:(\r\n?|\n)[\t\f ]*((#.*)?(\r\n?|\n)[\t\f ]*)*raise ValueError\\b",
+    "^[\t\f ]*def __repr__\\(",
+    "^[\t\f ]*if TYPE_CHECKING:",
+    "^[\t\f ]*raise NotImplementedError\\b",
+    "^[\t\f ]*raise ValueError\\b",
+]
+fail_under = 91
+
 [tool.mypy]
 enable_error_code = [
     "explicit-override",

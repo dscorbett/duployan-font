@@ -73,10 +73,7 @@ class Grouper(Generic[_T]):
 
     def remove_items(self, minuend: _Group[_T], subtrahend: Collection[_T]) -> None:
         for item in subtrahend:
-            try:
-                self.remove_item(minuend, item)
-            except ValueError:
-                pass
+            self.remove_item(minuend, item)
 
 
 def group_schemas(schemas: Collection[Schema]) -> Grouper[Schema]:

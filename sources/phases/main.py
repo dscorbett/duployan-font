@@ -263,8 +263,6 @@ def validate_overlap_controls(
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            return [lookup]
         if isinstance(schema.path, InvalidOverlap):
             if schema.path.continuing:
                 continuing_overlap = schema
@@ -314,8 +312,6 @@ def add_parent_edges(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('blwm', 'dflt')
-    if len(original_schemas) != len(schemas):
-        return [lookup]
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
@@ -406,10 +402,7 @@ def invalidate_overlap_controls(
             case InvalidOverlap(continuing=True):
                 invalid_continuing_overlap = schema
             case InvalidOverlap():
-                if schema.path.continuing:
-                    invalid_continuing_overlap = schema
-                else:
-                    invalid_letter_overlap = schema
+                invalid_letter_overlap = schema
     classes['valid'].append(valid_letter_overlap)
     classes['valid'].append(valid_continuing_overlap)
     classes['invalid'].append(invalid_letter_overlap)
@@ -645,8 +638,6 @@ def promote_final_letter_overlap_to_continuing_overlap(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('rclt', 'dflt')
-    if len(original_schemas) != len(schemas):
-        return [lookup]
     for schema in new_schemas:
         match schema.path:
             case ChildEdge():
@@ -1006,10 +997,9 @@ def disjoin_grammalogues(
     for child in [
         less_than_sign,
     ]:
-        if isinstance(child, Schema):
-            add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
-            add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
-            add_rule(lookup, Rule([child], [child, zwnj]))
+        add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
+        add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
+        add_rule(lookup, Rule([child], [child, zwnj]))
     return [lookup]
 
 
@@ -1037,14 +1027,14 @@ def join_with_next_step(
             elif schema.path.angle == 270:
                 classes['i_down'].append(schema)
             else:
-                assert False, f'Unsupported step angle: {schema.path.angle}'
+                raise ValueError(f'Unsupported step angle: {schema.path.angle}')
         if isinstance(schema.path, Space) and schema.hub_priority == 0:
             if schema.path.angle == 90:
                 classes['c_up'].append(schema)
             elif schema.path.angle == 270:
                 classes['c_down'].append(schema)
             else:
-                assert False, f'Unsupported step angle: {schema.path.angle}'
+                raise ValueError(f'Unsupported step angle: {schema.path.angle}')
         elif schema.glyph_class == GlyphClass.JOINER:
             classes['c'].append(schema)
     new_context = 'o' not in classes
@@ -1257,8 +1247,6 @@ def unignore_last_orienting_glyph_in_initial_sequence(
         'dflt',
         mark_filtering_set='i',
     )
-    if 'check_previous' in named_lookups:
-        return [lookup]
     for schema in new_schemas:
         if schema.ignored_for_topography:
             classes['i'].append(schema)
@@ -1775,21 +1763,20 @@ def shade(
     )
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
     classes['independent_mark'].append(dtls)
-    if new_schemas:
-        for schema in new_schemas:
-            if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
-                if schema.cmap is not None:
-                    classes['independent_mark'].append(schema)
-            elif (schema in original_schemas
-                and not schema.ignored_for_topography
-                and schema.shading_allowed
-                and schema.path.is_shadable()
-            ):
-                classes['i'].append(schema)
-                classes['o'].append(schema.clone(cmap=None, cps=[*schema.cps, *dtls.cps]))
-                if schema.glyph_class == GlyphClass.MARK:
-                    classes['independent_mark'].append(schema)
-        add_rule(lookup, Rule(['i', dtls], 'o'))
+    for schema in new_schemas:
+        if schema.anchor and not (isinstance(schema.path, Line) and schema.path.secant):
+            if schema.cmap is not None:
+                classes['independent_mark'].append(schema)
+        elif (schema in original_schemas
+            and not schema.ignored_for_topography
+            and schema.shading_allowed
+            and schema.path.is_shadable()
+        ):
+            classes['i'].append(schema)
+            classes['o'].append(schema.clone(cmap=None, cps=[*schema.cps, *dtls.cps]))
+            if schema.glyph_class == GlyphClass.MARK:
+                classes['independent_mark'].append(schema)
+    add_rule(lookup, Rule(['i', dtls], 'o'))
     return [lookup]
 
 

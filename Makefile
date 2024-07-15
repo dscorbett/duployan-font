@@ -38,7 +38,10 @@ INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
 
-BUILD = PYTHONPATH="sources:$(PYTHONPATH)" sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
+ifdef COVERAGE
+	override COVERAGE = coverage run
+endif
+BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
 
@@ -74,9 +77,12 @@ dummy-%: ;
 
 $(FONTS): $(INTERMEDIATE_FONTS)
 	mkdir -p "$$(dirname "$@")"
-	sources/copy_metrics.py --text $(TALL_TEXT) $@ $(INTERMEDIATE_PREFIX)$@ $(filter-out $(INTERMEDIATE_PREFIX)$@,$^)
+	$(COVERAGE) sources/copy_metrics.py --text $(TALL_TEXT) $@ $(INTERMEDIATE_PREFIX)$@ $(filter-out $(INTERMEDIATE_PREFIX)$@,$^)
 
 %.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
+ifdef COVERAGE
+	coverage erase
+endif
 	$(BUILD) $(BOLD_ARG) --fea <($(UNIFDEF) $<) --output $@
 
 %-Bold.otf: BOLD_ARG=--bold
@@ -93,8 +99,19 @@ $(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_
 	$(MAKE_TTF)
 
 .PHONY: clean
-clean:
-	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed
+clean: clean-coverage
+	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed coverage.json coverage.lcov coverage.xml htmlcov $(shell find . -name '*,cover')
+
+.PHONY: clean-coverage
+clean-coverage:
+	coverage erase
+
+.coverage: $(if $(COVERAGE),$(FONTS))
+	coverage combine$(if $(COVERAGE),,; test $$? -le 1)
+
+.PHONY: check-coverage
+check-coverage: .coverage
+	coverage report$(if $(COVERAGE),,; test $$? -le 1)
 
 .PHONY: $(addprefix check-,$(FONTS))
 $(addprefix check-,$(FONTS)): check-%: %
@@ -126,7 +143,7 @@ ruff:
 	ruff check pyproject.toml sources tests
 
 .PHONY: check
-check: check-shaping check-subset fontbakery mypy ruff
+check: check-shaping check-subset fontbakery mypy ruff $(if $(COVERAGE),check-coverage)
 
 .hb:
 ifndef HB_VERSION

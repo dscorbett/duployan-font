@@ -149,10 +149,10 @@ jobs:
       - name: Build
         run: |
           . build-venv/bin/activate
-          make -B -j "NOTO=${{ matrix.noto }}"
+          make -B -j COVERAGE=${{ matrix.noto == '' && matrix.requirements != 'oldest' && matrix.skip-check == '' && 'true' || '' }} "NOTO=${{ matrix.noto }}"
       - name: Test
         if: matrix.skip-check == ''
-        run: make -j "NOTO=${{ matrix.noto }}" check
+        run: make -j COVERAGE=${{ matrix.noto == '' && matrix.requirements != 'oldest' && matrix.skip-check == '' && 'true' || '' }} "NOTO=${{ matrix.noto }}" check
       - name: Determine whether to push the fonts or upload them
         id: push-or-upload
         run: |

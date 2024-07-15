@@ -1,4 +1,4 @@
-# Copyright 2018-2019 David Corbett
+# Copyright 2018-2019, 2024 David Corbett
 # Copyright 2021-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,14 @@
 /.hb/
 /tests/failed/
 /*venv*/
+htmlcov/
 .DS_Store
+.coverage
+.coverage.*
+coverage.json
+coverage.lcov
+coverage.xml
+*,cover
 *.otf
 *.pdf
 *.png

@@ -112,7 +112,7 @@ def print_diff(
                 highlighted_actual_output.append(f'\x1B[1;96m{actual_output[i1:i2]}\x1B[0m')
                 highlighted_expected_output.append(f'\x1B[1;93m{expected_output[j1:j2]}\x1B[0m')
             else:
-                assert False, f'Unknown tag: {tag}'
+                raise ValueError(f'Unknown tag: {tag}')
         actual_output = ''.join(highlighted_actual_output)
         expected_output = ''.join(highlighted_expected_output)
     print()

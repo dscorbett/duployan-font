@@ -3677,14 +3677,6 @@ class InvalidDTLS(Complex):
     """
 
     @override
-    def context_in(self) -> Context:
-        return NO_CONTEXT
-
-    @override
-    def context_out(self) -> Context:
-        return NO_CONTEXT
-
-    @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.BLOCKER
 
@@ -3769,14 +3761,6 @@ class InvalidStep(Complex):
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         return Space(self.angle, margins=True)
-
-    @override
-    def context_in(self) -> Context:
-        return NO_CONTEXT
-
-    @override
-    def context_out(self) -> Context:
-        return NO_CONTEXT
 
 
 class RomanianU(Complex):

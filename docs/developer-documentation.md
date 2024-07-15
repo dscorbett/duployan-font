@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2022-2023 David Corbett
+Copyright 2022-2024 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -62,6 +62,9 @@ make NOTO=1 check
 ```
 
 `STYLES` and `SUFFIXES` are also respected here.
+
+To measure coverage and check that it is above the target percentage,
+add `COVERAGE=1` to both make commands for building and testing.
 
 ## Understanding the code
 

@@ -106,8 +106,7 @@ def add_shims_for_pseudo_cursive(
     exit_schemas = []
     entry_schemas = []
     for schema in new_schemas:
-        if schema.glyph is None:
-            continue
+        assert schema.glyph is not None
         if schema.glyph_class != GlyphClass.JOINER:
             if schema.glyph_class == GlyphClass.MARK:
                 if schema.path.invisible():

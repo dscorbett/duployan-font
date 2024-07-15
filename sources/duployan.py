@@ -439,7 +439,7 @@ class Builder:
                     case 'exit':
                         cursive_positions[anchor_class_name][glyph_name][1] = fontTools.feaLib.ast.Anchor(x, y)
                     case _:
-                        raise RuntimeError(f'Unknown anchor type: {anchor_type}')
+                        raise ValueError(f'Unknown anchor type: {anchor_type}')
         for anchor_class_name, lookup in self._anchors.items():
             mark_class = fontTools.feaLib.ast.MarkClass(anchor_class_name)
             for x_y, glyph_class in mark_positions[anchor_class_name].items():

@@ -53,6 +53,8 @@ colorama==0.4.6 ; platform_system == 'Windows'
     # via tqdm
 commandlines==0.4.1
     # via ufolint
+coverage==7.6.0
+    # via -r dev-requirements.in
 defcon==0.10.3
     # via
     #   -c dev-constraints.txt

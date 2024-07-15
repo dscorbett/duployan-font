@@ -15,6 +15,7 @@
 
 -c dev-constraints.txt
 -r requirements.in
+coverage ~= 7.6
 fontbakery[notofonts] >= 0.12.6, < 0.12.9
 mypy ~= 1.5
 packaging >= 22
