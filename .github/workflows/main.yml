@@ -19,26 +19,23 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: 8.1.0
   PYTHON_VERSION: 3.11
 jobs:
   main:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        noto:
-          - ''
-        requirements:
-          - frozen
-          - oldest
-          - newest
-        skip-check:
-          - ''
         include:
+          - requirements: default
+            harfbuzz-version: 9.0.0
+          - requirements: oldest
+            harfbuzz-version: 8.1.0
+          - requirements: newest
+            harfbuzz-version: 9.0.0
           - noto: Noto
-            requirements: frozen
-          - requirements: frozen
-            skip-check: skip-check
+            harfbuzz-version: 9.0.0
+          - skip-check: skip-check
+            harfbuzz-version: 9.0.0
     steps:
       - uses: actions/checkout@v4
       - name: Select the setup-python cache
@@ -105,14 +102,17 @@ jobs:
         id: cache-harfbuzz
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}
-          path: .hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}
+          key: ${{ runner.os }}-harfbuzz-${{ matrix.harfbuzz-version }}
+          path: .hb/harfbuzz-${{ matrix.harfbuzz-version }}
       - name: Install HarfBuzz
         if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.skip-check == ''
-        run: make HB_VERSION=${{ env.HARFBUZZ_VERSION }} hb-shape
+        run: |
+          sudo apt-get update
+          sudo apt-get -qy --no-install-recommends install meson
+          make HB_VERSION=${{ matrix.harfbuzz-version }} hb-shape
       - name: Add HarfBuzz to path
         if: matrix.skip-check == ''
-        run: echo "$PWD/.hb/harfbuzz-${{ env.HARFBUZZ_VERSION }}/util" >>"$GITHUB_PATH"
+        run: echo "$PWD/.hb/harfbuzz-${{ matrix.harfbuzz-version }}/build/util" >>"$GITHUB_PATH"
       - name: Install unifdef
         run: |
           sudo apt-get -qy --no-install-recommends install unifdef

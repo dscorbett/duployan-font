@@ -33,10 +33,13 @@ endif
 VALID_SUFFIXES = otf ttf
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
+HB_VERSION = 9.0.0
+
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
+HB_PROGRAMS = hb-shape hb-view
 
 ifdef COVERAGE
 	override COVERAGE = coverage run
@@ -146,26 +149,23 @@ ruff:
 check: check-shaping check-subset fontbakery mypy ruff $(if $(COVERAGE),check-coverage)
 
 .hb:
-ifndef HB_VERSION
-	$(error HB_VERSION must be set)
-endif
 	mkdir -p .hb
 
-.hb/harfbuzz-$(HB_VERSION): .hb
+.hb/harfbuzz-%/build: .hb
 	cd $< && \
-	curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$(HB_VERSION)/harfbuzz-$(HB_VERSION).tar.xz \
-	| tar -xJ
+	if [ ! -d harfbuzz-$* ]; then \
+		curl -L https://github.com/harfbuzz/harfbuzz/releases/download/$*/harfbuzz-$*.tar.xz \
+		| tar -xJ; \
+	fi && \
+	cd harfbuzz-$* && \
+	meson setup build -Dchafa=disabled -Dgobject=disabled -Dtests=disabled && \
+	ninja -C build
 
-.hb/harfbuzz-$(HB_VERSION)/util/Makefile: .hb/harfbuzz-$(HB_VERSION)
-	cd $< && \
-	./configure
-	touch -c $@
+$(addprefix .hb/harfbuzz-$(HB_VERSION)/build/util/,$(HB_PROGRAMS)):
+	$(MAKE) -B .hb/harfbuzz-$(HB_VERSION)/build
 
-.hb/harfbuzz-$(HB_VERSION)/util/hb-%: .hb/harfbuzz-$(HB_VERSION)/util/Makefile
-	$(MAKE) -C $$(dirname $<) lib $$(basename $@)
-
-.PHONY: hb-shape hb-view
-hb-shape hb-view: hb-%: .hb/harfbuzz-$(HB_VERSION)/util/hb-%
+.PHONY: $(HB_PROGRAMS)
+$(HB_PROGRAMS): %: .hb/harfbuzz-$(HB_VERSION)/build/util/%
 
 .PHONY: $(patsubst %.in,%.txt,$(wildcard *requirements.in))
 $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
