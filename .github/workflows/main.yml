@@ -26,25 +26,28 @@ jobs:
     strategy:
       matrix:
         include:
-          - requirements: default
+          - build-venv: dev
             harfbuzz-version: 9.0.0
-          - requirements: oldest
+          - build-venv: dev
+            requirements: oldest
             harfbuzz-version: 8.1.0
-          - requirements: newest
+          - build-venv: dev
+            requirements: newest
             harfbuzz-version: 9.0.0
-          - noto: Noto
+          - build-venv: build
+            noto: Noto
             harfbuzz-version: 9.0.0
-          - skip-check: skip-check
+          - build-venv: build
             harfbuzz-version: 9.0.0
-          - coverage: coverage
-            skip-check: skip-check
+          - build-venv: dev
+            coverage: coverage
             harfbuzz-version: 9.0.0
     steps:
       - uses: actions/checkout@v4
       - name: Select the setup-python cache
         run: |
           echo '# ${{ matrix.requirements }}' >>dev-requirements.txt
-          echo '# ${{ matrix.skip-check }}' >>dev-requirements.txt
+          echo '# ${{ matrix.build-venv }}' >>dev-requirements.txt
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -101,20 +104,20 @@ jobs:
       - name: Add site-packages to default search path
         run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Cache HarfBuzz
-        if: matrix.skip-check == ''
+        if: matrix.coverage == ''
         id: cache-harfbuzz
         uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-harfbuzz-${{ matrix.harfbuzz-version }}
           path: .hb/harfbuzz-${{ matrix.harfbuzz-version }}
       - name: Install HarfBuzz
-        if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.skip-check == ''
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.coverage == ''
         run: |
           sudo apt-get update
           sudo apt-get -qy --no-install-recommends install meson
           make HB_VERSION=${{ matrix.harfbuzz-version }} hb-shape
       - name: Add HarfBuzz to path
-        if: matrix.skip-check == ''
+        if: matrix.coverage == ''
         run: echo "$PWD/.hb/harfbuzz-${{ matrix.harfbuzz-version }}/build/util" >>"$GITHUB_PATH"
       - name: Install unifdef
         run: |
@@ -124,7 +127,7 @@ jobs:
         run: |
           python -m venv oldest-venv
           . oldest-venv/bin/activate
-          pip install uv==0.2.16
+          pip install uv=="$(grep -o '^uv *[=>~]= *[^ ,]*' dev-requirements.in | grep -o '[^ ]*$')"
           uv pip compile --resolution lowest -o dev-requirements.txt dev-requirements.in
           uv pip compile --resolution lowest -o requirements.txt requirements.in
       - name: Prepare newest requirements
@@ -132,33 +135,43 @@ jobs:
         run: |
           cp dev-requirements.in dev-requirements.txt
           cp requirements.in requirements.txt
+      - name: Make a virtual environment
+        run: python -m venv dev-venv
       - name: Install dev requirements
-        if: matrix.coverage != '' || matrix.skip-check == ''
-        run: pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
-      - name: Test updating the requirements files
-        if: matrix.skip-check == ''
         run: |
+          . dev-venv/bin/activate
+          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
+      - name: Test updating the requirements files
+        if: matrix.coverage == ''
+        run: |
+          . dev-venv/bin/activate
           mv dev-requirements.txt dev-requirements.txt.bak
           mv requirements.txt requirements.txt.bak
           make -j dev-requirements.txt requirements.txt
           mv dev-requirements.txt.bak dev-requirements.txt
           mv requirements.txt.bak requirements.txt
       - name: Make a virtual environment for building
-        run: python -m venv build-venv
-      - name: Install requirements
+        if: matrix.build-venv == 'build'
+        run: python -m venv ${{ matrix.build-venv }}-venv
+      - name: Install build requirements
+        if: matrix.build-venv == 'build'
         run: |
-          . build-venv/bin/activate
+          . ${{ matrix.build-venv }}-venv/bin/activate
           pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r requirements.txt
       - name: Build
         run: |
-          . build-venv/bin/activate
+          . ${{ matrix.build-venv }}-venv/bin/activate
           make -B -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}"
       - name: Test
-        if: matrix.skip-check == ''
-        run: make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check
+        if: matrix.coverage == ''
+        run: |
+          . dev-venv/bin/activate
+          make -j "NOTO=${{ matrix.noto }}" check
       - name: Check coverage
-        if: matrix.coverage != '' && matrix.skip-check != ''
-        run: make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check-coverage
+        if: matrix.coverage != ''
+        run: |
+          . dev-venv/bin/activate
+          make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check-coverage
       - name: Determine whether to push the fonts or upload them
         id: push-or-upload
         run: |
@@ -171,7 +184,7 @@ jobs:
             if [ $is_noto = true ]
             then
               upload_name=fonts-noto
-            elif [ ${{ matrix.coverage == '' && matrix.skip-check != '' }} = true ]
+            elif [ ${{ matrix.build-venv }} = build ]
             then
               upload_name=fonts
             fi
