@@ -165,7 +165,7 @@ orjson==3.10.6
     #   babelfont
 packaging==24.1
     # via
-    #   -r dev-requirements.in
+    #   -c dev-constraints.txt
     #   fontbakery
 pip==24.1.2
     # via pip-api
@@ -276,7 +276,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.24
+uv==0.2.25
     # via -r dev-requirements.in
 vfblib==0.7.0
     # via babelfont
