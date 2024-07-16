@@ -36,6 +36,9 @@ jobs:
             harfbuzz-version: 9.0.0
           - skip-check: skip-check
             harfbuzz-version: 9.0.0
+          - coverage: coverage
+            skip-check: skip-check
+            harfbuzz-version: 9.0.0
     steps:
       - uses: actions/checkout@v4
       - name: Select the setup-python cache
@@ -130,7 +133,7 @@ jobs:
           cp dev-requirements.in dev-requirements.txt
           cp requirements.in requirements.txt
       - name: Install dev requirements
-        if: matrix.skip-check == ''
+        if: matrix.coverage != '' || matrix.skip-check == ''
         run: pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Test updating the requirements files
         if: matrix.skip-check == ''
@@ -149,10 +152,13 @@ jobs:
       - name: Build
         run: |
           . build-venv/bin/activate
-          make -B -j COVERAGE=${{ matrix.noto == '' && matrix.requirements != 'oldest' && matrix.skip-check == '' && 'true' || '' }} "NOTO=${{ matrix.noto }}"
+          make -B -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}"
       - name: Test
         if: matrix.skip-check == ''
-        run: make -j COVERAGE=${{ matrix.noto == '' && matrix.requirements != 'oldest' && matrix.skip-check == '' && 'true' || '' }} "NOTO=${{ matrix.noto }}" check
+        run: make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check
+      - name: Check coverage
+        if: matrix.coverage != '' && matrix.skip-check != ''
+        run: make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check-coverage
       - name: Determine whether to push the fonts or upload them
         id: push-or-upload
         run: |
@@ -165,7 +171,7 @@ jobs:
             if [ $is_noto = true ]
             then
               upload_name=fonts-noto
-            elif [ ${{ matrix.skip-check != '' }} = true ]
+            elif [ ${{ matrix.coverage == '' && matrix.skip-check != '' }} = true ]
             then
               upload_name=fonts
             fi
