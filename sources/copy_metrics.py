@@ -151,7 +151,7 @@ def copy_metrics(
             source_ascent, source_descent = get_metrics(source, source_font, text)
             ascent = max(ascent, source_ascent)
             descent = max(descent, source_descent)
-    with fontTools.ttLib.ttFont.TTFont(main_source, recalcBBoxes=False) as target_font:
+    with fontTools.ttLib.ttFont.TTFont(main_source, recalcBBoxes=False, recalcTimestamp=False) as target_font:
         update_metrics(target_font, ascent, descent)
         target_font.save(target)
 
