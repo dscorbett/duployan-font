@@ -27,6 +27,7 @@ jobs:
       matrix:
         include:
           - build-venv: dev
+            optimize: -O
             harfbuzz-version: 9.0.0
           - build-venv: dev
             requirements: oldest
@@ -34,10 +35,14 @@ jobs:
           - build-venv: dev
             requirements: newest
             harfbuzz-version: 9.0.0
-          - build-venv: build
+          - build-venv: dev
+            optimize: -O
             noto: Noto
             harfbuzz-version: 9.0.0
           - build-venv: build
+            harfbuzz-version: 9.0.0
+          - build-venv: build
+            noto: Noto
             harfbuzz-version: 9.0.0
           - build-venv: dev
             coverage: coverage
@@ -162,18 +167,19 @@ jobs:
       - name: Build
         run: |
           . ${{ matrix.build-venv }}-venv/bin/activate
-          make -B -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}"
+          make -B -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" "PYTHONOPTIMIZE=${{ matrix.optimize }}"
       - name: Test
         if: matrix.coverage == ''
         run: |
           . dev-venv/bin/activate
-          make -j "NOTO=${{ matrix.noto }}" check
+          make -j "NOTO=${{ matrix.noto }}" ${{ matrix.optimize == '' && 'check-fonts' || '' }} check-sources
       - name: Check coverage
         if: matrix.coverage != ''
         run: |
           . dev-venv/bin/activate
           make -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" check-coverage
       - name: Determine whether to push the fonts or upload them
+        if: matrix.build-venv == 'build'
         id: push-or-upload
         run: |
           is_noto=${{ matrix.noto != '' }}
@@ -205,3 +211,35 @@ jobs:
         with:
           name: ${{ steps.push-or-upload.outputs.upload-name }}
           path: fonts
+      - name: Cache the fonts for the next job
+        if: matrix.build-venv == 'build' || matrix.optimize != ''
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.noto }}
+          path: fonts
+  compare-PYTHONOPTIMIZE:
+    runs-on: ubuntu-22.04
+    needs:
+      - main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-Noto
+          path: fonts
+      - name: Move the fonts from the optimized builds
+        run: mv fonts fonts-PYTHONOPTIMIZE
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--Noto
+          path: fonts
+      - name: Compare the fonts built with `PYTHONOPTIMIZE`
+        run: diff -qrs fonts fonts-PYTHONOPTIMIZE

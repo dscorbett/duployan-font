@@ -145,8 +145,14 @@ mypy:
 ruff:
 	ruff check pyproject.toml sources tests
 
+.PHONY: check-fonts
+check-fonts: check-shaping check-subset fontbakery
+
+.PHONY: check-sources
+check-sources: mypy ruff
+
 .PHONY: check
-check: check-shaping check-subset fontbakery mypy ruff $(if $(COVERAGE),check-coverage)
+check: check-fonts check-sources $(if $(COVERAGE),check-coverage)
 
 .hb:
 	mkdir -p .hb
