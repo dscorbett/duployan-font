@@ -14,6 +14,7 @@
 # limitations under the License.
 
 /.hb/
+/setup-python-cache-key.txt
 /tests/failed/
 /*venv*/
 htmlcov/

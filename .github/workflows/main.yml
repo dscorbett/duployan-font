@@ -46,8 +46,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select the setup-python cache
         run: |
-          echo '# ${{ matrix.requirements }}' >>dev-requirements.txt
-          echo '# ${{ matrix.build-venv }}' >>dev-requirements.txt
+          echo '${{ matrix.requirements }}' >>setup-python-cache-key.txt
+          echo '${{ matrix.build-venv }}' >>setup-python-cache-key.txt
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -57,6 +57,7 @@ jobs:
             dev-requirements.txt
             requirements.in
             requirements.txt
+            setup-python-cache-key.txt
       - name: Cache FontForge
         id: cache-fontforge
         uses: actions/cache@v4
