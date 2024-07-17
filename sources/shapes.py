@@ -3587,9 +3587,10 @@ class Complex(Shape):
 
     @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
-        if self._base_shape is not None:
-            return self._base_shape.max_double_marks(size, joining_type, marks)
-        return super().max_double_marks(size, joining_type, marks)
+        bases = [op for op in self.instructions if not (callable(op) or op.tick)]
+        if len(bases) != 1:
+            return 0
+        return bases[0].shape.max_double_marks(bases[0].size * size, joining_type, marks)
 
     @override
     def is_shadable(self) -> bool:
@@ -3994,6 +3995,10 @@ class Ou(Complex):
     @override
     def can_be_child(self, size: float) -> bool:
         return True
+
+    @override
+    def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
+        return 0
 
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:

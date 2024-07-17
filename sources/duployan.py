@@ -249,6 +249,8 @@ class Builder:
             schema.diphthong_1,
             schema.diphthong_2,
         )
+        assert schema.max_double_marks == 0 or any(anchor_class_name == anchors.MIDDLE for anchor_class_name, _, _, _ in glyph.anchorPoints), (
+            f'{glyph.glyphname} has max_double_marks == {schema.max_double_marks} but no {anchors.MIDDLE!r} anchor point')
         if invisible:
             glyph.draw(glyph.glyphPen())
         if schema.joining_type != Type.NON_JOINING:
