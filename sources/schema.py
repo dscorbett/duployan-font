@@ -852,15 +852,16 @@ class Schema:
                 name = f'_{name}'
         if (self.features is not None and SUBSET_FEATURES.isdisjoint(self.features)) != (name.startswith('_') or name.count('.') > 1):
             name = self._FIRST_COMPONENT_PATTERN.sub(r'\1_', name)
-        agl_string = fontTools.agl.toUnicode(name)
-        agl_cps = tuple(map(ord, agl_string))
-        assert cps == agl_cps, f'''The glyph name "{
-                name
-            }" corresponds to <{
-                ', '.join(f'U+{cp:04X}' for cp in agl_cps)
-            }> but its glyph corresponds to <{
-                ', '.join(f'U+{cp:04X}' for cp in cps)
-            }>'''
+        if __debug__:
+            agl_string = fontTools.agl.toUnicode(name)
+            agl_cps = tuple(map(ord, agl_string))
+            assert cps == agl_cps, f'''The glyph name "{
+                    name
+                }" corresponds to <{
+                    ', '.join(f'U+{cp:04X}' for cp in agl_cps)
+                }> but its glyph corresponds to <{
+                    ', '.join(f'U+{cp:04X}' for cp in cps)
+                }>'''
         assert not self._RESERVED_GLYPH_NAME_PATTERN.search(name), f'The glyph name "{name}" misleadingly appears to have a disambiguatory suffix'
         return name
 

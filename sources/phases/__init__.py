@@ -831,7 +831,7 @@ class Lookup:
         """
         assert self.feature is not None
         scripts = sorted(features_to_scripts[self.feature])
-        if self.required:
+        if __debug__ and self.required:
             for script in scripts:
                 assert any(self.feature in stage and self.feature in REQUIRED_FEATURES
                     for stage in KNOWN_SHAPE_PLANS[script]), (
@@ -987,57 +987,59 @@ def _add_rule(
         lookup: The lookup to add `rule` to.
         rule: The rule to add.
     """
-    if lookup.mark_filtering_set:
-        for mark in classes[lookup.mark_filtering_set]:
-            assert mark.glyph_class == GlyphClass.MARK, f'''{mark} has GDEF class {mark.glyph_class}, but it appears in {
-                lookup.mark_filtering_set}, a mark filtering set'''
-
-    def ignored(schema: schema.Schema) -> bool:
-        """Returns whether `rule` would ignore a schema.
-
-        Args:
-            schema: The schema that might be ignored.
-        """
-        glyph_class = schema.glyph_class
-        return bool(
-            glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
-            or glyph_class == GlyphClass.MARK and (
-                lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS
-                or lookup.mark_filtering_set and schema not in classes[lookup.mark_filtering_set]
-            )
-        )
-
-    def check_ignored(target_part: Iterable[schema.Schema | str]) -> None:
-        """Asserts that a rule part contains no ignored schemas.
-
-        It is not useful for a rule to mention an ignored schema. It is
-        probably a bug if one does.
-
-        Args:
-            target_part: Part of the rule being added.
-        """
-        for s in target_part:
-            if isinstance(s, str):
-                ignored_schema = next(filter(ignored, classes[s]), None)
-                assert ignored_schema is None, f'''At least one glyph in @{s} ({
-                        ignored_schema
-                    }) appears in a substitution where it is ignored'''
-            else:
-                assert not ignored(s), f'{s} appears in a substitution where it is ignored'
-
-    check_ignored(rule.contexts_in)
-    if lookup.feature is None:
-        # The first item in a named lookup’s input sequence is immune to that
-        # named lookup’s lookup flags. It is guaranteed to (try to) match the
-        # glyph at the targeted position in the rule that references the named
-        # lookup.
-        inputs = iter(rule.inputs)
-        next(inputs)
-        check_ignored(inputs)
-    else:
-        check_ignored(rule.inputs)
     assert rule.contexts_out is not None
-    check_ignored(rule.contexts_out)
+
+    if __debug__:
+        if lookup.mark_filtering_set:
+            for mark in classes[lookup.mark_filtering_set]:
+                assert mark.glyph_class == GlyphClass.MARK, f'''{mark} has GDEF class {mark.glyph_class}, but it appears in {
+                    lookup.mark_filtering_set}, a mark filtering set'''
+
+        def ignored(schema: schema.Schema) -> bool:
+            """Returns whether `rule` would ignore a schema.
+
+            Args:
+                schema: The schema that might be ignored.
+            """
+            glyph_class = schema.glyph_class
+            return bool(
+                glyph_class == GlyphClass.JOINER and lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES
+                or glyph_class == GlyphClass.MARK and (
+                    lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS
+                    or lookup.mark_filtering_set and schema not in classes[lookup.mark_filtering_set]
+                )
+            )
+
+        def check_ignored(target_part: Iterable[schema.Schema | str]) -> None:
+            """Asserts that a rule part contains no ignored schemas.
+
+            It is not useful for a rule to mention an ignored schema. It
+            is probably a bug if one does.
+
+            Args:
+                target_part: Part of the rule being added.
+            """
+            for s in target_part:
+                if isinstance(s, str):
+                    ignored_schema = next(filter(ignored, classes[s]), None)
+                    assert ignored_schema is None, f'''At least one glyph in @{s} ({
+                            ignored_schema
+                        }) appears in a substitution where it is ignored'''
+                else:
+                    assert not ignored(s), f'{s} appears in a substitution where it is ignored'
+
+        check_ignored(rule.contexts_in)
+        if lookup.feature is None:
+            # The first item in a named lookup’s input sequence is immune to that
+            # named lookup’s lookup flags. It is guaranteed to (try to) match the
+            # glyph at the targeted position in the rule that references the named
+            # lookup.
+            inputs = iter(rule.inputs)
+            next(inputs)
+            check_ignored(inputs)
+        else:
+            check_ignored(rule.inputs)
+        check_ignored(rule.contexts_out)
 
     for input in rule.inputs:
         if isinstance(input, str):

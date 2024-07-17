@@ -93,14 +93,15 @@ class Builder:
         self.light_line: Final = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
         self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
-        code_points: Final[collections.defaultdict[int, int]] = collections.defaultdict(int)
         self._schemas = charset.initialize_schemas(noto, self.light_line, self.stroke_gap)
-        for schema in self._schemas:
-            if schema.cmap is not None:
-                code_points[schema.cmap] += 1
-        duplicate_code_points = {cp: count for cp, count in code_points.items() if count > 1}
-        assert not duplicate_code_points, ('Duplicate code points:\n    '
-            + '\n    '.join(map(hex, sorted(duplicate_code_points.keys()))))
+        if __debug__:
+            code_points: Final[collections.defaultdict[int, int]] = collections.defaultdict(int)
+            for schema in self._schemas:
+                if schema.cmap is not None:
+                    code_points[schema.cmap] += 1
+            duplicate_code_points = {cp: count for cp, count in code_points.items() if count > 1}
+            assert not duplicate_code_points, ('Duplicate code points:\n    '
+                + '\n    '.join(map(hex, sorted(duplicate_code_points.keys()))))
 
     def _initialize_phases(self, noto: bool) -> None:
         self._phases = phases.main.PHASE_LIST

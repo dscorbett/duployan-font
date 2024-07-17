@@ -3644,10 +3644,11 @@ class Complex(Shape):
                 else:
                     context_in = component.context_out()
                 if forced_context is not None:
-                    actual_context = component.context_out() if initial_hook else component.context_in()
-                    if forced_context.clockwise is None:
-                        actual_context = actual_context.clone(clockwise=None)
-                    assert actual_context == forced_context, f'{actual_context} != {forced_context}'
+                    if __debug__:
+                        actual_context = component.context_out() if initial_hook else component.context_in()
+                        if forced_context.clockwise is None:
+                            actual_context = actual_context.clone(clockwise=None)
+                        assert actual_context == forced_context, f'{actual_context} != {forced_context}'
                     forced_context = None
         if initial_hook:
             instructions.reverse()
