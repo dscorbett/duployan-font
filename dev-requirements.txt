@@ -67,7 +67,7 @@ docopt==0.6.2
     # via num2words
 filelock==3.15.4
     # via youseedee
-fontbakery==0.12.8
+fontbakery==0.12.9
     # via -r dev-requirements.in
 fontfeatures==1.8.0
     # via
@@ -209,9 +209,9 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.5.2
+ruff==0.5.3
     # via -r dev-requirements.in
-setuptools==70.3.0
+setuptools==71.0.3
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -276,7 +276,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.25
+uv==0.2.26
     # via -r dev-requirements.in
 vfblib==0.7.0
     # via babelfont
