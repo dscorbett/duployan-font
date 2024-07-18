@@ -1788,14 +1788,11 @@ class Line(Shape):
                 return self.rotate_diacritic(context_out)
         elif self.stretchy:
             if context_out == Context(self.angle):
-                return Complex(
-                    [
-                        (1, self),
-                        (0.2, Line(angle=(self.angle + 90 if 90 < self.angle <= 270 else self.angle - 90) % 360), False, True),
-                        self.get_context_instruction(self.angle),
-                    ],
-                    maximum_tree_width=self.max_tree_width,
-                )
+                return Complex([
+                    (1, self),
+                    (0.2, Line(angle=(self.angle + 90 if 90 < self.angle <= 270 else self.angle - 90) % 360), False, True),
+                    self.get_context_instruction(self.angle),
+                ])
         elif context_in != NO_CONTEXT:
             return self.clone(angle=context_in.angle)  # type: ignore[arg-type]
         return self
@@ -3060,9 +3057,6 @@ class Complex(Shape):
             which would be the entry context for the following
             component, and returns the actual entry context that the
             following component should use.
-        maximum_tree_width: The maximum width of a shorthand overlap
-            sequence following a character with this shape, or a
-            callable that returns the width given the schema’s size.
     """
 
     @override
@@ -3070,17 +3064,14 @@ class Complex(Shape):
         self,
         instructions: Instructions,
         *,
-        maximum_tree_width: int | Callable[[float], int] = 0,
         _final_rotation: float = 0,
     ) -> None:
         """Initializes this `Complex`.
 
         Args:
             instructions: The ``instructions`` attribute.
-            maximum_tree_width: The ``maximum_tree_width`` attribute.
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
-        self.maximum_tree_width: Final = maximum_tree_width
         self._final_rotation: Final = _final_rotation
 
     @override
@@ -3088,12 +3079,10 @@ class Complex(Shape):
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
-        maximum_tree_width: int | Callable[[float], int] | CloneDefault = CLONE_DEFAULT,
         _final_rotation: float | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
-            maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
@@ -3583,7 +3572,10 @@ class Complex(Shape):
 
     @override
     def max_tree_width(self, size: float) -> int:
-        return self.maximum_tree_width(size) if callable(self.maximum_tree_width) else self.maximum_tree_width
+        for op in reversed(self.instructions):
+            if not (callable(op) or op.tick):
+                return op.shape.max_tree_width(op.size * size)
+        return 0
 
     @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
@@ -4174,6 +4166,10 @@ class SeparateAffix(Complex):
     @override
     def can_be_child(self, size: float) -> bool:
         return False
+
+    @override
+    def max_tree_width(self, size: float) -> int:
+        return 0
 
     @override
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:

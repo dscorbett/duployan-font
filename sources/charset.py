@@ -105,8 +105,8 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
     less_than = InequalitySign([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
-    equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
-    greater_than = InequalitySign([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)], maximum_tree_width=1)
+    equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
+    greater_than = InequalitySign([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
     left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
     right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
     left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])
@@ -208,8 +208,8 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     s_n = Curve(0, 90, clockwise=False, secondary=True)
     k_r_s = Curve(90, 180, clockwise=False)
     s_k = Curve(90, 0, clockwise=True, secondary=False)
-    j_n = Complex([(1, s_k), (1, n)], maximum_tree_width=1)
-    j_n_s = Complex([(3, s_k), (4, n_s)], maximum_tree_width=1)
+    j_n = Complex([(1, s_k), (1, n)])
+    j_n_s = Complex([(3, s_k), (4, n_s)])
     o = Circle(90, 90, clockwise=False)
     o_reverse = o.as_reversed()
     ie = Curve(180, 0, clockwise=False)
@@ -307,8 +307,8 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x003A, colon, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x003C, less_than, 2),
-        Schema(0x003D, equal, 1, maximum_tree_width=MAX_TREE_WIDTH),
-        Schema(0x003E, greater_than, 2, maximum_tree_width=MAX_TREE_WIDTH),
+        Schema(0x003D, equal, 1, maximum_tree_width=1),
+        Schema(0x003E, greater_than, 2, maximum_tree_width=1),
         Schema(0x003F, question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
         Schema(0x005B, left_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x005D, right_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
