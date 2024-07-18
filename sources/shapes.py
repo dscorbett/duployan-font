@@ -3054,10 +3054,6 @@ class Complex(Shape):
             which would be the entry context for the following
             component, and returns the actual entry context that the
             following component should use.
-        hook: Whether this shape represents a hook character. If so, in
-            initial position, everything about entry and exit contexts
-            is swapped when contextualizing, and the order of the
-            components is reversed.
         maximum_tree_width: The maximum width of a shorthand overlap
             sequence following a character with this shape, or a
             callable that returns the width given the schema’s size.
@@ -3068,7 +3064,6 @@ class Complex(Shape):
         self,
         instructions: Instructions,
         *,
-        hook: bool = False,
         maximum_tree_width: int | Callable[[float], int] = 0,
         main_component_index: int | None = None,
         _final_rotation: float = 0,
@@ -3077,18 +3072,9 @@ class Complex(Shape):
 
         Args:
             instructions: The ``instructions`` attribute.
-            hook: The ``hook`` attribute.
             maximum_tree_width: The ``maximum_tree_width`` attribute.
-            main_component_index: The index in `instructions` of this
-                shape’s main component. A complex shape may have
-                multiple component shapes, but if only one is the main
-                one that determines how phases should treat it, that is
-                the main one. This should be ``None`` if there is no
-                main component or to choose the main component
-                automatically.
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
-        self.hook: Final = hook
         self.maximum_tree_width: Final = maximum_tree_width
         if main_component_index is not None:
             main_component = self.instructions[main_component_index]
@@ -3101,13 +3087,11 @@ class Complex(Shape):
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
-        hook: bool | CloneDefault = CLONE_DEFAULT,
         maximum_tree_width: int | Callable[[float], int] | CloneDefault = CLONE_DEFAULT,
         _final_rotation: float | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
-            hook=self.hook if hook is CLONE_DEFAULT else hook,
             maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
@@ -3599,11 +3583,11 @@ class Complex(Shape):
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         instructions: MutableSequence[_Instruction] = []
-        initial_hook = context_in == NO_CONTEXT and self.hook
+        initial = context_in == NO_CONTEXT
         forced_context = None
         for i, op in enumerate(self.instructions):
             if callable(op):
-                forced_context = op(context_out if initial_hook else context_in)
+                forced_context = op(context_out if initial else context_in)
                 if forced_context.ignorable_for_topography:
                     forced_context = forced_context.clone(ignorable_for_topography=False)
                 instructions.append(op)
@@ -3611,7 +3595,7 @@ class Complex(Shape):
                 scalar, component, skip_drawing, tick = op
                 component = component.contextualize(context_in, context_out)
                 assert isinstance(component, Circle | Curve | Line)
-                if i and initial_hook:
+                if i and initial:
                     component = component.as_reversed()
                 if forced_context is not None:
                     if isinstance(component, Line):
@@ -3620,7 +3604,7 @@ class Complex(Shape):
                     else:
                         if forced_context.clockwise is not None and forced_context.clockwise != component.clockwise:
                             component = component.as_reversed()
-                        if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial_hook else component.angle_in):
+                        if forced_context != NO_CONTEXT and forced_context.angle != (component.angle_out if initial else component.angle_in):
                             assert forced_context.angle is not None
                             angle_out = component.angle_out
                             if component.clockwise and angle_out > component.angle_in:
@@ -3628,7 +3612,7 @@ class Complex(Shape):
                             elif not component.clockwise and angle_out < component.angle_in:
                                 angle_out += 360
                             da = angle_out - component.angle_in
-                            if initial_hook:
+                            if initial:
                                 component = component.clone(
                                     angle_in=(forced_context.angle - da) % 360,
                                     angle_out=forced_context.angle,
@@ -3639,18 +3623,18 @@ class Complex(Shape):
                                     angle_out=(forced_context.angle + da) % 360,
                                 )
                 instructions.append((scalar, component, skip_drawing, tick))
-                if initial_hook:
+                if initial:
                     context_out = component.context_in()
                 else:
                     context_in = component.context_out()
                 if forced_context is not None:
                     if __debug__:
-                        actual_context = component.context_out() if initial_hook else component.context_in()
+                        actual_context = component.context_out() if initial else component.context_in()
                         if forced_context.clockwise is None:
                             actual_context = actual_context.clone(clockwise=None)
                         assert actual_context == forced_context, f'{actual_context} != {forced_context}'
                     forced_context = None
-        if initial_hook:
+        if initial:
             instructions.reverse()
         return self.clone(instructions=instructions)
 
@@ -3811,7 +3795,7 @@ class Ou(Complex):
             instructions: The ``instructions`` attribute.
             role: The ``role`` attribute.
         """
-        super().__init__(instructions, hook=True)
+        super().__init__(instructions)
         self.role: Final = role
         self._initial: Final = _initial
         self._angled_against_next: Final = _angled_against_next
@@ -4482,7 +4466,7 @@ class TangentHook(Complex):
         """
         while callable(instructions[0]):
             instructions = instructions[1:]
-        super().__init__([self._override_initial_context if _initial else self._override_noninitial_context, *instructions], hook=True)
+        super().__init__([self._override_initial_context if _initial else self._override_noninitial_context, *instructions])
         self._initial: Final = _initial
 
     @staticmethod
