@@ -167,6 +167,7 @@ jobs:
       - name: Build
         run: |
           . ${{ matrix.build-venv }}-venv/bin/activate
+          make clean
           make -B -j "COVERAGE=${{ matrix.coverage }}" "NOTO=${{ matrix.noto }}" "PYTHONOPTIMIZE=${{ matrix.optimize }}"
       - name: Test
         if: matrix.coverage == ''

@@ -107,7 +107,7 @@ clean: clean-coverage
 
 .PHONY: clean-coverage
 clean-coverage:
-	coverage erase
+	$(if $(COVERAGE),,-)coverage erase
 
 .coverage: $(if $(COVERAGE),$(FONTS))
 	coverage combine$(if $(COVERAGE),,; test $$? -le 1)
