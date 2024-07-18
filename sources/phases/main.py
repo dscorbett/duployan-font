@@ -47,6 +47,7 @@ from shapes import Line
 from shapes import Ou
 from shapes import ParentEdge
 from shapes import RootOnlyParentEdge
+from shapes import RotatedComplex
 from shapes import Space
 from shapes import ValidDTLS
 from shapes import Wa
@@ -1693,7 +1694,7 @@ def join_double_marks(
                 add_rule(lookup, Rule([schema] * i, [schema.clone(
                     cmap=None,
                     cps=[*schema.cps] * i,
-                    path=Complex([
+                    path=RotatedComplex([
                         (1, schema.path),
                         (500, Space((schema.path.angle + 180) % 360)),
                         (250, Space((schema.path.angle - 90) % 360)),

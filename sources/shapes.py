@@ -3057,14 +3057,17 @@ class Complex(Shape):
             which would be the entry context for the following
             component, and returns the actual entry context that the
             following component should use.
+        rotation: The number of degrees to rotate the glyph
+            counterclockwise as the final step of drawing. It is always
+            0 in ``Complex`` but may be overridden in subclasses.
     """
+
+    rotation: float = 0
 
     @override
     def __init__(
         self,
         instructions: Instructions,
-        *,
-        _final_rotation: float = 0,
     ) -> None:
         """Initializes this `Complex`.
 
@@ -3072,24 +3075,19 @@ class Complex(Shape):
             instructions: The ``instructions`` attribute.
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
-        self._final_rotation: Final = _final_rotation
 
     @override
     def clone(
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
-        _final_rotation: float | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
-            _final_rotation=self._final_rotation if _final_rotation is CLONE_DEFAULT else _final_rotation,
         )
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        if self._final_rotation:
-            return str(int(self._final_rotation))
         if any(not callable(op) and op.tick for op in self.instructions):
             return 'tick'
         if joining_type != Type.ORIENTING:
@@ -3106,7 +3104,7 @@ class Complex(Shape):
     def group(self) -> Hashable:
         return (
             *(op if callable(op) else (op.size, op.shape.group(), op[2:]) for op in self.instructions),
-            self._final_rotation,
+            self.rotation,
         )
 
     @functools.cached_property
@@ -3536,7 +3534,7 @@ class Complex(Shape):
                 ):
                     glyph.addAnchorPoint(singular_anchor, anchor_type, *points[-1])
         glyph.transform(
-            fontTools.misc.transform.Identity.rotate(math.radians(self._final_rotation)),
+            fontTools.misc.transform.Identity.rotate(math.radians(self.rotation)),
             ('round',),
         )
         x_min, y_min, x_max, y_max = glyph.boundingBox()
@@ -3660,10 +3658,46 @@ class Complex(Shape):
             return self.base_shape.calculate_diacritic_angles()
         return super().calculate_diacritic_angles()
 
+
+class RotatedComplex(Complex):
+    """A shape made by rotating another shape.
+    """
+
+    @override
+    def __init__(
+        self,
+        instructions: Instructions,
+        rotation: float = 0,
+    ) -> None:
+        """Initializes this `RotatedComplex`.
+
+        Args:
+            instructions: The ``instructions`` attribute.
+            rotation: The ``rotation`` attribute.
+        """
+        super().__init__(instructions)
+        self.rotation = rotation
+
+    @override
+    def clone(
+        self,
+        *,
+        instructions: Instructions | CloneDefault = CLONE_DEFAULT,
+        rotation: float | CloneDefault = CLONE_DEFAULT,
+    ) -> Self:
+        return type(self)(
+            instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
+            rotation=self.rotation if rotation is CLONE_DEFAULT else rotation,
+        )
+
+    @override
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return str(int(self.rotation))
+
     def rotate_diacritic(self, context: Context) -> Self:
         angle = context.angle
         assert angle is not None
-        return self.clone(_final_rotation=angle)
+        return self.clone(rotation=angle)
 
 
 class InequalitySign(Complex):
@@ -3728,7 +3762,7 @@ class InvalidOverlap(Complex):
         self.continuing: Final = continuing
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         continuing: bool | CloneDefault = CLONE_DEFAULT,
@@ -3769,7 +3803,7 @@ class InvalidStep(Complex):
         self.angle: Final = angle
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         angle: float | CloneDefault = CLONE_DEFAULT,
@@ -3838,7 +3872,7 @@ class Ou(Complex):
         self._isolated: Final = _isolated
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
@@ -4091,7 +4125,7 @@ class SeparateAffix(Complex):
         self.tight: Final = tight
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
@@ -4215,7 +4249,7 @@ class Wa(Complex):
         self._initial = _initial
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,
@@ -4526,7 +4560,7 @@ class TangentHook(Complex):
         )
 
     @override
-    def clone(  # type: ignore[override]
+    def clone(
         self,
         *,
         instructions: Instructions | CloneDefault = CLONE_DEFAULT,

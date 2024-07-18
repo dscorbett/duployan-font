@@ -51,6 +51,7 @@ from shapes import MarkAnchorSelector
 from shapes import Notdef
 from shapes import Ou
 from shapes import RightBoundDigit
+from shapes import RotatedComplex
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
 from utils import DEFAULT_SIDE_BEARING
@@ -1059,7 +1060,7 @@ class Schema:
             context: The context of the base glyph relative to which
                 this schema’s mark glyph should be rotated.
         """
-        assert isinstance(self.path, Complex | Line)
+        assert isinstance(self.path, Line | RotatedComplex)
         return self.clone(
             cmap=None,
             path=self.path.rotate_diacritic(context),
