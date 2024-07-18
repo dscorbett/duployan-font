@@ -26,6 +26,7 @@ from shapes import Circle
 from shapes import Complex
 from shapes import Curve
 from shapes import Dot
+from shapes import InequalitySign
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
@@ -103,9 +104,9 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, list-item, union-attr]
     question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
-    less_than = Complex([(0, Line(0), True), (1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.42, Line(0), True), (0, Line(0), True)], main_component_index=1)
+    less_than = InequalitySign([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
     equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)], maximum_tree_width=1)
-    greater_than = Complex([(0, Line(0), True), (1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.42, Line(180), True), (0, Line(0), True)], maximum_tree_width=1)
+    greater_than = InequalitySign([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)], maximum_tree_width=1)
     left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
     right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
     left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])

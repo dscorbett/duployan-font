@@ -108,7 +108,7 @@
 003E 1BC41::[uni200C.zwnj@0,0|greater@0,0|uni200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
 1BC41 003C::[u1BC41.a@0,0|uni200C.zwnj@440,0|less@440,0|uni200C.zwnj@1571,0|_@1571,0]
 1BC41 003E::[u1BC41.a@0,0|uni200C.zwnj@440,0|greater@440,0|_@1571,0]
-003E 1BCA0 1BC02 1BC02::[uni200C.zwnj@0,0|greater@0,0|u1BC02.p@517,121|uni200C.zwnj@1131,0|u1BC02.p@1131,0|_@1371,0]
+003E 1BCA0 1BC02 1BC02::[uni200C.zwnj@0,0|greater@0,0|u1BC02.p@392,121|uni200C.zwnj@1131,0|u1BC02.p@1131,0|_@1371,0]
 
 # U+1BC5B DUPLOYAN LETTER OU is a valid child but not a valid root.
 1BC5B 1BCA0 1BC08::[u1BC5B.ou@0,0|u1BCA0.letter_overlap@540,0|u1BC08.d@1668,0|_@2908,0]

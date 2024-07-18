@@ -3003,10 +3003,16 @@ class Component(NamedTuple):
     #: never skipped.)
     skip_drawing: bool = False
 
-    #: Whether this component acts like a tick: its `size` is the
-    #: absolute size of the component instead of a scalar, it is always
-    #: drawn with a light line regardless of the `Complex`’s shading,
-    #: and it is ignored for the `Complex`’s effective bounding box.
+    #: Whether this component acts like a tick:
+    #:
+    #: * Its `size` is the absolute size of the component instead of a
+    #:   scalar.
+    #: * It is always drawn with a light line regardless of the
+    #:   `Complex`’s shading.
+    #: * It (along with every following component) is ignored for the
+    #:   `Complex`’s effective bounding box.
+    #: * It (along with every following component) is ignored when
+    #:   determining the main component of the `Complex`.
     tick: bool = False
 
 
@@ -3065,7 +3071,6 @@ class Complex(Shape):
         instructions: Instructions,
         *,
         maximum_tree_width: int | Callable[[float], int] = 0,
-        main_component_index: int | None = None,
         _final_rotation: float = 0,
     ) -> None:
         """Initializes this `Complex`.
@@ -3076,10 +3081,6 @@ class Complex(Shape):
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
         self.maximum_tree_width: Final = maximum_tree_width
-        if main_component_index is not None:
-            main_component = self.instructions[main_component_index]
-            assert isinstance(main_component, Component)
-            self._base_shape = main_component.shape
         self._final_rotation: Final = _final_rotation
 
     @override
@@ -3120,34 +3121,43 @@ class Complex(Shape):
         )
 
     @functools.cached_property
-    def _base_shape(self) -> Shape | None:
-        """Returns the shape of this shape’s main component.
+    def base_index(self) -> int | None:
+        """Returns the index of this shape’s main component.
 
         A complex shape may have multiple component shapes, but if only
         one is the main one that determines how phases should treat it,
-        that is the one that is returned. If not, ``None`` is returned.
+        that is the one whose index is returned. If not, ``None`` is
+        returned.
         """
-        base_shape: Shape | None = None
+        base_index: int | None = None
         for i, op in enumerate(self.instructions):
-            if not callable(op) and not op.tick:
-                if base_shape is None and not (i == 0 and (op.shape.invisible() or op.shape.fixed_y())):
-                    base_shape = op.shape
+            if not callable(op):
+                if op.tick:
+                    break
+                if base_index is None:
+                    base_index = i
                 else:
                     return None
-        return base_shape
+        return base_index
+
+    @functools.cached_property
+    def base_shape(self) -> Shape | None:
+        """Returns the shape of this shape’s main component.
+
+        Returns:
+            The shape of the component at the index indicated by
+            `base_index`, or ``None`` if that returns ``None``.
+        """
+        base_index = self.base_index
+        if base_index is None:
+            return None
+        base_op = self.instructions[base_index]
+        assert not callable(base_op)
+        return base_op.shape
 
     @override
     def can_take_secant(self) -> bool:
-        if self._base_shape is not None and all(
-            callable(op)
-            or op.tick
-            or op.shape is self._base_shape
-            or op.shape.invisible()
-            or op.shape.fixed_y()
-            for op in self.instructions
-        ):
-            return self._base_shape.can_take_secant()
-        return False
+        return self.base_shape is not None and self.base_shape.can_take_secant()
 
     @override
     def hub_priority(self, size: float) -> int:
@@ -3444,7 +3454,7 @@ class Complex(Shape):
                     last_y - this_y,
                 ))
             for anchor_and_type, points in proxy.anchor_points.items():
-                if len(points) == 1 and not (tick and anchor_and_type[0] != anchors.CURSIVE):
+                if len(points) == 1 and not (effective_bounding_box and anchor_and_type[0] != anchors.CURSIVE):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
                 proxy.draw(pen, deferred_proxies)
@@ -3563,7 +3573,13 @@ class Complex(Shape):
 
     @override
     def can_be_child(self, size: float) -> bool:
-        return self._base_shape is not None and self._base_shape.can_be_child(size)
+        base_index = self.base_index
+        if base_index is None:
+            return False
+        assert self.base_shape is not None
+        base_op = self.instructions[base_index]
+        assert not callable(base_op)
+        return self.base_shape.can_be_child(base_op.size * size)
 
     @override
     def max_tree_width(self, size: float) -> int:
@@ -3648,14 +3664,42 @@ class Complex(Shape):
 
     @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
-        if self._base_shape is not None:
-            return self._base_shape.calculate_diacritic_angles()
+        if self.base_shape is not None:
+            return self.base_shape.calculate_diacritic_angles()
         return super().calculate_diacritic_angles()
 
     def rotate_diacritic(self, context: Context) -> Self:
         angle = context.angle
         assert angle is not None
         return self.clone(_final_rotation=angle)
+
+
+class InequalitySign(Complex):
+    """U+003C LESS-THAN SIGN or U+003E GREATER-THAN SIGN.
+    """
+
+    @override
+    @functools.cached_property
+    def base_index(self) -> int:
+        return -1
+
+    @override
+    def can_take_secant(self) -> bool:
+        return False
+
+    @override
+    def can_be_child(self, size: float) -> bool:
+        base_shape = self.base_shape
+        assert isinstance(base_shape, Line)
+        return not (90 <= base_shape.angle < 270) and super().can_be_child(size)
+
+    @override
+    def context_in(self) -> Context:
+        return NO_CONTEXT
+
+    @override
+    def context_out(self) -> Context:
+        return NO_CONTEXT
 
 
 class InvalidDTLS(Complex):
