@@ -152,7 +152,7 @@ check-fonts: check-shaping check-subset fontbakery
 check-sources: mypy ruff
 
 .PHONY: check
-check: check-fonts check-sources $(if $(COVERAGE),check-coverage)
+check: check-sources check-fonts $(if $(COVERAGE),check-coverage)
 
 .hb:
 	mkdir -p .hb
