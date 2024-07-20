@@ -26,7 +26,8 @@ from shapes import Circle
 from shapes import Complex
 from shapes import Curve
 from shapes import Dot
-from shapes import InequalitySign
+from shapes import EqualsSign
+from shapes import Grammalogue
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
@@ -104,9 +105,9 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, list-item, union-attr]
     question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
-    less_than = InequalitySign([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
-    equal = Complex([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
-    greater_than = InequalitySign([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
+    less_than = Grammalogue([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
+    equal = EqualsSign([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
+    greater_than = Grammalogue([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
     left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
     right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
     left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])
@@ -133,7 +134,7 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     right_single_guillemet = Complex(right_guillemet)
     circle = Circle(180, 180, clockwise=False)
     masculine_ordinal_indicator = Complex([(2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
-    multiplication = Complex([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True)])
+    multiplication = Grammalogue([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True), (0, Line(0), True)])
     reference_mark = Complex([*multiplication.instructions, (0.3, Line(0), True), (0, h), (0.3 * 2, Line(180), True), (0, h), (0.3, Line(0), True), (0.3, Line(90), True), (0, h), (0.3 * 2, Line(270), True), (0, h)])
     grave = Line(150)
     acute = Line(45)
@@ -307,8 +308,8 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x003A, colon, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x003B, semicolon, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x003C, less_than, 2),
-        Schema(0x003D, equal, 1, maximum_tree_width=1),
-        Schema(0x003E, greater_than, 2, maximum_tree_width=1),
+        Schema(0x003D, equal, 1, might_be_child=False, maximum_tree_width=1),
+        Schema(0x003E, greater_than, 2, might_be_child=False, maximum_tree_width=1),
         Schema(0x003F, question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
         Schema(0x005B, left_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x005D, right_bracket, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
@@ -325,7 +326,7 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x00BA, masculine_ordinal_indicator, 1, Type.NON_JOINING, y_min=220),
         Schema(0x00BB, right_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
         Schema(0x00BF, inverted_question, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
-        Schema(0x00D7, multiplication, 1, Type.NON_JOINING),
+        Schema(0x00D7, multiplication, 1),
         Schema(0x0300, grave, 0.2, anchor=anchors.ABOVE),
         Schema(0x0301, acute, 0.2, anchor=anchors.ABOVE),
         Schema(0x0302, circumflex, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),

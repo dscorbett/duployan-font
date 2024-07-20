@@ -3128,7 +3128,7 @@ class Complex(Shape):
         return base_index
 
     @functools.cached_property
-    def base_shape(self) -> Shape | None:
+    def _base_shape(self) -> Shape | None:
         """Returns the shape of this shape’s main component.
 
         Returns:
@@ -3144,7 +3144,7 @@ class Complex(Shape):
 
     @override
     def can_take_secant(self) -> bool:
-        return self.base_shape is not None and self.base_shape.can_take_secant()
+        return self._base_shape is not None and self._base_shape.can_take_secant()
 
     @override
     def hub_priority(self, size: float) -> int:
@@ -3563,10 +3563,10 @@ class Complex(Shape):
         base_index = self.base_index
         if base_index is None:
             return False
-        assert self.base_shape is not None
+        assert self._base_shape is not None
         base_op = self.instructions[base_index]
         assert not callable(base_op)
-        return self.base_shape.can_be_child(base_op.size * size)
+        return self._base_shape.can_be_child(base_op.size * size)
 
     @override
     def max_tree_width(self, size: float) -> int:
@@ -3654,8 +3654,8 @@ class Complex(Shape):
 
     @override
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
-        if self.base_shape is not None:
-            return self.base_shape.calculate_diacritic_angles()
+        if self._base_shape is not None:
+            return self._base_shape.calculate_diacritic_angles()
         return super().calculate_diacritic_angles()
 
 
@@ -3700,8 +3700,18 @@ class RotatedComplex(Complex):
         return self.clone(rotation=angle)
 
 
-class InequalitySign(Complex):
-    """U+003C LESS-THAN SIGN or U+003E GREATER-THAN SIGN.
+class EqualsSign(Complex):
+    """U+003D EQUALS SIGN.
+    """
+
+
+class Grammalogue(Complex):
+    """A symbol that might overlap but is not cursively joining.
+
+    Grammalogues that don’t join, like U+1BC9C DUPLOYAN SIGN O WITH
+    CROSS, should not use use this class. Grammalogues that are normal
+    cursively joined letters, or sequences thereof, should also not use
+    this class.
     """
 
     @override
@@ -3712,12 +3722,6 @@ class InequalitySign(Complex):
     @override
     def can_take_secant(self) -> bool:
         return False
-
-    @override
-    def can_be_child(self, size: float) -> bool:
-        base_shape = self.base_shape
-        assert isinstance(base_shape, Line)
-        return not (90 <= base_shape.angle < 270) and super().can_be_child(size)
 
     @override
     def context_in(self) -> Context:

@@ -183,6 +183,9 @@ class Schema:
             meaningful if `cmap` is ``None``.
         encirclable: Whether this schema’s character is attested with a
             following U+20DD COMBINING ENCLOSING CIRCLE.
+        might_be_child: Whether this schema might be a child. The true
+            value of whether it can be a child also depends on its shape
+            and size.
         maximum_tree_width: The maximum width of a shorthand overlap
             sequence following this schema. The true maximum width may
             be lower, depending on this schema’s shape and size.
@@ -358,6 +361,7 @@ class Schema:
             marks: Sequence[Schema] | None = None,
             override_ignored: bool = False,
             encirclable: bool = False,
+            might_be_child: bool = True,
             maximum_tree_width: int | None = None,
             shading_allowed: bool | None = None,
             context_in: Context | None = None,
@@ -392,6 +396,7 @@ class Schema:
                 attribute to an empty sequence.
             override_ignored: The ``override_ignored`` attribute.
             encirclable: The ``encirclable`` attribute.
+            might_be_child: The ``might_be_child`` attribute.
             maximum_tree_width: The ``maximum_tree_width`` attribute, or
                 ``None`` to set the attribute to ``MAX_TREE_WIDTH`` if
                 ``cps`` is Duployan, or else 0.
@@ -439,6 +444,7 @@ class Schema:
         self.original_shape: Final = original_shape or type(path)
         self.anchors: Final = _anchors if _anchors is not None else set()
         self.scripts: Final = cps_to_scripts(self.cps)
+        self.might_be_child: Final = might_be_child
         self.maximum_tree_width: Final = maximum_tree_width if maximum_tree_width is not None else MAX_TREE_WIDTH if self.scripts == {'dupl'} else 0
         self.shading_allowed: Final = shading_allowed if shading_allowed is not None else self.scripts == {'dupl'}
         self.phase_index: Final = CURRENT_PHASE_INDEX
@@ -520,6 +526,7 @@ class Schema:
         marks: Sequence[Schema] | None | CloneDefault = CLONE_DEFAULT,
         override_ignored: bool | CloneDefault = CLONE_DEFAULT,
         encirclable: bool | CloneDefault = CLONE_DEFAULT,
+        might_be_child: bool | CloneDefault = CLONE_DEFAULT,
         maximum_tree_width: int | CloneDefault = CLONE_DEFAULT,
         shading_allowed: bool | CloneDefault = CLONE_DEFAULT,
         context_in: Context | None | CloneDefault = CLONE_DEFAULT,
@@ -547,6 +554,7 @@ class Schema:
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             override_ignored=self.override_ignored if override_ignored is CLONE_DEFAULT else override_ignored,
             encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
+            might_be_child=self.might_be_child if might_be_child is CLONE_DEFAULT else might_be_child,
             maximum_tree_width=self.maximum_tree_width if maximum_tree_width is CLONE_DEFAULT else maximum_tree_width,
             shading_allowed=self.shading_allowed if shading_allowed is CLONE_DEFAULT else shading_allowed,
             context_in=self.context_in if context_in is CLONE_DEFAULT else context_in,
@@ -899,6 +907,9 @@ class Schema:
                     self._canonical_names[name] = [self]
                 self._glyph_name = name
         return self._glyph_name
+
+    def can_be_child(self) -> bool:
+        return self.might_be_child and self.path.can_be_child(self.size)
 
     def max_tree_width(self) -> int:
         """Returns the maximum width of a shorthand overlap sequence

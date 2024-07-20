@@ -39,6 +39,8 @@ from shapes import ContextMarker
 from shapes import ContinuingOverlap
 from shapes import ContinuingOverlapS
 from shapes import Curve
+from shapes import EqualsSign
+from shapes import Grammalogue
 from shapes import InitialSecantMarker
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
@@ -324,7 +326,7 @@ def add_parent_edges(
                 classes[phases.INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.JOINER:
-            classes['root' if schema.path.can_be_child(schema.size) else 'root_only'].append(schema)
+            classes['root' if schema.can_be_child() else 'root_only'].append(schema)
     add_rule(lookup, Rule(['root'], [root_parent_edge, 'root']))
     add_rule(lookup, Rule(['root_only'], [root_only_parent_edge, root_parent_edge, 'root_only']))
     return [lookup]
@@ -783,7 +785,7 @@ def make_mark_variants_of_children(
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
             classes['all'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER and schema.path.can_be_child(schema.size):
+        elif schema.glyph_class == GlyphClass.JOINER and schema.can_be_child():
             classes['child_to_be'].append(schema)
     for i, child_to_be in enumerate(classes['child_to_be']):
         if i < old_child_count:
@@ -968,14 +970,11 @@ def disjoin_grammalogues(
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
+    grammalogues = []
     for schema in new_schemas:
         match schema:
-            case Schema(cmap=0x003C):
-                less_than_sign = schema
-            case Schema(cmap=0x003D):
-                equals_sign = schema
-            case Schema(cmap=0x003E):
-                greater_than_sign = schema
+            case Schema(path=EqualsSign() | Grammalogue()):
+                grammalogues.append(schema)
             case Schema(glyph_class=GlyphClass.JOINER):
                 classes['joiner'].append(schema)
             case Schema(path=ContinuingOverlap()):
@@ -985,10 +984,9 @@ def disjoin_grammalogues(
                 root_parent_edge = schema
                 classes['all'].append(root_parent_edge)
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-    for root in [
-        equals_sign,
-        greater_than_sign,
-    ]:
+    for root in grammalogues:
+        if root.max_tree_width() == 0:
+            continue
         add_rule(lookup, Rule([root], [zwnj, root]))
         if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width() + 1)):
             if 'prepend_zwnj' not in named_lookups:
@@ -996,9 +994,9 @@ def disjoin_grammalogues(
                 add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
             for tree in trees:
                 add_rule(lookup, Rule([root, *filter(None, tree)], [root_parent_edge], [], lookups=['prepend_zwnj']))
-    for child in [
-        less_than_sign,
-    ]:
+    for child in grammalogues:
+        if not child.can_be_child():
+            continue
         add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
         add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
         add_rule(lookup, Rule([child], [child, zwnj]))
