@@ -164,7 +164,7 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 _T = TypeVar('_T')
 
 
-class _FreezableList(list[_T], Generic[_T]):
+class FreezableList(list[_T], Generic[_T]):
     """A list that can be frozen, making it immutable.
     """
 
@@ -770,7 +770,7 @@ class Lookup:
         self.mark_filtering_set: Final = mark_filtering_set
         self.required: Final = feature in REQUIRED_FEATURES
         self.reverse: Final = reverse
-        self.rules: Final[_FreezableList[Rule]] = _FreezableList()
+        self.rules: Final[FreezableList[Rule]] = FreezableList()
 
     def get_scripts(
         self,
@@ -963,7 +963,7 @@ if TYPE_CHECKING:
 def _add_rule(
     autochthonous_schemas: Iterable[schema.Schema],
     output_schemas: OrderedSet[schema.Schema],
-    classes: Mapping[str, _FreezableList[schema.Schema]],
+    classes: Mapping[str, FreezableList[schema.Schema]],
     named_lookups: Mapping[str, Lookup],
     lookup: Lookup,
     rule: Rule,
@@ -1136,7 +1136,7 @@ if TYPE_CHECKING:
             Arg(OrderedSet[schema.Schema], 'original_schemas'),
             Arg(OrderedSet[schema.Schema], 'schemas'),
             Arg(OrderedSet[schema.Schema], 'new_schemas'),
-            Arg(PrefixView[MutableSequence[schema.Schema]], 'classes'),
+            Arg(PrefixView[FreezableList[schema.Schema]], 'classes'),
             Arg(PrefixView[Lookup], 'named_lookups'),
             Arg(AddRule, 'add_rule'),
         ],
@@ -1148,12 +1148,12 @@ def run_phases(
     builder: Builder,
     all_input_schemas: Iterable[schema.Schema],
     phases: Iterable[Phase],
-    all_classes: collections.defaultdict[str, MutableSequence[schema.Schema]] | None = None,
+    all_classes: collections.defaultdict[str, FreezableList[schema.Schema]] | None = None,
 ) -> tuple[
     OrderedSet[schema.Schema],
     Iterable[schema.Schema],
     MutableSequence[tuple[Lookup, Phase]],
-    collections.defaultdict[str, MutableSequence[schema.Schema]],
+    collections.defaultdict[str, FreezableList[schema.Schema]],
     MutableMapping[str, tuple[Lookup, Phase]],
 ]:
     """Runs a sequence of phases.
@@ -1183,7 +1183,7 @@ def run_phases(
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases: MutableSequence[tuple[Lookup, Phase]] = []
     if all_classes is None:
-        all_classes = collections.defaultdict(_FreezableList)
+        all_classes = collections.defaultdict(FreezableList)
     all_named_lookups_with_phases: dict[str, tuple[Lookup, Phase]] = {}
     for phase_index, phase in enumerate(phases, start=schema.CURRENT_PHASE_INDEX + 1):
         schema.CURRENT_PHASE_INDEX = phase_index

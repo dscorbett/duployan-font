@@ -75,6 +75,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from . import AddRule
+    from . import FreezableList
     from duployan import Builder
     from shapes import Shape
     from utils import PrefixView
@@ -85,7 +86,7 @@ def dont_ignore_default_ignorables(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -103,7 +104,7 @@ def reversed_circle_kludge(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -132,7 +133,7 @@ def validate_shading(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -160,7 +161,7 @@ def validate_double_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -191,7 +192,7 @@ def decompose(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -207,7 +208,7 @@ def expand_secants(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -249,7 +250,7 @@ def validate_overlap_controls(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -308,7 +309,7 @@ def add_parent_edges(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -376,7 +377,7 @@ def invalidate_overlap_controls(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -455,7 +456,7 @@ def add_secant_guidelines(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -495,7 +496,7 @@ def add_placeholders_for_missing_children(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -546,7 +547,7 @@ def categorize_edges(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -634,7 +635,7 @@ def promote_final_letter_overlap_to_continuing_overlap(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -694,7 +695,7 @@ def reposition_chinook_jargon_overlap_points(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -773,7 +774,7 @@ def make_mark_variants_of_children(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -801,7 +802,7 @@ def interrupt_overlong_primary_curve_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -928,7 +929,7 @@ def reposition_stenographic_period(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -956,7 +957,7 @@ def disjoin_grammalogues(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1009,7 +1010,7 @@ def join_with_next_step(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1063,7 +1064,7 @@ def separate_subantiparallel_lines(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1156,7 +1157,7 @@ def prepare_for_secondary_diphthong_ligature(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1188,7 +1189,7 @@ def join_with_previous(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1239,7 +1240,7 @@ def unignore_last_orienting_glyph_in_initial_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1282,7 +1283,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1340,7 +1341,7 @@ def tag_main_glyph_in_orienting_sequence(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1372,7 +1373,7 @@ def join_with_next(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1451,7 +1452,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1489,7 +1490,7 @@ def ligate_diphthongs(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1551,7 +1552,7 @@ def thwart_what_would_flip(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1582,7 +1583,7 @@ def unignore_noninitial_orienting_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1629,7 +1630,7 @@ def unignore_initial_orienting_sequences(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1677,7 +1678,7 @@ def join_double_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1708,7 +1709,7 @@ def rotate_diacritics(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1753,7 +1754,7 @@ def shade(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1786,7 +1787,7 @@ def create_diagonal_fractions(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1824,7 +1825,7 @@ def create_superscripts_and_subscripts(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1854,7 +1855,7 @@ def make_widthless_variants_of_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1879,7 +1880,7 @@ def classify_marks_for_trees(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:

@@ -64,12 +64,12 @@ from utils import mkmk
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import MutableMapping
-    from collections.abc import MutableSequence
     from collections.abc import Sequence
 
     from _typeshed import SupportsRichComparison
 
     from . import AddRule
+    from . import FreezableList
     from duployan import Builder
     from shapes import Digit
     from utils import PrefixView
@@ -80,7 +80,7 @@ def add_shims_for_pseudo_cursive(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -239,7 +239,7 @@ def shrink_wrap_enclosing_circle(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -313,7 +313,7 @@ def add_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -487,7 +487,7 @@ def add_width_markers(
             for anchor in group[1:]:
                 canonical_mark_anchor_mapping[anchor] = canonical_mark_anchor
         for anchor in canonical_mark_anchors:
-            classes[f'global..canonical_anchor_{anchor}'] = []
+            classes[f'global..canonical_anchor_{anchor}']
     else:
         canonical_mark_anchors = [a for a in anchors.ALL_MARK if f'global..canonical_anchor_{a}' in classes]
     for rule_count, (schema, entry_xs, exit_xs, start_x) in enumerate(schemas_needing_width_markers):
@@ -564,7 +564,7 @@ def add_end_markers_for_marks(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -586,7 +586,7 @@ def remove_false_end_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -609,7 +609,7 @@ def clear_entry_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -657,7 +657,7 @@ def sum_width_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -898,7 +898,7 @@ def calculate_bound_extrema(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -974,7 +974,7 @@ def remove_false_start_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -997,7 +997,7 @@ def mark_hubs_after_initial_secants(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1033,7 +1033,7 @@ def find_real_hub(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1078,7 +1078,7 @@ def expand_start_markers(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1096,7 +1096,7 @@ def mark_maximum_bounds(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1156,7 +1156,7 @@ def copy_maximum_left_bound_to_start(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
@@ -1204,7 +1204,7 @@ def dist(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:

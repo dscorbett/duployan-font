@@ -144,7 +144,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.10.1
+mypy==1.11.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -211,7 +211,7 @@ rstr==3.2.2
     #   stringbrewer
 ruff==0.5.3
     # via -r dev-requirements.in
-setuptools==71.0.3
+setuptools==71.0.4
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -276,7 +276,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.26
+uv==0.2.27
     # via -r dev-requirements.in
 vfblib==0.7.0
     # via babelfont

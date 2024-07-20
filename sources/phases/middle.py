@@ -24,10 +24,10 @@ import sifting
 
 
 if TYPE_CHECKING:
-    from collections.abc import MutableSequence
     from collections.abc import Sequence
 
     from . import AddRule
+    from . import FreezableList
     from duployan import Builder
     from utils import OrderedSet
     from utils import PrefixView
@@ -38,7 +38,7 @@ def merge_lookalikes(
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
     new_schemas: OrderedSet[Schema],
-    classes: PrefixView[MutableSequence[Schema]],
+    classes: PrefixView[FreezableList[Schema]],
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:

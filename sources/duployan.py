@@ -65,6 +65,7 @@ if TYPE_CHECKING:
 
     import fontforge
 
+    from phases import FreezableList
     from phases import Lookup
     from phases import Phase
 
@@ -536,7 +537,7 @@ class Builder:
         self,
         schemas: Collection[Schema],
         lookups_with_phases: Sequence[tuple[Lookup, Phase]],
-        classes: MutableMapping[str, MutableSequence[Schema]],
+        classes: MutableMapping[str, FreezableList[Schema]],
         named_lookups_with_phases: MutableMapping[str, tuple[Lookup, Phase]],
     ) -> None:
         grouper = sifting.group_schemas(schemas)
@@ -613,7 +614,8 @@ class Builder:
         features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)
         for lp in lookups_with_phases:
             if lp[0].feature:
-                features_to_scripts[lp[0].feature] |= lp[0].get_scripts(PrefixView(lp[1], classes))
+                prefix_classes = PrefixView(lp[1], classes)
+                features_to_scripts[lp[0].feature] |= lp[0].get_scripts(prefix_classes)
         for i, lp in enumerate(lookups_with_phases):
             self._fea.statements.extend(lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i))
         self._add_lookups(class_asts)
