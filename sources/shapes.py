@@ -2909,7 +2909,7 @@ class Circle(Shape):
             )
         elif clockwise_ignoring_reversal == clockwise_ignoring_curvature:
             if is_reversed:
-                if da != 180:
+                if da != 180 and (self.role != CircleRole.DEPENDENT or abs(Curve(angle_in, (angle_out + 180) % 360, clockwise=clockwise).get_da()) == 270):
                     return Curve(
                         angle_in,
                         (angle_out + 180) % 360,
@@ -2934,7 +2934,7 @@ class Circle(Shape):
                 )
         else:
             if is_reversed:
-                if da != 180:
+                if da != 180 and (self.role != CircleRole.DEPENDENT or abs(Curve(angle_in, angle_out, clockwise=clockwise).get_da()) == 270):
                     return Curve(
                         angle_in,
                         angle_out,
