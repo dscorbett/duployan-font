@@ -730,7 +730,7 @@ def reposition_chinook_jargon_overlap_points(
                 and not schema.path.secant
                 and not schema.path.dots
             ):
-                angle = schema.path.angle
+                angle = schema.path.angle % 180
                 max_tree_width = schema.max_tree_width()
                 line_class = f'line_{angle}_{max_tree_width}'
                 classes['line'].append(schema)
@@ -750,13 +750,25 @@ def reposition_chinook_jargon_overlap_points(
         if curve in new_schemas:
             assert isinstance(curve.path, Curve)
             for line_class, (angle, _) in line_classes.items():
+                curve_output = curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))
                 for width in range(1, curve.max_tree_width() + 1):
                     add_rule(lookup, Rule(
                         [],
                         [curve],
                         [*['overlap'] * width, line_class],
-                        [curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))],
+                        [curve_output],
                     ))
+                if angle == 90:
+                    for curve_0 in classes['curve']:
+                        assert isinstance(curve_0.path, Curve)
+                        if curve_0 in new_schemas and curve_0.cps == (0x1BC1C,) and curve.cps == (0x1BC1B,):
+                            for width in range(1, curve_0.max_tree_width() + 1):
+                                add_rule(lookup, Rule(
+                                    [],
+                                    [curve_0],
+                                    [*['overlap'] * width, curve_output],
+                                    [curve_0.clone(cmap=None, path=curve_0.path.clone(overlap_angle=angle))],
+                                ))
     for curve_child in classes['curve']:
         if curve_child in new_schemas:
             assert isinstance(curve_child.path, Curve)
