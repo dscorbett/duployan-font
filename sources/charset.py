@@ -79,6 +79,8 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     h = Dot()
     exclamation = Complex([(0, h), (188, Space(90)), (1.109, Line(90))])
     inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].as_reversed())])  # type: ignore[call-arg, index, union-attr]
+    number_sign = Complex([(1.018, Line(79.293)), (0.303, Line(0), True), (1.018, Line(79.293 + 180)), (0.346, Line(79.293), True), (0.254, Line(0), True), (0.254 * 2 + 0.303, Line(180)), (1.018 - 2 * 0.346, Line(79.293), True), (0.254 * 2 + 0.303, Line(0))])
+    livre_tournois = Complex([(1, Line(90)), (0.303, Line(0), True), (1, Line(270)), (2 * 0.346 / 1.018, Line(90), True), (0.254, Line(0), True), (0.254 * 2 + 0.303, Line(180))])
     dollar = Complex([(2.58, Curve(173.935, 189.062, clockwise=False, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.88, Curve(198.012, 354.647, clockwise=False, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.098964, Line(354.647)), (2.88, Curve(354.647, 198.012, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.58, Curve(189.062, 173.935, clockwise=True, stretch=2.058, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0, Space(0), True, True), (151.739, Space(328.952)), (1.484, Line(90)), (140, Space(0)), (1.484, Line(270))])
     percent = Complex([(2.3, Curve(326.31, 326.31, clockwise=True, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE)), (2.3, Curve(326.31, 45, clockwise=False, stretch=0.7, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (1.463514, Line(240)), (2.3, Curve(45, 326.31, clockwise=True, stretch=0.7, long=True, stretch_axis=StretchAxis.ABSOLUTE), True), (2.3, Curve(326.31, 326.31, clockwise=False, stretch=0.078125, stretch_axis=StretchAxis.ABSOLUTE)),
     ])
@@ -286,6 +288,7 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(None, notdef, 1, Type.NON_JOINING, side_bearing=95, y_max=CAP_HEIGHT),
         Schema(0x0020, space, 260, Type.NON_JOINING, side_bearing=260),
         Schema(0x0021, exclamation, 1, Type.NON_JOINING, encirclable=True, y_max=CAP_HEIGHT),
+        Schema(0x0023, number_sign, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x0024, dollar, 7 / 8, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x0025, percent, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x0028, left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
@@ -370,6 +373,7 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
         Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x205D, tricolon, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
         Schema(0x2197, northeast_arrow, 2.88, Type.NON_JOINING),
         Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),

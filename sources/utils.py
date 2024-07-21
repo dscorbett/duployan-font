@@ -147,6 +147,7 @@ EPSILON: Final[float] = 1e-5
 #: for no reason that is otherwise derivable.
 FULL_FONT_CODE_POINTS: Final[AbstractSet[int]] = {
     0x034F,
+    0x20B6,
 }
 
 
