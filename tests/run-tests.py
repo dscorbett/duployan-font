@@ -26,7 +26,7 @@ import subprocess
 import sys
 from typing import Literal
 
-from utils import FULL_FONT_CODE_POINTS
+import charset
 
 
 CI = os.getenv('CI') == 'true'
@@ -39,9 +39,6 @@ GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
 
 
 NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
-
-
-SPACE_NAME_COMPONENT_PATTERN = re.compile(r'(?<=[\[|])(?:uni00A0|uni200[0-9A]|uni202F|uni205F|uni3000)(?![0-9A-Za-z_])')
 
 
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
@@ -152,8 +149,7 @@ def run_test(
     passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
         or incomplete and bool(
             NOTDEF_PATTERN.search(actual_output)
-            or SPACE_NAME_COMPONENT_PATTERN.search(expected_output)
-            or any(int(cp, 16) in FULL_FONT_CODE_POINTS for cp in code_points.split())
+            or any(not charset.include_cp_in_noto(int(cp, 16)) for cp in code_points.split())
         )
     )
     if not passed or view_all:

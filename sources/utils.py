@@ -143,14 +143,6 @@ DEFAULT_SIDE_BEARING: Final[float] = 85
 EPSILON: Final[float] = 1e-5
 
 
-#: The set of code points which should be omitted from the Noto build
-#: for no reason that is otherwise derivable.
-FULL_FONT_CODE_POINTS: Final[AbstractSet[int]] = {
-    0x034F,
-    0x20B6,
-}
-
-
 #: The maximum depth of a shorthand overlap sequence, i.e. the maximum
 #: number of overlap controls connecting a child letter to the root of
 #: the tree, plus one for the root itself. The maximum known attested

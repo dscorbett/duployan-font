@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from collections.abc import Collection
+from collections.abc import Set as AbstractSet
 import math
+import string
+from typing import Final
 from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
@@ -51,7 +54,6 @@ from utils import CROSS_DEPTH
 from utils import CROSS_HEIGHT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
-from utils import FULL_FONT_CODE_POINTS
 from utils import MAX_TREE_WIDTH
 from utils import PICTOGRAPH_DEPTH
 from utils import PICTOGRAPH_HEIGHT
@@ -64,6 +66,49 @@ from utils import X_HEIGHT
 
 if TYPE_CHECKING:
     from shapes import Instructions
+
+
+#: The set of code points which should be omitted from the Noto build
+#: for no reason that is otherwise derivable.
+_FULL_FONT_CODE_POINTS: Final[AbstractSet[int]] = {
+    # U+034F COMBINING GRAPHEME JOINER marks reversed vowels not supported
+    # by Unicode, a hack not appropriate for Noto.
+    0x034F,
+    # Ottoman Turkish Duployan is not fully supported in Unicode.
+    *range(0x0660, 0x0669 + 1),
+    # U+20B6 LIVRE TOURNOIS SIGN might be not the right code point for this
+    # glyph.
+    0x20B6,
+}
+
+
+def include_cp_in_noto(cp: int) -> bool:
+    """Returns whether a code point should be included in the Noto build.
+
+    Args:
+        cp: A code point.
+
+    Returns:
+        Whether a glyph mapped to `cp` should be included in the Noto
+        build. ``False`` means the glyph isn’t necessarily included, but
+        it still might be based on other information.
+    """
+    return not (
+        cp in _FULL_FONT_CODE_POINTS
+        or unicodedata.category(chr(cp)) in {'Co', 'Zs'} and chr(cp) not in string.whitespace
+    )
+
+
+def _include_schema_in_noto(schema: Schema) -> bool:
+    """Returns whether a schema should be included in the Noto build.
+
+    Args:
+        schema: A schema.
+    """
+    return (schema.cmap is None
+        or include_cp_in_noto(schema.cmap)
+        or unicodedata.category(chr(schema.cmap)) == 'Zs' and schema.joining_type == Type.NON_JOINING
+    )
 
 
 def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Collection[Schema]:
@@ -149,6 +194,16 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
+    arabic_zero = Dot(1.474)
+    arabic_one = Curve(94, 110, clockwise=False, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE)
+    arabic_two = Complex([(1, arabic_one), (0.11, Curve(arabic_one.angle_out + 180, 80, clockwise=False, stretch=0.1, stretch_axis=StretchAxis.ABSOLUTE))])
+    arabic_three = Complex([(1, arabic_one), (0.066, Curve(arabic_one.angle_out + 180, 91, clockwise=False, stretch=0.12, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.066, Curve(91 + 180, 90, clockwise=False, stretch=0.1, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
+    arabic_four = Complex([(72.945, Line(241.327)), (168.854, Curve(241.327, 0, clockwise=False)), (38.8, Line(0))] * 2)
+    arabic_five = Complex([(1.08, Curve(80, 280, clockwise=True, stretch=1.8, stretch_axis=StretchAxis.ABSOLUTE)), (0.78162, Curve(280, 80, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
+    arabic_six = Complex([(1, arabic_one), (0.005, Line(190)), (0.1, Curve(190, 154, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
+    arabic_seven = Complex([(1, Curve(298, 286, clockwise=True, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE)), (1, Curve(74, 62, clockwise=True, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE))])
+    arabic_eight = Complex([arabic_seven.instructions[1]._replace(shape=arabic_seven.instructions[1].shape.clone(angle_in=arabic_seven.instructions[1].shape.angle_out, angle_out=arabic_seven.instructions[1].shape.angle_in, clockwise=not arabic_seven.instructions[1].shape.clockwise)), arabic_seven.instructions[0]._replace(shape=arabic_seven.instructions[0].shape.clone(angle_in=arabic_seven.instructions[0].shape.angle_out, angle_out=arabic_seven.instructions[0].shape.angle_in, clockwise=not arabic_seven.instructions[0].shape.clockwise))])  # type: ignore[call-arg, union-attr]
+    arabic_nine = Complex([(40, Curve(94, 90, clockwise=True, stretch=0.1, stretch_axis=StretchAxis.ABSOLUTE)), (1.555, Curve(90, 260, clockwise=False, stretch=1.5, stretch_axis=StretchAxis.ABSOLUTE)), (1.152, Curve(260, 90, clockwise=False, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
     right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
     ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
@@ -351,6 +406,16 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x034F, space, 0, Type.NON_JOINING, side_bearing=0),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
+        Schema(0x0660, arabic_zero, 0, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line * Dot.SCALAR ** arabic_zero.size_exponent / 2),
+        Schema(0x0661, arabic_one, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0662, arabic_two, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0663, arabic_three, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0664, arabic_four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0665, arabic_five, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - 0.3 * CAP_HEIGHT, y_max=CAP_HEIGHT / 2 + 0.3 * CAP_HEIGHT),
+        Schema(0x0666, arabic_six, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0667, arabic_seven, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0668, arabic_eight, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x0669, arabic_nine, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
@@ -583,12 +648,5 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
             cps=None,
         ))
     if noto:
-        schemas = [
-            s for s in schemas
-            if s.cmap is None or not (
-                s.cmap in FULL_FONT_CODE_POINTS
-                or unicodedata.category(chr(s.cmap)) == 'Co'
-                or unicodedata.category(chr(s.cmap)) == 'Zs' and s.joining_type != Type.NON_JOINING
-            )
-        ]
+        schemas = [*filter(_include_schema_in_noto, schemas)]
     return schemas

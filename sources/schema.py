@@ -305,6 +305,7 @@ class Schema:
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
         (r' ACCENT\b', ''),
         (r'[- ](AND|WITH)[- ]', ' '),
+        (r'\bARABIC-INDIC\b', 'ARABIC'),
         (r'\bCOMBINING ', ''),
         (r'\bDIGIT ', ''),
         (r'^DUPLOYAN ((AFFIX( ATTACHED)?|LETTER|PUNCTUATION|SIGN) )?', ''),

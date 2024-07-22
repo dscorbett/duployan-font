@@ -686,6 +686,39 @@ class Rule:
         """
         return len(self.inputs) == 1 and self.outputs is not None and len(self.outputs) != 1
 
+    def get_scripts(
+        self,
+        classes: Mapping[str, Sequence[schema.Schema]],
+    ) -> AbstractSet[str]:
+        """Returns the minimal set of script tags relevant to this rule.
+
+        Args:
+            classes: A mapping to glyph classes from their names.
+        """
+        def s_to_scripts(
+            s: schema.Schema | str,
+        ) -> AbstractSet[str]:
+            if isinstance(s, str):
+                scripts = set()
+                for s_schema in classes[s]:
+                    scripts |= s_schema.scripts
+                return scripts
+            return s.scripts
+
+        def target_to_scripts(
+            target: Sequence[schema.Schema | str] | None,
+        ) -> AbstractSet[str]:
+            scripts = set(KNOWN_SCRIPTS)
+            if target:
+                for s in target:
+                    scripts &= s_to_scripts(s)
+            return scripts
+
+        return (target_to_scripts(self.contexts_in)
+            & target_to_scripts(self.inputs)
+            & target_to_scripts(self.contexts_out)
+        )
+
 
 class Lookup:
     """An OpenType Layout lookup.
@@ -774,7 +807,7 @@ class Lookup:
 
     def get_scripts(
         self,
-        classes: Mapping[str, MutableSequence[schema.Schema]],
+        classes: Mapping[str, Sequence[schema.Schema]],
     ) -> AbstractSet[str]:
         """Returns the minimal set of script tags relevant to this
         lookup.
@@ -782,39 +815,9 @@ class Lookup:
         Args:
             classes: A mapping to glyph classes from their names.
         """
-        def s_to_scripts(
-            s: schema.Schema | str,
-        ) -> AbstractSet[str]:
-            if isinstance(s, str):
-                scripts = set()
-                for s_schema in classes[s]:
-                    scripts |= s_schema.scripts
-                return scripts
-            return s.scripts
-
-        def target_to_scripts(
-            target: Sequence[schema.Schema | str] | None,
-        ) -> AbstractSet[str]:
-            scripts = set(KNOWN_SCRIPTS)
-            if target:
-                for s in target:
-                    scripts &= s_to_scripts(s)
-            assert scripts
-            return scripts
-
-        def rule_to_scripts(
-            rule: Rule,
-        ) -> AbstractSet[str]:
-            scripts = (target_to_scripts(rule.contexts_in)
-                & target_to_scripts(rule.inputs)
-                & target_to_scripts(rule.contexts_out)
-            )
-            assert scripts
-            return scripts
-
-        scripts: AbstractSet[str] = set()
+        scripts: MutableSet[str] = set()
         for rule in self.rules:
-            scripts |= rule_to_scripts(rule)
+            scripts |= rule.get_scripts(classes)
         return scripts
 
     def _get_sorted_scripts(self, features_to_scripts: Mapping[str, AbstractSet[str]]) -> Iterable[str]:
@@ -1040,6 +1043,18 @@ def _add_rule(
         else:
             check_ignored(rule.inputs)
         check_ignored(rule.contexts_out)
+
+    if not rule.get_scripts(classes):
+        # If a rule has no scripts, its pieces must have non-overlapping script
+        # sets, so the rule can never apply and should be skipped. As an
+        # exception, if a class in the rule is empty, the phase is probably not
+        # done populating its classes, so don’t skip the rule yet.
+        rule_pieces = [*rule.contexts_in, *rule.inputs, *rule.contexts_out]
+        if not any(isinstance(s, str) and not classes[s] for s in rule_pieces):
+            for s in rule_pieces:
+                if isinstance(s, str):
+                    classes[s].freeze()
+            return
 
     for input in rule.inputs:
         if isinstance(input, str):

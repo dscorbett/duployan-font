@@ -18,9 +18,9 @@ from __future__ import annotations
 import collections
 import functools
 import itertools
+import string
 from typing import TYPE_CHECKING
 from typing import TypeVar
-import unicodedata
 
 import fontTools.otlLib.builder
 
@@ -1807,7 +1807,7 @@ def create_diagonal_fractions(
     if len(original_schemas) != len(schemas):
         return [lookup_numr, lookup_dnom, lookup_rlig]
     for schema in new_schemas:
-        if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
+        if schema.cmap is not None and chr(schema.cmap) in string.digits:
             classes['digit'].append(schema)
             classes['digit_or_slash'].append(schema)
             assert schema.y_max is not None
@@ -1842,7 +1842,7 @@ def create_superscripts_and_subscripts(
     lookup_sups = Lookup('sups', 'dflt')
     lookup_subs = Lookup('subs', 'dflt')
     for schema in new_schemas:
-        if schema.cmap is not None and unicodedata.category(chr(schema.cmap)) == 'Nd':
+        if schema.cmap is not None and chr(schema.cmap) in string.digits:
             classes['i'].append(schema)
             assert schema.y_max is not None
             classes['o_sups'].append(schema.clone(
