@@ -110,7 +110,9 @@ gflanguages==0.6.2
     #   glyphsets
     #   shaperglot
 gfsubsets==2024.5.9
-    # via fontbakery
+    # via
+    #   -r requirements.in
+    #   fontbakery
 glyphsets==1.0.0
     # via fontbakery
 glyphslib==6.7.1
@@ -211,7 +213,7 @@ rstr==3.2.2
     #   stringbrewer
 ruff==0.5.3
     # via -r dev-requirements.in
-setuptools==71.0.4
+setuptools==71.1.0
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -276,7 +278,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.27
+uv==0.2.28
     # via -r dev-requirements.in
 vfblib==0.7.0
     # via babelfont

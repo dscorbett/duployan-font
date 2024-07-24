@@ -22,6 +22,8 @@ from typing import TYPE_CHECKING
 from typing import cast
 import unicodedata
 
+import gfsubsets
+
 import anchors
 from schema import Schema
 from shapes import Bound
@@ -70,45 +72,78 @@ if TYPE_CHECKING:
 
 #: The set of code points which should be omitted from the Noto build
 #: for no reason that is otherwise derivable.
-_FULL_FONT_CODE_POINTS: Final[AbstractSet[int]] = {
-    # U+034F COMBINING GRAPHEME JOINER marks reversed vowels not supported
-    # by Unicode, a hack not appropriate for Noto.
+_NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
+    # Some punctuation marks are marked as encirclable for consistency with
+    # related characters without having direct attestations.
+    0x00A1, 0x00BF, 0x2018, 0x2019,
+    # Weiler’s German mode is not fully supported in Unicode. It is not
+    # useful to include code points specific to unsupported modes.
+    0x030D,
+    # Duployé-Flageul for Esperanto is not fully supported in Unicode.
+    0x031C, 0x0339, 0x0351, 0x0357,
+    # U+034F COMBINING GRAPHEME JOINER creates reversed circle letters not
+    # supported by Unicode. It is effectively a private use character.
     0x034F,
-    # Ottoman Turkish Duployan is not fully supported in Unicode.
-    *range(0x0660, 0x0669 + 1),
-    # U+20B6 LIVRE TOURNOIS SIGN might be not the right code point for this
-    # glyph.
-    0x20B6,
 }
 
 
-def include_cp_in_noto(cp: int) -> bool:
-    """Returns whether a code point should be included in the Noto build.
-
-    Args:
-        cp: A code point.
-
-    Returns:
-        Whether a glyph mapped to `cp` should be included in the Noto
-        build. ``False`` means the glyph isn’t necessarily included, but
-        it still might be based on other information.
-    """
-    return not (
-        cp in _FULL_FONT_CODE_POINTS
-        or unicodedata.category(chr(cp)) in {'Co', 'Zs'} and chr(cp) not in string.whitespace
-    )
+#: The set of code points which should be included in the Noto build for
+#: no reason that is otherwise derivable.
+_NOTO_INCLUSIONS: Final[AbstractSet[int]] = {
+    # The whole set of Romanian grammalogues should be included for
+    # consistency, even those that don’t have Duployan-specific behavior.
+    0x002B, 0x2197, 0x2641, 0x271D,
+    # These are mentioned in Unicode Technical Note #37.
+    0x00B0, 0x00B7, 0x2E3C,
+    # Finally, the following characters were included in previous releases
+    # of Noto Sans Duployan. Removing them would be a breaking change.
+    0x0024, 0x002A, 0x002E, 0x002F, 0x005B, 0x005D, 0x00AB, 0x00BA, 0x00BB, 0x2013, 0x2039, 0x203A, 0x2308, 0x2309, 0x230A, 0x230B, 0x2620, 0x2E40,
+}
 
 
-def _include_schema_in_noto(schema: Schema) -> bool:
+assert _NOTO_EXCLUSIONS.isdisjoint(_NOTO_INCLUSIONS), (
+    f'Cannot simultaneously include and exclude characters in the Noto build: {", ".join(f"U+{cp:04X}" for cp in sorted(_NOTO_EXCLUSIONS & _NOTO_INCLUSIONS))}')
+
+
+def _include_in_noto(schema: Schema) -> bool:
     """Returns whether a schema should be included in the Noto build.
 
     Args:
         schema: A schema.
     """
-    return (schema.cmap is None
-        or include_cp_in_noto(schema.cmap)
-        or unicodedata.category(chr(schema.cmap)) == 'Zs' and schema.joining_type == Type.NON_JOINING
-    )
+    if schema.cmap is None:
+        return True
+    if schema.cmap in _NOTO_EXCLUSIONS:
+        return False
+    if schema.cmap in _NOTO_INCLUSIONS:
+        return True
+    char = chr(schema.cmap)
+    gc = unicodedata.category(char)
+    if gc == 'Co':
+        return False
+    if gc == 'Zs':
+        # Among the spaces, Noto fonts usually only include U+0020 SPACE and
+        # U+00A0 NO-BREAK SPACE. U+202F NARROW NO-BREAK SPACE should also be
+        # included for Duployan because it has special joining behavior, but
+        # it resets the baseline in Chrome, so it is excluded to make sure
+        # the font behaves consistently between applications with different
+        # itemizers.
+        return schema.joining_type == Type.NON_JOINING
+    if char in f'{string.digits}\u2044':
+        # Digits can take combining marks. This is not technically
+        # Duployan-specific behavior but most other fonts don’t support this.
+        return True
+    if (schema.cmap not in gfsubsets.CodepointsInSubset('duployan', unique_glyphs=True)  # noqa: SIM103
+        and gc[0] != 'M'
+        and schema.joining_type == Type.NON_JOINING
+        and not schema.encirclable
+        and not schema.shading_allowed
+    ):
+        # Non-Duployan characters only belong in Noto Sans Duployan if they
+        # interact with Duployan characters or have other Duployan-specific
+        # behavior.
+        return False
+    return True
 
 
 def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Collection[Schema]:
@@ -648,5 +683,5 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
             cps=None,
         ))
     if noto:
-        schemas = [*filter(_include_schema_in_noto, schemas)]
+        schemas = [*filter(_include_in_noto, schemas)]
     return schemas

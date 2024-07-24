@@ -25,11 +25,16 @@ import re
 import subprocess
 import sys
 from typing import Literal
-
-import charset
+import unicodedata
 
 
 CI = os.getenv('CI') == 'true'
+
+
+DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ = {
+    0x00AD, 0x034F, 0x061C, 0x17B4, 0x17B5, *range(0x180B, 0x180F + 1), *range(0x200B, 0x200F + 1), *range(0x202A, 0x202E + 1), *range(0x2060, 0x206F + 1),
+    *range(0xFE00, 0xFE0F + 1), 0xFEFF, *range(0xFFF0, 0xFFF8 + 1), *range(0x1D173, 0x1D17A + 1), *range(0xE0000, 0xE0FFF + 1),
+}
 
 
 DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
@@ -44,7 +49,7 @@ NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
 
 
-UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)')
+UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)(\.su[bp]s)?')
 
 
 _Color = Literal['auto', 'no', 'yes']
@@ -84,6 +89,14 @@ def munge(output: str, regular: bool, incomplete: bool) -> str:
     if not regular:
         output = GLYPH_POSITION_PATTERN.sub('', output)
     return output
+
+
+def may_fail(code_points: str, actual_output: str) -> bool:
+    return bool(NOTDEF_PATTERN.search(actual_output)
+        or any((cp := int(cp_str, 16)) in DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ
+                or cp != 0x0020 and unicodedata.category(chr(cp)) == 'Zs'
+            for cp_str in code_points.split())
+    )
 
 
 def print_diff(
@@ -147,10 +160,7 @@ def run_test(
     actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
     regular = font.endswith('-Regular.otf')
     passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
-        or incomplete and bool(
-            NOTDEF_PATTERN.search(actual_output)
-            or any(not charset.include_cp_in_noto(int(cp, 16)) for cp in code_points.split())
-        )
+        or incomplete and may_fail(code_points, actual_output)
     )
     if not passed or view_all:
         if not passed:

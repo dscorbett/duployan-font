@@ -55,6 +55,7 @@ module = [
     "cffsubr.*",
     "fontTools.*",
     "fontforge.*",
+    "gfsubsets.*",
     "uharfbuzz.*",
 ]
 ignore_missing_imports = true
