@@ -73,7 +73,7 @@ fontfeatures==1.8.0
     # via
     #   -c dev-constraints.txt
     #   babelfont
-fontmath==0.9.3
+fontmath==0.9.4
     # via ufo2ft
 fonttools==4.53.1
     # via
@@ -211,7 +211,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.5.3
+ruff==0.5.5
     # via -r dev-requirements.in
 setuptools==71.1.0
     # via
@@ -278,7 +278,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.28
+uv==0.2.29
     # via -r dev-requirements.in
 vfblib==0.7.0
     # via babelfont

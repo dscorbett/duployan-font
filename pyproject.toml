@@ -88,6 +88,7 @@ ignore = [
     # Not appropriate for this project
     "B011",
     "D200",
+    "DOC502",
     "EM",
     "FIX001",
     "FIX002",
