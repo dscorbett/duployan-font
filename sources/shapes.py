@@ -3964,9 +3964,11 @@ class Ou(Complex):
             )
         inner_curve_da = 125
         outer_rewind_da = -35
+        angle_against_next = 90
         circle_op = self.instructions[0]
         assert not callable(circle_op)
         inner_curve_size = 5 / 9 * circle_op.size
+        inner_curve_stretch = 0.3
         circle_path = circle_op.shape
         assert isinstance(circle_path, Circle | Curve)
         angle_in = circle_path.angle_in
@@ -3994,7 +3996,7 @@ class Ou(Complex):
                 ]
         elif self._initial:
             instructions = [
-                (inner_curve_size, Curve(angle_out - clockwise_sign * inner_curve_da, angle_out, clockwise=clockwise)),
+                (inner_curve_size, Curve(angle_out - clockwise_sign * inner_curve_da, angle_out, clockwise=clockwise, stretch=inner_curve_stretch, long=True)),
                 circle_op._replace(shape=Circle(
                     angle_out,
                     angle_out,
@@ -4002,10 +4004,11 @@ class Ou(Complex):
                 )),
             ]
         elif self._angled_against_next and circle_path.reversed_circle:
+            angle_out = (angle_out - clockwise_sign * angle_against_next) % 360
             intermediate_angle = (angle_out - clockwise_sign * inner_curve_da) % 360
             instructions = [
                 circle_op._replace(shape=Circle(angle_in, intermediate_angle, clockwise=clockwise)),
-                (inner_curve_size, Curve(intermediate_angle, angle_out, clockwise=clockwise)),
+                (inner_curve_size, Curve(intermediate_angle, angle_out, clockwise=clockwise, stretch=inner_curve_stretch, long=True, stretch_axis=StretchAxis.ANGLE_OUT)),
             ]
         elif angle_in != angle_out:
             instructions = [
@@ -4014,14 +4017,26 @@ class Ou(Complex):
                     angle_out,
                     clockwise=clockwise,
                 )),
-                (inner_curve_size, Curve(angle_out, angle_out + clockwise_sign * inner_curve_da, clockwise=clockwise)),
+                (inner_curve_size, Curve(
+                    angle_out,
+                    angle_out + clockwise_sign * inner_curve_da,
+                    clockwise=clockwise,
+                    stretch=0 if self.role == CircleRole.INDEPENDENT else inner_curve_stretch,
+                    long=True,
+                    stretch_axis=StretchAxis.ANGLE_OUT,
+                )),
             ]
         elif self._isolated:
             intermediate_angle = (270 - clockwise_sign * inner_curve_da - 180) % 360
             angle_in = (intermediate_angle - clockwise_sign * outer_rewind_da - 180) % 360
             clockwise = not clockwise
             instructions = [
-                (inner_curve_size, Curve(intermediate_angle + clockwise_sign * inner_curve_da, intermediate_angle, clockwise=clockwise)),
+                (inner_curve_size, Curve(intermediate_angle + clockwise_sign * inner_curve_da,
+                    intermediate_angle,
+                    clockwise=clockwise,
+                    stretch=inner_curve_stretch,
+                    long=True,
+                )),
                 circle_op._replace(shape=Circle(
                     intermediate_angle,
                     angle_in,
@@ -4035,7 +4050,13 @@ class Ou(Complex):
                     angle_in,
                     clockwise=clockwise,
                 )),
-                (inner_curve_size, Curve(angle_in, (angle_in + clockwise_sign * inner_curve_da) % 360, clockwise=clockwise)),
+                (inner_curve_size, Curve(angle_in,
+                    (angle_in + clockwise_sign * inner_curve_da) % 360,
+                    clockwise=clockwise,
+                    stretch=inner_curve_stretch,
+                    long=True,
+                    stretch_axis=StretchAxis.ANGLE_OUT,
+                )),
             ]
         return self.clone(instructions=instructions).draw(
             glyph,
