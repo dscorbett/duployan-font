@@ -30,6 +30,7 @@ exclude_checks = [
     "com.google.fonts/check/name/noto_manufacturer",
     "com.google.fonts/check/name/noto_trademark",
     "com.google.fonts/check/os2/noto_vendor",
+    "com.google.fonts/check/vendor_id",
 #endif
 ]
 

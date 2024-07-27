@@ -9,7 +9,7 @@ table OS/2 {
 #ifdef NOTO
     Vendor "GOOG";
 #else
-    Vendor "UKWN";
+    Vendor "    ";
 #endif
 } OS/2;
 
