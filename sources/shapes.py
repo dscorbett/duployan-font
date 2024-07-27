@@ -2250,6 +2250,26 @@ class Curve(Shape):
             swash_length = abs(self.reversed_circle * math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle)))
             if self.reversed_circle < 1:
                 swash_length = min(r, swash_length)
+            minimum_safe_da = 240
+            maximum_safe_swash_length = (2 ** 0.5 - 1) * RADIUS
+            if abs(da) < minimum_safe_da and swash_length >= maximum_safe_swash_length and joining_type == Type.ORIENTING:
+                new_da = min(abs(da) + 10, minimum_safe_da)
+                rv = self.clone(angle_out=(self.angle_in + new_da * (-1 if self.clockwise else 1)) % 360).draw(
+                    glyph,
+                    stroke_width,
+                    light_line,
+                    stroke_gap,
+                    size,
+                    anchor,
+                    joining_type,
+                    initial_circle_diphthong,
+                    final_circle_diphthong,
+                    diphthong_1,
+                    diphthong_2,
+                )
+                glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *p3)
+                glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *p3)
+                return rv
             swash_endpoint = _rect(swash_length, math.radians(pre_stretch_angle_out))
             swash_endpoint = (p3[0] + swash_endpoint[0], p3[1] + swash_endpoint[1])
             pen.lineTo(swash_endpoint)
