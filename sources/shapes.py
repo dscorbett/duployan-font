@@ -2247,13 +2247,13 @@ class Curve(Shape):
             pen.curveTo(p1, p2, p3)
         if self.reversed_circle and not diphthong_1 and not diphthong_2:
             swash_angle = (360 - abs(da)) / 2
-            swash_length = self.reversed_circle * math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle))
+            swash_length = abs(self.reversed_circle * math.sin(math.radians(swash_angle)) * r / math.sin(math.radians(90 - swash_angle)))
             if self.reversed_circle < 1:
                 swash_length = min(r, swash_length)
-            swash_endpoint = _rect(abs(swash_length), math.radians(pre_stretch_angle_out))
+            swash_endpoint = _rect(swash_length, math.radians(pre_stretch_angle_out))
             swash_endpoint = (p3[0] + swash_endpoint[0], p3[1] + swash_endpoint[1])
             pen.lineTo(swash_endpoint)
-            exit = _rect(min(r, abs(swash_length)), math.radians(pre_stretch_angle_out))
+            exit = _rect(min(r, swash_length), math.radians(pre_stretch_angle_out))
             exit = (p3[0] + exit[0], p3[1] + exit[1])
         elif self.exit_position != 1:
             exit = _rect(r, math.radians(a1 + da * self.exit_position))
