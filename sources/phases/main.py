@@ -1557,7 +1557,7 @@ def ligate_diphthongs(
     return [lookup]
 
 
-def thwart_what_would_flip(
+def dont_exit_early_in_orienting_sequence(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
@@ -1570,11 +1570,12 @@ def thwart_what_would_flip(
         'rclt',
         'dflt',
         mark_filtering_set='all',
+        reverse=True,
     )
     for schema in new_schemas:
-        if isinstance(schema.path, Curve) and schema.path.would_flip:
+        if isinstance(schema.path, Curve) and schema.path.exit_position != 1:
             classes['i'].append(schema)
-            classes['o'].append(schema.clone(path=schema.path.clone(early_exit=True)))
+            classes['o'].append(schema.clone(cmap=None, path=schema.path.clone(exit_position=1)))
         elif isinstance(schema.path, ParentEdge) and not schema.path.lineage:
             classes['root_parent_edge'].append(schema)
             classes['all'].append(schema)
@@ -1583,8 +1584,7 @@ def thwart_what_would_flip(
         ):
             classes['tail'].append(schema)
             classes['all'].append(schema)
-    add_rule(lookup, Rule([], 'i', ['root_parent_edge', 'tail'], lookups=[None]))
-    add_rule(lookup, Rule([], 'i', 'root_parent_edge', 'o'))
+    add_rule(lookup, Rule([], 'i', ['root_parent_edge', 'tail'], 'o'))
     return [lookup]
 
 
@@ -1934,7 +1934,7 @@ PHASE_LIST = [
     join_with_next,
     join_circle_with_adjacent_nonorienting_glyph,
     ligate_diphthongs,
-    thwart_what_would_flip,
+    dont_exit_early_in_orienting_sequence,
     unignore_noninitial_orienting_sequences,
     unignore_initial_orienting_sequences,
     join_double_marks,

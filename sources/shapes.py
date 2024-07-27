@@ -1903,15 +1903,15 @@ class Curve(Shape):
             it uses the default angle.
         secondary: Whether this curve represents a secondary curve
             character.
-        would_flip: Whether this curve is in a context where it looks
-            confusingly like a loop, i.e. a circle letter, such that it
-            would be less confusing if it flipped its chirality. A curve
-            is not allowed to flip its chirality, but this attribute
-            tracks whether it would help so the problem can be resolved
-            another way.
-        early_exit: Whether this curve’s normal cursive exit point is
-            placed earlier than its apparent exit point. This may only
-            be ``True`` if `would_flip` is also ``True``.
+        may_exit_early: Whether this curve, or any curve contextualized
+            from it, may have a `exit_position` less than 1. Early exits
+            are meant for curve letters, not for curves that appear in
+            `Complex` components or as contextualized circle letters.
+        exit_position: How far along the curve to place the exit point.
+            0 means the start of the curve and 1 means the end. If a
+            curve letter is in a context where it would look confusingly
+            like a loop, i.e. like a circle letter, it can be clearer to
+            shift the exit point earlier.
     """
 
     @override
@@ -1928,8 +1928,8 @@ class Curve(Shape):
         reversed_circle: float = 0,
         overlap_angle: float | None = None,
         secondary: bool | None = None,
-        would_flip: bool = False,
-        early_exit: bool = False,
+        may_exit_early: bool = False,
+        exit_position: float = 1,
     ) -> None:
         """Initializes this `Curve`.
 
@@ -1945,12 +1945,13 @@ class Curve(Shape):
             overlap_angle: The ``overlap_angle`` attribute.
             secondary: The ``secondary`` attribute, or ``None`` to mean
                 `clockwise`.
-            would_flip: The ``would_flip`` attribute.
-            early_exit: The ``early_exit`` attribute.
+            may_exit_early: The ``may_exit_early`` attribute.
+            exit_position: The ``exit_position`` attribute.
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
-        assert would_flip or not early_exit, 'An early exit is not needed if the curve would not flip'
         assert stretch > -1
+        assert exit_position == 1 or may_exit_early, f'{exit_position=}'
+        assert 0 <= exit_position <= 1
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -1961,8 +1962,8 @@ class Curve(Shape):
         self.reversed_circle: Final = reversed_circle
         self.overlap_angle: Final = overlap_angle if overlap_angle is None else overlap_angle % 180
         self.secondary: Final = clockwise if secondary is None else secondary
-        self.would_flip: Final = would_flip
-        self.early_exit: Final = early_exit
+        self.may_exit_early: Final = may_exit_early
+        self.exit_position: Final = exit_position
 
     @override
     def clone(
@@ -1978,8 +1979,8 @@ class Curve(Shape):
         reversed_circle: float | CloneDefault = CLONE_DEFAULT,
         overlap_angle: float | None | CloneDefault = CLONE_DEFAULT,
         secondary: bool | None | CloneDefault = CLONE_DEFAULT,
-        would_flip: bool | CloneDefault = CLONE_DEFAULT,
-        early_exit: bool | CloneDefault = CLONE_DEFAULT,
+        may_exit_early: bool | CloneDefault = CLONE_DEFAULT,
+        exit_position: float | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1992,8 +1993,8 @@ class Curve(Shape):
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
-            would_flip=self.would_flip if would_flip is CLONE_DEFAULT else would_flip,
-            early_exit=self.early_exit if early_exit is CLONE_DEFAULT else early_exit,
+            may_exit_early=self.may_exit_early if may_exit_early is CLONE_DEFAULT else may_exit_early,
+            exit_position=self.exit_position if exit_position is CLONE_DEFAULT else exit_position,
         )
 
     @override
@@ -2011,7 +2012,7 @@ class Curve(Shape):
             }{
                 'r' if self.reversed_circle else ''
             }{
-                '.ee' if self.early_exit else ''
+                '.ee' if self.exit_position != 1 else ''
             }'''
 
     @override
@@ -2039,7 +2040,7 @@ class Curve(Shape):
             stretch_axis,
             self.reversed_circle,
             self.overlap_angle,
-            self.early_exit,
+            self.exit_position,
         )
 
     @override
@@ -2254,10 +2255,8 @@ class Curve(Shape):
             pen.lineTo(swash_endpoint)
             exit = _rect(min(r, abs(swash_length)), math.radians(pre_stretch_angle_out))
             exit = (p3[0] + exit[0], p3[1] + exit[1])
-        elif self.early_exit:
-            # TODO: Track the precise output angle instead of assuming that the exit
-            # should be halfway along the curve.
-            exit = _rect(r, math.radians(a1 + da / 2))
+        elif self.exit_position != 1:
+            exit = _rect(r, math.radians(a1 + da * self.exit_position))
         else:
             exit = p3
         if diphthong_1:
@@ -2484,7 +2483,9 @@ class Curve(Shape):
             angle_in=candidate_angle_in,
             angle_out=candidate_angle_out,
             clockwise=candidate_clockwise,
-            would_flip=would_flip,
+            # TODO: Track the precise output angle instead of assuming that the exit
+            # should be halfway along the curve.
+            exit_position=0.5 if would_flip and self.may_exit_early else CLONE_DEFAULT,
         )
 
     @override
