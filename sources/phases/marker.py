@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import collections
-from collections.abc import Iterable
 import functools
 import math
 from typing import TYPE_CHECKING
@@ -63,6 +62,7 @@ from utils import mkmk
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from collections.abc import Iterable
     from collections.abc import MutableMapping
     from collections.abc import Sequence
 
@@ -747,7 +747,8 @@ def sum_width_markers(
         carry_schema = Schema(None, Carry(), 0)
         classes['all'].append(carry_schema)
     carry_schemas.append(carry_schema)
-    for (
+    inner_iterable: Iterable[tuple[bool, int, int, str, Iterable[Schema], MutableMapping[int, Schema], type[Digit]]]
+    for (  # type: ignore[assignment]
         original_augend_schemas,
         augend_letter,
         inner_iterable,
@@ -805,7 +806,6 @@ def sum_width_markers(
             assert isinstance(augend_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
             place = augend_schema.path.place
             augend = augend_schema.path.digit
-            assert isinstance(inner_iterable, Iterable)
             for (
                 continuing_overlap_is_relevant,
                 augend_skip_backtrack,
@@ -819,6 +819,7 @@ def sum_width_markers(
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
                     for addend_schema in original_addend_schemas:
+                        assert isinstance(addend_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
                         if place != addend_schema.path.place:
                             continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
@@ -830,19 +831,19 @@ def sum_width_markers(
                             classes[context_in_lookup_name].append(continuing_overlap)
                         classes[context_in_lookup_name].extend(classes[f'{augend_letter}dx_{place}'])
                         if (carry_out != 0 and place != WIDTH_MARKER_PLACES - 1) or sum_digit != addend:
-                            if carry_out == 0:
-                                carry_out_schema = carry_0_placeholder
-                            else:
+                            if carry_out != 0:
                                 assert carry_out == 1, carry_out
                                 carry_out_schema = carry_schema
                             sum_index = place * WIDTH_MARKER_RADIX + sum_digit
                             if sum_index in addend_schemas:
                                 sum_digit_schema = addend_schemas[sum_index]
                             else:
-                                sum_digit_schema = Schema(None, addend_path(place, sum_digit), 0)
+                                sum_digit_path = addend_path(place, sum_digit)
+                                sum_digit_schema = Schema(None, sum_digit_path, 0)
                                 addend_schemas[sum_index] = sum_digit_schema
-                                classes[f'{addend_letter}dx_{sum_digit_schema.path.place}'].append(sum_digit_schema)
+                                classes[f'{addend_letter}dx_{sum_digit_path.place}'].append(sum_digit_schema)
                                 classes['all'].append(sum_digit_schema)
+                            assert isinstance(sum_digit_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
                             outputs = ([sum_digit_schema]
                                 if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                 else [sum_digit_schema, carry_out_schema])
