@@ -4393,6 +4393,7 @@ class Wa(Complex):
             return self.clone(instructions=instructions, _initial=True)
         if context_in != NO_CONTEXT != context_out:
             if context_in.angle != context_out.angle and any(isinstance(op.shape, Circle) and op.shape.reversed_circle for op in original_instructions):
+                assert context_out.angle is not None
                 outer_circle_op = original_instructions[0]
                 outer_circle = outer_circle_op.shape
                 assert isinstance(outer_circle, Circle)
@@ -4402,12 +4403,14 @@ class Wa(Complex):
                 new_outer_angle_out = (outer_circle.angle_in + clockwise_sign * 270) % 360
                 new_inner_circle = Curve(
                     angle_in=new_outer_angle_out,
-                    angle_out=context_out.angle,  # type: ignore[arg-type]
+                    angle_out=context_out.angle,
                     clockwise=tracer.clockwise,
                     stretch=outer_circle.stretch,
                 )
-                if (new_inner_circle.angle_out - new_inner_circle.angle_in) * clockwise_sign % 360 < 180:
-                    new_outer_angle_out = (context_out.angle - 180) % 360  # type: ignore[operator]
+                if ((new_inner_circle.angle_out - new_inner_circle.angle_in) * clockwise_sign % 360 < 180
+                    and ((new_new_outer_angle_out := (context_out.angle - 180) % 360) - outer_circle.angle_in) * clockwise_sign % 360 >= 180
+                ):
+                    new_outer_angle_out = new_new_outer_angle_out
                     new_inner_circle = new_inner_circle.clone(angle_in=new_outer_angle_out)
                 inner_circle_op = original_instructions[-1]
                 inner_circle = inner_circle_op.shape
