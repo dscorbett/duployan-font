@@ -33,6 +33,7 @@ from shapes import AnchorWidthDigit
 from shapes import Carry
 from shapes import Circle
 from shapes import ContinuingOverlap
+from shapes import Digit
 from shapes import DigitStatus
 from shapes import Dummy
 from shapes import End
@@ -71,7 +72,6 @@ if TYPE_CHECKING:
     from . import AddRule
     from . import FreezableList
     from duployan import Builder
-    from shapes import Digit
     from utils import PrefixView
 
 
@@ -803,7 +803,7 @@ def sum_width_markers(
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_schemas
-            assert isinstance(augend_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+            assert isinstance(augend_schema.path, Digit)
             place = augend_schema.path.place
             augend = augend_schema.path.digit
             for (
@@ -819,7 +819,7 @@ def sum_width_markers(
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
                     for addend_schema in original_addend_schemas:
-                        assert isinstance(addend_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+                        assert isinstance(addend_schema.path, Digit)
                         if place != addend_schema.path.place:
                             continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
@@ -843,7 +843,7 @@ def sum_width_markers(
                                 addend_schemas[sum_index] = sum_digit_schema
                                 classes[f'{addend_letter}dx_{sum_digit_path.place}'].append(sum_digit_schema)
                                 classes['all'].append(sum_digit_schema)
-                            assert isinstance(sum_digit_schema.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+                            assert isinstance(sum_digit_schema.path, Digit)
                             outputs = ([sum_digit_schema]
                                 if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                 else [sum_digit_schema, carry_out_schema])
@@ -954,8 +954,8 @@ def calculate_bound_extrema(
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
-                    assert isinstance(schema_i.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
-                    assert isinstance(schema_j.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+                    assert isinstance(schema_i.path, Digit)
+                    assert isinstance(schema_j.path, Digit)
                     place_j = schema_j.path.place
                     add_rule(lookup, Rule(
                         [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],

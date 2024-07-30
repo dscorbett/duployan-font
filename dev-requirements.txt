@@ -60,7 +60,6 @@ defcon==0.10.3
     #   -c dev-constraints.txt
     #   fontbakery
     #   glyphsets
-    #   vfblib
 dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
@@ -146,7 +145,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.11.0
+mypy==1.11.1
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -169,7 +168,7 @@ packaging==24.1
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-pip==24.1.2
+pip==24.2
     # via pip-api
 pip-api==0.0.34
     # via fontbakery
@@ -213,7 +212,7 @@ rstr==3.2.2
     #   stringbrewer
 ruff==0.5.5
     # via -r dev-requirements.in
-setuptools==71.1.0
+setuptools==72.1.0
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -260,7 +259,7 @@ ufolib2==0.16.0
     #   vfblib
 ufolint==1.2.0
     # via fontbakery
-ufonormalizer==0.6.1
+ufonormalizer==0.6.2
     # via vfblib
 uharfbuzz==0.37.2
     # via
@@ -278,9 +277,9 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.29
+uv==0.2.32
     # via -r dev-requirements.in
-vfblib==0.7.0
+vfblib==0.7.1
     # via babelfont
 vharfbuzz==0.3.0
     # via

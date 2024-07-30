@@ -40,6 +40,7 @@ from shapes import CircleRole
 from shapes import Complex
 from shapes import Component
 from shapes import Curve
+from shapes import Digit
 from shapes import DigitStatus
 from shapes import EntryWidthDigit
 from shapes import GlyphClassSelector
@@ -488,7 +489,7 @@ class Schema:
         shape = type(self.path)
         digit_shapes = [AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit]
         if shape in digit_shapes:
-            assert isinstance(self.path, AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit)
+            assert isinstance(self.path, Digit)
             status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value
             place = self.path.place
             digit_shape_index = digit_shapes.index(shape)
