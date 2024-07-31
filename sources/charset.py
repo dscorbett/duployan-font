@@ -229,16 +229,6 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
-    arabic_zero = Dot(1.474)
-    arabic_one = Curve(94, 110, clockwise=False, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE)
-    arabic_two = Complex([(1, arabic_one), (0.11, Curve(arabic_one.angle_out + 180, 80, clockwise=False, stretch=0.1, stretch_axis=StretchAxis.ABSOLUTE))])
-    arabic_three = Complex([(1, arabic_one), (0.066, Curve(arabic_one.angle_out + 180, 91, clockwise=False, stretch=0.12, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (0.066, Curve(91 + 180, 90, clockwise=False, stretch=0.1, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
-    arabic_four = Complex([(72.945, Line(241.327)), (168.854, Curve(241.327, 0, clockwise=False)), (38.8, Line(0))] * 2)
-    arabic_five = Complex([(1.08, Curve(80, 280, clockwise=True, stretch=1.8, stretch_axis=StretchAxis.ABSOLUTE)), (0.78162, Curve(280, 80, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
-    arabic_six = Complex([(1, arabic_one), (0.005, Line(190)), (0.1, Curve(190, 154, clockwise=True, stretch=0.5, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
-    arabic_seven = Complex([(1, Curve(298, 286, clockwise=True, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE)), (1, Curve(74, 62, clockwise=True, stretch=0.2, stretch_axis=StretchAxis.ABSOLUTE))])
-    arabic_eight = Complex([arabic_seven.instructions[1]._replace(shape=arabic_seven.instructions[1].shape.clone(angle_in=arabic_seven.instructions[1].shape.angle_out, angle_out=arabic_seven.instructions[1].shape.angle_in, clockwise=not arabic_seven.instructions[1].shape.clockwise)), arabic_seven.instructions[0]._replace(shape=arabic_seven.instructions[0].shape.clone(angle_in=arabic_seven.instructions[0].shape.angle_out, angle_out=arabic_seven.instructions[0].shape.angle_in, clockwise=not arabic_seven.instructions[0].shape.clockwise))])  # type: ignore[call-arg, union-attr]
-    arabic_nine = Complex([(40, Curve(94, 90, clockwise=True, stretch=0.1, stretch_axis=StretchAxis.ABSOLUTE)), (1.555, Curve(90, 260, clockwise=False, stretch=1.5, stretch_axis=StretchAxis.ABSOLUTE)), (1.152, Curve(260, 90, clockwise=False, stretch=0.25, long=True, stretch_axis=StretchAxis.ABSOLUTE))])
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
     right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
     ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
@@ -441,16 +431,6 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
         Schema(0x034F, space, 0, Type.NON_JOINING, side_bearing=0),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
-        Schema(0x0660, arabic_zero, 0, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line * Dot.SCALAR ** arabic_zero.size_exponent / 2),
-        Schema(0x0661, arabic_one, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0662, arabic_two, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0663, arabic_three, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0664, arabic_four, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0665, arabic_five, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - 0.3 * CAP_HEIGHT, y_max=CAP_HEIGHT / 2 + 0.3 * CAP_HEIGHT),
-        Schema(0x0666, arabic_six, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0667, arabic_seven, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0668, arabic_eight, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x0669, arabic_nine, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
