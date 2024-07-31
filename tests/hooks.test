@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,61 +13,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Horizontal hook, final
-EC02 1BC7A::[uniEC02.reversed_p@0,0|u1BC46.i.270p90@0,400|_@440,0]
-EC04 1BC7A::[uniEC04.reversed_f@200,0|u1BC46.i.90p270@0,500|_@728,0]
-EC19 1BC7A::[uniEC19.reversed_m@0,0|u1BC46.i.90n270@300,720|_@740,0]
-EC1A 1BC7A::[u1BC79.tail@200,0|u1BC46.i.90p270@0,720|_@740,0]
+# Secondary hook, final
+EC02 1BC7A::[uniEC02.reversed_p@200,0|u1BC46.i.270n90@0,400|_@440,0]
+EC04 1BC7A::[uniEC04.reversed_f@173,0|u1BC47.e.300n120@0,350|_@701,0]
+EC19 1BC7A::[uniEC19.reversed_m@0,0|u1BC46.i.180p0@200,520|_@540,0]
+EC1A 1BC7A::[u1BC79.tail@0,0|u1BC46.i.0n180@0,520|_@540,0]
 EC1B 1BC7A::[uniEC1B.reversed_j@0,0|u1BC46.i.90n270@0,0|_@960,0]
 EC1C 1BC7A::[uniEC1C.reversed_s@0,0|u1BC46.i.270p90@0,200|_@960,0]
 1BC02 1BC7A::[u1BC02.p@0,0|u1BC46.i.90n270@0,0|_@440,0]
-1BC04 1BC7A::[u1BC04.f@0,0|u1BC46.i.90n270@288,0|_@728,0]
-1BC19 1BC7A::[u1BC19.m@0,0|u1BC46.i.90n270@300,0|_@740,0]
-1BC1A 1BC7A::[u1BC1A.n@200,0|u1BC46.i.90p270@0,0|_@740,0]
-1BC1B 1BC7A::[u1BC1B.j@0,0|u1BC46.i.90n270@720,0|_@1160,0]
-1BC1C 1BC7A::[u1BC1C.s@0,0|u1BC46.i.270p90@720,200|_@1160,0]
+1BC04 1BC7A::[u1BC04.f@0,0|u1BC47.e.120n300@275,0|_@702,0]
+1BC19 1BC7A::[u1BC19.m@0,0|u1BC46.i.180n0@200,0|_@540,0]
+1BC1A 1BC7A::[u1BC1A.n@0,0|u1BC46.i.0p180@0,0|_@540,0]
+1BC1B 1BC7A::[u1BC1B.j@0,0|u1BC46.i.90p270@520,0|_@960,0]
+1BC1C 1BC7A::[u1BC1C.s@0,0|u1BC46.i.270n90@520,200|_@960,0]
 
-# Horizontal hook, initial
-1BC7A EC02::[u1BC46.i.90n270@0,0|uniEC02.reversed_p@200,0|_@440,0]
-1BC7A EC04::[u1BC46.i.90n270@88,0|uniEC04.reversed_f@0,0|_@528,0]
-1BC7A EC19::[u1BC46.i.90p270@300,0|uniEC19.reversed_m@0,0|_@740,0]
-1BC7A EC1A::[u1BC46.i.90n270@0,0|u1BC79.tail@200,0|_@740,0]
+# Secondary hook, initial
+1BC7A EC02::[u1BC46.i.90p270@0,0|uniEC02.reversed_p@0,0|_@440,0]
+1BC7A EC04::[u1BC46.i.120p300@274,0|uniEC04.reversed_f@-1,0|_@700,0]
+1BC7A EC19::[u1BC46.i.180p0@200,0|uniEC19.reversed_m@0,0|_@540,0]
+1BC7A EC1A::[u1BC46.i.0n180@0,0|u1BC79.tail@0,0|_@540,0]
 1BC7A EC1B::[u1BC46.i.90n270@520,0|uniEC1B.reversed_j@0,0|_@960,0]
 1BC7A EC1C::[u1BC46.i.270p90@520,200|uniEC1C.reversed_s@0,0|_@960,0]
 1BC7A 1BC02::[u1BC46.i.270p90@0,400|u1BC02.p@200,0|_@440,0]
-1BC7A 1BC04::[u1BC46.i.90n270@0,500|u1BC04.f@200,0|_@728,0]
-1BC7A 1BC19::[u1BC46.i.90p270@300,720|u1BC19.m@0,0|_@740,0]
-1BC7A 1BC1A::[u1BC46.i.90n270@0,720|u1BC1A.n@200,0|_@740,0]
-1BC7A 1BC1B::[u1BC46.i.90n270@0,0|u1BC1B.j@200,0|_@1160,0]
-1BC7A 1BC1C::[u1BC46.i.270p90@0,200|u1BC1C.s@200,0|_@1160,0]
+1BC7A 1BC04::[u1BC46.i.300p120@0,350|u1BC04.f@173,0|_@701,0]
+1BC7A 1BC19::[u1BC46.i.180n0@200,520|u1BC19.m@0,0|_@540,0]
+1BC7A 1BC1A::[u1BC46.i.0p180@0,520|u1BC1A.n@0,0|_@540,0]
+1BC7A 1BC1B::[u1BC46.i.90p270@0,0|u1BC1B.j@0,0|_@960,0]
+1BC7A 1BC1C::[u1BC46.i.270n90@0,200|u1BC1C.s@0,0|_@960,0]
 
-# Vertical hook, final
-EC02 1BC7B::[uniEC02.reversed_p@100,0|u1BC46.i.180n0@0,500|_@340,0]
-EC04 1BC7B::[uniEC04.reversed_f@100,0|u1BC46.i.180n0@0,500|_@628,0]
-EC19 1BC7B::[uniEC19.reversed_m@0,0|u1BC46.i.180p0@200,520|_@540,0]
-EC1A 1BC7B::[u1BC79.tail@0,0|u1BC46.i.0n180@0,520|_@540,0]
-EC1B 1BC7B::[uniEC1B.reversed_j@100,0|u1BC46.i.180p0@0,-200|_@1060,0]
-EC1C 1BC7B::[uniEC1C.reversed_s@100,0|u1BC46.i.180n0@0,300|_@1060,0]
-1BC02 1BC7B::[u1BC02.p@100,0|u1BC46.i.180p0@0,-200|_@340,0]
-1BC04 1BC7B::[u1BC04.f@0,0|u1BC46.i.180p0@188,-200|_@528,0]
+# Primary hook, final
+EC02 1BC7B::[uniEC02.reversed_p@0,0|u1BC46.i.270p90@0,400|_@440,0]
+EC04 1BC7B::[uniEC04.reversed_f@0,0|u1BC46.i.300p120@0,450|_@528,0]
+EC19 1BC7B::[uniEC19.reversed_m@0,0|u1BC46.i.180n0@200,720|_@540,0]
+EC1A 1BC7B::[u1BC79.tail@0,0|u1BC46.i.0p180@0,720|_@540,0]
+EC1B 1BC7B::[uniEC1B.reversed_j@200,0|u1BC46.i.90p270@0,0|_@1160,0]
+EC1C 1BC7B::[uniEC1C.reversed_s@200,0|u1BC46.i.270n90@0,200|_@1160,0]
+1BC02 1BC7B::[u1BC02.p@200,0|u1BC46.i.90p270@0,0|_@440,0]
+1BC04 1BC7B::[u1BC04.f@0,0|u1BC46.i.120p300@101,-100|_@527,0]
 1BC19 1BC7B::[u1BC19.m@0,0|u1BC46.i.180p0@200,-200|_@540,0]
 1BC1A 1BC7B::[u1BC1A.n@0,0|u1BC46.i.0n180@0,-200|_@540,0]
-1BC1B 1BC7B::[u1BC1B.j@0,0|u1BC46.i.180p0@620,-200|_@960,0]
-1BC1C 1BC7B::[u1BC1C.s@0,0|u1BC46.i.180n0@620,300|_@960,0]
+1BC1B 1BC7B::[u1BC1B.j@0,0|u1BC46.i.90n270@720,0|_@1160,0]
+1BC1C 1BC7B::[u1BC1C.s@0,0|u1BC46.i.270p90@720,200|_@1160,0]
 
-# Vertical hook, initial
-1BC7B EC02::[u1BC46.i.180n0@0,-200|uniEC02.reversed_p@100,0|_@340,0]
-1BC7B EC04::[u1BC46.i.180p0@188,0|uniEC04.reversed_f@0,0|_@528,0]
-1BC7B EC19::[u1BC46.i.180p0@200,0|uniEC19.reversed_m@0,0|_@540,0]
-1BC7B EC1A::[u1BC46.i.0n180@0,0|u1BC79.tail@0,0|_@540,0]
-1BC7B EC1B::[u1BC46.i.180n0@620,-200|uniEC1B.reversed_j@0,0|_@960,0]
-1BC7B EC1C::[u1BC46.i.180p0@620,300|uniEC1C.reversed_s@0,0|_@960,0]
-1BC7B 1BC02::[u1BC46.i.180p0@0,500|u1BC02.p@100,0|_@340,0]
-1BC7B 1BC04::[u1BC46.i.180p0@0,500|u1BC04.f@100,0|_@628,0]
+# Primary hook, initial
+1BC7B EC02::[u1BC46.i.90n270@0,0|uniEC02.reversed_p@200,0|_@440,0]
+1BC7B EC04::[u1BC46.i.120n300@102,-100|uniEC04.reversed_f@1,0|_@529,0]
+1BC7B EC19::[u1BC46.i.180n0@200,-200|uniEC19.reversed_m@0,0|_@540,0]
+1BC7B EC1A::[u1BC46.i.0p180@0,-200|u1BC79.tail@0,0|_@540,0]
+1BC7B EC1B::[u1BC46.i.90p270@720,0|uniEC1B.reversed_j@0,0|_@1160,0]
+1BC7B EC1C::[u1BC46.i.270n90@720,200|uniEC1C.reversed_s@0,0|_@1160,0]
+1BC7B 1BC02::[u1BC46.i.270n90@0,400|u1BC02.p@0,0|_@440,0]
+1BC7B 1BC04::[u1BC46.i.300n120@0,450|u1BC04.f@0,0|_@528,0]
 1BC7B 1BC19::[u1BC46.i.180p0@200,720|u1BC19.m@0,0|_@540,0]
 1BC7B 1BC1A::[u1BC46.i.0n180@0,720|u1BC1A.n@0,0|_@540,0]
-1BC7B 1BC1B::[u1BC46.i.180n0@0,-200|u1BC1B.j@100,0|_@1060,0]
-1BC7B 1BC1C::[u1BC46.i.180p0@0,300|u1BC1C.s@100,0|_@1060,0]
+1BC7B 1BC1B::[u1BC46.i.90n270@0,0|u1BC1B.j@200,0|_@1160,0]
+1BC7B 1BC1C::[u1BC46.i.270p90@0,200|u1BC1C.s@200,0|_@1160,0]
 
 # Tangent hook, final
 EC02 1BC7C::[uniEC02.reversed_p@100,0|u1BC7C.tangent_hook.180n90@0,500|_@440,0]

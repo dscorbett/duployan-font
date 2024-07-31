@@ -2426,47 +2426,31 @@ class Curve(Shape):
             else:
                 candidate_angle_out = (2 * candidate_angle_in - candidate_angle_out) % 360
 
+        candidate_angle_in = angle_in
         if self.hook:
-            candidate_angle_in = self.angle_in
-            candidate_angle_out = self.angle_out
-            candidate_clockwise = self.clockwise
-            if context_in == NO_CONTEXT:
-                if candidate_angle_out == context_out.angle:
-                    candidate_clockwise = not candidate_clockwise
-                    candidate_angle_out = (candidate_angle_out + 180) % 360
-                    candidate_angle_in = (candidate_angle_out - da) % 360
-            else:
-                if candidate_angle_in == context_in.angle:
-                    candidate_clockwise = not candidate_clockwise
-                    candidate_angle_in = (candidate_angle_in + 180) % 360
-                    candidate_angle_out = (candidate_angle_in + da) % 360
-        else:
-            candidate_angle_in = angle_in
-            candidate_angle_out = (candidate_angle_in + da) % 360
-            candidate_clockwise = self.clockwise
-            if candidate_clockwise != (context_in == NO_CONTEXT):
-                flip()
-            clockwise_from_adjacent_curve = (
-                context_in.clockwise
-                    if context_in != NO_CONTEXT
-                    else context_out.clockwise
-            )
-            if self.secondary != (clockwise_from_adjacent_curve not in {None, candidate_clockwise}):
-                flip()
-        if self.hook or (context_in != NO_CONTEXT != context_out):
-            final_hook = self.hook and context_in != NO_CONTEXT
-            if final_hook:
-                flip()
-                context_out = context_in.as_reversed()
-                context_in = NO_CONTEXT
-                angle_in, angle_out = (angle_out + 180) % 360, (angle_in + 180) % 360
+            candidate_angle_in = (candidate_angle_in + 180) % 360
+        candidate_angle_out = (candidate_angle_in + da) % 360
+        candidate_clockwise = self.clockwise
+        if candidate_clockwise != (context_in == NO_CONTEXT):
+            flip()
+        clockwise_from_adjacent_curve = (
+            context_in.clockwise
+                if context_in != NO_CONTEXT
+                else context_out.clockwise
+        )
+        if self.secondary != (clockwise_from_adjacent_curve not in {None, candidate_clockwise}):
+            flip()
+        if context_in != NO_CONTEXT != context_out:
+            if self.hook:
+                candidate_angle_in, candidate_angle_out = candidate_angle_out, candidate_angle_in
+                candidate_clockwise = not candidate_clockwise
             context_clockwises = (context_in.clockwise, context_out.clockwise)
             curve_offset = 0 if context_clockwises in {(None, None), (True, False), (False, True)} else CURVE_OFFSET
             if False in context_clockwises:
                 curve_offset = -curve_offset
             a1, a2 = self.get_normalized_angles()
             slight_overlap_offset = abs(a1 - a2) / 3 * (1 if candidate_clockwise else -1)
-            if final_hook == (
+            if not (
                 (abs(slight_overlap_offset) + abs(curve_offset) >= abs(a1 - a2)
                     and math.copysign(1, slight_overlap_offset) != math.copysign(1, curve_offset))
                 or self.in_degree_range(
@@ -2477,7 +2461,7 @@ class Curve(Shape):
                 )
             ):
                 flip()
-                flips += not final_hook
+                flips += 1
             if (context_out.clockwise == context_in.clockwise == candidate_clockwise
                 and (self.in_degree_range(
                     angle_out,
@@ -2493,6 +2477,9 @@ class Curve(Shape):
             ):
                 flip()
                 flips += 1
+            if self.hook:
+                candidate_angle_in, candidate_angle_out = candidate_angle_out, candidate_angle_in
+                candidate_clockwise = not candidate_clockwise
         if context_in.diphthong_start or context_out.diphthong_end:
             candidate_angle_in = (candidate_angle_in - 180) % 360
             candidate_angle_out = (candidate_angle_out - 180) % 360
