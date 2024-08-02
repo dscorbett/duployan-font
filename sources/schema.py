@@ -743,7 +743,8 @@ class Schema:
 
     @lookalike_group.setter
     def lookalike_group(self, lookalike_group: Collection[Schema]) -> None:
-        assert len(self._lookalike_group) == 1 and next(iter(self._lookalike_group)) is self
+        assert len(self._lookalike_group) == 1, self._lookalike_group
+        assert next(iter(self._lookalike_group)) is self, next(iter(self._lookalike_group))
         self._lookalike_group = lookalike_group
 
     @lookalike_group.deleter
