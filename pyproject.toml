@@ -140,6 +140,7 @@ inline-quotes = "single"
 multiline-quotes = "single"
 
 [tool.ruff.lint.flake8-type-checking]
+quote-annotations = true
 strict = true
 
 [tool.ruff.lint.isort]

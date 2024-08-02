@@ -13,12 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection
-from collections.abc import Sequence
+from __future__ import annotations
+
 from typing import Final
+from typing import TYPE_CHECKING
 
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
+
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Sequence
 
 
 PARENT_EDGE: Final[str] = 'pe'

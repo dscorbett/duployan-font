@@ -16,14 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import argparse
-from collections.abc import Collection
 import datetime
 import hashlib
 import os
 from pathlib import Path
 import re
 import subprocess
+from typing import TYPE_CHECKING
 
 import cffsubr
 import fontTools.cffLib
@@ -36,6 +38,10 @@ import fontforge
 import copy_metrics
 import duployan
 import utils
+
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
 
 
 TIMESTAMP_FORMAT = '%Y%m%dT%H%M%SZ'

@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection
-from collections.abc import Set as AbstractSet
+from __future__ import annotations
+
 import math
 import string
 from typing import Final
@@ -67,6 +67,9 @@ from utils import X_HEIGHT
 
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Set as AbstractSet
+
     from shapes import Instructions
 
 

@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import argparse
-from collections.abc import Generator
 import difflib
 import json
 import os
@@ -25,7 +26,12 @@ import re
 import subprocess
 import sys
 from typing import Literal
+from typing import TYPE_CHECKING
 import unicodedata
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 CI = os.getenv('CI') == 'true'
