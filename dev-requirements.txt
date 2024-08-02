@@ -210,7 +210,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.5.5
+ruff==0.5.6
     # via -r dev-requirements.in
 setuptools==72.1.0
     # via
@@ -277,7 +277,7 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.32
+uv==0.2.33
     # via -r dev-requirements.in
 vfblib==0.7.1
     # via babelfont
