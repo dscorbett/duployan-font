@@ -1889,7 +1889,9 @@ class Curve(Shape):
             to the one indicated by `stretch_axis`. This has no effect
             if ``stretch == 0``.
         stretch_axis: The axis along which this curve is stretched.
-        hook: Whether this curve represents a hook character.
+        hook: Whether this curve represents a hook character. A hook is
+            contextualized with an angle against its leader. In medial
+            position, it has no angle against the following letter.
         reversed_circle: If this curve represents a reversed circle
             character, a positive scalar to apply to the size of the
             swash line; otherwise, 0. If ``0 < reversed_circle < 1``,
@@ -1903,10 +1905,17 @@ class Curve(Shape):
             it uses the default angle.
         secondary: Whether this curve represents a secondary curve
             character.
-        may_exit_early: Whether this curve, or any curve contextualized
-            from it, may have a `exit_position` less than 1. Early exits
-            are meant for curve letters, not for curves that appear in
-            `Complex` components or as contextualized circle letters.
+        may_reposition_cursive_endpoints: Whether this curve, or any
+            curve contextualized from it, may have an `entry_position`
+            or `exit_position` less than 1. Repositioned cursive
+            endpoints are meant for curve letters, not for curves that
+            appear in `Complex` components or as contextualized circle
+            letters.
+        entry_position: How far along the curve to place the entry
+            point. 0 means the end of the curve and 1 means the start.
+            If a hook letter is in a context where it would look
+            confusingly like a loop, i.e. like a circle letter, it can
+            be clearer to shift the entry point later.
         exit_position: How far along the curve to place the exit point.
             0 means the start of the curve and 1 means the end. If a
             curve letter is in a context where it would look confusingly
@@ -1928,7 +1937,8 @@ class Curve(Shape):
         reversed_circle: float = 0,
         overlap_angle: float | None = None,
         secondary: bool | None = None,
-        may_exit_early: bool = False,
+        may_reposition_cursive_endpoints: bool = False,
+        entry_position: float = 1,
         exit_position: float = 1,
     ) -> None:
         """Initializes this `Curve`.
@@ -1945,12 +1955,15 @@ class Curve(Shape):
             overlap_angle: The ``overlap_angle`` attribute.
             secondary: The ``secondary`` attribute, or ``None`` to mean
                 `clockwise`.
-            may_exit_early: The ``may_exit_early`` attribute.
+            may_reposition_cursive_endpoints: The ``may_reposition_cursive_endpoints`` attribute.
+            entry_position: The ``entry_position`` attribute.
             exit_position: The ``exit_position`` attribute.
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         assert stretch > -1
-        assert exit_position == 1 or may_exit_early, f'{exit_position=}'
+        assert entry_position == 1 or may_reposition_cursive_endpoints, f'{entry_position=}'
+        assert exit_position == 1 or may_reposition_cursive_endpoints, f'{exit_position=}'
+        assert 0 <= entry_position <= 1
         assert 0 <= exit_position <= 1
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
@@ -1962,7 +1975,8 @@ class Curve(Shape):
         self.reversed_circle: Final = reversed_circle
         self.overlap_angle: Final = overlap_angle if overlap_angle is None else overlap_angle % 180
         self.secondary: Final = clockwise if secondary is None else secondary
-        self.may_exit_early: Final = may_exit_early
+        self.may_reposition_cursive_endpoints: Final = may_reposition_cursive_endpoints
+        self.entry_position: Final = entry_position
         self.exit_position: Final = exit_position
 
     @override
@@ -1979,7 +1993,8 @@ class Curve(Shape):
         reversed_circle: float | CloneDefault = CLONE_DEFAULT,
         overlap_angle: float | None | CloneDefault = CLONE_DEFAULT,
         secondary: bool | None | CloneDefault = CLONE_DEFAULT,
-        may_exit_early: bool | CloneDefault = CLONE_DEFAULT,
+        may_reposition_cursive_endpoints: bool | CloneDefault = CLONE_DEFAULT,
+        entry_position: float | CloneDefault = CLONE_DEFAULT,
         exit_position: float | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
@@ -1993,7 +2008,8 @@ class Curve(Shape):
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
-            may_exit_early=self.may_exit_early if may_exit_early is CLONE_DEFAULT else may_exit_early,
+            may_reposition_cursive_endpoints=self.may_reposition_cursive_endpoints if may_reposition_cursive_endpoints is CLONE_DEFAULT else may_reposition_cursive_endpoints,
+            entry_position=self.entry_position if entry_position is CLONE_DEFAULT else entry_position,
             exit_position=self.exit_position if exit_position is CLONE_DEFAULT else exit_position,
         )
 
@@ -2012,7 +2028,7 @@ class Curve(Shape):
             }{
                 'r' if self.reversed_circle else ''
             }{
-                '.ee' if self.exit_position != 1 else ''
+                '.ee' if not self.entry_position == self.exit_position == 1 else ''
             }'''
 
     @override
@@ -2040,6 +2056,7 @@ class Curve(Shape):
             stretch_axis,
             self.reversed_circle,
             self.overlap_angle,
+            self.entry_position,
             self.exit_position,
         )
 
@@ -2231,8 +2248,8 @@ class Curve(Shape):
         cp_angle = math.asin(cp / cp_distance)
         p0 = _rect(r, math.radians(a1))
         if diphthong_2:
-            entry = _rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
-            entry = (p0[0] + entry[0], p0[1] + entry[1])
+            entry_delta = _rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
+            entry = (p0[0] + entry_delta[0], p0[1] + entry_delta[1])
             pen.moveTo(entry)
             pen.lineTo(p0)
         else:
@@ -2275,10 +2292,13 @@ class Curve(Shape):
             pen.lineTo(swash_endpoint)
             exit = _rect(min(r, swash_length), math.radians(pre_stretch_angle_out))
             exit = (p3[0] + exit[0], p3[1] + exit[1])
-        elif self.exit_position != 1:
-            exit = _rect(r, math.radians(a1 + da * self.exit_position))
         else:
-            exit = p3
+            if self.entry_position != 1:
+                entry = _rect(r, math.radians(a2 - da * self.entry_position))
+            if self.exit_position != 1:
+                exit = _rect(r, math.radians(a1 + da * self.exit_position))
+            else:
+                exit = p3
         if diphthong_1:
             exit_delta = _rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
@@ -2400,6 +2420,19 @@ class Curve(Shape):
 
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
+        if self.hook and context_in != NO_CONTEXT != context_out:
+            rv = self.as_reversed().clone(hook=False).contextualize(context_out.as_reversed(), context_in.as_reversed())
+            assert isinstance(rv, type(self))
+            rv = rv.as_reversed()
+            if rv.context_in().angle == context_in.angle:
+                if rv.entry_position == 1:
+                    rv = Complex([
+                        (0.5, Curve((rv.angle_in + 90 * (1 if rv.clockwise else -1)) % 360, rv.angle_in, clockwise=rv.clockwise)),
+                        (1, rv),
+                    ])
+                else:
+                    rv = rv.clone(entry_position=0)
+            return rv
         angle_in = context_in.angle
         angle_out = context_out.angle
         da = self.angle_out - self.angle_in
@@ -2492,7 +2525,7 @@ class Curve(Shape):
             clockwise=candidate_clockwise,
             # TODO: Track the precise output angle instead of assuming that the exit
             # should be halfway along the curve.
-            exit_position=0.5 if would_flip and self.may_exit_early else CLONE_DEFAULT,
+            exit_position=0.5 if would_flip and self.may_reposition_cursive_endpoints else CLONE_DEFAULT,
         )
 
     @override
@@ -2526,6 +2559,8 @@ class Curve(Shape):
                 else StretchAxis.ANGLE_OUT
                 if self.stretch_axis == StretchAxis.ANGLE_IN
                 else self.stretch_axis,
+            entry_position=self.exit_position,
+            exit_position=self.entry_position,
         )
 
 
