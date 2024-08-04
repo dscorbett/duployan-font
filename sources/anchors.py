@@ -30,7 +30,10 @@ if TYPE_CHECKING:
 PARENT_EDGE: Final[str] = 'pe'
 
 
-CHILD_EDGES: Final[Sequence[Sequence[str]]] = [[f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(min(2, MAX_TREE_DEPTH))]
+CHILD_EDGES: Final[Sequence[Sequence[str]]] = [
+    [f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
+    for layer_index in range(min(2, MAX_TREE_DEPTH))
+]
 
 
 INTER_EDGES: Final[Sequence[Sequence[str]]] = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]

@@ -207,7 +207,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--incomplete',
         action='store_true',
-        help='Whether the font is less than the complete font. Do not fail a test if the actual result contains `.notdef`. Ignore the parts of glyph names that indicate code points.',
+        help=(
+            'Whether the font is less than the complete font. Do not fail a test if the actual result contains `.notdef`.'
+            ' Ignore the parts of glyph names that indicate code points.'
+        ),
     )
     parser.add_argument('--view', action='store_true', help='Render all test cases, not just the failures.')
     parser.add_argument('font', help='The path to a font.')

@@ -2008,7 +2008,9 @@ class Curve(Shape):
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
-            may_reposition_cursive_endpoints=self.may_reposition_cursive_endpoints if may_reposition_cursive_endpoints is CLONE_DEFAULT else may_reposition_cursive_endpoints,
+            may_reposition_cursive_endpoints=(
+                self.may_reposition_cursive_endpoints if may_reposition_cursive_endpoints is CLONE_DEFAULT else may_reposition_cursive_endpoints
+            ),
             entry_position=self.entry_position if entry_position is CLONE_DEFAULT else entry_position,
             exit_position=self.exit_position if exit_position is CLONE_DEFAULT else exit_position,
         )
@@ -2358,13 +2360,21 @@ class Curve(Shape):
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
                 )
-                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
+                glyph.addAnchorPoint(
+                    anchors.RELATIVE_2,
+                    'base',
+                    *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)),
+                )
             else:
                 glyph.addAnchorPoint(anchors.RELATIVE_1, 'base',
                     *(_rect(0, 0) if abs(da) > 180 else _rect(
                         min(stroke_width, r - (stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2)),
                         math.radians(relative_mark_angle))))
-                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)))
+                glyph.addAnchorPoint(
+                    anchors.RELATIVE_2,
+                    'base',
+                    *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)),
+                )
         glyph.stroke('circular', stroke_width, 'round')
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
@@ -2837,7 +2847,11 @@ class Circle(Shape):
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
             )
-            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)))
+            glyph.addAnchorPoint(
+                anchors.RELATIVE_2,
+                'base',
+                *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)),
+            )
         else:
             glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')

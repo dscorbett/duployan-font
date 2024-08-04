@@ -1104,7 +1104,9 @@ def separate_subantiparallel_lines(
                 case Curve():
                     clockwise = schema.path.clockwise
                     loop = not (schema.diphthong_1 or schema.diphthong_2 or schema.path.reversed_circle or issubclass(schema.original_shape, Curve))
-                case Complex() if (first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, Circle | Curve)), None)) is not None:
+                case Complex() if None is not (
+                    first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, Circle | Curve)), None)
+                ):
                     clockwise = first_curve_op.shape.clockwise  # type: ignore[attr-defined]
                     loop = isinstance(schema.path, Ou) or not isinstance(schema.path, Wi) and schema.is_primary
                 case _:

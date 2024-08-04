@@ -169,7 +169,7 @@ section-order = ["future", "standard-library", "third-party", "local-folder", "f
 ]
 
 [tool.ruff.lint.pycodestyle]
-max-line-length = 189
+max-line-length = 170
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
