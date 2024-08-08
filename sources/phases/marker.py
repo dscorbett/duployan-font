@@ -263,7 +263,7 @@ def shrink_wrap_enclosing_circle(
 
     def get_new_circle_schema(stretch: float, long: bool, size: float) -> Schema:
         if (stretch, long, size) in new_circle_schemas:
-            return new_circle_schemas[(stretch, long, size)]
+            return new_circle_schemas[stretch, long, size]
         assert circle_schema is not None
         assert isinstance(circle_schema.path, Circle)
         return new_circle_schemas.setdefault((stretch, long, size), circle_schema.clone(
@@ -403,10 +403,10 @@ def add_width_markers(
     def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber[Digit]:
         width = round(width)
         if (digit_path, width) in width_numbers:
-            width_number = width_numbers[(digit_path, width)]
+            width_number = width_numbers[digit_path, width]
         else:
             width_number = WidthNumber(digit_path, width)
-            width_numbers[(digit_path, width)] = width_number
+            width_numbers[digit_path, width] = width_number
         width_number_counter[width_number] += 1
         if width_number_counter[width_number] == minimum_optimizable_width_number_count:
             add_rule(digit_expansion_lookup, Rule(

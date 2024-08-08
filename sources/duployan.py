@@ -433,11 +433,11 @@ class Builder:
                 glyph_name = glyph.glyphname
                 match anchor_type:
                     case 'mark':
-                        mark_positions[anchor_class_name][(x, y)].append(glyph_name)
+                        mark_positions[anchor_class_name][x, y].append(glyph_name)
                     case 'base':
-                        base_positions[anchor_class_name][(x, y)].append(glyph_name)
+                        base_positions[anchor_class_name][x, y].append(glyph_name)
                     case 'basemark':
-                        basemark_positions[anchor_class_name][(x, y)].append(glyph_name)
+                        basemark_positions[anchor_class_name][x, y].append(glyph_name)
                     case 'entry':
                         cursive_positions[anchor_class_name][glyph_name][0] = fontTools.feaLib.ast.Anchor(x, y)
                     case 'exit':

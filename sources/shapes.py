@@ -3247,10 +3247,13 @@ class Complex(Shape):
                 x: The ``x`` argument.
                 y: The ``y`` argument.
             """
-            self.anchor_points[(anchor_class_name, anchor_type)].append((x, y))
+            self.anchor_points[anchor_class_name, anchor_type].append((x, y))
 
         def glyphPen(self) -> Self:
             """Simulates `fontforge.glyph.glyphPen`.
+
+            Returns:
+                This proxy.
             """
             return self
 
@@ -3290,6 +3293,10 @@ class Complex(Shape):
 
         def boundingBox(self) -> tuple[float, float, float, float]:
             """Simulates `fontforge.glyph.boundingBox`.
+
+            Returns:
+                The bounding box of the proxied glyph, as a tuple of
+                minimum x, minimum y, maximum x, and maximum y.
             """
             layer = self._stroke(copy=True)
             return cast(tuple[float, float, float, float], layer.boundingBox())
@@ -3399,16 +3406,16 @@ class Complex(Shape):
             Args:
                 component: A circle or curve.
             """
-            entry_list = self.anchor_points[(anchors.CURSIVE, 'entry')]
+            entry_list = self.anchor_points[anchors.CURSIVE, 'entry']
             assert len(entry_list) == 1
             if component.angle_in == component.angle_out:
                 return entry_list[0]
-            exit_list = self.anchor_points[(anchors.CURSIVE, 'exit')]
+            exit_list = self.anchor_points[anchors.CURSIVE, 'exit']
             assert len(exit_list) == 1
             if isinstance(component, Circle):
-                rel1_list = self.anchor_points[(anchors.RELATIVE_1, 'base')]
+                rel1_list = self.anchor_points[anchors.RELATIVE_1, 'base']
                 assert len(rel1_list) == 1
-                rel2_list = self.anchor_points[(anchors.RELATIVE_2, 'base')]
+                rel2_list = self.anchor_points[anchors.RELATIVE_2, 'base']
                 assert len(rel2_list) == 1
                 r = math.hypot(entry_list[0][1] - rel1_list[0][1], entry_list[0][0] - rel1_list[0][0])
                 theta = math.atan2(rel2_list[0][1] - rel1_list[0][1], rel2_list[0][0] - rel1_list[0][0])
@@ -3488,7 +3495,7 @@ class Complex(Shape):
                 False,
                 False,
             )
-            this_entry_list = proxy.anchor_points[(anchors.CURSIVE, 'entry')]
+            this_entry_list = proxy.anchor_points[anchors.CURSIVE, 'entry']
             assert len(this_entry_list) == 1
             this_x, this_y = this_entry_list[0]
             if exit_list := singular_anchor_points.get((anchors.CURSIVE, 'exit')):
@@ -3557,8 +3564,8 @@ class Complex(Shape):
         glyph.removeOverlap()
         self._remove_bad_contours(glyph)
         if not (anchor or joining_type == Type.NON_JOINING):
-            entry = singular_anchor_points[(anchors.CURSIVE, 'entry')][0 if self.enter_on_first_path() else -1]
-            exit = singular_anchor_points[(anchors.CURSIVE, 'exit')][-1]
+            entry = singular_anchor_points[anchors.CURSIVE, 'entry'][0 if self.enter_on_first_path() else -1]
+            exit = singular_anchor_points[anchors.CURSIVE, 'exit'][-1]
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
             if self.hub_priority(size) != -1:
@@ -3894,7 +3901,7 @@ class RomanianU(Complex):
         size: float,
     ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         effective_bounding_box, singular_anchor_points = super().draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
-        singular_anchor_points[(anchors.RELATIVE_1, 'base')] = singular_anchor_points[(anchors.CURSIVE, 'exit')]
+        singular_anchor_points[anchors.RELATIVE_1, 'base'] = singular_anchor_points[anchors.CURSIVE, 'exit']
         return effective_bounding_box, singular_anchor_points
 
     @override
@@ -4531,6 +4538,11 @@ class Wi(Complex):
         Args:
             context_out: The entry context of the following schema, or
                 ``NO_CONTEXT`` if there is none.
+
+        Returns:
+            A new contextualized `Wi`, or ``None`` if it is not
+            necessary to add a curve bias to this `Wi` in the given
+            context.
         """
         bias = self._CURVE_BIAS
         if self._has_only_one_curve and context_out.angle is not None:

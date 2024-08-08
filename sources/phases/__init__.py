@@ -270,6 +270,9 @@ class FreezableList(list[_T], Generic[_T]):
             iterable: The iterable containing the elements to append to
                 this list.
 
+        Returns:
+            This list.
+
         Raises:
             ValueError: If this list is frozen.
         """
@@ -300,6 +303,9 @@ class FreezableList(list[_T], Generic[_T]):
         Args:
             value: How many times to repeat this list’s elements.
 
+        Returns:
+            This list.
+
         Raises:
             ValueError: If this list is frozen.
         """
@@ -309,7 +315,7 @@ class FreezableList(list[_T], Generic[_T]):
 
     @override
     def pop(self, index: SupportsIndex = -1, /) -> _T:
-        """"Returns the element at an index and removes it from this
+        """Returns the element at an index and removes it from this
         list.
 
         Args:
@@ -334,7 +340,7 @@ class FreezableList(list[_T], Generic[_T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
-        return super().remove(value)
+        super().remove(value)
 
     @override
     def reverse(self) -> None:
@@ -345,7 +351,7 @@ class FreezableList(list[_T], Generic[_T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
-        return super().reverse()
+        super().reverse()
 
     @override
     def sort(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> None:
