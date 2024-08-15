@@ -16,7 +16,7 @@
 -c dev-constraints.txt
 -r requirements.in
 coverage ~= 7.6
-fontbakery[notofonts] >= 0.12.6, < 0.12.10
+fontbakery[notofonts] >= 0.12.6, < 0.12.11
 mypy ~= 1.11
-ruff >= 0.5.5, != 0.5.6, < 0.5.8
+ruff >= 0.5.5, != 0.5.6, < 0.6.1
 uv >= 0.2.16

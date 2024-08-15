@@ -66,7 +66,7 @@ docopt==0.6.2
     # via num2words
 filelock==3.15.4
     # via youseedee
-fontbakery==0.12.9
+fontbakery==0.12.10
     # via -r dev-requirements.in
 fontfeatures==1.8.0
     # via
@@ -94,6 +94,7 @@ fonttools==4.53.1
     #   ufolib2
     #   ufolint
     #   vfblib
+    #   vharfbuzz
 freetype-py==2.3.0
     # via
     #   -c dev-constraints.txt
@@ -120,7 +121,7 @@ glyphslib==6.8.0
     #   glyphsets
 idna==3.7
     # via requests
-importlib-resources==6.4.0
+importlib-resources==6.4.2
     # via
     #   -c dev-constraints.txt
     #   gfsubsets
@@ -130,7 +131,7 @@ jinja2==3.1.4
     #   fontbakery
 kurbopy==0.11.0
     # via collidoscope
-lxml==5.2.2
+lxml==5.3.0
     # via
     #   -c dev-constraints.txt
     #   fontfeatures
@@ -160,7 +161,7 @@ opentype-sanitizer==9.1.0
     # via fontbakery
 opentypespec==1.9.1
     # via fontbakery
-orjson==3.10.6
+orjson==3.10.7
     # via
     #   -c dev-constraints.txt
     #   babelfont
@@ -210,9 +211,9 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.5.7
+ruff==0.6.0
     # via -r dev-requirements.in
-setuptools==72.1.0
+setuptools==72.2.0
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -225,7 +226,7 @@ six==1.16.0
     #   python-dateutil
 skia-pathops==0.8.0.post1
     # via collidoscope
-soupsieve==2.5
+soupsieve==2.6
     # via beautifulsoup4
 sre-yield==1.2
     # via
@@ -277,11 +278,11 @@ urllib3==2.2.2
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.2.34
+uv==0.2.36
     # via -r dev-requirements.in
 vfblib==0.7.1
     # via babelfont
-vharfbuzz==0.3.0
+vharfbuzz==0.3.1
     # via
     #   fontbakery
     #   shaperglot
