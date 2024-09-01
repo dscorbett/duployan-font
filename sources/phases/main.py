@@ -1762,6 +1762,99 @@ def rotate_diacritics(
     return [lookup]
 
 
+def avoid_abrupt_inflections(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup(
+        'rclt',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    named_lookups['smooth_1'] = Lookup(None, None)
+    named_lookups['smooth_2'] = Lookup(None, None)
+    to_do_i_first = collections.defaultdict(list)
+    to_do_a_first = collections.defaultdict(list)
+    to_do_i_second = collections.defaultdict(list)
+    to_do_a_second = collections.defaultdict(list)
+    for schema in new_schemas:
+        if (schema.glyph_class != GlyphClass.JOINER or not isinstance(schema.path, Curve) or schema.path.angle_in % 90 != 0 or schema.path.angle_out % 90 != 0
+            or schema.path.reversed_circle or schema.path.stretch != 0 or schema.path.entry_position != 1 or schema.path.exit_position != 1
+        ):
+            continue
+        if (schema.path.angle_in - schema.path.angle_out) % 360 == 180:
+            if not schema.diphthong_1:
+                to_do_i_first[schema.path.clockwise, float(schema.path.angle_out)].append(schema)
+            if not schema.diphthong_2:
+                to_do_i_second[not schema.path.clockwise, float(schema.path.angle_in)].append(schema)
+        if not schema.diphthong_1 and not schema.diphthong_2 and not issubclass(schema.original_shape, Curve):
+            da = schema.path.angle_out - schema.path.angle_in
+            if schema.path.clockwise:
+                da *= -1
+            da %= 360
+            if 270 <= da < 315:
+                to_do_a_first[schema.path.clockwise, float(schema.path.angle_out)].append(schema)
+                to_do_a_second[not schema.path.clockwise, float(schema.path.angle_in)].append(schema)
+    for (c_i, a_i), schemas_i in to_do_i_first.items():
+        for (c_a, a_a), schemas_a in to_do_a_second.items():
+            if c_i != c_a or a_i != a_a:
+                continue
+            class_name_i = f'IA_i_{c_i}_{a_i}'
+            class_name_a = f'IA_a_{c_a}_{a_a}'
+            class_name_s2_input = f'i_{class_name_i}_s2'
+            class_name_s1_input = f'i_{class_name_i}_s1'
+            class_name_s2_output = f'o_{class_name_i}_s2'
+            class_name_s1_output = f'o_{class_name_i}_s1'
+            classes[class_name_i].extend(schemas_i)
+            classes[class_name_a].extend(schemas_a)
+            for schema_i in schemas_i:
+                assert isinstance(schema_i.path, Curve)
+                schema_i_2 = schema_i.clone(cmap=None, path=schema_i.path.clone(smooth_1=True))
+                classes[class_name_s2_input].append(schema_i)
+                classes[class_name_s2_output].append(schema_i_2)
+            add_rule(named_lookups['smooth_1'], Rule(class_name_s2_input, class_name_s2_output))
+            for schema_a in schemas_a:
+                assert isinstance(schema_a.path, Curve)
+                schema_a_1 = schema_a.clone(cmap=None, path=schema_a.path.clone(smooth_2=True))
+                classes[class_name_s1_input].append(schema_a)
+                classes[class_name_s1_output].append(schema_a_1)
+            add_rule(named_lookups['smooth_2'], Rule(class_name_s1_input, class_name_s1_output))
+            add_rule(lookup, Rule([], [class_name_i, class_name_a], [], lookups=['smooth_1', 'smooth_2']))
+    for (c_a, a_a), schemas_a in to_do_a_first.items():
+        for (c_i, a_i), schemas_i in to_do_i_second.items():
+            if c_i != c_a or a_i != a_a:
+                continue
+            class_name_i = f'AI_i_{c_i}_{a_i}'
+            class_name_a = f'AI_a_{c_a}_{a_a}'
+            class_name_s2_input = f'i_{class_name_i}_s2'
+            class_name_s1_input = f'i_{class_name_i}_s1'
+            class_name_s2_output = f'o_{class_name_i}_s2'
+            class_name_s1_output = f'o_{class_name_i}_s1'
+            classes[class_name_i].extend(schemas_i)
+            classes[class_name_a].extend(schemas_a)
+            for schema_i in schemas_i:
+                assert isinstance(schema_i.path, Curve)
+                schema_i_1 = schema_i.clone(cmap=None, path=schema_i.path.clone(smooth_2=True))
+                classes[class_name_s1_input].append(schema_i)
+                classes[class_name_s1_output].append(schema_i_1)
+            add_rule(named_lookups['smooth_2'], Rule(class_name_s1_input, class_name_s1_output))
+            for schema_a in schemas_a:
+                assert isinstance(schema_a.path, Curve)
+                schema_a_2 = schema_a.clone(cmap=None, path=schema_a.path.clone(smooth_1=True))
+                classes[class_name_s2_input].append(schema_a)
+                classes[class_name_s2_output].append(schema_a_2)
+            add_rule(named_lookups['smooth_1'], Rule(class_name_s2_input, class_name_s2_output))
+            add_rule(lookup, Rule([], [class_name_a, class_name_i], [], lookups=['smooth_1', 'smooth_2']))
+    return [lookup]
+
+
 def shade(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -1943,6 +2036,7 @@ PHASE_LIST = [
     join_double_marks,
     separate_subantiparallel_lines,
     rotate_diacritics,
+    avoid_abrupt_inflections,
     shade,
     create_superscripts_and_subscripts,
     make_widthless_variants_of_marks,

@@ -1921,6 +1921,10 @@ class Curve(Shape):
             curve letter is in a context where it would look confusingly
             like a loop, i.e. like a circle letter, it can be clearer to
             shift the exit point earlier.
+        smooth_1: Whether the exit part of this curve is modified to
+            create a more gradual inflection with the following shape.
+        smooth_2: Whether the entry part of this curve is modified to
+            create a more gradual inflection with the preceding shape.
     """
 
     @override
@@ -1940,6 +1944,8 @@ class Curve(Shape):
         may_reposition_cursive_endpoints: bool = False,
         entry_position: float = 1,
         exit_position: float = 1,
+        smooth_1: bool = False,
+        smooth_2: bool = False,
     ) -> None:
         """Initializes this `Curve`.
 
@@ -1958,6 +1964,8 @@ class Curve(Shape):
             may_reposition_cursive_endpoints: The ``may_reposition_cursive_endpoints`` attribute.
             entry_position: The ``entry_position`` attribute.
             exit_position: The ``exit_position`` attribute.
+            smooth_1: The ``smooth_1`` attribute.
+            smooth_2: The ``smooth_2`` attribute.
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
         assert stretch > -1
@@ -1965,6 +1973,7 @@ class Curve(Shape):
         assert exit_position == 1 or may_reposition_cursive_endpoints, f'{exit_position=}'
         assert 0 <= entry_position <= 1
         assert 0 <= exit_position <= 1
+        assert not (smooth_1 and smooth_2)
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -1978,6 +1987,8 @@ class Curve(Shape):
         self.may_reposition_cursive_endpoints: Final = may_reposition_cursive_endpoints
         self.entry_position: Final = entry_position
         self.exit_position: Final = exit_position
+        self.smooth_1: Final = smooth_1
+        self.smooth_2: Final = smooth_2
 
     @override
     def clone(
@@ -1996,6 +2007,8 @@ class Curve(Shape):
         may_reposition_cursive_endpoints: bool | CloneDefault = CLONE_DEFAULT,
         entry_position: float | CloneDefault = CLONE_DEFAULT,
         exit_position: float | CloneDefault = CLONE_DEFAULT,
+        smooth_1: bool | CloneDefault = CLONE_DEFAULT,
+        smooth_2: bool | CloneDefault = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -2013,25 +2026,37 @@ class Curve(Shape):
             ),
             entry_position=self.entry_position if entry_position is CLONE_DEFAULT else entry_position,
             exit_position=self.exit_position if exit_position is CLONE_DEFAULT else exit_position,
+            smooth_1=self.smooth_1 if smooth_1 is CLONE_DEFAULT else smooth_1,
+            smooth_2=self.smooth_2 if smooth_2 is CLONE_DEFAULT else smooth_2,
         )
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.overlap_angle is not None:
-            return f'{int(self.overlap_angle)}'
-        if joining_type != Type.ORIENTING:
-            return ''
-        return f'''{
-                int(self.angle_in)
-            }{
-                'n' if self.clockwise else 'p'
-            }{
-                int(self.angle_out)
-            }{
-                'r' if self.reversed_circle else ''
-            }{
-                '.ee' if not self.entry_position == self.exit_position == 1 else ''
-            }'''
+            name = f'{int(self.overlap_angle)}'
+        elif joining_type == Type.ORIENTING:
+            name = f'''{
+                    int(self.angle_in)
+                }{
+                    'n' if self.clockwise else 'p'
+                }{
+                    int(self.angle_out)
+                }{
+                    'r' if self.reversed_circle else ''
+                }{
+                    '.ee' if not self.entry_position == self.exit_position == 1 else ''
+                }'''
+        else:
+            name = ''
+        if self.smooth_1 or self.smooth_2:
+            name += f'''{
+                    '.' if name else ''
+                }s{
+                    '1' if self.smooth_1 else ''
+                }{
+                    '2' if self.smooth_2 else ''
+                }'''
+        return name
 
     @override
     def group(self) -> Hashable:
@@ -2060,6 +2085,8 @@ class Curve(Shape):
             self.overlap_angle,
             self.entry_position,
             self.exit_position,
+            self.smooth_1,
+            self.smooth_2,
         )
 
     @override
@@ -2118,8 +2145,8 @@ class Curve(Shape):
 
     def get_normalized_angles(
         self,
-        diphthong_1: bool = False,
-        diphthong_2: bool = False,
+        offset_1: float = 0,
+        offset_2: float = 0,
         angle_in: float | None = None,
         angle_out: float | None = None,
     ) -> tuple[float, float]:
@@ -2127,10 +2154,8 @@ class Curve(Shape):
             angle_in = self.angle_in
         if angle_out is None:
             angle_out = self.angle_out
-        if diphthong_1:
-            angle_out = (angle_out + 90 * (1 if self.clockwise else -1)) % 360
-        if diphthong_2:
-            angle_in = (angle_in - 90 * (1 if self.clockwise else -1)) % 360
+        angle_out = (angle_out + offset_1 * (1 if self.clockwise else -1)) % 360
+        angle_in = (angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
         if self.clockwise and angle_out > angle_in:
             angle_out -= 360
         elif not self.clockwise and angle_out < angle_in:
@@ -2141,14 +2166,14 @@ class Curve(Shape):
 
     def _get_normalized_angles_and_da(
         self,
-        diphthong_1: bool,
-        diphthong_2: bool,
+        offset_1: float,
+        offset_2: float,
         final_circle_diphthong: bool,
         initial_circle_diphthong: bool,
         angle_in: float | None = None,
         angle_out: float | None = None,
     ) -> tuple[float, float, float]:
-        a1, a2 = self.get_normalized_angles(diphthong_1, diphthong_2, angle_in, angle_out)
+        a1, a2 = self.get_normalized_angles(offset_1, offset_2, angle_in, angle_out)
         if final_circle_diphthong:
             a2 = a1
         elif initial_circle_diphthong:
@@ -2172,7 +2197,7 @@ class Curve(Shape):
             The difference between this curve’s entry angle and exit
             angle in the range (0, 360].
         """
-        return self._get_normalized_angles_and_da(False, False, False, False, angle_in, angle_out)[2]
+        return self._get_normalized_angles_and_da(0, 0, False, False, angle_in, angle_out)[2]
 
     def _get_angle_to_overlap_point(
         self,
@@ -2234,9 +2259,10 @@ class Curve(Shape):
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         pre_stretch_angle_in, pre_stretch_angle_out, stretch_axis_angle, scale_x, scale_y = self._pre_stretch_values
+        smooth_delta = 45
         a1, a2, da = self._get_normalized_angles_and_da(
-            diphthong_1,
-            diphthong_2,
+            90 if diphthong_1 else smooth_delta if self.smooth_1 else 0,
+            90 if diphthong_2 else smooth_delta if self.smooth_2 else 0,
             final_circle_diphthong,
             initial_circle_diphthong,
             pre_stretch_angle_in,
@@ -2251,6 +2277,11 @@ class Curve(Shape):
         p0 = _rect(r, math.radians(a1))
         if diphthong_2:
             entry_delta = _rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
+            entry = (p0[0] + entry_delta[0], p0[1] + entry_delta[1])
+            pen.moveTo(entry)
+            pen.lineTo(p0)
+        elif self.smooth_2:
+            entry_delta = _rect(-r, math.radians((self.angle_in - smooth_delta * (1 if self.clockwise else -1)) % 360))
             entry = (p0[0] + entry_delta[0], p0[1] + entry_delta[1])
             pen.moveTo(entry)
             pen.lineTo(p0)
@@ -2303,6 +2334,10 @@ class Curve(Shape):
                 exit = p3
         if diphthong_1:
             exit_delta = _rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
+            exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
+            pen.lineTo(exit)
+        elif self.smooth_1:
+            exit_delta = _rect(r, math.radians((self.angle_out + smooth_delta * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
         pen.endPath()
