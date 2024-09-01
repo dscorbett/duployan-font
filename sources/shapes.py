@@ -2958,7 +2958,11 @@ class Circle(Shape):
                 angle_out=angle_out,
                 clockwise=clockwise,
             )
-        if self.role != CircleRole.INDEPENDENT and (self.pinned or not is_reversed):
+        if (self.role != CircleRole.INDEPENDENT and (self.pinned or not is_reversed)
+            and (clockwise is not context_in.has_clockwise_loop_to(context_out)
+                or self.role == CircleRole.LEADER or angle_in == angle_out or context_in.diphthong_start or context_out.diphthong_end
+            )
+        ):
             return self.clone(
                 angle_in=angle_in,
                 angle_out=angle_in if self.role == CircleRole.LEADER else angle_out,

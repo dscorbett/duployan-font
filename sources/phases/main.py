@@ -1486,7 +1486,8 @@ def join_circle_with_adjacent_nonorienting_glyph(
             )
             and (context_out := schema.path.context_in()) != NO_CONTEXT
         ):
-            context_out = Context(context_out.angle)
+            assert context_out.angle is not None
+            context_out = Context(context_out.angle, context_out.clockwise)
             contexts_out.add(context_out)
             classes[f'c_{context_out}'].append(schema)
     for context_out in contexts_out:

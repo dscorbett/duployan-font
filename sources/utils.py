@@ -613,18 +613,17 @@ class Context:
         """
         if self.angle is None or other.angle is None:
             return False
-        angle_in = self.angle
-        angle_out = other.angle
+        da = (other.angle - self.angle) % 360
+        maximum_da = 180.0
         if self.clockwise:
-            angle_in += CURVE_OFFSET
+            maximum_da += CURVE_OFFSET
         elif self.clockwise is False:
-            angle_in -= CURVE_OFFSET
+            maximum_da -= CURVE_OFFSET
         if other.clockwise:
-            angle_out -= CURVE_OFFSET
+            maximum_da += CURVE_OFFSET
         elif other.clockwise is False:
-            angle_out += CURVE_OFFSET
-        da = abs(angle_out - angle_in)
-        return da % 180 != 0 and (da >= 180) != (angle_out > angle_in)
+            maximum_da -= CURVE_OFFSET
+        return 0 < da < maximum_da
 
 
 #: The context representing a lack of contextual information.
