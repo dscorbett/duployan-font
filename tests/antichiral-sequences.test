@@ -15,6 +15,7 @@
 # Semicircle letter before circle letter
 1BC4A 1BC41 1BC19::[u1BC4A.ui.s1@0,620|u1BC41.a.270p180.s2@241,520|u1BC19.m@82,0|_@722,0]
 1BC4A 1BC44 1BC19::[u1BC4A.ui.s1@0,570|u1BC44.o.270p180.s2@241,420|u1BC19.m@153,0|_@843,0]
+1BC4A 1BC56 1BC19::[u1BC4A.ui.s1@0,570|u1BC44.o.270p180.s2@241,420|dupl_.Dot.0.rel1@453,570|u1BC19.m@153,0|_@843,0]
 
 # Circle letter before semicircle letter
 1BC1A 1BC41 1BC4B::[u1BC1A.n@100,0|u1BC41.a.180n270.s1@0,0|u1BC4B.ee.s2@241,0|_@722,0]

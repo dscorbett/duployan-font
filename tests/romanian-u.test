@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023-2024 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,3 +31,7 @@
 1BC05 1BC56 1BC04::[u1BC05.k@280,0|u1BC44.o.240n300@0,-75|dupl_.Dot.0.rel1@150,75|u1BC04.f@280,-350|_@808,0]
 1BC04 1BC56 1BC05::[u1BC04.f@0,0|u1BC44.o.300p240@288,-75|dupl_.Dot.0.rel1@418,75|u1BC05.k@0,-350|_@808,0]
 1BC05 1BC56 1BC05::[u1BC05.k@288,0|u1BC44.o.60n60@268,-225|dupl_.Dot.0.rel1@418,-75|u1BC05.k@0,-500|_@816,0]
+
+# Medial in orienting sequence
+1BC04 1BC56 1BC46 1BC03::[u1BC04.f@0,0|u1BC44.o.120n120.diph1@213,-75|dupl_.Dot.0.rel1@418,75|u1BC46.i.120p300.diph2@76,-56|u1BC03.t@89,-56|_@829,0]
+1BC04 1BC46 1BC56 1BC03::[u1BC04.f@0,0|u1BC46.i.300p120.diph1@288,-50|u1BC44.o.300p0.circle.diph2@416,13|dupl_.Dot.0.rel1@566,218|u1BC03.t@566,68|_@1306,0]

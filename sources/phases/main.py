@@ -48,6 +48,7 @@ from shapes import InvalidStep
 from shapes import Line
 from shapes import Ou
 from shapes import ParentEdge
+from shapes import RomanianU
 from shapes import RootOnlyParentEdge
 from shapes import RotatedComplex
 from shapes import Space
@@ -1196,6 +1197,33 @@ def prepare_for_secondary_diphthong_ligature(
     return [lookup]
 
 
+def replace_medial_romanian_u(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup(
+        'rclt',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reverse=True,
+    )
+    if len(original_schemas) != len(schemas):
+        return [lookup]
+    for schema in new_schemas:
+        if isinstance(schema.path, RomanianU):
+            classes['i'].append(schema)
+            classes['o'].append(schema.clone(cmap=None, path=Circle(90, 90, clockwise=False)))
+        if schema.glyph_class == GlyphClass.JOINER:
+            classes['joiner'].append(schema)
+    add_rule(lookup, Rule('joiner', 'i', 'joiner', 'o'))
+    return [lookup]
+
+
 def join_with_previous(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -2023,6 +2051,7 @@ PHASE_LIST = [
     reposition_stenographic_period,
     join_with_next_step,
     prepare_for_secondary_diphthong_ligature,
+    replace_medial_romanian_u,
     join_with_previous,
     unignore_last_orienting_glyph_in_initial_sequence,
     ignore_first_orienting_glyph_in_initial_sequence,
