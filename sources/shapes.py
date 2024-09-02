@@ -4191,6 +4191,20 @@ class Ou(Complex):
         assert not callable(circle_op)
         circle_path = circle_op.shape
         assert isinstance(circle_path, Circle | Curve)
+        if self.role == CircleRole.LEADER:
+            original_circle_op = self.instructions[0]
+            assert not callable(original_circle_op)
+            original_circle_path = original_circle_op.shape
+            assert isinstance(original_circle_path, Circle)
+            if original_circle_path.clockwise is not circle_path.clockwise:
+                contextualized = self.clone(
+                        instructions=[
+                            original_circle_op._replace(shape=original_circle_path.clone(reversed_circle=not original_circle_path.reversed_circle))
+                        ],
+                        role=CircleRole.INDEPENDENT,
+                    ).contextualize(context_in, context_out)
+                assert isinstance(contextualized, Ou)
+                return contextualized.clone(role=CircleRole.LEADER)
         return contextualized.clone(
             _initial=context_in == NO_CONTEXT,
             _angled_against_next=context_out.angle is not None is not context_in.angle != context_out.angle != circle_path.angle_out,
