@@ -112,7 +112,9 @@ def reversed_circle_kludge(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('rlig', 'dflt')
-    cgj = next(s for s in schemas if s.cmap == 0x034F)
+    cgj = next((s for s in schemas if s.cmap == 0x034F), None)
+    if cgj is None:
+        return [lookup]
     for schema in new_schemas:
         if schema.cmap in {0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60}:
             assert isinstance(schema.path, Circle | Curve | Ou | Wa | Wi)

@@ -90,7 +90,7 @@ class Builder:
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
         self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
-        self._initialize_phases(noto)
+        self._initialize_phases()
         self.light_line: Final = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
         self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
@@ -104,10 +104,8 @@ class Builder:
             assert not duplicate_code_points, ('Duplicate code points:\n    '
                 + '\n    '.join(map(hex, sorted(duplicate_code_points.keys()))))
 
-    def _initialize_phases(self, noto: bool) -> None:
+    def _initialize_phases(self) -> None:
         self._phases = phases.main.PHASE_LIST
-        if noto:
-            self._phases = [p for p in self._phases if p is not phases.main.reversed_circle_kludge]
         self._middle_phases = phases.middle.PHASE_LIST
         self._marker_phases = phases.marker.PHASE_LIST
 
