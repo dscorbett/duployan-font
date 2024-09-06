@@ -17,10 +17,7 @@ table name {
     nameid 0 "Copyright 2018-2019, 2022-2024 David Corbett.\000A
 Copyright 2019-2022 Google LLC. All Rights Reserved.";
 #ifdef NOTO
-    nameid 1 "Noto Sans Duployan";
     nameid 7 "Noto is a trademark of Google LLC";
-#else
-    nameid 1 "Duployan";
 #endif
     nameid 8 "David Corbett";
     nameid 9 "David Corbett";

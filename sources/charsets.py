@@ -13,12 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Character sets and related things.
+
+Among all the available characters, the font can be built with different
+subsets. See `Charset` for the available character sets.
+"""
+
+
 from __future__ import annotations
 
+import enum
 import math
 import string
 from typing import Final
 from typing import TYPE_CHECKING
+from typing import assert_never
 from typing import cast
 import unicodedata
 
@@ -71,6 +80,32 @@ if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
 
     from shapes import Instructions
+
+
+@enum.unique
+class Charset(enum.StrEnum):
+    """A set of characters to include in the font.
+
+    A “character” here really means a `Schema`. It is called a
+    “character set” because it is supposed to filter schemas based on
+    the characters they are mapped to. It can filter by other features
+    too, but the mapped character is the main one.
+    """
+
+    #: A character set appropriate for Noto.
+    NOTO = enum.auto()
+
+    #: A character set appropriate for general-purpose use. It is like
+    #: `NOTO` but includes more non-Duployan characters for convenience. It
+    #: also includes some private use characters for certain Duployan
+    #: characters not encoded in Unicode.
+    STANDARD = enum.auto()
+
+    #: A character set only appropriate for testing the font. It is like
+    #: `STANDARD` but includes a few private use characters that appear in
+    #: the test files but are not otherwise useful. It includes all
+    #: available characters.
+    TESTING = enum.auto()
 
 
 #: The set of code points which should be omitted from the Noto build
@@ -149,11 +184,35 @@ def _include_in_noto(schema: Schema) -> bool:
     return True
 
 
-def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Collection[Schema]:
+def _include_in_standard_charset(schema: Schema) -> bool:
+    """Returns whether a schema should be included in the standard
+    non-test build for general use.
+
+    Args:
+        schema: A schema.
+    """
+    if schema.cmap is None:
+        return True
+    return not (
+        # U+E000 is only for testing side bearings.
+        schema.cmap == 0xE000
+        # The range U+EC00..U+ECAF is reserved for characters corresponding to
+        # U+1BC00..U+1BCAF. If a private use character corresponds to an
+        # assigned character, it represents a variant of the latter that is
+        # unattested but useful for testing. If it corresponds to a reserved
+        # code point, it represents an attested Duployan character not supported
+        # by Unicode; this should be included in the standard character set once
+        # the mapping is more stable.
+        or schema.cmap in range(0xEC00, 0xECAF + 1)
+    )
+
+
+def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -> Collection[Schema]:
     """Returns a collection of schemas to include in a font.
 
     Args:
-        noto: Whether to only return schemas appropriate for Noto.
+        charset: The character set. This determines which schemas are
+            returned out of all possible schemas.
         light_line: The width of a light line.
         stroke_gap: The minimum distance between two different strokes.
     """
@@ -667,6 +726,13 @@ def initialize_schemas(noto: bool, light_line: float, stroke_gap: float) -> Coll
             anchor=None if not is_mark else anchors.ABOVE if small_digit_cp % 16 ** 2 // 16 == 2 else anchors.BELOW,
             cps=None,
         ))
-    if noto:
-        schemas = [*filter(_include_in_noto, schemas)]
+    match charset:
+        case Charset.NOTO:
+            schemas = [*filter(_include_in_noto, schemas)]
+        case Charset.STANDARD:
+            schemas = [*filter(_include_in_standard_charset, schemas)]
+        case Charset.TESTING:
+            pass
+        case _:
+            assert_never(charset)
     return schemas

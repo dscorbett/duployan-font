@@ -29,7 +29,7 @@ import fontTools.otlLib.builder
 import fontTools.ttLib.ttFont
 
 import anchors
-import charset
+import charsets
 import phases.main
 import phases.marker
 import phases.middle
@@ -86,7 +86,7 @@ def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
 
 
 class Builder:
-    def __init__(self, font: fontforge.font, bold: bool, noto: bool) -> None:
+    def __init__(self, font: fontforge.font, bold: bool, charset: charsets.Charset) -> None:
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
         self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
@@ -94,7 +94,7 @@ class Builder:
         self.light_line: Final = 101 if bold else REGULAR_LIGHT_LINE
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
         self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
-        self._schemas = charset.initialize_schemas(noto, self.light_line, self.stroke_gap)
+        self._schemas = charsets.initialize_schemas(charset, self.light_line, self.stroke_gap)
         if __debug__:
             code_points: Final[collections.defaultdict[int, int]] = collections.defaultdict(int)
             for schema in self._schemas:

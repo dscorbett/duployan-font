@@ -35,6 +35,7 @@ import fontTools.ttLib.tables._n_a_m_e
 import fontTools.ttLib.ttFont
 import fontforge
 
+import charsets
 import copy_metrics
 import duployan
 import utils
@@ -80,14 +81,12 @@ def build_font(
     font.generate(options.output, flags=flags)
 
 
-def set_subfamily_name(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, bold: bool) -> None:
-    for name in name_table.names:
-        if name.nameID == 1:
-            family_name = name.string
-            platform_id = name.platformID
-            encoding_id = name.platEncID
-            language_id = name.langID
-            break
+def set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, family_name: str, bold: bool) -> None:
+    name_0 = name_table.names[0]
+    platform_id = name_0.platformID
+    encoding_id = name_0.platEncID
+    language_id = name_0.langID
+    name_table.setName(family_name, 1, platform_id, encoding_id, language_id)
     subfamily_name = 'Bold' if bold else 'Regular'
     name_table.setName(subfamily_name, 2, platform_id, encoding_id, language_id)
     name_table.setName(f'{family_name} {subfamily_name}', 4, platform_id, encoding_id, language_id)
@@ -234,7 +233,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         tt_font['post'].underlineThickness = round(utils.REGULAR_LIGHT_LINE)
         tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
         tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
-        set_subfamily_name(tt_font['name'], options.bold)
+        set_family_names(tt_font['name'], options.name, options.bold)
         set_version(tt_font, options.noto, options.version, options.release, dirty)
         set_unique_id(tt_font['name'], tt_font['OS/2'].achVendID)
         if 'CFF ' in tt_font:
@@ -265,7 +264,7 @@ def is_dirty() -> bool:
 def make_font(options: argparse.Namespace) -> None:
     font = fontforge.font()
     font.encoding = 'UnicodeFull'
-    builder = duployan.Builder(font, options.bold, options.noto)
+    builder = duployan.Builder(font, options.bold, options.charset)
     builder.augment()
     dirty = is_dirty()
     set_environment_variables(dirty)
@@ -276,10 +275,15 @@ def make_font(options: argparse.Namespace) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
     parser.add_argument('--bold', action='store_true', help='Make a bold font.')
+    parser.add_argument(
+        '--charset', default=charsets.Charset.STANDARD, type=charsets.Charset,
+        help=f'The character set, one of {{{", ".join(c.value for c in charsets.Charset)}}} (default: %(default)s).'
+    )
     parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
-    parser.add_argument('--noto', action='store_true', help='Build Noto Sans Duployan.')
+    parser.add_argument('--name', required=True, help='The name of the font family (name ID 1).')
+    parser.add_argument('--noto', action='store_true', help="Use Noto conventions in the 'name' table.")
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
     parser.add_argument('--release', action='store_true', help='Set the version number as appropriate for a stable release, as opposed to an alpha.')
-    parser.add_argument('--version', type=float, required=True, help='The version number.')
+    parser.add_argument('--version', type=float, required=True, help='The base version number.')
     args = parser.parse_args()
     make_font(args)

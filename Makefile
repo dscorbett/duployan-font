@@ -19,32 +19,37 @@ SHELL=/bin/bash
 
 VALID_STYLES = Regular Bold
 STYLES = $(VALID_STYLES)
+ifdef RELEASE
+    override RELEASE = --release
+endif
 ifdef NOTO
-    FONT_FAMILY_NAME = NotoSansDuployan
+    FONT_FAMILY_NAME = Noto Sans Duployan
+    CHARSET = noto
     VERSION = 3.001
-    RELEASE =
-    CHECK_ARGS = --incomplete
     override NOTO = --noto
 else
-    FONT_FAMILY_NAME = Duployan
+    FONT_FAMILY_NAME = Duployan$(if $(filter testing,$(CHARSET)), Test)
+    CHARSET = $(if $(RELEASE),standard,testing)
     VERSION = 1.0
-    RELEASE =
 endif
+unexport CHARSET
+CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
 VALID_SUFFIXES = otf ttf
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 HB_VERSION = 9.0.0
 
-FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FAMILY_NAME)/unhinted/$(suffix)/$(FONT_FAMILY_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
+FONT_FILE_NAME = $(subst $(eval ) ,,$(FONT_FAMILY_NAME))
+FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FILE_NAME)/unhinted/$(suffix)/$(FONT_FILE_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
 HB_PROGRAMS = hb-shape hb-view
 
 ifdef COVERAGE
-	override COVERAGE = coverage run
+    override COVERAGE = coverage run
 endif
-BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py $(NOTO) $(RELEASE) --version $(VERSION)
+BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py --charset $(CHARSET) --name '$(FONT_FAMILY_NAME)' $(NOTO) $(RELEASE) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
 
@@ -98,7 +103,7 @@ endef
 %.ttf: %.otf
 	$(MAKE_TTF)
 
-$(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/$(FONT_FAMILY_NAME)-,$(addsuffix .ttf,$(STYLES))): $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/ttf/%.ttf: $(INTERMEDIATE_PREFIX)fonts/$(FONT_FAMILY_NAME)/unhinted/otf/%.otf
+$(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/$(FONT_FILE_NAME)-,$(addsuffix .ttf,$(STYLES))): $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/%.ttf: $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/otf/%.otf
 	$(MAKE_TTF)
 
 .PHONY: clean
