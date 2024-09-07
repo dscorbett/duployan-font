@@ -17,7 +17,6 @@
 
 SHELL=/bin/bash
 
-VALID_STYLES = Regular Bold
 STYLES = $(VALID_STYLES)
 ifdef RELEASE
     override RELEASE = --release
@@ -34,7 +33,6 @@ else
 endif
 unexport CHARSET
 CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
-VALID_SUFFIXES = otf ttf
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 HB_VERSION = 9.0.0
@@ -45,6 +43,21 @@ INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
 HB_PROGRAMS = hb-shape hb-view
+
+VALID_CHARSETS = $(shell PYTHONPATH="sources:$$PYTHONPATH" python3 -c 'import charsets; print(" ".join(charsets.Charset))')
+ifneq ($(strip $(filter-out $(VALID_CHARSETS),$(CHARSET))),)
+    $(error One or more invalid values: $(CHARSET); must be one of: $(VALID_CHARSETS))
+endif
+
+VALID_STYLES = Regular Bold
+ifneq ($(strip $(filter-out $(VALID_STYLES),$(STYLES))),)
+    $(error One or more invalid values: $(STYLES); must be subset of: $(VALID_STYLES))
+endif
+
+VALID_SUFFIXES = otf ttf
+ifneq ($(strip $(filter-out $(VALID_SUFFIXES),$(SUFFIXES))),)
+    $(error One or more invalid values: $(SUFFIXES); must be subset of: $(VALID_SUFFIXES))
+endif
 
 ifdef COVERAGE
     override COVERAGE = coverage run
