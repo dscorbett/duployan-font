@@ -19,14 +19,15 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import enum
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import Literal
 from typing import TYPE_CHECKING
+from typing import assert_never
 import unicodedata
 
 
@@ -58,18 +59,22 @@ NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)(\.su[bp]s)?')
 
 
-_Color = Literal['auto', 'no', 'yes']
+class Color(enum.StrEnum):
+    AUTO = enum.auto()
+    NO = enum.auto()
+    YES = enum.auto()
 
 
-def parse_color(color: _Color) -> bool:
+def parse_color(color: Color) -> bool:
     match color:
-        case 'auto':
+        case Color.AUTO:
             return CI or sys.stdout.isatty()
-        case 'no':
+        case Color.NO:
             return False
-        case 'yes':
+        case Color.YES:
             return True
-    raise ValueError(f'Invalid --color value: {color}')
+        case _:
+            assert_never(color)
 
 
 def parse_json(s: str) -> Generator[str, None, None]:
@@ -203,7 +208,12 @@ def run_test(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run shaping tests.')
-    parser.add_argument('--color', default='auto', help='Whether to print diffs in color: "yes", "no", or "auto".')
+    parser.add_argument(
+        '--color',
+        default=Color.AUTO,
+        type=Color,
+        help=f'Whether to print diffs in color; one of {{{", ".join(c.value for c in Color)}}} (default: %(default)s).',
+    )
     parser.add_argument(
         '--incomplete',
         action='store_true',
