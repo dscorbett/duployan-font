@@ -956,10 +956,10 @@ class Schema:
             case Complex():
                 for op in self.path.instructions:
                     match op:
-                        case Component(shape=Circle()):
-                            return not op.shape.reversed_circle  # type: ignore[attr-defined]
-                        case Component(shape=Curve()):
-                            return not (op.shape.secondary or op.shape.reversed_circle)  # type: ignore[attr-defined]
+                        case Component(shape=Circle() as shape):
+                            return not shape.reversed_circle
+                        case Component(shape=Curve() as shape):
+                            return not (shape.secondary or shape.reversed_circle)
             case Curve():
                 return not (self.path.secondary or self.path.reversed_circle)
         raise ValueError
