@@ -948,6 +948,11 @@ class Schema:
         match self.path:
             case Circle():
                 return not self.path.reversed_circle
+            case Ou():
+                for op in self.path.instructions:
+                    match op:
+                        case Component(shape=Circle() | Curve() as shape):
+                            return not shape.reversed_circle
             case Complex():
                 for op in self.path.instructions:
                     match op:

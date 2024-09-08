@@ -1111,7 +1111,7 @@ def separate_subantiparallel_lines(
                     first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, Circle | Curve)), None)
                 ):
                     clockwise = first_curve_op.shape.clockwise  # type: ignore[attr-defined]
-                    loop = isinstance(schema.path, Ou) or not isinstance(schema.path, Wi) and schema.is_primary
+                    loop = not isinstance(schema.path, Wi) and schema.is_primary
                 case _:
                     continue
             classes[f'clockwise_{clockwise}_i'].append(schema)
