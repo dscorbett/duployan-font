@@ -46,6 +46,21 @@ jobs:
             optimize: -O
             charset: noto
             harfbuzz-version: 9.0.0
+          - build-venv: dev
+            optimize: -O
+            charset: testing
+            unjoined: unjoined
+            harfbuzz-version: 9.0.0
+          - build-venv: dev
+            optimize: -O
+            charset: standard
+            unjoined: unjoined
+            harfbuzz-version: 9.0.0
+          - build-venv: dev
+            optimize: -O
+            charset: noto
+            unjoined: unjoined
+            harfbuzz-version: 9.0.0
           - build-venv: build
             charset: testing
             harfbuzz-version: 9.0.0
@@ -54,6 +69,18 @@ jobs:
             harfbuzz-version: 9.0.0
           - build-venv: build
             charset: noto
+            harfbuzz-version: 9.0.0
+          - build-venv: build
+            charset: testing
+            unjoined: unjoined
+            harfbuzz-version: 9.0.0
+          - build-venv: build
+            charset: standard
+            unjoined: unjoined
+            harfbuzz-version: 9.0.0
+          - build-venv: build
+            charset: noto
+            unjoined: unjoined
             harfbuzz-version: 9.0.0
           - build-venv: dev
             charset: testing
@@ -180,17 +207,17 @@ jobs:
         run: |
           . ${{ matrix.build-venv }}-venv/bin/activate
           make clean
-          make -B -j 'CHARSET=${{ matrix.charset }}' 'COVERAGE=${{ matrix.coverage }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'PYTHONOPTIMIZE=${{ matrix.optimize }}'
+          make -B -j 'CHARSET=${{ matrix.charset }}' 'COVERAGE=${{ matrix.coverage }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' 'PYTHONOPTIMIZE=${{ matrix.optimize }}'
       - name: Test
         if: matrix.coverage == ''
         run: |
           . dev-venv/bin/activate
-          make -j 'CHARSET=${{ matrix.charset }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} ${{ matrix.optimize == '' && 'check-fonts' || '' }} check-sources
+          make -j 'CHARSET=${{ matrix.charset }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' ${{ matrix.optimize == '' && 'check-fonts' || '' }} check-sources
       - name: Check coverage
         if: matrix.coverage != ''
         run: |
           . dev-venv/bin/activate
-          make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.noto == 'noto' && 'NOTO=1' || '' }} check-coverage
+          make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.noto == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
       - name: Determine whether to push the fonts or upload them
         if: matrix.build-venv == 'build'
         id: push-or-upload
@@ -202,7 +229,7 @@ jobs:
             echo push=$is_noto >>"$GITHUB_OUTPUT"
           elif [ ${{ matrix.build-venv }} = build ]
           then
-            echo 'upload-name=fonts-${{ matrix.charset }}' >>"$GITHUB_OUTPUT"
+            echo 'upload-name=fonts-${{ matrix.charset }}'${{ matrix.unjoined && '-unjoined' || '' }} >>"$GITHUB_OUTPUT"
           fi
       - name: Commit and push
         if: steps.push-or-upload.outputs.push == 'true'
@@ -222,7 +249,7 @@ jobs:
         if: matrix.build-venv == 'build' || matrix.optimize != ''
         uses: actions/cache/save@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.charset }}
+          key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.charset }}-${{ matrix.unjoined }}
           path: fonts
   compare-PYTHONOPTIMIZE:
     runs-on: ubuntu-22.04
@@ -232,29 +259,53 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-testing
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-
           path: fonts
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-standard
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-
           path: fonts
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-noto
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-unjoined
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-unjoined
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-unjoined
           path: fonts
       - name: Move the fonts from the optimized builds
         run: mv fonts fonts-PYTHONOPTIMIZE
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--testing
+          key: ${{ github.run_id }}-${{ github.run_number }}--testing-
           path: fonts
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--standard
+          key: ${{ github.run_id }}-${{ github.run_number }}--standard-
           path: fonts
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--noto
+          key: ${{ github.run_id }}-${{ github.run_number }}--noto-
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--testing-unjoined
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--standard-unjoined
+          path: fonts
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ github.run_id }}-${{ github.run_number }}--noto-unjoined
           path: fonts
       - name: Compare the fonts built with `PYTHONOPTIMIZE`
         run: diff -qrs fonts fonts-PYTHONOPTIMIZE

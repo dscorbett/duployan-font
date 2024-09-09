@@ -326,7 +326,7 @@ KNOWN_SCRIPTS: Final[Iterable[str]] = sorted(KNOWN_SHAPE_PLANS)
 
 #: The set of features that should be included in the subsetted font.
 SUBSET_FEATURES: AbstractSet[str] = (frozenset(fontTools.subset.Options().layout_features)
-    - {'blwm', 'curs', 'dist', 'rclt'}
+    - {'abvs', 'blwm', 'curs', 'dist', 'rclt'}
     | {'subs', 'sups'}
 )
 

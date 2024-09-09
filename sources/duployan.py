@@ -86,7 +86,13 @@ def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
 
 
 class Builder:
-    def __init__(self, font: fontforge.font, bold: bool, charset: charsets.Charset) -> None:
+    def __init__(
+        self,
+        font: fontforge.font,
+        bold: bool,
+        charset: charsets.Charset,
+        unjoined: bool,
+    ) -> None:
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
         self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
@@ -95,6 +101,7 @@ class Builder:
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
         self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
         self._schemas = charsets.initialize_schemas(charset, self.light_line, self.stroke_gap)
+        self.unjoined = unjoined
         if __debug__:
             code_points: Final[collections.defaultdict[int, int]] = collections.defaultdict(int)
             for schema in self._schemas:
@@ -139,64 +146,65 @@ class Builder:
         self._fea.statements.append(feature)
 
     def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
-        self._add_lookup(
-                'abvm',
-                anchors.PARENT_EDGE,
-                flags=0,
-                mark_filtering_set=class_asts[phases.PARENT_EDGE_CLASS],
-            )
-        for layer_index in range(MAX_TREE_DEPTH):
-            if layer_index < 2:
+        if not self.unjoined:
+            self._add_lookup(
+                    'abvm',
+                    anchors.PARENT_EDGE,
+                    flags=0,
+                    mark_filtering_set=class_asts[phases.PARENT_EDGE_CLASS],
+                )
+            for layer_index in range(MAX_TREE_DEPTH):
+                if layer_index < 2:
+                    for child_index in range(MAX_TREE_WIDTH):
+                        self._add_lookup(
+                                'blwm',
+                                anchors.CHILD_EDGES[layer_index][child_index],
+                                flags=0,
+                                mark_filtering_set=class_asts[phases.CHILD_EDGE_CLASSES[child_index]],
+                            )
                 for child_index in range(MAX_TREE_WIDTH):
                     self._add_lookup(
-                            'blwm',
-                            anchors.CHILD_EDGES[layer_index][child_index],
-                            flags=0,
-                            mark_filtering_set=class_asts[phases.CHILD_EDGE_CLASSES[child_index]],
-                        )
-            for child_index in range(MAX_TREE_WIDTH):
-                self._add_lookup(
-                    'mkmk',
-                    anchors.INTER_EDGES[layer_index][child_index],
-                    flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-                    mark_filtering_set=class_asts[phases.INTER_EDGE_CLASSES[layer_index][child_index]],
-                )
-        self._add_lookup(
-            'curs',
-            anchors.CONTINUING_OVERLAP,
-            flags=0,
-            mark_filtering_set=class_asts[phases.HUB_CLASS],
-        )
-        self._add_lookup(
-            'curs',
-            anchors.CURSIVE,
-            flags=0,
-            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
-        )
-        self._add_lookup(
-            'curs',
-            anchors.PRE_HUB_CONTINUING_OVERLAP,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[phases.HUB_CLASS],
-        )
-        self._add_lookup(
-            'curs',
-            anchors.POST_HUB_CONTINUING_OVERLAP,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[phases.HUB_CLASS],
-        )
-        self._add_lookup(
-            'curs',
-            anchors.PRE_HUB_CURSIVE,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
-        )
-        self._add_lookup(
-            'curs',
-            anchors.POST_HUB_CURSIVE,
-            flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-            mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
-        )
+                        'mkmk',
+                        anchors.INTER_EDGES[layer_index][child_index],
+                        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                        mark_filtering_set=class_asts[phases.INTER_EDGE_CLASSES[layer_index][child_index]],
+                    )
+            self._add_lookup(
+                'curs',
+                anchors.CONTINUING_OVERLAP,
+                flags=0,
+                mark_filtering_set=class_asts[phases.HUB_CLASS],
+            )
+            self._add_lookup(
+                'curs',
+                anchors.CURSIVE,
+                flags=0,
+                mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            )
+            self._add_lookup(
+                'curs',
+                anchors.PRE_HUB_CONTINUING_OVERLAP,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+                mark_filtering_set=class_asts[phases.HUB_CLASS],
+            )
+            self._add_lookup(
+                'curs',
+                anchors.POST_HUB_CONTINUING_OVERLAP,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+                mark_filtering_set=class_asts[phases.HUB_CLASS],
+            )
+            self._add_lookup(
+                'curs',
+                anchors.PRE_HUB_CURSIVE,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+                mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            )
+            self._add_lookup(
+                'curs',
+                anchors.POST_HUB_CURSIVE,
+                flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
+                mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
+            )
         for anchor in anchors.ALL_MARK:
             self._add_lookup(
                 'mark',
@@ -350,7 +358,7 @@ class Builder:
                 a[0] not in {anchors.PARENT_EDGE, *anchors.CHILD_EDGES[1]}
                     if schema.anchor or schema.glyph_class != GlyphClass.MARK
                     else a[1] not in {'entry', 'exit'} and a[0] not in anchors.CHILD_EDGES[0]
-            )]
+            ) and (not self.unjoined or a[0] in anchors.ALL_MKMK)]
         if schema.glyph_class == GlyphClass.MARK or isinstance(schema.path, Notdef) or schema.path.guaranteed_glyph_class() is not None and schema.path.invisible():
             return
         anchor_tests = {anchor: anchor in cmapped_anchors or anchor in schema.anchors for anchor in anchors.ALL_MARK}
@@ -375,7 +383,7 @@ class Builder:
         x_center = (x_max + x_min) / 2
         y_center = (y_max + y_min) / 2
         for anchor_class_name, should_have_anchor in anchor_tests.items():
-            should_have_anchor &= schema.ignorability != Ignorability.DEFAULT_YES
+            should_have_anchor &= schema.ignorability != Ignorability.DEFAULT_YES and (not self.unjoined or anchor_class_name in anchors.ALL_MKMK)
             if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
                 if has_anchor:
                     glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]

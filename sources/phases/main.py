@@ -114,7 +114,7 @@ def reversed_circle_kludge(
     lookup = Lookup('rlig', 'dflt')
     cgj = next((s for s in schemas if s.cmap == 0x034F), None)
     if cgj is None:
-        return [lookup]
+        return []
     for schema in new_schemas:
         if schema.cmap in {0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60}:
             assert isinstance(schema.path, Circle | Curve | Ou | Wa | Wi)
@@ -393,6 +393,7 @@ def invalidate_overlap_controls(
         mark_filtering_set='all',
         reverse=True,
     )
+    valid_letter_overlap = None
     for schema in new_schemas:
         match schema.path:
             case ParentEdge():
@@ -410,6 +411,8 @@ def invalidate_overlap_controls(
                 invalid_continuing_overlap = schema
             case InvalidOverlap():
                 invalid_letter_overlap = schema
+    if valid_letter_overlap is None:
+        return []
     classes['valid'].append(valid_letter_overlap)
     classes['valid'].append(valid_continuing_overlap)
     classes['invalid'].append(invalid_letter_overlap)
@@ -469,7 +472,9 @@ def add_secant_guidelines(
     if len(original_schemas) != len(schemas):
         return [lookup]
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    valid_continuing_overlap = next(s for s in schemas if isinstance(s.path, ContinuingOverlap))
+    valid_continuing_overlap = next((s for s in schemas if isinstance(s.path, ContinuingOverlap)), None)
+    if valid_continuing_overlap is None:
+        return []
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
     initial_secant_marker = next(s for s in schemas if isinstance(s.path, InitialSecantMarker))
     named_lookups['prepend_zwnj'] = Lookup()
@@ -510,6 +515,9 @@ def add_placeholders_for_missing_children(
         'dflt',
         mark_filtering_set='valid_final_overlap',
     )
+    root_parent_edge = next((s for s in schemas if isinstance(s.path, ParentEdge)), None)
+    if root_parent_edge is None:
+        return []
     if len(original_schemas) != len(schemas):
         return [lookup]
     base_classes = {}
@@ -525,7 +533,6 @@ def add_placeholders_for_missing_children(
             new_class = f'base_{max_tree_width}'
             classes[new_class].append(schema)
             base_classes[max_tree_width] = new_class
-    root_parent_edge = next(s for s in schemas if isinstance(s.path, ParentEdge))
     placeholder = Schema(None, Space(0), 0, Type.JOINING, side_bearing=0, child=True)
     for max_tree_width, base_class in base_classes.items():
         inputs = [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap']
@@ -645,6 +652,7 @@ def promote_final_letter_overlap_to_continuing_overlap(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('rclt', 'dflt')
+    continuing_overlap = None
     for schema in new_schemas:
         match schema.path:
             case ChildEdge():
@@ -659,6 +667,8 @@ def promote_final_letter_overlap_to_continuing_overlap(
                 classes['secant_or_root_parent_edge'].append(schema)
             case Line() if schema.path.secant and schema.glyph_class == GlyphClass.MARK:
                 classes['secant_or_root_parent_edge'].append(schema)
+    if continuing_overlap is None:
+        return []
     add_rule(lookup, Rule([], 'final_letter_overlap', 'overlap', lookups=[None]))
     named_lookups['promote'] = Lookup()
     add_rule(named_lookups['promote'], Rule('final_letter_overlap', [continuing_overlap]))
@@ -986,6 +996,7 @@ def disjoin_grammalogues(
     if len(original_schemas) != len(schemas):
         return [lookup]
     grammalogues = []
+    root_parent_edge = None
     for schema in new_schemas:
         match schema:
             case Schema(path=EqualsSign() | Grammalogue()):
@@ -998,6 +1009,8 @@ def disjoin_grammalogues(
             case Schema(path=ParentEdge(lineage=[])):
                 root_parent_edge = schema
                 classes['all'].append(root_parent_edge)
+    if root_parent_edge is None:
+        return []
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
     for root in grammalogues:
         if root.max_tree_width() == 0:

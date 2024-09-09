@@ -264,7 +264,7 @@ def is_dirty() -> bool:
 def make_font(options: argparse.Namespace) -> None:
     font = fontforge.font()
     font.encoding = 'UnicodeFull'
-    builder = duployan.Builder(font, options.bold, options.charset)
+    builder = duployan.Builder(font, options.bold, options.charset, options.unjoined)
     builder.augment()
     dirty = is_dirty()
     set_environment_variables(dirty)
@@ -284,6 +284,7 @@ if __name__ == '__main__':
     parser.add_argument('--noto', action='store_true', help="Use Noto conventions in the 'name' table.")
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
     parser.add_argument('--release', action='store_true', help='Set the version number as appropriate for a stable release, as opposed to an alpha.')
+    parser.add_argument('--unjoined', action='store_true', help='Disable cursive joining.')
     parser.add_argument('--version', type=float, required=True, help='The base version number.')
     args = parser.parse_args()
     make_font(args)

@@ -131,6 +131,8 @@ def add_shims_for_pseudo_cursive(
                             entry_y = y
             assert entry_y == exit_y
             is_space = x_min == x_max
+            if None in {entry_x, entry_y}:
+                return []
             if is_space:
                 assert x_min == 0
                 assert entry_x == 0
@@ -569,7 +571,9 @@ def add_end_markers_for_marks(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
-    end = next(s for s in new_schemas if isinstance(s.path, End))
+    end = next((s for s in new_schemas if isinstance(s.path, End)), None)
+    if end is None:
+        return []
     for schema in new_schemas:
         if (schema.glyph is not None
             and schema.glyph_class == GlyphClass.MARK
@@ -599,7 +603,9 @@ def remove_false_end_markers(
     if len(original_schemas) != len(schemas):
         return [lookup]
     dummy = Schema(None, Dummy(), 0)
-    end = next(s for s in new_schemas if isinstance(s.path, End))
+    end = next((s for s in new_schemas if isinstance(s.path, End)), None)
+    if end is None:
+        return []
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
 
@@ -622,6 +628,7 @@ def clear_entry_width_markers(
     zeros: list[Schema | None] = [None] * WIDTH_MARKER_PLACES
     if 'zero' not in named_lookups:
         named_lookups['zero'] = Lookup()
+    continuing_overlap = None
     for schema in schemas:
         match schema.path:
             case EntryWidthDigit():
@@ -632,6 +639,8 @@ def clear_entry_width_markers(
             case ContinuingOverlap():
                 classes['all'].append(schema)
                 continuing_overlap = schema
+    if continuing_overlap is None:
+        return []
     for schema in new_schemas:
         if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
             zero = zeros[schema.path.place]
@@ -940,7 +949,7 @@ def calculate_bound_extrema(
             left_schema_i = left_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
             right_schema_i = right_digit_schemas.get(place * WIDTH_MARKER_RADIX + i)
             i_signed = i if place != WIDTH_MARKER_PLACES - 1 or i < WIDTH_MARKER_RADIX / 2 else i - WIDTH_MARKER_RADIX
-            if left_schema_i is None and right_schema_i is None:
+            if left_schema_i is None or right_schema_i is None:
                 continue
             for j in range(WIDTH_MARKER_RADIX):
                 if i == j:
@@ -986,7 +995,9 @@ def remove_false_start_markers(
         mark_filtering_set='all',
         reverse=True,
     )
-    dummy = next(s for s in new_schemas if isinstance(s.path, Dummy))
+    dummy = next((s for s in new_schemas if isinstance(s.path, Dummy)), None)
+    if dummy is None:
+        return []
     start = next(s for s in new_schemas if isinstance(s.path, Start))
     classes['all'].append(start)
     add_rule(lookup, Rule([start], [start], [], [dummy]))
@@ -1084,7 +1095,9 @@ def expand_start_markers(
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
-    start = next(s for s in new_schemas if isinstance(s.path, Start))
+    start = next((s for s in new_schemas if isinstance(s.path, Start)), None)
+    if start is None:
+        return []
     add_rule(lookup, Rule([start], [
         *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
         start,
@@ -1122,7 +1135,9 @@ def mark_maximum_bounds(
     new_left_bounds = []
     new_right_bounds = []
     new_anchor_widths = []
-    end = next(s for s in schemas if isinstance(s.path, End))
+    end = next((s for s in schemas if isinstance(s.path, End)), None)
+    if end is None:
+        return []
     for schema in new_schemas:
         match schema.path:
             case LeftBoundDigit():

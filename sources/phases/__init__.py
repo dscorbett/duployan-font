@@ -24,8 +24,7 @@ A phase is run iteratively until its output is stable. That means the
 output schemas of one iteration may be the input schemas of the next
 iteration. See `run_phases` for what stability entails.
 
-The parameters of a phase are as follows, though the specific parameter
-names don’t matter.
+The parameters of a phase are as follows.
 
 1. ``builder``: A ``Builder``.
 
@@ -110,6 +109,7 @@ from utils import MAX_TREE_WIDTH
 from utils import OrderedSet
 from utils import PrefixView
 from utils import REQUIRED_FEATURES
+from utils import SUBSET_FEATURES
 
 
 if TYPE_CHECKING:
@@ -1236,8 +1236,13 @@ def run_phases(
                     output_schemas,
                     classes,
                     named_lookups,
-                 ),
-             )
+                ),
+            )
+            if builder.unjoined and any(lookup.feature not in SUBSET_FEATURES for lookup in output_lookups):
+                assert all(lookup.feature not in SUBSET_FEATURES for lookup in output_lookups), (
+                    f'Mix of subset and non-subset features: {[lookup.feature for lookup in output_lookups]}')
+                output_lookups = []
+                break
             if lookups is None:
                 lookups = output_lookups
                 for lookup in lookups:
@@ -1255,14 +1260,17 @@ def run_phases(
                 assert len(lookups) == len(output_lookups), f'Incompatible lookup counts for phase {phase.__name__}'
                 for i, lookup in enumerate(lookups):
                     lookup.extend(output_lookups[i])
-            if len(output_lookups) == 1:
-                might_have_feedback = False
-                for rule in (lookup := output_lookups[0]).rules:
-                    if rule.contexts_out if lookup.reverse else rule.contexts_in:
-                        might_have_feedback = True
-                        break
-            else:
-                might_have_feedback = True
+            match output_lookups:
+                case []:
+                    might_have_feedback = False
+                case [lookup]:
+                    might_have_feedback = False
+                    for rule in lookup.rules:
+                        if rule.contexts_out if lookup.reverse else rule.contexts_in:
+                            might_have_feedback = True
+                            break
+                case _:
+                    might_have_feedback = True
             features = {cast(str, lookup.feature) for lookup in lookups}
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
@@ -1278,9 +1286,10 @@ def run_phases(
                 for output_schema in output_schemas:
                     if output_schema not in all_input_schemas:
                         output_schema.features = features
+        if lookups is None:
+            continue
         all_input_schemas = all_output_schemas
         all_schemas |= all_input_schemas
-        assert lookups is not None
         all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
         all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
     return (

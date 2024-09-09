@@ -21,13 +21,16 @@ STYLES = $(VALID_STYLES)
 ifdef RELEASE
     override RELEASE = --release
 endif
+ifdef UNJOINED
+    override UNJOINED = --unjoined
+endif
 ifdef NOTO
-    FONT_FAMILY_NAME = Noto Sans Duployan
+    FONT_FAMILY_NAME = Noto Sans Duployan$(if $(UNJOINED), Unjoined)
     CHARSET = noto
     VERSION = 3.001
     override NOTO = --noto
 else
-    FONT_FAMILY_NAME = Duployan$(if $(filter testing,$(CHARSET)), Test)
+    FONT_FAMILY_NAME = Duployan$(if $(filter testing,$(CHARSET)), Test)$(if $(UNJOINED), Unjoined)
     CHARSET = $(if $(RELEASE),standard,testing)
     VERSION = 1.0
 endif
@@ -62,7 +65,8 @@ endif
 ifdef COVERAGE
     override COVERAGE = coverage run
 endif
-BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py --charset $(CHARSET) --name '$(FONT_FAMILY_NAME)' $(NOTO) $(RELEASE) --version $(VERSION)
+BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py \
+    --charset $(CHARSET) --name '$(FONT_FAMILY_NAME)' $(NOTO) $(RELEASE) $(UNJOINED) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
 
@@ -138,6 +142,17 @@ check-coverage: .coverage
 $(addprefix check-,$(FONTS)): check-%: %
 	$(RUN_TESTS) $(CHECK_ARGS) $< tests/*.test
 
+ifdef UNJOINED
+
+.PHONY: $(addprefix check-unjoined-,$(FONTS))
+$(addprefix check-unjoined-,$(FONTS)): check-unjoined-%: %
+	$(RUN_TESTS) $(CHECK_ARGS) $< tests/*.subset-test
+
+.PHONY: check-unjoined
+check-unjoined: $(addprefix check-unjoined-,$(FONTS))
+
+else
+
 .PHONY: check-shaping
 check-shaping: $(addprefix check-,$(FONTS))
 
@@ -147,6 +162,8 @@ $(addprefix check-subset-,$(FONTS)): check-subset-%: subset-%
 
 .PHONY: check-subset
 check-subset: $(addprefix check-subset-,$(FONTS))
+
+endif
 
 .PHONY: $(addprefix fontbakery-,$(SUFFIXES))
 $(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
@@ -164,7 +181,7 @@ ruff:
 	ruff check pyproject.toml sources tests
 
 .PHONY: check-fonts
-check-fonts: check-shaping check-subset fontbakery
+check-fonts: $(if $(UNJOINED),check-unjoined,check-shaping check-subset) fontbakery
 
 .PHONY: check-sources
 check-sources: mypy ruff
