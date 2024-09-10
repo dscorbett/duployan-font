@@ -218,32 +218,11 @@ jobs:
         run: |
           . dev-venv/bin/activate
           make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.noto == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
-      - name: Determine whether to push the fonts or upload them
-        if: matrix.build-venv == 'build'
-        id: push-or-upload
-        run: |
-          is_noto=${{ matrix.charset == 'noto' }}
-          job_will_push=${{ github.ref_name == github.event.repository.default_branch && contains(github.event.repository.name, 'Noto') }}
-          if [ $job_will_push = true ]
-          then
-            echo push=$is_noto >>"$GITHUB_OUTPUT"
-          elif [ ${{ matrix.build-venv }} = build ]
-          then
-            echo 'upload-name=fonts-${{ matrix.charset }}'${{ matrix.unjoined && '-unjoined' || '' }} >>"$GITHUB_OUTPUT"
-          fi
-      - name: Commit and push
-        if: steps.push-or-upload.outputs.push == 'true'
-        run: |
-          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git config --local user.name 'github-actions[bot]'
-          git add -f fonts
-          git commit -m 'Automatically build the fonts'
-          git push
       - name: Upload build artifacts
-        if: steps.push-or-upload.outputs.upload-name
+        if: matrix.build-venv == 'build'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.push-or-upload.outputs.upload-name }}
+          name: fonts-${{ matrix.charset }}${{ matrix.unjoined && '-unjoined' || '' }}
           path: fonts
       - name: Cache the fonts for the next job
         if: matrix.build-venv == 'build' || matrix.optimize != ''
