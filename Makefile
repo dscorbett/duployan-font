@@ -27,7 +27,7 @@ endif
 ifdef NOTO
     FONT_FAMILY_NAME = Noto Sans Duployan$(if $(UNJOINED), Unjoined)
     CHARSET = noto
-    VERSION = 3.001
+    VERSION = 3.003
     override NOTO = --noto
 else
     FONT_FAMILY_NAME = Duployan$(if $(filter testing,$(CHARSET)), Test)$(if $(UNJOINED), Unjoined)
