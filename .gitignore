@@ -14,7 +14,9 @@
 # limitations under the License.
 
 /.hb/
+/notofonts/
 /setup-python-cache-key.txt
+/sync-[12].txt
 /tests/failed/
 /*venv*/
 htmlcov/

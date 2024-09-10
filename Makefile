@@ -126,6 +126,7 @@ $(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/$(FONT_FI
 .PHONY: clean
 clean: clean-coverage
 	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed coverage.json coverage.lcov coverage.xml htmlcov $(shell find . -name '*,cover')
+	$(RM) -r sync-1-venv sync-2-venv sync-1.txt sync-2.txt
 
 .PHONY: clean-coverage
 clean-coverage:
@@ -213,3 +214,19 @@ $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %require
 	uv pip compile $< >$@
 	printf '%s\n#\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
 	-git --no-pager diff $@
+
+.PHONY: sync-noto
+sync-noto:
+	if [ ! -d notofonts/duployan ]; then git clone git@github.com:notofonts/duployan.git notofonts/duployan; fi
+	for f in $$(git ls-files | grep '^sources/.*\.\(fea\|py\)$$'); \
+	do \
+		unifdef -DNOTO -t -o notofonts/duployan/$$f $$f; \
+		git -C notofonts/duployan add $$f; \
+	done
+	sed -i.bak '/==/d' notofonts/duployan/requirements.txt
+	$(RM) -r sync-1-venv && python3 -m venv sync-1-venv && . sync-1-venv/bin/activate && pip install -r requirements.txt && pip freeze >sync-1.txt
+	$(RM) -r sync-2-venv && python3 -m venv sync-2-venv && . sync-2-venv/bin/activate && pip install -r notofonts/duployan/requirements.txt && pip freeze >sync-2.txt
+	comm -23 sync-1.txt sync-2.txt | tee -a notofonts/duployan/requirements.txt
+	git -C notofonts/duployan add requirements.txt
+	git -C notofonts/duployan status
+	@echo 'Makefile and .github/workflows/ may need manual updates.'
