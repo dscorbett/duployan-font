@@ -23,7 +23,7 @@ fonttools==4.53.1
     #   cffsubr
 gfsubsets==2024.5.9
     # via -r requirements.in
-importlib-resources==6.4.2
+importlib-resources==6.4.5
     # via gfsubsets
 typing-extensions==4.12.2
     # via -r requirements.in
