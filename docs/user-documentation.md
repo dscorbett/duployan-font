@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2023 David Corbett
+Copyright 2023-2024 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,76 +17,154 @@ limitations under the License.
 
 # User documentation
 
-## The font
+This is an unmodulated (“sans-serif”) font for many Duployan modes, available in
+regular and bold weights.
 
-Noto Sans Duployan is an unmodulated (“sans-serif”) font for many modes of
-the Duployan shorthand script. These modes include
-Duployé’s original mode (French),
-stenographie Duployé codifiée (French),
-Pernin (English),
-Perrault-Duployan (English),
-Sloan-Duployan (English),
-a Romanian adaptation,
-and Wawa Shorthand (primarily Chinook Jargon, English, and French,
-but also Halkomelem, Latin, Okanagan, Sechelt, Shuswap, and Thompson).
-The font is available in regular and bold.
-It is not a variable font.
+## Installation
 
-## The encoding
+See the top-level [README.md](../README.md) for installation instructions.
 
-Noto Sans Duployan follows <i>The Unicode Standard</i>.
-However, the standard says very little about Duployan.
+## Character set
 
-Most of the details of the encoding are described in
-[Unicode Technical Note #37](
-https://www.unicode.org/notes/tn37/utn37-1-duployan.pdf).
-Unicode technical notes are not official Unicode documents in any way,
-so while this font does generally follow its recommendations,
-many details are different.
-The font’s encoding model is graphetic whereas the technical note tends towards
-the phonetic side.
+* All characters in the Duployan and Shorthand Format Controls blocks
+* Non-Duployan characters used with Duployan, such as digits and punctuation
+* Some custom (non-Unicode) extensions
 
-The easiest way to understand the encoding model is to try some typing some
-stenograms.
-With orienting vowels, it is not always obvious which one to use.
-If U+1BC41 DUPLOYAN LETTER A looks wrong, try U+1BC42 DUPLOYAN LETTER SLOAN OW,
-and vice versa.
-If U+1BC46 DUPLOYAN LETTER I looks wrong, try U+1BC47 DUPLOYAN LETTER E, and
-vice versa.
-The syntax of overlap sequences is exactly as defined in the technical note.
-Everything else should be clear to a user who knows Duployan.
+### Custom extensions
 
-## Limitations
+This font uses some code point sequences not sanctioned by Unicode to support
+some orienting letters needed in Chinook Jargon (and, incidentally, various
+other modes). Adding the sequence \<U+034F, U+034F, U+034F> after one of the
+letters U+1BC44, U+1BC53, U+1BC5A, U+1BC5B, U+1BC5C, U+1BC5D, U+1BC5E, U+1BC5F,
+or U+1BC60 changes it from primary orientation to secondary orientation.
 
-Noto Sans Duployan requires HarfBuzz 8.1.0 or later.
-It does not work in other shaping engines.
+There are also some private use characters for non-joining characters:
 
-Duployan is unusual in that, although it is a left-to-right script,
-certain specific stenograms can be effectively written from right to left.
-OpenType does not handle this well, and the font’s workarounds are inefficient.
-Rendering any significant amount of text in the font is noticeably slow.
-A web page with around 1000 words in Duployan can take over 30 seconds to load.
+* U+E001 LATIN CROSS POMMEE
+* U+E003 HEART WITH CROSS
+* U+E010 TWO LINES JOINED CONVERGING LEFT
+* U+E011 LEFT PARENTHESIS WITH STROKE
+* U+E012 RIGHT PARENTHESIS WITH STROKE
+* U+E013 LEFT PARENTHESIS WITH DOUBLE STROKE
+* U+E014 RIGHT PARENTHESIS WITH DOUBLE STROKE
+* U+E015 STENOGRAPHIC SEMICOLON
+* U+E016 STENOGRAPHIC QUESTION MARK
+* U+E021 COMBINING DIGIT ONE ABOVE
+* U+E02A COMBINING RING-AND-DOT ABOVE
+* U+E031 COMBINING DIGIT ONE BELOW
+* U+E033 COMBINING DIGIT THREE BELOW
+* U+E035 COMBINING DIGIT FIVE BELOW
+* U+E037 COMBINING DIGIT SEVEN BELOW
 
-For the same reason, long strings are liable to be rendered wrong.
-The glyphs will not be cursively connected but will instead overlap each other
-in a semilegible jumble.
-This is because HarfBuzz has an internal limit of how many operations it will
-take on a buffer before giving up.
-Splitting long paragraphs into multiple paragraphs works around the problem.
+## Features
+
+### Contextual orientation
+
+Every character is either joining or non-joining. Some joining characters are
+orienting. Most letters are joining. Most vowels are orienting and most
+consonants are not. Orienting characters have either primary or secondary
+orientation, which determines which way they curve (counterclockwise or
+clockwise) in any given context. Circles and curves have different rules for
+what primary orientation means. Secondary orientation is always the opposite of
+primary orientation.
+
+If a primary circle appears between two letters that form a non-straight angle,
+it curves whichever direction puts it opposite the angle. Otherwise, it curves
+counterclockwise.
+
+If a primary curve appears in medial or final position, it curves
+counterclockwise. In initial position, it curves clockwise.
+
+Most curves are oriented relative to their preceding letters, if any, falling
+back to their following letters in initial position. Hooks (U+1BC7A DUPLOYAN
+AFFIX ATTACHED E HOOK and U+1BC7B DUPLOYAN AFFIX ATTACHED I HOOK) follow the
+opposite rule.
+
+### Cursive joining
+
+Letters are cursively joined to adjacent letters with contextually appropriate
+forms. This includes pseudo-cursive letters like U+1BC00 DUPLOYAN LETTER H and
+U+1BC80 DUPLOYAN AFFIX HIGH ACUTE which do not visually touch adjacent letters
+but which otherwise have cursive-like interactions with them.
+
+Stenograms are separated by non-joining characters. This includes digits,
+symbols, punctuation, and most spaces. To separate stenograms with no extra
+space between them, use U+200C ZERO WIDTH NON-JOINER. To include a usually
+non-joining character in a stenogram (e.g. U+2E3C STENOGRAPHIC FULL STOP),
+join it to adjacent characters with a non-breaking space (U+202F NARROW NO-BREAK
+SPACE) or step (U+1BCA2 SHORTHAND FORMAT DOWN STEP or U+1BCA3 SHORTHAND FORMAT
+UP STEP).
+
+### Overlapping characters
 
 Overlap trees are supported up to a width of 2, a depth of 2, and a breadth of
-2.
-(See [Unicode Technical Note #37](
+2. (See [Unicode Technical Note #37](
 https://www.unicode.org/notes/tn37/utn37-1-duployan.pdf), section “Shorthand
-Control level of implementation” for what those terms mean.)
-These are the maximums: not all letters have values that high.
-The font does not support U+1BCA1 SHORTHAND FORMAT CONTINUING OVERLAP followed
-by U+1BCA0 SHORTHAND FORMAT LETTER OVERLAP, which is syntactically valid but
-unattested.
+Control level of implementation” for what those terms mean.) These are the
+maximums: not all letters have values that high. The font does not support
+U+1BCA1 SHORTHAND FORMAT CONTINUING OVERLAP followed by U+1BCA0 SHORTHAND FORMAT
+LETTER OVERLAP, which is syntactically valid but unattested.
 
-The Unicode encoding of Duployan is incomplete and underdefined.
-It does not fully support any of the modes the code chart implies it supports.
-It is almost adequate for Chinook Jargon, but not much else.
-Noto Sans Duployan, as with any Duployan Unicode font, is therefore unsuitable
-for most Duployan purposes.
+Certain symbols have limited support for overlaps as used in Romanian:
 
+* U+003C LESS-THAN SIGN
+* U+003D EQUALS SIGN
+* U+003E GREATER-THAN SIGN
+* U+00D7 MULTIPLICATION SIGN
+
+Secants are applied to their preceding letters, except for initial secants,
+which are applied to their following letters.
+
+### Other features
+
+The vertical positioning of a stenogram is based on its first visually prominent
+character, which is placed on the baseline. Different modes of Duployan have
+different conventions for vertical positioning, but the precise positioning is
+not significant.
+
+Most letters support shading via U+1BC9D DUPLOYAN THICK LETTER SELECTOR. It is
+unsupported for some letters for which shading is not attested. Although shading
+is attested for orienting letters, that is not yet supported.
+
+Some common punctuation marks may be circled in Romanian to disambiguate them
+from similar-looking letters. Add U+20DD COMBINING ENCLOSING CIRCLE after the
+punctuation for this circle.
+
+Digits support fractions (with U+2044 FRACTION SLASH), superscripts (with the
+OpenType feature 'sups'), and subscripts (with 'subs').
+
+## Languages and modes
+
+The font supports all modes mentioned in the Duployan Unicode proposals:
+
+* Duployé’s original mode (French)
+* Pernin (English)
+* Perrault-Duployan (English)
+* Romanian Duployan
+* Sloan-Duployan (English)
+* Stenographie Duployé codifiée (French)
+* Wawa Shorthand (primarily Chinook Jargon, English, and French, but also Comox
+  (Sliammon), Halkomelem, Latin, Lillooet, Okanagan, Sechelt, Shuswap, Squamish,
+  and Thompson)
+
+The character set available in Unicode is not actually sufficient for any of
+these modes, but this font supports what it can, with a few non-Unicode
+extensions for Chinook Jargon.
+
+## Technical caveats
+
+The font does not work in all applications. For proper shaping, it requires
+HarfBuzz 8.1.0 or later, which is used in all major browsers on all operating
+systems, and for most applications on Linux. Even in some applications that use
+HarfBuzz, though, it is broken to varying degrees. If the main font does not
+work, use Duployan Unjoined as a fallback.
+
+In particular, long strings are liable to be rendered wrong. The glyphs will not
+be cursively connected but will instead overlap each other in a semilegible
+jumble. This is because HarfBuzz has an internal limit of how many operations it
+will take for a buffer before giving up. Splitting long paragraphs into multiple
+paragraphs works around the problem. Inserting a character not supported by the
+font in the middle of paragraph also works.
+
+Rendering any significant amount of text in the main font is noticeably slow. A
+web page with around 1000 words in Duployan can take over 30 seconds to load.

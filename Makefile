@@ -17,7 +17,7 @@
 
 SHELL=/bin/bash
 
-STYLES = $(VALID_STYLES)
+WEIGHTS = $(VALID_WEIGHTS)
 ifdef RELEASE
     override RELEASE = --release
 endif
@@ -35,13 +35,13 @@ else
     VERSION = 1.0
 endif
 unexport CHARSET
-CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
 HB_VERSION = 9.0.0
 
+CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
 FONT_FILE_NAME = $(subst $(eval ) ,,$(FONT_FAMILY_NAME))
-FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FILE_NAME)/unhinted/$(suffix)/$(FONT_FILE_NAME)-,$(addsuffix .$(suffix),$(STYLES))))
+FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FILE_NAME)/unhinted/$(suffix)/$(FONT_FILE_NAME)-,$(addsuffix .$(suffix),$(WEIGHTS))))
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
@@ -52,9 +52,9 @@ ifneq ($(strip $(filter-out $(VALID_CHARSETS),$(CHARSET))),)
     $(error One or more invalid values: $(CHARSET); must be one of: $(VALID_CHARSETS))
 endif
 
-VALID_STYLES = Regular Bold
-ifneq ($(strip $(filter-out $(VALID_STYLES),$(STYLES))),)
-    $(error One or more invalid values: $(STYLES); must be subset of: $(VALID_STYLES))
+VALID_WEIGHTS = Regular Bold
+ifneq ($(strip $(filter-out $(VALID_WEIGHTS),$(WEIGHTS))),)
+    $(error One or more invalid values: $(WEIGHTS); must be subset of: $(VALID_WEIGHTS))
 endif
 
 VALID_SUFFIXES = otf ttf
@@ -120,7 +120,7 @@ endef
 %.ttf: %.otf
 	$(MAKE_TTF)
 
-$(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/$(FONT_FILE_NAME)-,$(addsuffix .ttf,$(STYLES))): $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/%.ttf: $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/otf/%.otf
+$(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/$(FONT_FILE_NAME)-,$(addsuffix .ttf,$(WEIGHTS))): $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/%.ttf: $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/otf/%.otf
 	$(MAKE_TTF)
 
 .PHONY: clean

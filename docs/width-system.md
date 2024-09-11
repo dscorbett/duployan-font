@@ -1,5 +1,5 @@
 <!--
-Copyright 2022-2023 David Corbett
+Copyright 2022-2024 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -278,7 +278,7 @@ The range is \[−2000000<sub>4</sub>, 1333333<sub>4</sub>\]
 Any stenogram wider than that will get the wrong width.
 
 The width system is ponderous and slow.
-It causes [user-visible problems](user-documentation.md#Limitations) with
+It causes [user-visible problems](user-documentation.md#technical-caveats) with
 rendering times and glyph positions.
 
 The width system’s lookups take up a lot of space.
