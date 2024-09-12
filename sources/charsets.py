@@ -117,6 +117,9 @@ _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     # Weiler’s German mode is not fully supported in Unicode. It is not
     # useful to include code points specific to unsupported modes.
     0x030D,
+    # It is not clear whether this is the right code point for the Chinese
+    # aspiration mark.
+    0x0312,
     # Duployé-Flageul for Esperanto is not fully supported in Unicode.
     0x031C, 0x0339, 0x0351, 0x0357,
     # U+034F COMBINING GRAPHEME JOINER creates reversed circle letters not
@@ -483,6 +486,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x030A, o, 2.3, anchor=anchors.ABOVE),
         Schema(0x030C, caron, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),
         Schema(0x030D, vertical_line, 0.2, anchor=anchors.ABOVE),
+        Schema(0x0312, turned_comma, 1, anchor=anchors.ABOVE),
         Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),
         Schema(0x0317, acute, 0.2, anchor=anchors.BELOW),
         Schema(0x031C, left_half_ring, 1, anchor=anchors.BELOW),
