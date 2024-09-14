@@ -13,16 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Character sets and related things.
-
-Among all the available characters, the font can be built with different
-subsets. See `Charset` for the available character sets.
+"""The contents of character sets.
 """
 
 
 from __future__ import annotations
 
-import enum
 import math
 import string
 from typing import Final
@@ -33,6 +29,7 @@ import unicodedata
 
 import gfsubsets
 
+from . import Charset
 import anchors
 from schema import Schema
 from shapes import Bound
@@ -80,32 +77,6 @@ if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
 
     from shapes import Instructions
-
-
-@enum.unique
-class Charset(enum.StrEnum):
-    """A set of characters to include in the font.
-
-    A “character” here really means a `Schema`. It is called a
-    “character set” because it is supposed to filter schemas based on
-    the characters they are mapped to. It can filter by other features
-    too, but the mapped character is the main one.
-    """
-
-    #: A character set appropriate for Noto.
-    NOTO = enum.auto()
-
-    #: A character set appropriate for general-purpose use. It is like
-    #: `NOTO` but includes more non-Duployan characters for convenience. It
-    #: also includes some private use characters for certain Duployan
-    #: characters not encoded in Unicode.
-    STANDARD = enum.auto()
-
-    #: A character set only appropriate for testing the font. It is like
-    #: `STANDARD` but includes a few private use characters that appear in
-    #: the test files but are not otherwise useful. It includes all
-    #: available characters.
-    TESTING = enum.auto()
 
 
 #: The set of code points which should be omitted from the Noto build
