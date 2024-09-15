@@ -75,6 +75,8 @@ Makefile has many available targets. The main ones are:
 * `hb-shape` and `hb-view`: Build HarfBuzz’s command-line utilities.
 * `requirements.txt` and `dev-requirements.txt`: Update `*requirements.txt`
   based on `*requirements.in`.
+* `release`: Create a Git tag for the current commit, then a new commit updating
+  to the next version number.
 * `sync-noto`: Prepare to sync the downstream Noto repository with changes in
   this repository. (Some manual work is still required.)
 
@@ -99,6 +101,8 @@ These targets are affected by various variables:
   whether to enforce a minimum coverage percentage when testing.
 * `HB_VERSION`: The version of HarfBuzz to build when building its command-line
   utilities.
+* `NEXT_VERSION`: The next version number. By default, the next version number
+  increments the minor part of `VERSION`.
 
 All the fonts for a given character set variant should share the same vertical
 metrics. When building the fonts, preliminary versions of all of the fonts with

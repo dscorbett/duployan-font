@@ -14,7 +14,16 @@
 # limitations under the License.
 
 name: Main workflow
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Run a release build
+        type: boolean
+      next-version:
+        description: Next version number (optional)
+        type: string
 permissions:
   contents: read
 env:
@@ -207,7 +216,7 @@ jobs:
         run: |
           . ${{ matrix.build-venv }}-venv/bin/activate
           make clean
-          make -B -j 'CHARSET=${{ matrix.charset }}' 'COVERAGE=${{ matrix.coverage }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' 'PYTHONOPTIMIZE=${{ matrix.optimize }}'
+          make -B -j 'CHARSET=${{ matrix.charset }}' 'COVERAGE=${{ matrix.coverage }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'PYTHONOPTIMIZE=${{ matrix.optimize }}' ${{ inputs.release && 'RELEASE=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}'
       - name: Test
         if: matrix.coverage == ''
         run: |
@@ -288,3 +297,21 @@ jobs:
           path: fonts
       - name: Compare the fonts built with `PYTHONOPTIMIZE`
         run: diff -qrs fonts fonts-PYTHONOPTIMIZE
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    if: ${{ inputs.release }}
+    needs:
+      - compare-PYTHONOPTIMIZE
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Tag the release commit and bump the version number
+        run: |
+          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config --local user.name 'github-actions[bot]'
+          make ${{ inputs.next-version != '' && format('''NEXT_VERSION={0}''', inputs.next-version) || '' }} release
+          git push --follow-tags
