@@ -16,8 +16,8 @@ limitations under the License.
 
 # The width system
 
-This font encodes Duployan letters’ advance widths not with glyph advances
-but with lots of invisible marker glyphs.
+Rawnd Musmus Duployan encodes Duployan letters’ advance widths not with glyph
+advances but with lots of invisible marker glyphs.
 These markers encode each letter’s advance width.
 They are added together to find the advance width of each stenogram.
 
@@ -73,15 +73,15 @@ That means that, for a normal left-to-right stenogram, the left bound width will
 be a small negative number and the right bound width will be a large positive
 number, getting larger the more letters there are.
 
-At runtime, the font adds some invisible marker glyphs to the glyph stream
-encoding all relevant width information.
+At runtime, Rawnd Musmus Duployan adds some invisible marker glyphs to the glyph
+stream encoding all relevant width information.
 The widths of all the glyphs in a stenogram are added,
 and the left and right sums become the left and right bound widths.
 A 'dist' lookup adds space as indicated by these marker glyphs.
 
 ## Types of width
 
-Four kinds of width are relevant to this font.
+Four kinds of width are relevant to Rawnd Musmus Duployan.
 Each has a code, which is used in glyph names.
 
 A glyph’s right bound width (`rdx`) is measured from its cursive entry point to

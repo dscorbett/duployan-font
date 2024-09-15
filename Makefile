@@ -30,8 +30,8 @@ ifdef NOTO
     VERSION = 3.003
     override NOTO = --noto
 else
-    FONT_FAMILY_NAME = Duployan$(if $(filter testing,$(CHARSET)), Test)$(if $(UNJOINED), Unjoined)
-    CHARSET = $(if $(RELEASE),standard,testing)
+    FONT_FAMILY_NAME = $(if $(filter standard,$(CHARSET)),Rawnd Musmus,Ilo Snas) Duployan$(if $(UNJOINED), Uncow)
+    CHARSET = standard
     VERSION = 1.0
 endif
 unexport CHARSET
@@ -105,7 +105,7 @@ $(FONTS): $(INTERMEDIATE_FONTS)
 	mkdir -p "$$(dirname "$@")"
 	$(COVERAGE) sources/copy_metrics.py --text $(TALL_TEXT) $@ $(INTERMEDIATE_PREFIX)$@ $(filter-out $(INTERMEDIATE_PREFIX)$@,$^)
 
-%.otf: sources/Duployan.fea $(shell find sources -name '*.py') | dummy-%
+%.otf: sources/metadata.fea $(shell find sources -name '*.py') | dummy-%
 ifdef COVERAGE
 	coverage erase
 endif

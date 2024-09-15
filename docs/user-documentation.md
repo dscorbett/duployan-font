@@ -17,8 +17,8 @@ limitations under the License.
 
 # User documentation
 
-This is an unmodulated (“sans-serif”) font for many Duployan modes, available in
-regular and bold weights.
+Rawnd Musmus Duployan is an unmodulated (“sans-serif”) font for many Duployan
+modes, available in regular and bold weights.
 
 ## Installation
 
@@ -32,11 +32,12 @@ See the top-level [README.md](../README.md) for installation instructions.
 
 ### Custom extensions
 
-This font uses some code point sequences not sanctioned by Unicode to support
-some orienting letters needed in Chinook Jargon (and, incidentally, various
-other modes). Adding the sequence \<U+034F, U+034F, U+034F> after one of the
-letters U+1BC44, U+1BC53, U+1BC5A, U+1BC5B, U+1BC5C, U+1BC5D, U+1BC5E, U+1BC5F,
-or U+1BC60 changes it from primary orientation to secondary orientation.
+Rawnd Musmus Duployan uses some code point sequences not sanctioned by Unicode
+to support some orienting letters needed in Chinook Jargon (and, incidentally,
+various other modes). Adding the sequence \<U+034F, U+034F, U+034F> after one of
+the letters U+1BC44, U+1BC53, U+1BC5A, U+1BC5B, U+1BC5C, U+1BC5D, U+1BC5E,
+U+1BC5F, or U+1BC60 changes it from primary orientation to secondary
+orientation.
 
 There are also some private use characters for non-joining characters:
 
@@ -135,7 +136,8 @@ OpenType feature 'sups'), and subscripts (with 'subs').
 
 ## Languages and modes
 
-The font supports all modes mentioned in the Duployan Unicode proposals:
+Rawnd Musmus Duployan supports all modes mentioned in the Duployan Unicode
+proposals:
 
 * Duployé’s original mode (French)
 * Pernin (English)
@@ -153,11 +155,11 @@ extensions for Chinook Jargon.
 
 ## Technical caveats
 
-The font does not work in all applications. For proper shaping, it requires
-HarfBuzz 8.1.0 or later, which is used in all major browsers on all operating
-systems, and for most applications on Linux. Even in some applications that use
-HarfBuzz, though, it is broken to varying degrees. If the main font does not
-work, use Duployan Unjoined as a fallback.
+Rawnd Musmus Duployan does not work in all applications. For proper shaping, it
+requires HarfBuzz 8.1.0 or later, which is used in all major browsers on all
+operating systems, and for most applications on Linux. Even in some applications
+that use HarfBuzz, though, it is broken to varying degrees. If the main font
+does not work, use Rawnd Musmus Duployan Uncow as a fallback.
 
 In particular, long strings are liable to be rendered wrong. The glyphs will not
 be cursively connected but will instead overlap each other in a semilegible

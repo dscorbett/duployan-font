@@ -37,10 +37,10 @@ make
 
 That will produce four fonts:
 
-* fonts/Duployan/unhinted/otf/Duployan-Bold.otf
-* fonts/Duployan/unhinted/otf/Duployan-Regular.otf
-* fonts/Duployan/unhinted/ttf/Duployan-Bold.ttf
-* fonts/Duployan/unhinted/ttf/Duployan-Regular.ttf
+* fonts/RawndMusmusDuployan/unhinted/otf/RawndMusmusDuployan-Bold.otf
+* fonts/RawndMusmusDuployan/unhinted/otf/RawndMusmusDuployan-Regular.otf
+* fonts/RawndMusmusDuployan/unhinted/ttf/RawndMusmusDuployan-Bold.ttf
+* fonts/RawndMusmusDuployan/unhinted/ttf/RawndMusmusDuployan-Regular.ttf
 
 See .github/workflows/main.yml for how to get the prerequisites on Ubuntu. The
 steps should be analogous on other platforms. Getting FontForge to build
@@ -58,7 +58,7 @@ To test the fonts, run:
 python3 -m venv venv
 . venv/bin/activate
 pip install --no-deps -r dev-requirements.txt
-make check
+make CHARSET=testing check
 ```
 
 Alternatively, push a commit and wait for GitHub Actions to run CI.
@@ -83,7 +83,8 @@ Makefile has many available targets. The main ones are:
 These targets are affected by various variables:
 
 * `CHARSET`: Which [character set variant](variants.md) to build: `standard` for
-  Duployan, `noto` for Noto Sans Duployan, or `testing` for Duployan Test.
+  Rawnd Musmus Duployan, `noto` for Noto Sans Duployan, or `testing` for Ilo
+  Snas Duployan.
 * `WEIGHTS`: A space-separated list of weights to build. The only valid weights
   are `Regular` and `Bold`. The default is both.
 * `SUFFIXES`: A space-separated list of OpenType variants to build. The only

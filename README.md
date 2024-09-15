@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Duployan font
+# Rawnd Musmus Duployan
 
 An OpenType Unicode font for Duployan shorthand.
 
 Duployan is a shorthand used for French, English, Romanian, Chinook Jargon, and
-many other languages. This font is a technical proof of concept for all of
-Duployan’s features that is also suitable for practical use.
+many other languages. Rawnd Musmus Duployan is a technical proof of concept for
+all of Duployan’s features that is also suitable for practical use.
 
 ## Installation
 
@@ -40,7 +40,7 @@ advice about installing the font that might be helpful.
 
 ## Features
 
-The font has full support for Unicode Duployan:
+Rawnd Musmus Duployan has full support for Unicode Duployan:
 
 * All characters in the Duployan and Shorthand Format Controls blocks
 * Contextual forms and cursive joining
@@ -50,8 +50,8 @@ The font has full support for Unicode Duployan:
 
 There are [multiple variants](docs/variants.md) of the font, including:
 
-* Duployan: the main font
-* Duployan Unjoined: the font with cursive joining removed
+* Rawnd Musmus Duployan: the main font
+* Rawnd Musmus Duployan Uncow: the font with cursive joining removed
 * Noto Sans Duployan: the font with modifications for the Noto font project
 
 See [the user guide](docs/user-documentation.md) for more information.
