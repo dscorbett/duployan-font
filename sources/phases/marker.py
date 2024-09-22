@@ -65,6 +65,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Iterable
     from collections.abc import MutableMapping
+    from collections.abc import MutableSequence
     from collections.abc import Sequence
 
     from _typeshed import SupportsRichComparison
@@ -208,7 +209,7 @@ def add_shims_for_pseudo_cursive(
             for e_schema, x, y in e_schemas:
                 assert e_schema.glyph is not None
                 bounds: tuple[float, float] | None = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
-                distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)
+                distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)  # type: ignore[no-untyped-call]
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
                 if (pseudo_cursive_is_space
                     and e_schemas is exit_schemas
@@ -418,7 +419,7 @@ def add_width_markers(
         return width_number
 
     schemas_needing_width_markers = []
-    rules_to_add = []
+    rules_to_add: MutableSequence[tuple[MutableSequence[WidthNumber[Digit]], Callable[[Sequence[Schema]], None]]] = []
     anchor_grouper = sifting.Grouper([[*anchors.ALL_MARK]])
     for schema in new_schemas:
         if schema not in original_schemas:
@@ -505,7 +506,7 @@ def add_width_markers(
         else:
             mark_anchor_selector = []
         glyph_class_selector = get_glyph_class_selector(schema)
-        widths = []
+        widths: MutableSequence[WidthNumber[Digit]] = []
         for width, digit_path in [
             (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], EntryWidthDigit),
             (x_min - start_x, LeftBoundDigit),
@@ -531,7 +532,7 @@ def add_width_markers(
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
         rules_to_add.append((
             widths,
-            (lambda widths,
+            (lambda widths,  # type: ignore[misc]
                     lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, start=start, schema=schema:
                 add_rule(lookup, Rule([schema], [
                     start,
