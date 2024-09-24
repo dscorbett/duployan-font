@@ -185,3 +185,9 @@
 
 # U+2463 CIRCLED DIGIT FOUR is implemented using U+20DD.
 2463::[uni2463.circled_four@140,0|uni20DD_.enclosing_circle.wl@719,0|_@978,0]
+
+# U+034F COMBINING GRAPHEME JOINER does not block mark substitution or
+# positioning.
+0021 034F 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
+25CC 034F 0307 034F 0323::[uni25CC.dotted_circle@0,0|uni0307_.dot_above.1.wl@209,654|uni0323_.dot_below.1.wl@209,-171|_@686,0]
+1BC03 1BC9E 034F 1BC9E::[u1BC03.t@0,0|u1BC9E_u1BC9E_.double__double.90@194,-113|_@740,0]

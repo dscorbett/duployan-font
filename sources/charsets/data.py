@@ -42,6 +42,7 @@ from shapes import Grammalogue
 from shapes import InvalidDTLS
 from shapes import InvalidOverlap
 from shapes import InvalidStep
+from shapes import InvisibleMark
 from shapes import LINE_FACTOR
 from shapes import Line
 from shapes import Notdef
@@ -265,6 +266,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
+    cgj = InvisibleMark()
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
     right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
     ellipsis = Complex([(0, h), (196, Space(0)), (0, h), (196, Space(0)), (0, h)])
@@ -466,7 +468,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
         Schema(0x0331, macron, 0.2, anchor=anchors.BELOW),
         Schema(0x0339, right_half_ring, 1, anchor=anchors.BELOW),
-        Schema(0x034F, space, 0, Type.NON_JOINING, side_bearing=0),
+        Schema(0x034F, cgj, 0, Type.NON_JOINING),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),

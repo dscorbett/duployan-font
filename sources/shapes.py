@@ -1115,6 +1115,27 @@ class Space(Shape):
         return NO_CONTEXT
 
 
+class InvisibleMark(Shape):
+    """An invisible combining mark.
+    """
+
+    @override
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return ''
+
+    @override
+    def group(self) -> Hashable:
+        return ()
+
+    @override
+    def invisible(self) -> bool:
+        return True
+
+    @override
+    def guaranteed_glyph_class(self) -> GlyphClass:
+        return GlyphClass.MARK
+
+
 class Bound(Shape):
     """The shape of a special glyph used in tests to indicate the
     precise left and right bounds of a test string’s rendered form.

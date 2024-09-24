@@ -2008,7 +2008,11 @@ def make_widthless_variants_of_marks(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('rlig', 'dflt')
+    lookup = Lookup(
+        'rlig',
+        'dflt',
+        mark_filtering_set='visible_mark',
+    )
     first_iteration = 'i' not in classes
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.MARK:
@@ -2017,6 +2021,8 @@ def make_widthless_variants_of_marks(
                 widthless_variant = schema.clone(cmap=None, widthless=True)
                 classes['o'].append(widthless_variant)
                 classes['c'].append(widthless_variant)
+                classes['visible_mark'].append(schema)
+                classes['visible_mark'].append(widthless_variant)
         elif schema.joining_type == Type.NON_JOINING:
             classes['c'].append(schema)
     if first_iteration:

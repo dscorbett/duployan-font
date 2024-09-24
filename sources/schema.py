@@ -175,7 +175,9 @@ class Schema:
             be a large space to the right of the base. Technically, a
             wide diacritic on a narrow non-joining base could overlap
             adjacent glyphs, but it is unlikely to be a problem in
-            practice.
+            practice. ``None`` means the widthlessness has not been
+            determined, in which case the schema should be assumed to
+            have width.
         marks: The sequence of marks of this schema, if this schema
             represents a glyph that can be decomposed into a base and
             some marks. For most schemas, this is empty.
