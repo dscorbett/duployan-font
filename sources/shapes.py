@@ -4220,7 +4220,7 @@ class Ou(Complex):
             if original_circle_path.clockwise is not circle_path.clockwise:
                 contextualized = self.clone(
                         instructions=[
-                            original_circle_op._replace(shape=original_circle_path.clone(reversed_circle=not original_circle_path.reversed_circle))
+                            original_circle_op._replace(shape=original_circle_path.clone(reversed_circle=not original_circle_path.reversed_circle)),
                         ],
                         role=CircleRole.INDEPENDENT,
                     ).contextualize(context_in, context_out)

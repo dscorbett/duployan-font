@@ -120,7 +120,6 @@ ignore = [
     # Too many false positives
     "ARG001",
     "ARG002",
-    "COM812",
     "D205",
     "N802",
     "PLW2901",  # https://github.com/astral-sh/ruff/issues/7273

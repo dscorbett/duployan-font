@@ -277,7 +277,7 @@ if __name__ == '__main__':
     parser.add_argument('--bold', action='store_true', help='Make a bold font.')
     parser.add_argument(
         '--charset', default=charsets.Charset.STANDARD, type=charsets.Charset,
-        help=f'The character set, one of {{{", ".join(c.value for c in charsets.Charset)}}} (default: %(default)s).'
+        help=f'The character set, one of {{{", ".join(c.value for c in charsets.Charset)}}} (default: %(default)s).',
     )
     parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
     parser.add_argument('--name', required=True, help='The name of the font family (name ID 1).')

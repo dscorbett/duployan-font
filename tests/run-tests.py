@@ -107,6 +107,7 @@ def may_fail(code_points: str, actual_output: str) -> bool:
         or any((cp := int(cp_str, 16)) in DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ
                 or cp != 0x0020 and unicodedata.category(chr(cp)) == 'Zs'
             for cp_str in code_points.split())
+        ,
     )
 
 

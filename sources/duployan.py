@@ -285,6 +285,7 @@ class Builder:
                         else:
                             glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
                                 .scale(desired_height / actual_height)
+                                ,
                             )
                     _, y_min, _, y_max = glyph.boundingBox()
                     glyph.transform(fontTools.misc.transform.Offset(0, schema.y_min - y_min - y_proportion_below_min * (y_max - y_min)))

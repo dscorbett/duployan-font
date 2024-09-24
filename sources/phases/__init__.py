@@ -1020,6 +1020,7 @@ def _add_rule(
                     lookup.flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS
                     or lookup.mark_filtering_set and schema not in classes[lookup.mark_filtering_set]
                 )
+                ,
             )
 
         def check_ignored(target_part: Iterable[schema.Schema | str]) -> None:
