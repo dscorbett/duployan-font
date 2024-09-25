@@ -221,7 +221,7 @@ release: RELEASE=1
 release:
 	test -z "$$(git status --porcelain --untracked-files=no)"
 	grep "^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*$(VERSION)[[:space:]]*$$" $(lastword $(MAKEFILE_LIST))
-	git tag --annotate --message='Release $(FONT_FAMILY_NAME) $(VERSION).0' $(FONT_FILE_NAME)-v$(VERSION).0
+	git tag --annotate --message='$(FONT_FAMILY_NAME) $(VERSION).0' $(FONT_FILE_NAME)-v$(VERSION).0
 	sed -i.bak "/^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*$(VERSION)[[:space:]]*$$/s/=.*/= $(NEXT_VERSION)/" $(lastword $(MAKEFILE_LIST))
 	$(RM) $(lastword $(MAKEFILE_LIST)).bak
 	git add $(lastword $(MAKEFILE_LIST))
