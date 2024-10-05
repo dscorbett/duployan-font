@@ -32,7 +32,7 @@ ifdef NOTO
 else
     FONT_FAMILY_NAME = $(if $(filter standard,$(CHARSET)),Rawnd Musmus,Ilo Snas) Duployan$(if $(UNJOINED), Uncow)
     CHARSET = standard
-    VERSION = 1.0
+    VERSION = 1.1
 endif
 unexport CHARSET
 SUFFIXES = $(VALID_SUFFIXES)
