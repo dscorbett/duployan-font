@@ -24,11 +24,10 @@ all of Duployan’s features that is also suitable for practical use.
 
 ## Installation
 
-The font has not been released yet. Until then, you can download a development
-build from the latest [workflow run](
-https://github.com/dscorbett/duployan-font/actions) or [the alpha version](
-https://github.com/dscorbett/duployan-test/tree/gh-pages/assets/fonts) used by
-the font demo.
+Download [the latest version](
+https://github.com/dscorbett/duployan-font/releases/tag/RawndMusmusDuployan-v1.0.0).
+You can also download a development build from the latest [workflow run](
+https://github.com/dscorbett/duployan-font/actions).
 
 [The font demo](https://dscorbett.github.io/duployan-test/) is an online
 keyboard app that lets you type in Duployan. It is useful for testing the font

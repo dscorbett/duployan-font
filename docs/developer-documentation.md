@@ -63,6 +63,14 @@ make CHARSET=testing check
 
 Alternatively, push a commit and wait for GitHub Actions to run CI.
 
+## Releasing and tagging
+
+To release the font, run `make release`. This creates an annotated tag of the
+form `NotoSansDuployan-v${version}`.
+
+Tags of the form `almost-NotoSansDuployan-v${version}` correspond to the commits
+most similar to the indicated Noto versions. They are created manually.
+
 ## Advanced build options
 
 Makefile has many available targets. The main ones are:

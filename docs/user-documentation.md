@@ -24,6 +24,11 @@ modes, available in regular and bold weights.
 
 See the top-level [README.md](../README.md) for installation instructions.
 
+The latest release and all past releases are listed on [the GitHub repository’s
+release page](https://github.com/dscorbett/duployan-font/releases). Each release
+has ZIP files attached for Rawnd Musmus Duployan and Rawnd Musmus Duployan
+Uncow.
+
 ## Character set
 
 * All characters in the Duployan and Shorthand Format Controls blocks
