@@ -106,8 +106,8 @@ _NOTO_INCLUSIONS: Final[AbstractSet[int]] = {
     # The whole set of Romanian grammalogues should be included for
     # consistency, even those that don’t have Duployan-specific behavior.
     0x002B, 0x2197, 0x2641, 0x271D,
-    # These are mentioned in Unicode Technical Note #37.
-    0x00B0, 0x00B7, 0x2E3C,
+    # U+00B0 DEGREE SIGN is mentioned in Unicode Technical Note #37.
+    0x00B0,
     # Finally, the following characters were included in previous releases
     # of Noto Sans Duployan. Removing them would be a breaking change.
     0x0024, 0x002A, 0x002E, 0x002F, 0x005B, 0x005D, 0x00AB, 0x00BA, 0x00BB, 0x2013, 0x2039, 0x203A, 0x2308, 0x2309, 0x230A, 0x230B, 0x2620, 0x2E40,
@@ -221,7 +221,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     eight = Complex([(2.88, Curve(180, 90, clockwise=True)), (2.88, Curve(90, 270, clockwise=True)), (2.88, Curve(270, 180, clockwise=True)), (3.16, Curve(180, 270, clockwise=False)), (3.16, Curve(270, 90, clockwise=False)), (3.16, Curve(90, 180, clockwise=False))])
     nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 255.658, clockwise=True, stretch=0.45)), (4, Curve(255.658, 175, clockwise=True))])
     colon = Complex([(0, h), (X_HEIGHT - light_line * Dot.SCALAR ** h.size_exponent, Space(90)), (0, h)])
-    semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, list-item, union-attr]
+    semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, union-attr]
     question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
     less_than = Grammalogue([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
@@ -297,8 +297,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
     right_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(parenthesis_angle, 90, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
     vertical_line_with_stroke = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270)), *parenthesis_stroke, (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270))])
-    stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions]])  # type: ignore[list-item]
-    stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *question.instructions[1:]])  # type: ignore[list-item]
+    stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions]])
+    stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *question.instructions[1:]])
     ring_and_dot = Complex([(2.3, Circle(90, 90, clockwise=False)), (light_line + stroke_gap, Space(0)), (0, h)])
     x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
     p = Line(270, stretchy=True)

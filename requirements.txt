@@ -17,11 +17,11 @@
 #    uv pip compile requirements.in
 cffsubr==0.3.0
     # via -r requirements.in
-fonttools==4.53.1
+fonttools==4.54.1
     # via
     #   -r requirements.in
     #   cffsubr
-gfsubsets==2024.5.9
+gfsubsets==2024.9.25
     # via -r requirements.in
 importlib-resources==6.4.5
     # via gfsubsets

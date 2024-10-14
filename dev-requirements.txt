@@ -41,7 +41,7 @@ cffsubr==0.3.0
     # via
     #   -r requirements.in
     #   ufo2ft
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via requests
 cmarkgfm==2024.1.14
     # via fontbakery
@@ -53,7 +53,7 @@ colorama==0.4.6 ; platform_system == 'Windows'
     # via tqdm
 commandlines==0.4.1
     # via ufolint
-coverage==7.6.1
+coverage==7.6.3
     # via -r dev-requirements.in
 defcon==0.10.3
     # via
@@ -64,7 +64,7 @@ dehinter==4.0.0
     # via fontbakery
 docopt==0.6.2
     # via num2words
-filelock==3.16.0
+filelock==3.16.1
     # via youseedee
 fontbakery==0.12.10
     # via -r dev-requirements.in
@@ -74,7 +74,7 @@ fontfeatures==1.8.0
     #   babelfont
 fontmath==0.9.4
     # via ufo2ft
-fonttools==4.53.1
+fonttools==4.54.1
     # via
     #   -r requirements.in
     #   axisregistry
@@ -104,22 +104,22 @@ fs==2.4.16
     #   -c dev-constraints.txt
     #   fontfeatures
     #   fonttools
-gflanguages==0.6.3
+gflanguages==0.6.4
     # via
     #   fontbakery
     #   glyphsets
     #   shaperglot
-gfsubsets==2024.5.9
+gfsubsets==2024.9.25
     # via
     #   -r requirements.in
     #   fontbakery
 glyphsets==1.0.0
     # via fontbakery
-glyphslib==6.8.2
+glyphslib==6.9.2
     # via
     #   babelfont
     #   glyphsets
-idna==3.8
+idna==3.10
     # via requests
 importlib-resources==6.4.5
     # via
@@ -138,7 +138,7 @@ lxml==5.3.0
     #   fonttools
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
@@ -146,7 +146,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.11.2
+mypy==1.12.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via mypy
@@ -203,7 +203,7 @@ requests==2.32.3
     #   fontbakery
     #   glyphsets
     #   youseedee
-rich==13.8.0
+rich==13.9.2
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -213,7 +213,7 @@ rstr==3.2.2
     #   stringbrewer
 ruff==0.6.4
     # via -r dev-requirements.in
-setuptools==74.1.2
+setuptools==75.1.0
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -236,7 +236,7 @@ strictyaml==1.7.3
     # via shaperglot
 stringbrewer==0.0.1
     # via fontbakery
-termcolor==2.4.0
+termcolor==2.5.0
     # via shaperglot
 toml==0.10.2
     # via
@@ -249,7 +249,7 @@ typing-extensions==4.12.2
     #   -r requirements.in
     #   mypy
     #   vfblib
-ufo2ft==3.2.8
+ufo2ft==3.3.1
     # via
     #   fontbakery
     #   shaperglot
@@ -274,11 +274,11 @@ unicodedata2==15.1.0
     #   fontbakery
     #   fonttools
     #   glyphsets
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.4.8
+uv==0.4.21
     # via -r dev-requirements.in
 vfblib==0.7.1
     # via babelfont
@@ -286,5 +286,5 @@ vharfbuzz==0.3.1
     # via
     #   fontbakery
     #   shaperglot
-youseedee==0.5.3
+youseedee==0.6.0
     # via shaperglot
