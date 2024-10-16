@@ -674,14 +674,6 @@ class OrderedSet(dict[_T, None]):
         """
         self.pop(item, None)
 
-    @overload
-    def sorted(self, /, *, key: None = ..., reverse: bool = ...) -> list[_T]:
-        ...
-
-    @overload
-    def sorted(self, /, *, key: Callable[[_T], SupportsRichComparison], reverse: bool = ...) -> list[_T]:
-        ...
-
     def sorted(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> list[_T]:
         """Returns a sorted list of the elements in this set.
 

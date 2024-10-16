@@ -19,7 +19,6 @@ import collections
 import functools
 import math
 from typing import TYPE_CHECKING
-from typing import overload
 
 import fontTools.otlLib.builder
 
@@ -177,14 +176,6 @@ def add_shims_for_pseudo_cursive(
     add_rule(deduplicate_marker_lookup, Rule([], [marker], [marker], []))
     add_rule(deduplicate_marker_lookup, Rule('pseudo_cursive_or_root_parent_edge', [marker], [], lookups=[None]))
     add_rule(deduplicate_marker_lookup, Rule([marker], []))
-
-    @overload
-    def round_with_base(number: float, base: int, minimum: float, key: None = ...) -> float:
-        ...
-
-    @overload
-    def round_with_base(number: float, base: int, minimum: float, key: Callable[[float], SupportsRichComparison]) -> float:
-        ...
 
     def round_with_base(number: float, base: int, minimum: float, key: Callable[[float], SupportsRichComparison] | None = None) -> float:
         return max(minimum, base * round(number / base), key=key)
