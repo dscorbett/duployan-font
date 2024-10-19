@@ -263,7 +263,14 @@ ufolint==1.2.0
     # via fontbakery
 ufonormalizer==0.6.2
     # via vfblib
-uharfbuzz==0.37.2
+uharfbuzz==0.37.2 ; sys_platform != 'darwin' or ('Version 1.' not in platform_version and 'Version 10.' not in platform_version and 'Version 11.' not in platform_version and 'Version 12.' not in platform_version and 'Version 13.' not in platform_version and 'Version 14.' not in platform_version and 'Version 15.' not in platform_version and 'Version 16.' not in platform_version and 'Version 17.' not in platform_version and 'Version 2.' not in platform_version and 'Version 3.' not in platform_version and 'Version 4.' not in platform_version and 'Version 5.' not in platform_version and 'Version 6.' not in platform_version and 'Version 7.' not in platform_version and 'Version 8.' not in platform_version and 'Version 9.' not in platform_version)
+    # via
+    #   -r requirements.in
+    #   collidoscope
+    #   fontbakery
+    #   fonttools
+    #   vharfbuzz
+uharfbuzz==0.41.0 ; (sys_platform == 'darwin' and 'Version 1.' in platform_version) or (sys_platform == 'darwin' and 'Version 10.' in platform_version) or (sys_platform == 'darwin' and 'Version 11.' in platform_version) or (sys_platform == 'darwin' and 'Version 12.' in platform_version) or (sys_platform == 'darwin' and 'Version 13.' in platform_version) or (sys_platform == 'darwin' and 'Version 14.' in platform_version) or (sys_platform == 'darwin' and 'Version 15.' in platform_version) or (sys_platform == 'darwin' and 'Version 16.' in platform_version) or (sys_platform == 'darwin' and 'Version 17.' in platform_version) or (sys_platform == 'darwin' and 'Version 2.' in platform_version) or (sys_platform == 'darwin' and 'Version 3.' in platform_version) or (sys_platform == 'darwin' and 'Version 4.' in platform_version) or (sys_platform == 'darwin' and 'Version 5.' in platform_version) or (sys_platform == 'darwin' and 'Version 6.' in platform_version) or (sys_platform == 'darwin' and 'Version 7.' in platform_version) or (sys_platform == 'darwin' and 'Version 8.' in platform_version) or (sys_platform == 'darwin' and 'Version 9.' in platform_version)
     # via
     #   -r requirements.in
     #   collidoscope
