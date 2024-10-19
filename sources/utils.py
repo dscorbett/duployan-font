@@ -23,11 +23,9 @@ from collections.abc import MutableMapping
 import enum
 import functools
 from typing import Final
-from typing import Generic
 from typing import Literal
 from typing import Self
 from typing import TYPE_CHECKING
-from typing import TypeVar
 from typing import overload
 from typing import override
 
@@ -630,10 +628,7 @@ class Context:
 NO_CONTEXT: Final[Context] = Context()
 
 
-_T = TypeVar('_T')
-
-
-class OrderedSet(dict[_T, None]):
+class OrderedSet[T](dict[T, None]):
     """An ordered set.
 
     It is a `dict` where the values are all ``None``, with a set-like
@@ -642,7 +637,7 @@ class OrderedSet(dict[_T, None]):
 
     def __init__(
         self,
-        iterable: Iterable[_T] | None = None,
+        iterable: Iterable[T] | None = None,
         /,
     ) -> None:
         """Initializes this `OrderedSet`.
@@ -656,7 +651,7 @@ class OrderedSet(dict[_T, None]):
             for item in iterable:
                 self.add(item)
 
-    def add(self, item: _T, /) -> None:
+    def add(self, item: T, /) -> None:
         """Adds an item to this set.
 
         Args:
@@ -664,7 +659,7 @@ class OrderedSet(dict[_T, None]):
         """
         self[item] = None
 
-    def remove(self, item: _T, /) -> None:
+    def remove(self, item: T, /) -> None:
         """Removes an item from this set.
 
         If the item is not present in this set, nothing happens.
@@ -674,7 +669,7 @@ class OrderedSet(dict[_T, None]):
         """
         self.pop(item, None)
 
-    def sorted(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> list[_T]:
+    def sorted(self, /, *, key: Callable[[T], SupportsRichComparison] | None = None, reverse: bool = False) -> list[T]:
         """Returns a sorted list of the elements in this set.
 
         The sort is stable.
@@ -688,7 +683,7 @@ class OrderedSet(dict[_T, None]):
         return sorted(self.keys(), key=key, reverse=reverse)  # type: ignore[arg-type, type-var]
 
 
-class PrefixView(MutableMapping[str, _T], Generic[_T]):
+class PrefixView[T](MutableMapping[str, T]):
     """A mutable view of a string-keyed mapping with a prefix applied to
     all keys.
 
@@ -713,7 +708,7 @@ class PrefixView(MutableMapping[str, _T], Generic[_T]):
     def __init__(
         self,
         source: function,  # noqa: F821
-        delegate: MutableMapping[str, _T],
+        delegate: MutableMapping[str, T],
     ) -> None:
         """Initializes this `PrefixView`.
 
@@ -738,7 +733,7 @@ class PrefixView(MutableMapping[str, _T], Generic[_T]):
         return key if is_global else self._prefix + key
 
     @override
-    def __getitem__(self, key: str, /) -> _T:
+    def __getitem__(self, key: str, /) -> T:
         """Returns the item associated with a prefixed key.
 
         Args:
@@ -747,7 +742,7 @@ class PrefixView(MutableMapping[str, _T], Generic[_T]):
         return self._delegate[self._prefixed(key)]
 
     @override
-    def __setitem__(self, key: str, value: _T, /) -> None:
+    def __setitem__(self, key: str, value: T, /) -> None:
         """Maps a prefixed key to a value.
 
         Args:
@@ -790,5 +785,5 @@ class PrefixView(MutableMapping[str, _T], Generic[_T]):
         return self._delegate.keys()
 
     @override
-    def items(self) -> ItemsView[str, _T]:
+    def items(self) -> ItemsView[str, T]:
         return self._delegate.items()

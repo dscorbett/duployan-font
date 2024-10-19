@@ -26,12 +26,10 @@ import enum
 import functools
 import math
 from typing import Final
-from typing import Generic
 from typing import Literal
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
-from typing import TypeVar
 from typing import cast
 from typing import override
 
@@ -789,13 +787,10 @@ class AnchorWidthDigit(Shape):
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
 
-Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
+type Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
 
 
-_D = TypeVar('_D', bound=Digit)
-
-
-class WidthNumber(Shape, Generic[_D]):
+class WidthNumber[D: Digit](Shape):
     """An encoded x distance between two of a glyph’s anchor points.
 
     Attributes:
@@ -807,7 +802,7 @@ class WidthNumber(Shape, Generic[_D]):
     @override
     def __init__(
         self,
-        digit_path: type[_D],
+        digit_path: type[D],
         width: int,
     ) -> None:
         """Initializes this `WidthNumber`.
@@ -840,7 +835,7 @@ class WidthNumber(Shape, Generic[_D]):
 
     def to_digits(
         self,
-        register_width_marker: Callable[[type[_D], int, int], Schema],
+        register_width_marker: Callable[[type[D], int, int], Schema],
     ) -> Sequence[Schema]:
         """Converts this number to a sequence of digits.
 
@@ -3130,22 +3125,22 @@ class Component(NamedTuple):
     tick: bool = False
 
 
-_AnchorType = Literal['base', 'basemark', 'entry', 'exit', 'ligature', 'mark']
+type _AnchorType = Literal['base', 'basemark', 'entry', 'exit', 'ligature', 'mark']
 
 
-_StrictInstruction = Callable[[Context], Context] | Component
+type _StrictInstruction = Callable[[Context], Context] | Component
 
 
-_Instruction = _StrictInstruction | tuple[float, Shape] | tuple[float, Shape, bool] | tuple[float, Shape, bool, bool]
+type _Instruction = _StrictInstruction | tuple[float, Shape] | tuple[float, Shape, bool] | tuple[float, Shape, bool, bool]
 
 
-Instructions = Sequence[_Instruction]
+type Instructions = Sequence[_Instruction]
 
 
-_StrictInstructions = Sequence[_StrictInstruction]
+type _StrictInstructions = Sequence[_StrictInstruction]
 
 
-_Point = tuple[float, float]
+type _Point = tuple[float, float]
 
 
 class Complex(Shape):

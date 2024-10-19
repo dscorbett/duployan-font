@@ -17,9 +17,7 @@ from __future__ import annotations
 
 import collections
 from typing import Final
-from typing import Generic
 from typing import TYPE_CHECKING
-from typing import TypeVar
 
 
 if TYPE_CHECKING:
@@ -35,43 +33,40 @@ if TYPE_CHECKING:
     from schema import Schema
 
 
-_Group = list
+type _Group[T] = list[T]
 
 
-_T = TypeVar('_T')
-
-
-class Grouper(Generic[_T]):
-    def __init__(self, groups: Collection[_Group[_T]]) -> None:
-        self._groups: Final[MutableSequence[_Group[_T]]] = []
-        self._inverted: Final[MutableMapping[_T, _Group[_T]]] = {}
+class Grouper[T]:
+    def __init__(self, groups: Collection[_Group[T]]) -> None:
+        self._groups: Final[MutableSequence[_Group[T]]] = []
+        self._inverted: Final[MutableMapping[T, _Group[T]]] = {}
         for group in groups:
             if len(group) > 1:
                 self.add(group)
 
-    def groups(self) -> Sequence[_Group[_T]]:
+    def groups(self) -> Sequence[_Group[T]]:
         return list(self._groups)
 
-    def group_of(self, item: _T) -> _Group[_T] | None:
+    def group_of(self, item: T) -> _Group[T] | None:
         return self._inverted.get(item)
 
-    def add(self, group: _Group[_T]) -> None:
+    def add(self, group: _Group[T]) -> None:
         self._groups.append(group)
         for item in group:
             self._inverted[item] = group
 
-    def remove(self, group: _Group[_T]) -> None:
+    def remove(self, group: _Group[T]) -> None:
         self._groups.remove(group)
         for item in group:
             del self._inverted[item]
 
-    def remove_item(self, group: _Group[_T], item: _T) -> None:
+    def remove_item(self, group: _Group[T], item: T) -> None:
         group.remove(item)
         del self._inverted[item]
         if len(group) == 1:
             self.remove(group)
 
-    def remove_items(self, minuend: _Group[_T], subtrahend: Collection[_T]) -> None:
+    def remove_items(self, minuend: _Group[T], subtrahend: Collection[T]) -> None:
         for item in subtrahend:
             self.remove_item(minuend, item)
 

@@ -89,9 +89,7 @@ import collections
 import functools
 import itertools
 from typing import Final
-from typing import Generic
 from typing import TYPE_CHECKING
-from typing import TypeVar
 from typing import cast
 from typing import overload
 from typing import override
@@ -164,14 +162,11 @@ HUB_CLASS: Final[str] = 'global..hub'
 CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 
 
-_T = TypeVar('_T')
-
-
-class FreezableList(list[_T], Generic[_T]):
+class FreezableList[T](list[T]):
     """A list that can be frozen, making it immutable.
     """
 
-    def __init__(self, iterable: Sequence[_T] = (), /) -> None:
+    def __init__(self, iterable: Sequence[T] = (), /) -> None:
         super().__init__(iterable)
         self._frozen: bool = False
 
@@ -197,15 +192,15 @@ class FreezableList(list[_T], Generic[_T]):
         super().__delitem__(index)
 
     @overload
-    def __setitem__(self, index: SupportsIndex, value: _T, /) -> None:
+    def __setitem__(self, index: SupportsIndex, value: T, /) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: Iterable[_T], /) -> None:
+    def __setitem__(self, index: slice, value: Iterable[T], /) -> None:
         ...
 
     @override
-    def __setitem__(self, index: SupportsIndex | slice, value: _T | Iterable[_T], /) -> None:
+    def __setitem__(self, index: SupportsIndex | slice, value: T | Iterable[T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
         Args:
@@ -222,7 +217,7 @@ class FreezableList(list[_T], Generic[_T]):
         super().__setitem__(index, value)  # type: ignore[assignment, index]
 
     @override
-    def insert(self, index: SupportsIndex, value: _T, /) -> None:
+    def insert(self, index: SupportsIndex, value: T, /) -> None:
         """Inserts something into this list.
 
         Args:
@@ -238,7 +233,7 @@ class FreezableList(list[_T], Generic[_T]):
         super().insert(index, value)
 
     @override
-    def append(self, value: _T, /) -> None:
+    def append(self, value: T, /) -> None:
         """Appends something to this list.
 
         Args:
@@ -263,7 +258,7 @@ class FreezableList(list[_T], Generic[_T]):
         super().clear()
 
     @override
-    def __iadd__(self, iterable: Iterable[_T], /) -> Self:  # type: ignore[override]
+    def __iadd__(self, iterable: Iterable[T], /) -> Self:  # type: ignore[override]
         """Extends this list.
 
         Args:
@@ -282,7 +277,7 @@ class FreezableList(list[_T], Generic[_T]):
         return self
 
     @override
-    def extend(self, iterable: Iterable[_T], /) -> None:
+    def extend(self, iterable: Iterable[T], /) -> None:
         """Extends this list.
 
         Args:
@@ -314,7 +309,7 @@ class FreezableList(list[_T], Generic[_T]):
         return super().__imul__(value)
 
     @override
-    def pop(self, index: SupportsIndex = -1, /) -> _T:
+    def pop(self, index: SupportsIndex = -1, /) -> T:
         """Returns the element at an index and removes it from this
         list.
 
@@ -329,7 +324,7 @@ class FreezableList(list[_T], Generic[_T]):
         return super().pop(index)
 
     @override
-    def remove(self, value: _T, /) -> None:
+    def remove(self, value: T, /) -> None:
         """Removes an element from this list.
 
         Args:
@@ -354,7 +349,7 @@ class FreezableList(list[_T], Generic[_T]):
         super().reverse()
 
     @override
-    def sort(self, /, *, key: Callable[[_T], SupportsRichComparison] | None = None, reverse: bool = False) -> None:
+    def sort(self, /, *, key: Callable[[T], SupportsRichComparison] | None = None, reverse: bool = False) -> None:
         """Sorts this list in place.
 
         Args:

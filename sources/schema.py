@@ -492,7 +492,7 @@ class Schema:
         shape = type(self.path)
         digit_shapes = [AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit]
         if shape in digit_shapes:
-            assert isinstance(self.path, Digit)
+            assert isinstance(self.path, Digit.__value__)
             status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value
             place = self.path.place
             digit_shape_index = digit_shapes.index(shape)

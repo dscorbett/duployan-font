@@ -804,7 +804,7 @@ def sum_width_markers(
     )]:
         for augend_schema in original_augend_schemas:
             augend_is_new = augend_schema in new_schemas
-            assert isinstance(augend_schema.path, Digit)
+            assert isinstance(augend_schema.path, Digit.__value__)
             place = augend_schema.path.place
             augend = augend_schema.path.digit
             for (
@@ -820,7 +820,7 @@ def sum_width_markers(
                     carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
                     carry_in_is_new = carry_in_schema in new_schemas
                     for addend_schema in original_addend_schemas:
-                        assert isinstance(addend_schema.path, Digit)
+                        assert isinstance(addend_schema.path, Digit.__value__)
                         if place != addend_schema.path.place:
                             continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
@@ -844,7 +844,7 @@ def sum_width_markers(
                                 addend_schemas[sum_index] = sum_digit_schema
                                 classes[f'{addend_letter}dx_{sum_digit_path.place}'].append(sum_digit_schema)
                                 classes['all'].append(sum_digit_schema)
-                            assert isinstance(sum_digit_schema.path, Digit)
+                            assert isinstance(sum_digit_schema.path, Digit.__value__)
                             outputs = ([sum_digit_schema]
                                 if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                 else [sum_digit_schema, carry_out_schema])
@@ -955,8 +955,8 @@ def calculate_bound_extrema(
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
-                    assert isinstance(schema_i.path, Digit)
-                    assert isinstance(schema_j.path, Digit)
+                    assert isinstance(schema_i.path, Digit.__value__)
+                    assert isinstance(schema_j.path, Digit.__value__)
                     place_j = schema_j.path.place
                     add_rule(lookup, Rule(
                         [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],

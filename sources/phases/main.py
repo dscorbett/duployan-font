@@ -20,7 +20,6 @@ import functools
 import itertools
 import string
 from typing import TYPE_CHECKING
-from typing import TypeVar
 
 import fontTools.otlLib.builder
 
@@ -335,20 +334,14 @@ def add_parent_edges(
     return [lookup]
 
 
-_E = TypeVar('_E')
-
-
-_N = TypeVar('_N')
-
-
-def _make_trees(
-    node: _N,
-    edge: _E,
+def _make_trees[E, N](
+    node: N,
+    edge: E,
     maximum_depth: int,
     *,
     top_widths: Iterable[int] | None = None,
     prefix_depth: int | None = None,
-) -> Sequence[Sequence[_E | _N]]:
+) -> Sequence[Sequence[E | N]]:
     if maximum_depth <= 0:
         return []
     trees = []
@@ -356,7 +349,7 @@ def _make_trees(
         subtrees = _make_trees(node, edge, maximum_depth - 1)
         for width in range(MAX_TREE_WIDTH + 1) if top_widths is None else top_widths:
             for index_set in itertools.product(range(len(subtrees)), repeat=width):
-                tree: MutableSequence[_E | _N] = [node, *[edge] * width] if top_widths is None else []
+                tree: MutableSequence[E | N] = [node, *[edge] * width] if top_widths is None else []
                 for i in index_set:
                     tree.extend(subtrees[i])
                 trees.append(tree)
