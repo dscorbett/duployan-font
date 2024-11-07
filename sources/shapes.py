@@ -30,7 +30,6 @@ from typing import Literal
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
-from typing import cast
 from typing import override
 
 import fontTools.misc.transform
@@ -3354,7 +3353,8 @@ class Complex(Shape):
                 minimum x, minimum y, maximum x, and maximum y.
             """
             layer = self._stroke(copy=True)
-            return cast(tuple[float, float, float, float], layer.boundingBox())
+            bounding_box: tuple[float, float, float, float] = layer.boundingBox()
+            return bounding_box
 
         def draw(
             self,
@@ -4475,7 +4475,7 @@ class Wa(Complex):
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         context_in = context_in.clone(ignorable_for_topography=False)
         context_out = context_out.clone(ignorable_for_topography=False)
-        original_instructions = cast(list[Component], self.instructions)
+        original_instructions: Sequence[Component] = self.instructions  # type: ignore[assignment]
         if context_in == NO_CONTEXT and context_out != NO_CONTEXT:
             assert context_out.angle is not None
             outer_circle_op = original_instructions[0]
@@ -4760,7 +4760,7 @@ class TangentHook(Complex):
                 ), *self.instructions[3][2:]),
             ], _initial=True)
         else:
-            shape = cast(Self, super())
+            shape = super()  # type: ignore[assignment]
         return shape.contextualize(context_in, context_out)
 
 

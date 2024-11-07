@@ -19,7 +19,6 @@ import collections
 import math
 from typing import Final
 from typing import TYPE_CHECKING
-from typing import cast
 
 import fontTools.agl
 import fontTools.feaLib.ast
@@ -493,10 +492,10 @@ class Builder:
 
     @staticmethod
     def _glyph_to_schema(glyph: fontforge.glyph) -> Schema:
-        schema = glyph.temporary
+        schema: Schema = glyph.temporary
         glyph.temporary = None
         schema.glyph = glyph
-        return cast(Schema, schema)
+        return schema
 
     def convert_classes(
         self,

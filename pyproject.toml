@@ -145,6 +145,9 @@ builtins-ignorelist = [
 inline-quotes = "single"
 multiline-quotes = "single"
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.cast".msg = "Use a type annotation or `# type: ignore` instead"
+
 [tool.ruff.lint.flake8-type-checking]
 quote-annotations = true
 strict = true

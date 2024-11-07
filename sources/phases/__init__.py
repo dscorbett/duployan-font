@@ -90,7 +90,6 @@ import functools
 import itertools
 from typing import Final
 from typing import TYPE_CHECKING
-from typing import cast
 from typing import overload
 from typing import override
 
@@ -1267,7 +1266,7 @@ def run_phases(
                             break
                 case _:
                     might_have_feedback = True
-            features = {cast(str, lookup.feature) for lookup in lookups}
+            features: set[str] = {lookup.feature for lookup in lookups}  # type: ignore[misc]
             for output_schema in output_schemas:
                 all_output_schemas.add(output_schema)
             new_input_schemas = OrderedSet()

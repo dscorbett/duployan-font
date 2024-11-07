@@ -19,14 +19,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import enum
 import functools
 import re
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
-from typing import cast
 from typing import override
 import unicodedata
 
@@ -69,6 +67,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Hashable
     from collections.abc import Iterable
+    from collections.abc import Mapping
     from collections.abc import MutableMapping
     from collections.abc import MutableSequence
     from collections.abc import Sequence
@@ -766,7 +765,8 @@ class Schema:
             ValueError: If `cp` is not ASCII.
         """
         if cp <= 0x7F:
-            return cast(Mapping[int, str], fontTools.agl.UV2AGL)[cp]
+            uv2agl: Mapping[int, str] = fontTools.agl.UV2AGL
+            return uv2agl[cp]
         raise ValueError
 
     @staticmethod
