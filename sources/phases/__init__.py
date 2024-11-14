@@ -272,8 +272,7 @@ class FreezableList[T](list[T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
-        super().__iadd__(iterable)
-        return self
+        return super().__iadd__(iterable)
 
     @override
     def extend(self, iterable: Iterable[T], /) -> None:
