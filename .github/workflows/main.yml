@@ -171,7 +171,10 @@ jobs:
         if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.coverage == ''
         run: |
           sudo apt-get update
-          sudo apt-get -qy --no-install-recommends install meson
+          sudo apt-get -qy --no-install-recommends install \
+            libglib2.0-dev \
+            meson \
+          ;
           make HB_VERSION=${{ matrix.harfbuzz-version }} hb-shape
       - name: Add HarfBuzz to path
         if: matrix.coverage == ''
