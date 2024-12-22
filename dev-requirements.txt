@@ -117,7 +117,7 @@ importlib-resources==6.4.5
     # via
     #   -c dev-constraints.txt
     #   gfsubsets
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -204,7 +204,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.6.9
+ruff==0.8.4
     # via -r dev-requirements.in
 setuptools==75.6.0
     # via
@@ -271,7 +271,7 @@ unicodedata2==15.1.0
     #   fontbakery
     #   fonttools
     #   glyphsets
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   -c dev-constraints.txt
     #   requests

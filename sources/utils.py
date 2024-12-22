@@ -502,12 +502,12 @@ class Context:
     def clone(
         self,
         *,
-        angle: float | None | CloneDefault = CLONE_DEFAULT,
-        clockwise: bool | None | CloneDefault = CLONE_DEFAULT,
-        minor: bool | CloneDefault = CLONE_DEFAULT,
-        ignorable_for_topography: bool | CloneDefault = CLONE_DEFAULT,
-        diphthong_start: bool | CloneDefault = CLONE_DEFAULT,
-        diphthong_end: bool | CloneDefault = CLONE_DEFAULT,
+        angle: CloneDefault | float | None = CLONE_DEFAULT,
+        clockwise: CloneDefault | bool | None = CLONE_DEFAULT,
+        minor: CloneDefault | bool = CLONE_DEFAULT,
+        ignorable_for_topography: CloneDefault | bool = CLONE_DEFAULT,
+        diphthong_start: CloneDefault | bool = CLONE_DEFAULT,
+        diphthong_end: CloneDefault | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,  # type: ignore[arg-type]
