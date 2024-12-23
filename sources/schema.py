@@ -921,7 +921,7 @@ class Schema:
         """Returns the maximum width of a shorthand overlap sequence
         following this schema.
         """
-        return min(self.maximum_tree_width, self.path.max_tree_width(self.size))
+        return min(self.maximum_tree_width, self.path.max_tree_width(self.size)) * (self.glyph_class == GlyphClass.JOINER)
 
     @functools.cached_property
     def max_double_marks(self) -> int:

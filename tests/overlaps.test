@@ -140,3 +140,11 @@
 002F 1BCA1 1BC02::[slash@0,0|u1BCA1.continuing_overlap@834,0|u1BC02.p@1962,0|_@2202,0]
 1BC02 1BCA0 002F::[u1BC02.p@0,0|u1BCA0.letter_overlap@240,0|slash@1368,0|_@2202,0]
 1BC02 1BCA1 002F::[u1BC02.p@0,0|u1BCA1.continuing_overlap@240,0|slash@1368,0|_@2202,0]
+
+# More invalid roots
+1BC9C 1BCA0 1BC06::[u1BC9C.o_cross@0,0|u1BCA0.letter_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
+1BC9C 1BCA1 1BC06::[u1BC9C.o_cross@0,0|u1BCA1.continuing_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
+1BC9E 1BCA0 1BC06::[uni25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA0.letter_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
+1BC9E 1BCA1 1BC06::[uni25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA1.continuing_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
+1BC9F 1BCA0 1BC06::[u1BC9F.chinook_period@0,0|u1BCA0.letter_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
+1BC9F 1BCA1 1BC06::[u1BC9F.chinook_period@0,0|u1BCA1.continuing_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
