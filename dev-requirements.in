@@ -17,6 +17,6 @@
 -r requirements.in
 coverage ~= 7.6
 fontbakery[notofonts] >= 0.12.6, < 0.12.11
-mypy >= 1.12, < 1.14  # https://github.com/python/mypy/issues/18320
+mypy >= 1.14.1, < 2
 ruff >= 0.5.5, != 0.5.6, != 0.8.2, < 0.8.5
 uv >= 0.2.35

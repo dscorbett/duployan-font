@@ -175,7 +175,7 @@ class FreezableList[T](list[T]):
         self._frozen = True
 
     @override
-    def __delitem__(self, index: SupportsIndex | slice, /) -> None:
+    def __delitem__(self, index: SupportsIndex | slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], /) -> None:
         """Deletes the element(s) at an index or range of indices.
 
         Args:
@@ -195,11 +195,11 @@ class FreezableList[T](list[T]):
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: Iterable[T], /) -> None:
+    def __setitem__(self, index: slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], value: Iterable[T], /) -> None:
         ...
 
     @override
-    def __setitem__(self, index: SupportsIndex | slice, value: T | Iterable[T], /) -> None:
+    def __setitem__(self, index: SupportsIndex | slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], value: T | Iterable[T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
         Args:

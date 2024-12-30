@@ -380,14 +380,14 @@ class GlyphClass(enum.StrEnum):
 
     #: The class of a spacing glyph that does not participate in cursive
     #: joining.
-    BLOCKER: Final[str] = 'noclass'
+    BLOCKER = 'noclass'
 
     #: The class of a spacing glyph that participates in cursive
     #: joining.
-    JOINER: Final[str] = 'baseligature'
+    JOINER = 'baseligature'
 
     #: The class of a mark glyph.
-    MARK: Final[str] = 'mark'
+    MARK = 'mark'
 
 
 class Type(enum.Enum):
