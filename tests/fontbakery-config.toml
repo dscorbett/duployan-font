@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2022-2024 David Corbett
+# Copyright 2022-2025 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,30 +14,30 @@
 # limitations under the License.
 
 exclude_checks = [
-    "com.google.fonts/check/article/images",
-    "com.google.fonts/check/description/has_article",
-    "com.google.fonts/check/gpos_kerning_info",
-    "com.google.fonts/check/hinting_impact",
-    "com.google.fonts/check/hmtx/comma_period",
-    "com.google.fonts/check/hmtx/encoded_latin_digits",
-    "com.google.fonts/check/hmtx/whitespace_advances",
-    "com.google.fonts/check/math_signs_width",
-    "com.google.fonts/check/vertical_metrics",
+    "googlefonts/article/images",
+    "googlefonts/description/has_article",
+    "googlefonts/vertical_metrics",
+    "hinting_impact",
+    "math_signs_width",
+    "notofonts/hmtx/comma_period",
+    "notofonts/hmtx/encoded_latin_digits",
+    "notofonts/hmtx/whitespace_advances",
+    "opentype/gpos_kerning_info",
 #ifndef NOTO
-    "com.google.fonts/check/metadata/unreachable_subsetting",
-    "com.google.fonts/check/name/line_breaks",
-    "com.google.fonts/check/name/noto_designer",
-    "com.google.fonts/check/name/noto_manufacturer",
-    "com.google.fonts/check/name/noto_trademark",
-    "com.google.fonts/check/os2/noto_vendor",
-    "com.google.fonts/check/vendor_id",
+    "googlefonts/metadata/unreachable_subsetting",
+    "googlefonts/name/line_breaks",
+    "googlefonts/vendor_id",
+    "notofonts/name/designer",
+    "notofonts/name/manufacturer",
+    "notofonts/name/trademark",
+    "notofonts/vendor",
 #endif
 ]
 
-[overrides."com.google.fonts/check/valid_glyphnames"]
+[overrides.valid_glyphnames]
 legacy-long-names = "PASS"
 
 #ifndef NOTO
-[overrides."com.google.fonts/check/cmap/alien_codepoints"]
+[overrides."notofonts/cmap/alien_codepoints"]
 pua-encoded = "PASS"
 #endif
