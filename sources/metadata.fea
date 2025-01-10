@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2019, 2022-2024, David Corbett (corbett.dav@northeastern.edu).
+# Copyright (c) 2018-2019, 2022-2025, David Corbett (corbett.dav@northeastern.edu).
 # Copyright (c) 2018-2022, Google LLC.
 #
 # This Font Software is licensed under the SIL Open Font License, Version 1.1.
@@ -14,7 +14,7 @@ table OS/2 {
 } OS/2;
 
 table name {
-    nameid 0 "Copyright 2018-2019, 2022-2024 David Corbett.\000A
+    nameid 0 "Copyright 2018-2019, 2022-2025 David Corbett.\000A
 Copyright 2019-2022 Google LLC. All Rights Reserved.";
 #ifdef NOTO
     nameid 7 "Noto is a trademark of Google LLC";
@@ -26,7 +26,7 @@ Copyright 2019-2022 Google LLC. All Rights Reserved.";
     nameid 11 "http://www.google.com/get/noto/";
     nameid 13 "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org";
 #else
-    nameid 13 "Copyright (c) 2018-2019, 2022-2024, David Corbett (corbett.dav@northeastern.edu).\000A
+    nameid 13 "Copyright (c) 2018-2019, 2022-2025, David Corbett (corbett.dav@northeastern.edu).\000A
 Copyright (c) 2019-2022, Google LLC.\000A
 \000A
 This Font Software is licensed under the SIL Open Font License, Version 1.1.\000A
