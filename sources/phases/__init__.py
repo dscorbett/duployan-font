@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -962,7 +962,7 @@ class Lookup:
 
 
 if TYPE_CHECKING:
-    AddRule = Callable[[Lookup, Rule], None]
+    type AddRule = Callable[[Lookup, Rule], None]
 
 
 def _add_rule(
@@ -1148,7 +1148,7 @@ def _add_rule(
 
 
 if TYPE_CHECKING:
-    Phase = Callable[
+    type Phase = Callable[
         [
             Arg(Builder, 'builder'),
             Arg(OrderedSet[schema.Schema], 'original_schemas'),
