@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -1913,11 +1913,11 @@ class Curve(Shape):
             the swash line is truncated to the length of the nominal
             (unstretched) radius.
         overlap_angle: The angle from the ellipse’s center to the point
-            at which this curve overlaps a parent glyph. This may only
-            be ``True`` for semiellipses; there is no geometrical reason
-            for this, but this attribute is a hack that only happens to
-            be needed for semiellipses. If this attribute is ``None``,
-            it uses the default angle.
+            at which this curve overlaps a parent glyph. If this
+            attribute is ``None``, it uses the default angle. This may
+            only be non-``None`` for semiellipses; there is no
+            geometrical reason for this, but this attribute is a hack
+            that only happens to be needed for semiellipses.
         secondary: Whether this curve represents a secondary curve
             character.
         may_reposition_cursive_endpoints: Whether this curve, or any
@@ -2210,7 +2210,7 @@ class Curve(Shape):
 
         Returns:
             The difference between this curve’s entry angle and exit
-            angle in the range (0, 360].
+            angle. If the difference is 0, the return value is 360.
         """
         return self._get_normalized_angles_and_da(0, 0, False, False, angle_in, angle_out)[2]
 
