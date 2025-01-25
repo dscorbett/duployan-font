@@ -1988,7 +1988,6 @@ class Curve(Shape):
         assert exit_position == 1 or may_reposition_cursive_endpoints, f'{exit_position=}'
         assert 0 <= entry_position <= 1
         assert 0 <= exit_position <= 1
-        assert not (smooth_1 and smooth_2)
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -2112,8 +2111,7 @@ class Curve(Shape):
     def hub_priority(self, size: float) -> int:
         return 0 if size >= 6 else 1
 
-    @functools.cached_property
-    def _pre_stretch_values(self) -> tuple[float, float, float, float, float]:
+    def _pre_stretch(self, *angles: float) -> tuple[Sequence[float], float, float, float]:
         """Returns various values related to drawing this curve before
         it is stretched.
 
@@ -2127,17 +2125,19 @@ class Curve(Shape):
         If `stretch` is false, the pre-stretch angles are equal to the
         final angles.
 
-        Returns:
-            A tuple of five floats.
+        Args:
+            angles: A sequence of angles.
 
-            1. The pre-stretch entry angle.
-            2. The pre-stretch exit angle.
-            3. The non-negative number of degrees by which to rotate the
+        Returns:
+            A tuple of pre-stretch values.
+
+            1. The pre-stretch equivalents of `angles`.
+            2. The non-negative number of degrees by which to rotate the
                curve clockwise before stretching it. After stretching,
                the curve is rotated back the same amount
                counterclockwise.
-            4. How much to stretch this curve in the x axis.
-            5. How much to stretch this curve in the y axis.
+            3. How much to stretch this curve in the x axis.
+            4. How much to stretch this curve in the y axis.
         """
         scale_x = 1.0
         scale_y = 1.0 + self.stretch
@@ -2151,17 +2151,13 @@ class Curve(Shape):
             case StretchAxis.ANGLE_OUT:
                 theta = self.angle_out
         if self.stretch:
-            pre_stretch_angle_in = (_scale_angle(self.angle_in - theta, 1 / scale_x, 1 / scale_y) + theta) % 360
-            pre_stretch_angle_out = (_scale_angle(self.angle_out - theta, 1 / scale_x, 1 / scale_y) + theta) % 360
+            pre_stretch_angles: Sequence[float] = [(_scale_angle(angle - theta, 1 / scale_x, 1 / scale_y) + theta) % 360 for angle in angles]
         else:
-            pre_stretch_angle_in = self.angle_in
-            pre_stretch_angle_out = self.angle_out
-        return pre_stretch_angle_in, pre_stretch_angle_out, theta, scale_x, scale_y
+            pre_stretch_angles = angles
+        return pre_stretch_angles, theta, scale_x, scale_y
 
     def get_normalized_angles(
         self,
-        offset_1: float = 0,
-        offset_2: float = 0,
         angle_in: float | None = None,
         angle_out: float | None = None,
     ) -> tuple[float, float]:
@@ -2169,8 +2165,6 @@ class Curve(Shape):
             angle_in = self.angle_in
         if angle_out is None:
             angle_out = self.angle_out
-        angle_out = (angle_out + offset_1 * (1 if self.clockwise else -1)) % 360
-        angle_in = (angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
         if self.clockwise and angle_out > angle_in:
             angle_out -= 360
         elif not self.clockwise and angle_out < angle_in:
@@ -2181,14 +2175,12 @@ class Curve(Shape):
 
     def _get_normalized_angles_and_da(
         self,
-        offset_1: float,
-        offset_2: float,
         final_circle_diphthong: bool,
         initial_circle_diphthong: bool,
         angle_in: float | None = None,
         angle_out: float | None = None,
     ) -> tuple[float, float, float]:
-        a1, a2 = self.get_normalized_angles(offset_1, offset_2, angle_in, angle_out)
+        a1, a2 = self.get_normalized_angles(angle_in, angle_out)
         if final_circle_diphthong:
             a2 = a1
         elif initial_circle_diphthong:
@@ -2210,9 +2202,9 @@ class Curve(Shape):
 
         Returns:
             The difference between this curve’s entry angle and exit
-            angle. If the difference is 0, the return value is 360.
+            angle in the range (0, 360].
         """
-        return self._get_normalized_angles_and_da(0, 0, False, False, angle_in, angle_out)[2]
+        return self._get_normalized_angles_and_da(False, False, angle_in, angle_out)[2]
 
     def _get_angle_to_overlap_point(
         self,
@@ -2273,15 +2265,24 @@ class Curve(Shape):
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
-        pre_stretch_angle_in, pre_stretch_angle_out, stretch_axis_angle, scale_x, scale_y = self._pre_stretch_values
         smooth_delta = 45
+        offset_1 = 90 if diphthong_1 else smooth_delta if self.smooth_1 else 0
+        offset_2 = 90 if diphthong_2 else smooth_delta if self.smooth_2 else 0
+        offset_angle_in = (self.angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
+        offset_angle_out = (self.angle_out + offset_1 * (1 if self.clockwise else -1)) % 360
+        (
+            (pre_stretch_angle_in, pre_stretch_angle_out, pre_stretch_offset_angle_in, pre_stretch_offset_angle_out),
+            stretch_axis_angle,
+            scale_x,
+            scale_y,
+        ) = self._pre_stretch(self.angle_in, self.angle_out, offset_angle_in, offset_angle_out)
+        exit_delta_scalar = 1 if offset_1 == 90 else abs(math.tan(math.radians(pre_stretch_angle_out - (1 if self.clockwise else -1) * pre_stretch_offset_angle_out)))
+        entry_delta_scalar = 1 if offset_2 == 90 else abs(math.tan(math.radians(pre_stretch_angle_in + (1 if self.clockwise else -1) * pre_stretch_offset_angle_in)))
         a1, a2, da = self._get_normalized_angles_and_da(
-            90 if diphthong_1 else smooth_delta if self.smooth_1 else 0,
-            90 if diphthong_2 else smooth_delta if self.smooth_2 else 0,
             final_circle_diphthong,
             initial_circle_diphthong,
-            pre_stretch_angle_in,
-            pre_stretch_angle_out,
+            pre_stretch_offset_angle_in,
+            pre_stretch_offset_angle_out,
         )
         r = int(RADIUS * size)
         beziers_needed = math.ceil(abs(da) / 90)
@@ -2296,7 +2297,7 @@ class Curve(Shape):
             pen.moveTo(entry)
             pen.lineTo(p0)
         elif self.smooth_2:
-            entry_delta = _rect(-r, math.radians((self.angle_in - smooth_delta * (1 if self.clockwise else -1)) % 360))
+            entry_delta = _rect(-entry_delta_scalar * r, math.radians(pre_stretch_offset_angle_in))
             entry = (p0[0] + entry_delta[0], p0[1] + entry_delta[1])
             pen.moveTo(entry)
             pen.lineTo(p0)
@@ -2352,7 +2353,7 @@ class Curve(Shape):
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
         elif self.smooth_1:
-            exit_delta = _rect(r, math.radians((self.angle_out + smooth_delta * (1 if self.clockwise else -1)) % 360))
+            exit_delta = _rect(exit_delta_scalar * r, math.radians(pre_stretch_offset_angle_out))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
         pen.endPath()

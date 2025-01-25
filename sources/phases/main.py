@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -1891,6 +1891,79 @@ def avoid_abrupt_inflections(
     return [lookup]
 
 
+def avoid_cochiral_overlaps(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup(
+        'rclt',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        reverse=True,
+    )
+    probably_smoothable_schemas: OrderedSet[Schema] = OrderedSet()
+    maximum_unsmoothable_size = float('-inf')
+    for schema in new_schemas:
+        if (schema.glyph_class == GlyphClass.JOINER
+            and isinstance(schema.path, Curve) and schema.path.angle_in % 90 == 0 and schema.path.angle_out % 90 == 0
+            and abs(schema.path.get_da()) % 360 > 90
+            and not schema.path.reversed_circle
+            and schema.path.entry_position == 1 and schema.path.exit_position == 1
+        ):
+            if schema.joining_type == Type.JOINING:
+                if not (schema.path.smooth_1 or schema.path.smooth_2):
+                    probably_smoothable_schemas.add(schema)
+                elif schema.path.smooth_2:
+                    classes['s2'].append(schema)
+            else:
+                maximum_unsmoothable_size = max(maximum_unsmoothable_size, schema.size)
+    contexts_1: OrderedSet[str] = OrderedSet()
+    contexts_2: OrderedSet[str] = OrderedSet()
+    inputs: OrderedSet[tuple[Schema, str, str]] = OrderedSet()
+    for schema in probably_smoothable_schemas:
+        if schema.size <= maximum_unsmoothable_size:
+            continue
+        assert isinstance(schema.path, Curve)
+        context_1 = f'{schema.path.angle_out}_{schema.path.clockwise}'
+        contexts_1.add(context_1)
+        classes[f'c_{context_1}'].append(schema)
+        context_2 = f'{(schema.path.angle_in + 90 * (1 if schema.path.clockwise else -1)) % 360}_{schema.path.clockwise}'
+        contexts_2.add(context_2)
+        inputs.add((schema, context_1, context_2))
+    for classifying in [True, False]:
+        for schema, context_2, context_1 in inputs:
+            assert isinstance(schema.path, Curve)
+            context_2 = f'{schema.path.angle_out}_{schema.path.clockwise}'
+            context_1 = f'{(schema.path.angle_in + 90 * (1 if schema.path.clockwise else -1)) % 360}_{schema.path.clockwise}'
+            input_class = f'i_{context_1}'
+            if classifying:
+                classes[input_class].append(schema)
+            if context_1 in contexts_1 and context_2 in contexts_2:
+                output_class = f'o12_{context_1}'
+                if classifying:
+                    classes[output_class].append(schema.clone(cmap=None, path=schema.path.clone(smooth_1=True, smooth_2=True)))
+                else:
+                    add_rule(lookup, Rule(f'c_{context_1}', input_class, 's2', output_class))
+            if context_2 in contexts_2:
+                output_class = f'o1_{context_1}'
+                if classifying:
+                    classes[output_class].append(schema.clone(cmap=None, path=schema.path.clone(smooth_1=True)))
+                else:
+                    add_rule(lookup, Rule([], input_class, 's2', output_class))
+            if context_1 in contexts_1:
+                output_class = f'o2_{context_1}'
+                if classifying:
+                    classes[output_class].append(schema.clone(cmap=None, path=schema.path.clone(smooth_2=True)))
+                else:
+                    add_rule(lookup, Rule(f'c_{context_1}', input_class, [], output_class))
+    return [lookup]
+
+
 def shade(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -2080,6 +2153,7 @@ PHASE_LIST = [
     separate_subantiparallel_lines,
     rotate_diacritics,
     avoid_abrupt_inflections,
+    avoid_cochiral_overlaps,
     shade,
     create_superscripts_and_subscripts,
     make_widthless_variants_of_marks,
