@@ -2044,6 +2044,22 @@ class Curve(Shape):
             smooth_2=self.smooth_2 if smooth_2 is CLONE_DEFAULT else smooth_2,
         )
 
+    def smooth(
+        self,
+        *,
+        smooth_1: CloneDefault | bool = CLONE_DEFAULT,
+        smooth_2: CloneDefault | bool = CLONE_DEFAULT,
+    ) -> Self:
+        """Returns a copy of this shape with the ends smoothed.
+
+        Args:
+            smooth_1: The `smooth_1` value to use when cloning this
+                shape.
+            smooth_2: The `smooth_2` value to use when cloning this
+                shape.
+        """
+        return self.clone(smooth_1=smooth_1, smooth_2=smooth_2)
+
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.overlap_angle is not None:
@@ -2202,7 +2218,7 @@ class Curve(Shape):
 
         Returns:
             The difference between this curve’s entry angle and exit
-            angle in the range (0, 360].
+            angle. If the difference is 0, the return value is 360.
         """
         return self._get_normalized_angles_and_da(False, False, angle_in, angle_out)[2]
 
@@ -3777,6 +3793,97 @@ class Complex(Shape):
         if self._base_shape is not None:
             return self._base_shape.calculate_diacritic_angles()
         return super().calculate_diacritic_angles()
+
+
+class ComplexCurve(Complex):
+    """A sequence of multiple cochiral curves.
+    """
+
+    @override
+    def __init__(self, instructions: Instructions) -> None:
+        super().__init__(instructions)
+        assert len(instructions) >= 2, 'Not enough instructions: {len(instructions)}'
+        assert all(
+            not callable(op) and isinstance(op.shape, Curve) and not op.shape.reversed_circle
+            and op.shape.clockwise is self.instructions[0].shape.clockwise  # type: ignore[union-attr]
+            for op in self.instructions
+        ), f'Invalid instructions for `ComplexCurve`: {instructions}'
+        self._first_curve: Curve = self.instructions[0].shape  # type: ignore[assignment, union-attr]
+        self._last_curve: Curve = self.instructions[-1].shape  # type: ignore[assignment, union-attr]
+
+    @override
+    def get_name(self, size: float, joining_type: Type) -> str:
+        name = super().get_name(size, joining_type)
+        if self.smooth_1 or self.smooth_2:
+            name += f'''{
+                    '.' if name else ''
+                }s{
+                    '1' if self.smooth_1 else ''
+                }{
+                    '2' if self.smooth_2 else ''
+                }'''
+        return name
+
+    @property
+    def angle_in(self) -> float:
+        return self._first_curve.angle_in
+
+    @property
+    def angle_out(self) -> float:
+        return self._last_curve.angle_out
+
+    @property
+    def clockwise(self) -> bool:
+        return self._last_curve.clockwise
+
+    @property
+    def reversed_circle(self) -> float:
+        return self._first_curve.reversed_circle
+
+    @property
+    def entry_position(self) -> float:
+        return self._first_curve.entry_position
+
+    @property
+    def exit_position(self) -> float:
+        return self._last_curve.exit_position
+
+    @property
+    def smooth_1(self) -> bool:
+        return self._last_curve.smooth_1
+
+    @property
+    def smooth_2(self) -> bool:
+        return self._first_curve.smooth_2
+
+    def get_da(self) -> float:
+        """Returns the difference between the entry and exit angles.
+
+        Returns:
+            The difference between this curve’s entry angle and exit
+            angle. If the difference is 0, the return value is 360.
+        """
+        return self._last_curve.get_da(self.angle_in)
+
+    def smooth(
+        self,
+        *,
+        smooth_1: CloneDefault | bool = CLONE_DEFAULT,
+        smooth_2: CloneDefault | bool = CLONE_DEFAULT,
+    ) -> Self:
+        """Returns a copy of this shape with the ends smoothed.
+
+        Args:
+            smooth_1: The `smooth_1` value to use when cloning this
+                shape’s last curve.
+            smooth_2: The `smooth_2` value to use when cloning this
+                shape’s first curve.
+        """
+        return self.clone(instructions=[
+            self.instructions[0]._replace(shape=self._first_curve.clone(smooth_2=smooth_2)),  # type: ignore[union-attr]
+            *self.instructions[1:-1],
+            self.instructions[-1]._replace(shape=self._last_curve.clone(smooth_1=smooth_1)),  # type: ignore[union-attr]
+        ])
 
 
 class RotatedComplex(Complex):

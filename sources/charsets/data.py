@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ from schema import Schema
 from shapes import Bound
 from shapes import Circle
 from shapes import Complex
+from shapes import ComplexCurve
 from shapes import Curve
 from shapes import Dot
 from shapes import EqualsSign
@@ -329,8 +330,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     s_n = Curve(0, 90, clockwise=False, secondary=True, may_reposition_cursive_endpoints=True)
     k_r_s = Curve(90, 180, clockwise=False)
     s_k = Curve(90, 0, clockwise=True, secondary=False, may_reposition_cursive_endpoints=True)
-    j_n = Complex([(1, s_k), (1, n)])
-    j_n_s = Complex([(3, s_k), (4, n_s)])
+    j_n = ComplexCurve([(1, s_k), (1, n)])
+    j_n_s = ComplexCurve([(3, s_k), (4, n_s)])
     o = Circle(90, 90, clockwise=False)
     o_reverse = o.as_reversed()
     ie = Curve(180, 0, clockwise=False, may_reposition_cursive_endpoints=True)
