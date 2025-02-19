@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2024 David Corbett
+# Copyright 2019, 2022-2025 David Corbett
 # Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -246,7 +246,7 @@ jobs:
           key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.charset }}-${{ matrix.unjoined }}
           path: fonts
   compare-PYTHONOPTIMIZE:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - main
     steps:
@@ -306,7 +306,7 @@ jobs:
   release:
     permissions:
       contents: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: ${{ inputs.release }}
     needs:
       - compare-PYTHONOPTIMIZE
