@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -404,7 +404,7 @@ class Builder:
         *,
         drawing: bool,
     ) -> fontforge.glyph:
-        glyph_name = str(schema)
+        glyph_name = schema.glyph_name
         uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
             return self._add_altuni(uni, glyph_name)
@@ -505,7 +505,7 @@ class Builder:
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
-                fontTools.feaLib.ast.GlyphClass([*map(str, schemas)]),
+                fontTools.feaLib.ast.GlyphClass([schema.glyph_name for schema in schemas]),
             )
             self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
@@ -595,7 +595,7 @@ class Builder:
         for schema in schemas.sorted(key=lambda schema: (
             schema.canonical_schema is not schema,
             schema.cmap is None and schema.glyph_class == GlyphClass.MARK
-                or str(schema).startswith('_')
+                or schema.glyph_name.startswith('_')
                 or not (not schema.ignored_for_topography and schema in output_schemas and schema in more_output_schemas),
         )):
             if schema.canonical_schema is schema or schema.cmap is not None:

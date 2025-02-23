@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -573,17 +573,25 @@ class Schema:
 
     @override
     def __repr__(self) -> str:
-        return '<Schema {}>'.format(', '.join(map(str, [
-            self._calculate_name(),
-            self.cmap and f'{self.cmap:04X}',
-            self.path,
-            self.size,
-            self.side_bearing,
-            self.context_in,
-            'NJ' if self.joining_type == Type.NON_JOINING else '',
-            'mark' if self.anchor else 'base',
-            [repr(m) for m in self.marks],
-        ])))
+        return f'<Schema {
+                self
+            }, {
+                self.cmap and f'{self.cmap:04X}'
+            }, {
+                self.path
+            }, {
+                self.size
+            }, {
+                self.side_bearing
+            }, {
+                self.context_in
+            }, {
+                'NJ' if self.joining_type == Type.NON_JOINING else ''
+            }, {
+                'mark' if self.anchor else 'base'
+            }, {
+                [repr(m) for m in self.marks]
+            }>'
 
     @functools.cached_property
     def diacritic_angles(self) -> Mapping[str, float]:
@@ -798,7 +806,8 @@ class Schema:
             name = regex.sub(repl, name)
         return name
 
-    def _calculate_name(self) -> str:
+    @override
+    def __str__(self) -> str:
         """Returns this schema’s undisambiguated glyph name.
 
         The naming system is compatible with the Adobe Glyph List
@@ -880,8 +889,8 @@ class Schema:
         assert not self._RESERVED_GLYPH_NAME_PATTERN.search(name), f'The glyph name "{name}" misleadingly appears to have a disambiguatory suffix'
         return name
 
-    @override
-    def __str__(self) -> str:
+    @property
+    def glyph_name(self) -> str:
         """Returns this schema’s disambiguated glyph name.
 
         Every non-canonical schema has same glyph name as its canonical
@@ -896,13 +905,11 @@ class Schema:
         1 for each subsequent glyph. The suffix is ``"._"`` followed by
         the number in uppercase hexadecimal.
         """
-        # TODO: Forbidding `str` till schemas have been merged is a
-        # major footgun.
         if self._glyph_name is None:
             if self is not (canonical := self._canonical_schema):
-                self._glyph_name = str(canonical)
+                self._glyph_name = canonical.glyph_name
             else:
-                name = self._calculate_name()
+                name = str(self)
                 while len(name) > self._MAX_GLYPH_NAME_LENGTH:
                     name = name.rsplit('.', 1)[0]
                 if name in self._canonical_names:
@@ -1106,5 +1113,5 @@ class Schema:
         if self.glyph_class != GlyphClass.JOINER:
             return -1
         priority = self.path.hub_priority(self.size)
-        assert -1 <= priority <= MAX_HUB_PRIORITY, f'Invalid hub priority for {self._calculate_name()}: {priority}'
+        assert -1 <= priority <= MAX_HUB_PRIORITY, f'Invalid hub priority for {self}: {priority}'
         return priority

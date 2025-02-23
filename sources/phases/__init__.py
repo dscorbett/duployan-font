@@ -571,7 +571,7 @@ class Rule:
         ) -> fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName:
             if isinstance(glyph, str):
                 return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
-            return fontTools.feaLib.ast.GlyphName(str(glyph))
+            return fontTools.feaLib.ast.GlyphName(glyph.glyph_name)
 
         def glyphs_to_ast(
             glyphs: Iterable[str | schema.Schema],
@@ -673,7 +673,7 @@ class Rule:
                     glyphs_to_ast(self.contexts_in),
                     glyphs_to_ast(self.inputs),
                     glyphs_to_ast(self.contexts_out),
-                    str(output),
+                    output.glyph_name,
                     in_contextual_lookup,
                 )]
 
