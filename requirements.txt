@@ -17,7 +17,7 @@
 #    uv pip compile requirements.in
 cffsubr==0.3.0
     # via -r requirements.in
-fonttools==4.55.3
+fonttools==4.57.0
     # via
     #   -r requirements.in
     #   cffsubr
@@ -29,7 +29,7 @@ uharfbuzz==0.37.2 ; ('Version 1.' not in platform_version and 'Version 10.' not 
     # via
     #   -r requirements.in
     #   fonttools
-uharfbuzz==0.44.0 ; ('Version 1.' in platform_version and sys_platform == 'darwin') or ('Version 10.' in platform_version and sys_platform == 'darwin') or ('Version 11.' in platform_version and sys_platform == 'darwin') or ('Version 12.' in platform_version and sys_platform == 'darwin') or ('Version 13.' in platform_version and sys_platform == 'darwin') or ('Version 14.' in platform_version and sys_platform == 'darwin') or ('Version 15.' in platform_version and sys_platform == 'darwin') or ('Version 16.' in platform_version and sys_platform == 'darwin') or ('Version 17.' in platform_version and sys_platform == 'darwin') or ('Version 2.' in platform_version and sys_platform == 'darwin') or ('Version 3.' in platform_version and sys_platform == 'darwin') or ('Version 4.' in platform_version and sys_platform == 'darwin') or ('Version 5.' in platform_version and sys_platform == 'darwin') or ('Version 6.' in platform_version and sys_platform == 'darwin') or ('Version 7.' in platform_version and sys_platform == 'darwin') or ('Version 8.' in platform_version and sys_platform == 'darwin') or ('Version 9.' in platform_version and sys_platform == 'darwin')
+uharfbuzz==0.50.0 ; ('Version 1.' in platform_version and sys_platform == 'darwin') or ('Version 10.' in platform_version and sys_platform == 'darwin') or ('Version 11.' in platform_version and sys_platform == 'darwin') or ('Version 12.' in platform_version and sys_platform == 'darwin') or ('Version 13.' in platform_version and sys_platform == 'darwin') or ('Version 14.' in platform_version and sys_platform == 'darwin') or ('Version 15.' in platform_version and sys_platform == 'darwin') or ('Version 16.' in platform_version and sys_platform == 'darwin') or ('Version 17.' in platform_version and sys_platform == 'darwin') or ('Version 2.' in platform_version and sys_platform == 'darwin') or ('Version 3.' in platform_version and sys_platform == 'darwin') or ('Version 4.' in platform_version and sys_platform == 'darwin') or ('Version 5.' in platform_version and sys_platform == 'darwin') or ('Version 6.' in platform_version and sys_platform == 'darwin') or ('Version 7.' in platform_version and sys_platform == 'darwin') or ('Version 8.' in platform_version and sys_platform == 'darwin') or ('Version 9.' in platform_version and sys_platform == 'darwin')
     # via
     #   -r requirements.in
     #   fonttools
