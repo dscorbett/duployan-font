@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2023-2024 David Corbett
+Copyright 2023-2025 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ There are also some private use characters for non-joining characters:
 * U+E014 RIGHT PARENTHESIS WITH DOUBLE STROKE
 * U+E015 STENOGRAPHIC SEMICOLON
 * U+E016 STENOGRAPHIC QUESTION MARK
+* U+E017 STENOGRAPHIC EXCLAMATION MARK
 * U+E021 COMBINING DIGIT ONE ABOVE
 * U+E02A COMBINING RING-AND-DOT ABOVE
 * U+E031 COMBINING DIGIT ONE BELOW

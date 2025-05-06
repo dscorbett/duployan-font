@@ -272,6 +272,7 @@ class Schema:
         (r'^uniE014$', 'RIGHT PARENTHESIS WITH DOUBLE STROKE'),
         (r'^uniE015$', 'STENOGRAPHIC SEMICOLON'),
         (r'^uniE016$', 'STENOGRAPHIC QUESTION MARK'),
+        (r'^uniE017$', 'STENOGRAPHIC EXCLAMATION MARK'),
         (r'^uniE021$', 'COMBINING DIGIT ONE ABOVE'),
         (r'^uniE02A$', 'COMBINING RING-AND-DOT ABOVE'),
         (r'^uniE031$', 'COMBINING DIGIT ONE BELOW'),
