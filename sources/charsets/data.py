@@ -94,6 +94,8 @@ _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     0x0312,
     # Duployé-Flageul for Esperanto is not fully supported in Unicode.
     0x031C, 0x0339, 0x0351, 0x0357,
+    # Lockett’s Shorthand is not fully supported in Unicode.
+    0x033D,
     # U+034F COMBINING GRAPHEME JOINER creates reversed circle letters not
     # supported by Unicode. It is effectively a private use character.
     0x034F,
@@ -469,6 +471,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
         Schema(0x0331, macron, 0.2, anchor=anchors.BELOW),
         Schema(0x0339, right_half_ring, 1, anchor=anchors.BELOW),
+        Schema(0x033D, stenographic_period, 0.5, anchor=anchors.ABOVE),
         Schema(0x034F, cgj, 0, Type.NON_JOINING),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
