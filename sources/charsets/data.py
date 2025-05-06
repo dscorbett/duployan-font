@@ -280,6 +280,9 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     dotted_circle = Complex([(0, Dot(0)), (446, Space(90)), (0, Dot(0)), (223, Space(270)), (223, Space(60)), (0, Dot(0)), (446, Space(240)), (0, Dot(0)), (223, Space(60)), (223, Space(30)), (0, Dot(0)), (446, Space(210)), (0, Dot(0)), (223, Space(30)), (223, Space(0)), (0, Dot(0)), (446, Space(180)), (0, Dot(0)), (223, Space(0)), (223, Space(330)), (0, Dot(0)), (446, Space(150)), (0, Dot(0)), (223, Space(330)), (223, Space(300)), (0, Dot(0)), (446, Space(120)), (0, Dot(0))])
     skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 99 / 172, Space(270)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 59 / 215 - 42, Space(270)), (0, Dot(0)), (150, Space(160)), (0, Dot(0)), (150, Space(340)), (150, Space(20)), (0, Dot(0)), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2 + 42, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True), True), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
     earth = Complex([(2.72, Circle(180, 180, clockwise=False)), (0.476, Line(90)), (0.213, Line(270), True), (0.213, Line(180), True), (0.426, Line(0))])
+    parenthesis_horizontal_space = (8.89, Space(0))
+    left_double_parenthesis = Complex([*left_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(left_parenthesis.instructions)], parenthesis_horizontal_space, *left_parenthesis.instructions])  # type: ignore[attr-defined]
+    right_double_parenthesis = Complex([*right_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(right_parenthesis.instructions)], parenthesis_horizontal_space, *right_parenthesis.instructions])  # type: ignore[attr-defined]
     stenographic_period = Complex([(0.5, Line(135), True), *multiplication.instructions])
     double_hyphen = Complex([(0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
     bound = Bound()
@@ -510,6 +513,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=CROSS_HEIGHT),
         Schema(0x271D, cross, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x2E29, right_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
