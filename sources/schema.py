@@ -704,10 +704,8 @@ class Schema:
             self.glyph_class,
             self.encirclable or self.max_double_marks != 0 or self.cmap == 0x25CC,
             self.can_take_secant,
-            self.context_in == NO_CONTEXT and not self.diphthong_1,
-            self.context_out == NO_CONTEXT and not self.diphthong_2,
-            self.context_in == NO_CONTEXT and self.diphthong_1,
-            self.context_out == NO_CONTEXT and self.diphthong_2,
+            self.context_in == NO_CONTEXT,
+            self.context_out == NO_CONTEXT,
             self.diphthong_1,
             self.diphthong_2,
         )
@@ -989,7 +987,10 @@ class Schema:
             or self.joining_type != Type.ORIENTING
             or isinstance(self.path, Ou)
             or not self.can_be_ignored_for_topography()
-            or isinstance(self.path, Curve) and not self.path.reversed_circle and (self.path.hook or (self.path.angle_out - self.path.angle_in) % 180 != 0)
+            or (isinstance(self.path, Curve)
+                and not self.path.reversed_circle
+                and (self.path.hook or not issubclass(self.original_shape, Curve))
+            )
             # TODO: Remove the following restriction.
             or self.path.stretch  # type: ignore[attr-defined]
         )

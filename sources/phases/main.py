@@ -1196,13 +1196,13 @@ def prepare_for_secondary_diphthong_ligature(
             continue
         if isinstance(schema.path, Curve):
             if schema.is_primary:
-                classes['primary_semicircle'].append(schema)
+                classes['primary_curve'].append(schema)
         else:
             assert isinstance(schema.path, Circle)
             if schema.path.reversed_circle:
                 classes['reversed_circle'].append(schema)
                 classes['pinned_circle'].append(schema.clone(cmap=None, path=schema.path.clone(pinned=True)))
-    add_rule(lookup, Rule([], 'reversed_circle', 'primary_semicircle', 'pinned_circle'))
+    add_rule(lookup, Rule([], 'reversed_circle', 'primary_curve', 'pinned_circle'))
     return [lookup]
 
 
@@ -1562,6 +1562,8 @@ def ligate_diphthongs(
         is_ignored = schema.ignored_for_topography
         is_primary = schema.is_primary
         if is_ignored and not is_primary:
+            continue
+        if not is_ignored and not is_circle_letter and isinstance(schema.path, Curve) and abs(schema.path.get_da()) < 180:
             continue
         input_class_name = f'i1_{is_circle_letter}_{is_ignored}'
         classes[input_class_name].append(schema)

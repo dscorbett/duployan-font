@@ -2281,9 +2281,10 @@ class Curve(Shape):
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
+        final_abs_da = abs(self.get_da())
         smooth_delta = 45
-        offset_1 = 90 if diphthong_1 else smooth_delta if self.smooth_1 else 0
-        offset_2 = 90 if diphthong_2 else smooth_delta if self.smooth_2 else 0
+        offset_1 = 90 if diphthong_1 else smooth_delta if self.smooth_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
+        offset_2 = 90 if diphthong_2 else smooth_delta if self.smooth_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
         offset_angle_in = (self.angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
         offset_angle_out = (self.angle_out + offset_1 * (1 if self.clockwise else -1)) % 360
         (
@@ -2292,8 +2293,18 @@ class Curve(Shape):
             scale_x,
             scale_y,
         ) = self._pre_stretch(self.angle_in, self.angle_out, offset_angle_in, offset_angle_out)
-        exit_delta_scalar = 1 if offset_1 == 90 else abs(math.tan(math.radians(pre_stretch_angle_out - (1 if self.clockwise else -1) * pre_stretch_offset_angle_out)))
-        entry_delta_scalar = 1 if offset_2 == 90 else abs(math.tan(math.radians(pre_stretch_angle_in + (1 if self.clockwise else -1) * pre_stretch_offset_angle_in)))
+        exit_delta_scalar = (abs(math.tan(math.radians(pre_stretch_angle_out - (1 if self.clockwise else -1) * pre_stretch_offset_angle_out)))
+            if offset_1 != 90
+            else math.sin(math.radians(final_abs_da / 2))
+            if final_abs_da < 180
+            else 1
+        )
+        entry_delta_scalar = (abs(math.tan(math.radians(pre_stretch_angle_in + (1 if self.clockwise else -1) * pre_stretch_offset_angle_in)))
+            if offset_2 != 90
+            else math.sin(math.radians(final_abs_da / 2))
+            if final_abs_da < 180
+            else 1
+        )
         a1, a2, da = self._get_normalized_angles_and_da(
             final_circle_diphthong,
             initial_circle_diphthong,
@@ -2308,7 +2319,7 @@ class Curve(Shape):
         cp_angle = math.asin(cp / cp_distance)
         p0 = _rect(r, math.radians(a1))
         if diphthong_2:
-            entry_delta = _rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
+            entry_delta = _rect(entry_delta_scalar * r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
             entry = (p0[0] + entry_delta[0], p0[1] + entry_delta[1])
             pen.moveTo(entry)
             pen.lineTo(p0)
@@ -2365,7 +2376,7 @@ class Curve(Shape):
             else:
                 exit = p3
         if diphthong_1:
-            exit_delta = _rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
+            exit_delta = _rect(exit_delta_scalar * r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
         elif self.smooth_1:
@@ -2500,7 +2511,7 @@ class Curve(Shape):
         if self.hook and context_in != NO_CONTEXT != context_out:
             rv = self.as_reversed().clone(hook=False).contextualize(context_out.as_reversed(), context_in.as_reversed())
             assert isinstance(rv, type(self))
-            rv = rv.as_reversed()
+            rv = rv.clone(hook=True).as_reversed()
             if rv.context_in().angle == context_in.angle:
                 if rv.entry_position == 1:
                     rv = Complex([
