@@ -1671,6 +1671,13 @@ def unignore_noninitial_orienting_sequences(
         for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(context_in, target_schema.context_out, ignore_dependent_schemas=False)
+                if (context_in.ou and issubclass(output_schema.original_shape, Curve)
+                    and isinstance(output_schema.path, Curve) and context_in.clockwise is not output_schema.path.clockwise
+                ):
+                    angle_out = context_in.angle
+                    assert angle_out is not None
+                    angle_in = (output_schema.path.angle_in + angle_out - output_schema.path.angle_out) % 360
+                    output_schema = output_schema.clone(path=output_schema.path.clone(angle_in=angle_in, angle_out=angle_out))
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Rule(f'c_{context_in}', 'i', [], output_class_name))
@@ -1719,6 +1726,13 @@ def unignore_initial_orienting_sequences(
         for i, target_schema in enumerate(classes['i']):
             if new_context or i >= old_input_count:
                 output_schema = target_schema.contextualize(target_schema.context_in, context_out, ignore_dependent_schemas=False)
+                if (context_out.ou and issubclass(output_schema.original_shape, Curve)
+                    and isinstance(output_schema.path, Curve) and context_out.clockwise is not output_schema.path.clockwise
+                ):
+                    angle_in = context_out.angle
+                    assert angle_in is not None
+                    angle_out = (output_schema.path.angle_out + angle_in - output_schema.path.angle_in) % 360
+                    output_schema = output_schema.clone(path=output_schema.path.clone(angle_in=angle_in, angle_out=angle_out))
                 classes[output_class_name].append(output_schema)
         if new_context:
             add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))

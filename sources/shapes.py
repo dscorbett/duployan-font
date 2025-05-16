@@ -4351,7 +4351,7 @@ class Ou(Complex):
         if self._initial:
             rv = super().context_out()
             assert rv.angle is not None
-            return rv.clone(angle=(rv.angle + 180) % 360)
+            return rv.clone(angle=(rv.angle + 180) % 360, ou=True)
         return super().context_in()
 
     @override
@@ -4360,7 +4360,7 @@ class Ou(Complex):
             return super().context_out()
         rv = self.context_in()
         assert rv.angle is not None
-        return rv.clone(angle=(rv.angle + 180) % 360)
+        return rv.clone(angle=(rv.angle + 180) % 360, ou=True)
 
     def as_reversed(self) -> Self:
         """Returns an `Ou` that is drawn in the opposite direction but

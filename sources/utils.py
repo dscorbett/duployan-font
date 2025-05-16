@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -427,6 +427,8 @@ class Context:
             their default values.
         clockwise: Whether the pen is curving clockwise, or ``None`` if
             the pen is not curving at all.
+        ou: Whether this is the endpoint of the inner curve of U+1BC5B
+            DUPLOYAN LETTER OU or similar.
         minor: Whether the fields of this context are only applicable to
             a very small bit near the end of the shape, suggesting that
             whatever implications they would normally apply to do not
@@ -450,6 +452,7 @@ class Context:
         angle: float,
         clockwise: bool | None = ...,
         *,
+        ou: bool = ...,
         minor: bool = ...,
         ignorable_for_topography: bool = ...,
         diphthong_start: bool = ...,
@@ -463,6 +466,7 @@ class Context:
         angle: None = ...,
         clockwise: Literal[False] = ...,
         *,
+        ou: Literal[False] = ...,
         minor: Literal[False] = ...,
         ignorable_for_topography: Literal[False] = ...,
         diphthong_start: Literal[False] = ...,
@@ -475,6 +479,7 @@ class Context:
         angle: float | None = None,
         clockwise: bool | None = None,
         *,
+        ou: bool = False,
         minor: bool = False,
         ignorable_for_topography: bool = False,
         diphthong_start: bool = False,
@@ -485,6 +490,7 @@ class Context:
         Args:
             angle: The ``angle`` attribute.
             clockwise: The ``clockwise`` attribute.
+            ou: The ``ou`` attribute.
             minor: The ``minor`` attribute.
             ignorable_for_topography: The ``ignorable_for_topography``
                 attribute.
@@ -494,6 +500,7 @@ class Context:
         assert clockwise is not None or not ignorable_for_topography
         self.angle: Final = float(angle) if angle is not None else None
         self.clockwise: Final = clockwise
+        self.ou: Final = ou
         self.minor: Final = minor
         self.ignorable_for_topography: Final = ignorable_for_topography
         self.diphthong_start: Final = diphthong_start
@@ -504,6 +511,7 @@ class Context:
         *,
         angle: CloneDefault | float | None = CLONE_DEFAULT,
         clockwise: CloneDefault | bool | None = CLONE_DEFAULT,
+        ou: CloneDefault | bool = CLONE_DEFAULT,
         minor: CloneDefault | bool = CLONE_DEFAULT,
         ignorable_for_topography: CloneDefault | bool = CLONE_DEFAULT,
         diphthong_start: CloneDefault | bool = CLONE_DEFAULT,
@@ -512,6 +520,7 @@ class Context:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,  # type: ignore[arg-type]
             self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
+            ou=self.ou if ou is CLONE_DEFAULT else ou,
             minor=self.minor if minor is CLONE_DEFAULT else minor,
             ignorable_for_topography=self.ignorable_for_topography if ignorable_for_topography is CLONE_DEFAULT else ignorable_for_topography,
             diphthong_start=self.diphthong_start if diphthong_start is CLONE_DEFAULT else diphthong_start,
@@ -524,6 +533,8 @@ class Context:
                 self.angle
             }, {
                 self.clockwise
+            }, ou={
+                self.ou
             }, minor={
                 self.minor
             }, ignorable_for_topography={
@@ -543,6 +554,8 @@ class Context:
         }{
             '' if self.clockwise is None else 'neg' if self.clockwise else 'pos'
         }{
+            '.ou' if self.ou else ''
+        }{
             '.minor' if self.minor else ''
         }{
             '.ori' if self.ignorable_for_topography else ''
@@ -560,6 +573,7 @@ class Context:
             return NotImplemented
         return (self.angle == other.angle
             and self.clockwise == other.clockwise
+            and self.ou == other.ou
             and self.minor == other.minor
             and self.ignorable_for_topography == other.ignorable_for_topography
             and self.diphthong_start == other.diphthong_start
@@ -576,6 +590,7 @@ class Context:
         return (
             hash(self.angle)
             ^ hash(self.clockwise)
+            ^ hash(self.ou)
             ^ hash(self.minor)
             ^ hash(self.ignorable_for_topography)
             ^ hash(self.diphthong_start)
