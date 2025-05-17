@@ -1784,8 +1784,7 @@ def rotate_diacritics(
         'dflt',
         mark_filtering_set='all',
     )
-    base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
-    new_base_anchors_and_contexts = set()
+    new_base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
     for schema in new_schemas:
         if schema.anchor:
             if schema.base_angle is None and schema.joining_type == Type.ORIENTING:
@@ -1795,23 +1794,18 @@ def rotate_diacritics(
             for base_anchor, base_angle in schema.diacritic_angles.items():
                 base_context = schema.path_context_out()
                 base_context = Context(base_angle, base_context.clockwise, ignorable_for_topography=base_context.ignorable_for_topography)
-                base_anchor_and_context = (base_anchor, base_context)
-                base_anchors_and_contexts.add(base_anchor_and_context)
                 if schema not in (base_anchor_and_context_class := classes[f'c_{base_anchor}_{base_context}']):
                     if not base_anchor_and_context_class:
-                        new_base_anchors_and_contexts.add(base_anchor_and_context)
+                        new_base_anchors_and_contexts.add((base_anchor, base_context))
                     base_anchor_and_context_class.append(schema)
                     if schema.glyph_class == GlyphClass.MARK:
                         classes['all'].append(schema)
-    for base_anchor_and_context in base_anchors_and_contexts:
-        if base_anchor_and_context in new_base_anchors_and_contexts:
-            anchor, context = base_anchor_and_context
-            output_class_name = f'o_{anchor}_{context}'
-            for target_schema in classes[f'i_{anchor}']:
-                if anchor == target_schema.anchor:
-                    output_schema = target_schema.rotate_diacritic(context)
-                    classes[output_class_name].append(output_schema)
-            add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
+    for anchor, context in new_base_anchors_and_contexts:
+        output_class_name = f'o_{anchor}_{context}'
+        for target_schema in classes[f'i_{anchor}']:
+            output_schema = target_schema.rotate_diacritic(context)
+            classes[output_class_name].append(output_schema)
+        add_rule(lookup, Rule(f'c_{anchor}_{context}', f'i_{anchor}', [], output_class_name))
     return [lookup]
 
 
