@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2024 David Corbett
+# Copyright 2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,26 +84,37 @@ def _sift_groups_in_rule_part(
     target_part: Sequence[Schema | str],
     classes: Mapping[str, Collection[Schema]],
     named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
+    intersection_cache: MutableMapping[int, MutableMapping[str, Collection[Schema]]],
 ) -> None:
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
             cls_intersection = set(cls).intersection
             for group in grouper.groups():
-                intersection_set = cls_intersection(group)
+                if ((intersection_cache_2 := intersection_cache.get(id(group))) is None
+                    or (intersection_set := intersection_cache_2.get(s)) is None
+                ):
+                    intersection_set = cls_intersection(group)
+                    if intersection_cache_2 is not None:
+                        intersection_cache_2[s] = intersection_set
+                    else:
+                        intersection_cache[id(group)] = {s: intersection_set}
                 if overlap := len(intersection_set):
                     if overlap == len(group):
                         intersection = group
                     else:
                         grouper.remove_items(group, intersection_set)
+                        intersection_cache.pop(id(group), None)
                         if overlap != 1:
                             intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
                             grouper.add(intersection)
+                            intersection_cache[id(intersection)] = {s: intersection}
                     if overlap != 1 and target_part is rule.inputs:
                         if rule.outputs is not None:
                             for output in rule.outputs:
                                 if isinstance(output, str) and len(output_class := classes[output]) != 1:
                                     grouper.remove(intersection)
+                                    intersection_cache.pop(id(group), None)
                                     new_groups = collections.defaultdict(list)
                                     for input_schema, output_schema in zip(cls, output_class, strict=True):
                                         if input_schema in intersection_set:
@@ -124,11 +135,12 @@ def _sift_groups_in_rule_part(
                         elif rule.lookups is not None:
                             for lookup in rule.lookups:
                                 if lookup is not None:
-                                    sift_groups(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases)
+                                    sift_groups(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases, intersection_cache)
         else:
             for group in grouper.groups():
                 if s in group:
                     grouper.remove_item(group, s)
+                    intersection_cache.pop(id(group), None)
                     break
 
 
@@ -137,9 +149,12 @@ def sift_groups(
     lookup: Lookup,
     classes: Mapping[str, Collection[Schema]],
     named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
+    _intersection_cache: MutableMapping[int, MutableMapping[str, Collection[Schema]]] | None = None,
 ) -> None:
+    if _intersection_cache is None:
+        _intersection_cache = {}
     for rule in lookup.rules:
-        _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)
+        _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases, _intersection_cache)
         assert rule.contexts_out is not None
-        _sift_groups_in_rule_part(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases)
-        _sift_groups_in_rule_part(grouper, rule, rule.inputs, classes, named_lookups_with_phases)
+        _sift_groups_in_rule_part(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases, _intersection_cache)
+        _sift_groups_in_rule_part(grouper, rule, rule.inputs, classes, named_lookups_with_phases, _intersection_cache)
