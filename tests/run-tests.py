@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2019, 2023-2024 David Corbett
+# Copyright 2018-2019, 2023-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,7 +121,7 @@ def print_diff(
     if color:
         highlighted_actual_output = []
         highlighted_expected_output = []
-        matcher = difflib.SequenceMatcher(None, actual_output, expected_output, False)
+        matcher = difflib.SequenceMatcher(None, actual_output, expected_output, autojunk=False)
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             if tag == 'equal':
                 highlighted_actual_output.append(actual_output[i1:i2])

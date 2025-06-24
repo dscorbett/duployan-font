@@ -44,6 +44,7 @@ enable_error_code = [
     "unimported-reveal",
     "unused-awaitable",
 ]
+allow_redefinition_new = true
 disallow_any_explicit = true
 disallow_any_generics = true
 disallow_incomplete_defs = true
@@ -51,7 +52,11 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
+exclude_gitignore = true
+extra_checks = true
+local_partial_types = true
 no_implicit_reexport = true
+strict_bytes = true
 strict_equality = true
 warn_redundant_casts = true
 warn_return_any = true
@@ -100,12 +105,11 @@ ignore = [
     "D200",
     "DOC502",
     "EM",
+    "FBT002",
     "FIX001",
     "FIX002",
-    "FIX004",
     "FURB154",
     "FURB189",
-    "PLR2004",
     "PLR5501",
     "PT015",
     "RET505",
@@ -120,17 +124,16 @@ ignore = [
     "TD001",
     "TD002",
     "TD003",
-    "TRY003",
     # Too many false positives
-    "ARG001",
-    "ARG002",
     "D205",
-    "PLW2901",  # https://github.com/astral-sh/ruff/issues/7273
+    "PLR2004",  # https://github.com/astral-sh/ruff/issues/10009
+    "PLW2901",  # https://github.com/astral-sh/ruff/issues/17951
     "SLF001",  # https://github.com/astral-sh/ruff/issues/9022
+    "TRY003",  # https://github.com/astral-sh/ruff/issues/14398
     # Too many true positives
     "C901",
     "D1",
-    "FBT",
+    "FBT001",
     "PLR09",
     "PLR1702",
 ]
@@ -183,9 +186,14 @@ extend-ignore-names = [
     # Shape definitions are more maintainable one per line.
     "E501",
 ]
+"sources/phases/**" = [
+    # Phases must all have the same signature.
+    "ARG001",
+]
 "sources/shapes.py" = [
     # Shape classes are designed for inheritance. Even if a certain
-    # method doesn’t use `self`, an override of it might.
+    # method doesn’t use a certain argument, an override of it might.
+    "ARG002",
     "PLR6301",
 ]
 "tests/run-tests.py" = [

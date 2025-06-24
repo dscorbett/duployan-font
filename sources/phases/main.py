@@ -1139,7 +1139,7 @@ def separate_subantiparallel_lines(
                     a1,
                     (a2 + 180 - (closeness_threshold - EPSILON)) % 360,
                     (a2 + 180 + closeness_threshold - EPSILON) % 360,
-                    False,
+                    clockwise=False,
                 )
             ):
                 classes[f'i_{a1}_{a2}'].extend(lines_1)
@@ -1258,7 +1258,7 @@ def join_with_previous(
 
     @functools.cache
     def get_context_marker(context: Context) -> Schema:
-        return Schema(None, ContextMarker(False, context), 0)
+        return Schema(None, ContextMarker(context, is_context_in=False), 0)
 
     for schema in original_schemas:
         if schema.glyph_class == GlyphClass.JOINER and not (isinstance(schema.path, Line) and schema.path.secant):

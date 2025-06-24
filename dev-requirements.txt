@@ -21,7 +21,7 @@ attrs==25.3.0
     # via ufolib2
 axisregistry==0.4.12
     # via fontbakery
-babelfont==3.1.2
+babelfont==3.1.3
     # via
     #   -c dev-constraints.txt
     #   collidoscope
@@ -31,7 +31,7 @@ beziers==0.6.0
     # via fontbakery
 booleanoperations==0.9.0
     # via ufo2ft
-certifi==2025.4.26
+certifi==2025.6.15
     # via requests
 cffi==1.17.1
     # via
@@ -53,7 +53,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via tqdm
 commandlines==0.4.1
     # via ufolint
-coverage==7.8.0
+coverage==7.9.1
     # via -r dev-requirements.in
 defcon==0.12.1
     # via
@@ -64,11 +64,11 @@ dehinter==4.0.0
     # via fontbakery
 filelock==3.18.0
     # via youseedee
-fontbakery==0.13.2
+fontbakery==1.0.0
     # via -r dev-requirements.in
 fontmath==0.9.4
     # via ufo2ft
-fonttools==4.57.0
+fonttools==4.58.4
     # via
     #   -c dev-constraints.txt
     #   -r requirements.in
@@ -97,7 +97,7 @@ fs==2.4.16
     # via
     #   -c dev-constraints.txt
     #   fonttools
-gflanguages==0.7.3
+gflanguages==0.7.5
     # via
     #   fontbakery
     #   glyphsets
@@ -107,7 +107,7 @@ gfsubsets==2024.9.25
     #   fontbakery
 glyphsets==1.1.0
     # via fontbakery
-glyphslib==6.10.1
+glyphslib==6.11.0
     # via glyphsets
 idna==3.10
     # via requests
@@ -135,7 +135,7 @@ munkres==1.1.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-mypy==1.15.0
+mypy==1.16.1
     # via -r dev-requirements.in
 mypy-extensions==1.1.0
     # via mypy
@@ -146,7 +146,7 @@ openstep-plist==0.5.0
     #   glyphslib
 opentype-sanitizer==9.2.0
     # via fontbakery
-opentypespec==1.9.1
+opentypespec==1.9.2
     # via fontbakery
 orjson==3.10.18
     # via
@@ -156,6 +156,8 @@ packaging==25.0
     # via
     #   -c dev-constraints.txt
     #   fontbakery
+pathspec==0.12.1
+    # via mypy
 pip==25.1.1
     # via
     #   -c dev-constraints.txt
@@ -175,14 +177,14 @@ pyclipper==1.3.0.post6
     #   booleanoperations
 pycparser==2.22
     # via cffi
-pygments==2.19.1
+pygments==2.19.2
     # via rich
 pyyaml==6.0.2
     # via
     #   -c dev-constraints.txt
     #   fontbakery
     #   glyphsets
-requests==2.32.3
+requests==2.32.4
     # via
     #   -c dev-constraints.txt
     #   fontbakery
@@ -196,9 +198,9 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.11.8
+ruff==0.12.0
     # via -r dev-requirements.in
-setuptools==80.3.1
+setuptools==80.9.0
     # via
     #   -c dev-constraints.txt
     #   fs
@@ -227,11 +229,11 @@ toml==0.10.2
     #   fontbakery
 tqdm==4.67.1
     # via collidoscope
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   beautifulsoup4
     #   mypy
-ufo2ft==3.4.3
+ufo2ft==3.5.0
     # via fontbakery
 ufolib2==0.17.1
     # via
@@ -240,7 +242,7 @@ ufolib2==0.17.1
     #   ufomerge
 ufolint==1.2.0
     # via fontbakery
-ufomerge==1.9.1
+ufomerge==1.9.4
     # via babelfont
 uharfbuzz==0.37.2 ; ('Version 1.' not in platform_version and 'Version 10.' not in platform_version and 'Version 11.' not in platform_version and 'Version 12.' not in platform_version and 'Version 13.' not in platform_version and 'Version 14.' not in platform_version and 'Version 15.' not in platform_version and 'Version 16.' not in platform_version and 'Version 17.' not in platform_version and 'Version 2.' not in platform_version and 'Version 3.' not in platform_version and 'Version 4.' not in platform_version and 'Version 5.' not in platform_version and 'Version 6.' not in platform_version and 'Version 7.' not in platform_version and 'Version 8.' not in platform_version and 'Version 9.' not in platform_version) or sys_platform != 'darwin'
     # via
@@ -249,7 +251,7 @@ uharfbuzz==0.37.2 ; ('Version 1.' not in platform_version and 'Version 10.' not 
     #   fontbakery
     #   fonttools
     #   vharfbuzz
-uharfbuzz==0.50.0 ; ('Version 1.' in platform_version and sys_platform == 'darwin') or ('Version 10.' in platform_version and sys_platform == 'darwin') or ('Version 11.' in platform_version and sys_platform == 'darwin') or ('Version 12.' in platform_version and sys_platform == 'darwin') or ('Version 13.' in platform_version and sys_platform == 'darwin') or ('Version 14.' in platform_version and sys_platform == 'darwin') or ('Version 15.' in platform_version and sys_platform == 'darwin') or ('Version 16.' in platform_version and sys_platform == 'darwin') or ('Version 17.' in platform_version and sys_platform == 'darwin') or ('Version 2.' in platform_version and sys_platform == 'darwin') or ('Version 3.' in platform_version and sys_platform == 'darwin') or ('Version 4.' in platform_version and sys_platform == 'darwin') or ('Version 5.' in platform_version and sys_platform == 'darwin') or ('Version 6.' in platform_version and sys_platform == 'darwin') or ('Version 7.' in platform_version and sys_platform == 'darwin') or ('Version 8.' in platform_version and sys_platform == 'darwin') or ('Version 9.' in platform_version and sys_platform == 'darwin')
+uharfbuzz==0.50.2 ; ('Version 1.' in platform_version and sys_platform == 'darwin') or ('Version 10.' in platform_version and sys_platform == 'darwin') or ('Version 11.' in platform_version and sys_platform == 'darwin') or ('Version 12.' in platform_version and sys_platform == 'darwin') or ('Version 13.' in platform_version and sys_platform == 'darwin') or ('Version 14.' in platform_version and sys_platform == 'darwin') or ('Version 15.' in platform_version and sys_platform == 'darwin') or ('Version 16.' in platform_version and sys_platform == 'darwin') or ('Version 17.' in platform_version and sys_platform == 'darwin') or ('Version 2.' in platform_version and sys_platform == 'darwin') or ('Version 3.' in platform_version and sys_platform == 'darwin') or ('Version 4.' in platform_version and sys_platform == 'darwin') or ('Version 5.' in platform_version and sys_platform == 'darwin') or ('Version 6.' in platform_version and sys_platform == 'darwin') or ('Version 7.' in platform_version and sys_platform == 'darwin') or ('Version 8.' in platform_version and sys_platform == 'darwin') or ('Version 9.' in platform_version and sys_platform == 'darwin')
     # via
     #   -r requirements.in
     #   collidoscope
@@ -261,11 +263,11 @@ unicodedata2==16.0.0
     #   fontbakery
     #   fonttools
     #   glyphsets
-urllib3==2.4.0
+urllib3==2.5.0
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.7.2
+uv==0.7.14
     # via -r dev-requirements.in
 vharfbuzz==0.3.1
     # via fontbakery

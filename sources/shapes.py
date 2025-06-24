@@ -303,35 +303,36 @@ class ContextMarker(Shape):
     """The reification of a `Context` as a glyph.
 
     Attributes:
-        is_context_in: Whether this marker represents an entry context.
         context: The context this marker represents.
+        is_context_in: Whether this marker represents an entry context.
     """
 
     @override
     def __init__(
         self,
-        is_context_in: bool,
         context: Context,
+        *,
+        is_context_in: bool,
     ) -> None:
         """Initializes this `ContextMarker`.
 
         Args:
-            is_context_in: The ``is_context_in`` attribute.
             context: The ``context`` attribute.
+            is_context_in: The ``is_context_in`` attribute.
         """
-        self.is_context_in: Final = is_context_in
         self.context: Final = context
+        self.is_context_in: Final = is_context_in
 
     @override
     def clone(
         self,
         *,
-        is_context_in: CloneDefault | bool = CLONE_DEFAULT,
         context: CloneDefault | Context = CLONE_DEFAULT,
+        is_context_in: CloneDefault | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
-            self.is_context_in if is_context_in is CLONE_DEFAULT else is_context_in,
-            self.context if context is CLONE_DEFAULT else context,
+            context=self.context if context is CLONE_DEFAULT else context,
+            is_context_in=self.is_context_in if is_context_in is CLONE_DEFAULT else is_context_in,
         )
 
     @override
@@ -2191,10 +2192,10 @@ class Curve(Shape):
 
     def _get_normalized_angles_and_da(
         self,
-        final_circle_diphthong: bool,
-        initial_circle_diphthong: bool,
-        angle_in: float | None = None,
-        angle_out: float | None = None,
+        angle_in: float | None,
+        angle_out: float | None,
+        final_circle_diphthong: bool = False,
+        initial_circle_diphthong: bool = False,
     ) -> tuple[float, float, float]:
         a1, a2 = self.get_normalized_angles(angle_in, angle_out)
         if final_circle_diphthong:
@@ -2220,7 +2221,7 @@ class Curve(Shape):
             The difference between this curve’s entry angle and exit
             angle. If the difference is 0, the return value is 360.
         """
-        return self._get_normalized_angles_and_da(False, False, angle_in, angle_out)[2]
+        return self._get_normalized_angles_and_da(angle_in, angle_out)[2]
 
     def _get_angle_to_overlap_point(
         self,
@@ -2247,7 +2248,7 @@ class Curve(Shape):
                 (angle_at_overlap_point + 180) % 360,
                 self.angle_in - 90,
                 self.angle_in + 90,
-                False,
+                clockwise=False,
             )
         ):
             angle_to_overlap_point += 180
@@ -2257,7 +2258,7 @@ class Curve(Shape):
             angle_to_overlap_point,
             ((a1 if is_entry else a2) - exclusivity_zone) % 360,
             ((a1 if is_entry else a2) + exclusivity_zone) % 360,
-            False,
+            clockwise=False,
         ):
             delta = abs(angle_to_overlap_point - self.overlap_angle - (180 if is_entry else 0)) - exclusivity_zone
             if is_entry != self.clockwise:
@@ -2306,10 +2307,10 @@ class Curve(Shape):
             else 1
         )
         a1, a2, da = self._get_normalized_angles_and_da(
-            final_circle_diphthong,
-            initial_circle_diphthong,
             pre_stretch_offset_angle_in,
             pre_stretch_offset_angle_out,
+            final_circle_diphthong,
+            initial_circle_diphthong,
         )
         r = int(RADIUS * size)
         beziers_needed = math.ceil(abs(da) / 90)
@@ -3573,10 +3574,10 @@ class Complex(Shape):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                False,
-                False,
-                False,
-                False,
+                initial_circle_diphthong=False,
+                final_circle_diphthong=False,
+                diphthong_1=False,
+                diphthong_2=False,
             )
             this_entry_list = proxy.anchor_points[anchors.CURSIVE, 'entry']
             assert len(this_entry_list) == 1
@@ -4564,10 +4565,10 @@ class Wa(Complex):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                False,
-                False,
-                False,
-                False,
+                initial_circle_diphthong=False,
+                final_circle_diphthong=False,
+                diphthong_1=False,
+                diphthong_2=False,
             )
             assert isinstance(component, Circle | Curve)
             this_crossing_point = proxy.get_crossing_point(component)
@@ -4879,8 +4880,8 @@ class TangentHook(Complex):
                 ), *self.instructions[3][2:]),
             ], _initial=True)
         else:
-            shape = super()  # type: ignore[assignment]
-        return shape.contextualize(context_in, context_out)
+            shape = super()
+        return shape.contextualize(context_in, context_out)  # type: ignore[union-attr]
 
 
 class XShape(Complex):
