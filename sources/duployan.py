@@ -257,13 +257,13 @@ class Builder:
             schema.diphthong_1,
             schema.diphthong_2,
         )
-        assert schema.max_double_marks == 0 or any(anchor_class_name == anchors.MIDDLE for anchor_class_name, _, _, _ in glyph.anchorPoints), (
+        assert schema.max_double_marks == 0 or any(anchor_class_name == anchors.MIDDLE for anchor_class_name, *_ in glyph.anchorPoints), (
             f'{glyph.glyphname} has max_double_marks == {schema.max_double_marks} but no {anchors.MIDDLE!r} anchor point')
         if invisible:
             glyph.draw(glyph.glyphPen())
         if schema.joining_type != Type.NON_JOINING:
             entry_x = next(
-                (x for anchor_class_name, anchor_type, x, _ in glyph.anchorPoints
+                (x for anchor_class_name, anchor_type, x, *_ in glyph.anchorPoints
                     if anchor_class_name == anchors.CURSIVE and anchor_type == 'entry'),
                 0,
             )
@@ -314,7 +314,7 @@ class Builder:
         glyph: fontforge.glyph,
         stroke_width: float,
     ) -> None:
-        for anchor_class_name, anchor_type, x, y in glyph.anchorPoints:
+        for anchor_class_name, anchor_type, x, y, *_ in glyph.anchorPoints:
             if anchor_type == 'mark' and schema.anchor == anchor_class_name in anchors.ALL_MKMK:
                 mkmk_anchor_class_name = mkmk(anchor_class_name)
                 glyph.addAnchorPoint(mkmk_anchor_class_name, 'mark', x, y)
@@ -334,7 +334,7 @@ class Builder:
     def _convert_base_to_basemark(
         glyph: fontforge.glyph,
     ) -> None:
-        for anchor_class_name, anchor_type, x, y in glyph.anchorPoints:
+        for anchor_class_name, anchor_type, x, y, *_ in glyph.anchorPoints:
             if anchor_type == 'base':
                 if anchor_class_name in anchors.ALL_MKMK:
                     anchor_class_name = mkmk(anchor_class_name)
@@ -434,7 +434,7 @@ class Builder:
         cursive_positions: collections.defaultdict[str, collections.defaultdict[str, MutableSequence[fontTools.feaLib.ast.Anchor | None]]] = (
             collections.defaultdict(lambda: collections.defaultdict(lambda: [None, None])))
         for glyph in self.font.glyphs():
-            for anchor_class_name, anchor_type, x, y in glyph.anchorPoints:
+            for anchor_class_name, anchor_type, x, y, *_ in glyph.anchorPoints:
                 x = round(x)
                 y = round(y)
                 glyph_name = glyph.glyphname
@@ -468,10 +468,12 @@ class Builder:
                 lookup.statements.append(fontTools.feaLib.ast.MarkMarkPosStatement(
                     glyph_class,
                     [(fontTools.feaLib.ast.Anchor(*x_y), mark_class)]))
-            for glyph_name, entry_exit in cursive_positions[anchor_class_name].items():
+            for glyph_name, (entry, exit) in cursive_positions[anchor_class_name].items():
                 lookup.statements.append(fontTools.feaLib.ast.CursivePosStatement(
                     fontTools.feaLib.ast.GlyphName(glyph_name),
-                    *entry_exit))
+                    entry,
+                    exit,
+                ))
 
     def _recreate_gdef(self) -> None:
         marks = []
@@ -487,12 +489,14 @@ class Builder:
             None,
             fontTools.feaLib.ast.GlyphClass(marks),
             fontTools.feaLib.ast.GlyphClass(ligatures),
-            ()))
+            None,
+        ))
         self._fea.statements.append(gdef)
 
     @staticmethod
     def _glyph_to_schema(glyph: fontforge.glyph) -> Schema:
-        schema: Schema = glyph.temporary
+        schema = glyph.temporary
+        assert isinstance(schema, Schema)
         glyph.temporary = None
         schema.glyph = glyph
         return schema

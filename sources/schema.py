@@ -772,8 +772,7 @@ class Schema:
             ValueError: If `cp` is not ASCII.
         """
         if cp <= 0x7F:
-            uv2agl: Mapping[int, str] = fontTools.agl.UV2AGL
-            return uv2agl[cp]
+            return fontTools.agl.UV2AGL[cp]
         raise ValueError
 
     @staticmethod

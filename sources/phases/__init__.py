@@ -528,7 +528,7 @@ class Rule:
         in_contextual_lookup: bool,
         in_multiple_lookup: bool,
         in_reverse_lookup: bool,
-    ) -> Sequence[fontTools.feaLib.ast.Element]:
+    ) -> Sequence[fontTools.feaLib.ast.Statement]:
         """Converts this rule to fontTools feaLib ASTs.
 
         A `Rule` usually represents a single feaLib statement AST, but
@@ -895,14 +895,14 @@ class Lookup:
             lookup, the return value is a tuple, whose second AST is a
             `fontTools.feaLib.ast.FeatureBlock`.
         """
-        named_lookup = self.feature is None
-        assert named_lookup == isinstance(name, str) == (features_to_scripts is None)
+        assert (self.feature is None) is isinstance(name, str) is (features_to_scripts is None)
         contextual = any(r.is_contextual() for r in self.rules)
         multiple = any(r.is_multiple() for r in self.rules)
-        if named_lookup:
+        if self.feature is None:
             lookup_block = fontTools.feaLib.ast.LookupBlock(name)
             asts: fontTools.feaLib.ast.LookupBlock | tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock] = lookup_block
         else:
+            assert self.language is not None
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
             assert features_to_scripts is not None

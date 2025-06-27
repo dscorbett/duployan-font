@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2024 David Corbett
+# Copyright 2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -120,7 +120,7 @@ def add_shims_for_pseudo_cursive(
             classes['pseudo_cursive_or_root_parent_edge'].append(schema)
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             exit_x = exit_y = entry_x = entry_y = None
-            for anchor_class_name, anchor_type, x, y in schema.glyph.anchorPoints:
+            for anchor_class_name, anchor_type, x, y, *_ in schema.glyph.anchorPoints:
                 if anchor_class_name == anchors.CURSIVE:
                     match anchor_type:
                         case 'exit':
@@ -131,7 +131,7 @@ def add_shims_for_pseudo_cursive(
                             entry_y = y
             assert entry_y == exit_y
             is_space = x_min == x_max
-            if None in {entry_x, entry_y}:
+            if exit_x is None or entry_x is None or entry_y is None:
                 return []
             if is_space:
                 assert x_min == 0
@@ -154,7 +154,7 @@ def add_shims_for_pseudo_cursive(
             (looks_like_valid_exit := any(s.context_out == NO_CONTEXT and not schema.diphthong_1 for s in schema.lookalike_group))
             | (looks_like_valid_entry := any(s.context_in == NO_CONTEXT and not schema.diphthong_2 for s in schema.lookalike_group))
         ):
-            for anchor_class_name, anchor_type, x, y in schema.glyph.anchorPoints:
+            for anchor_class_name, anchor_type, x, y, *_ in schema.glyph.anchorPoints:
                 if anchor_class_name == anchors.CURSIVE:
                     match anchor_type:
                         case 'exit' if looks_like_valid_exit:
@@ -199,7 +199,7 @@ def add_shims_for_pseudo_cursive(
         ]:
             for e_schema, x, y in e_schemas:
                 assert e_schema.glyph is not None
-                bounds: tuple[float, float] | None = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
+                bounds = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
                 distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)  # type: ignore[no-untyped-call]
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
                 if (pseudo_cursive_is_space
@@ -350,9 +350,9 @@ def add_width_markers(
         return mark_anchor_selectors.setdefault(anchor, Schema(None, MarkAnchorSelector(anchor), 0))
 
     def get_mark_anchor_selector(schema: Schema) -> Schema:
-        only_anchor_class_name: str | None = None
+        only_anchor_class_name = None
         assert schema.glyph is not None
-        for anchor_class_name, anchor_type, _, _ in schema.glyph.anchorPoints:
+        for anchor_class_name, anchor_type, *_ in schema.glyph.anchorPoints:
             if anchor_type == 'mark' and anchor_class_name in anchors.ALL_MARK:
                 assert only_anchor_class_name is None, f'{schema} has multiple anchors: {only_anchor_class_name} and {anchor_class_name}'
                 only_anchor_class_name = anchor_class_name
@@ -427,15 +427,15 @@ def add_width_markers(
         if schema.might_need_width_markers and (
             schema.glyph_class != GlyphClass.MARK or any(a[0] in anchors.ALL_MARK for a in schema.glyph.anchorPoints)  # type: ignore[union-attr]
         ):
-            entry_xs = {}
-            exit_xs = {}
+            entry_xs: dict[str, float] = {}
+            exit_xs: dict[str, float] = {}
             if schema.glyph is None:
                 assert isinstance(schema.path, Space)
                 entry_xs[anchors.CURSIVE] = 0
                 exit_xs[anchors.CURSIVE] = schema.size
             else:
                 should_check_anchor_x = False
-                for anchor_class_name, anchor_type, x, _ in schema.glyph.anchorPoints:
+                for anchor_class_name, anchor_type, x, *_ in schema.glyph.anchorPoints:
                     match anchor_type:
                         case 'entry' | 'mark':
                             entry_xs[anchor_class_name] = x
@@ -446,9 +446,9 @@ def add_width_markers(
                             should_check_anchor_x = True
                 if should_check_anchor_x:
                     for group in anchor_grouper.groups():
-                        anchor_groups_by_x: collections.defaultdict[str | None, list[str]] = collections.defaultdict(list)
+                        anchor_groups_by_x: collections.defaultdict[float | None, list[str]] = collections.defaultdict(list)
                         anchor_groups_by_x[None] = [*group]
-                        for anchor_class_name, anchor_type, x, _ in schema.glyph.anchorPoints:
+                        for anchor_class_name, anchor_type, x, *_ in schema.glyph.anchorPoints:
                             if anchor_type == 'base' and anchor_class_name in group or anchor_type == 'basemark' and mkmk(anchor_class_name) in group:
                                 anchor_groups_by_x[x].append(anchor_class_name)
                                 anchor_groups_by_x[None].remove(anchor_class_name)

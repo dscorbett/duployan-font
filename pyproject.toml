@@ -31,6 +31,7 @@ exclude_also = [
 fail_under = 91
 
 [tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/typings"
 enable_error_code = [
     "deprecated",
     "explicit-override",
@@ -66,26 +67,18 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 module = [
-    "cffsubr.*",
-    "fontTools.*",
-    "fontforge.*",
-    "gfsubsets.*",
-    "uharfbuzz.*",
+    "cffsubr",
+    "fontTools.misc.configTools",
+    "fontTools.misc.transform",
+    "fontTools.otlLib.builder",
 ]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "fontforge.*",
-]
-follow_imports = "skip"
+follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 module = [
     "otf2ttf",
 ]
-disallow_untyped_calls = false
-disallow_untyped_defs = false
+ignore_errors = true
 
 [tool.ruff]
 src = [".", "sources"]
@@ -199,6 +192,11 @@ extend-ignore-names = [
 "tests/run-tests.py" = [
     # Test results must be output.
     "T20",
+]
+"**.pyi" = [
+    # Third-party names cannot be changed.
+    "A",
+    "N",
 ]
 
 [tool.ruff.lint.pycodestyle]

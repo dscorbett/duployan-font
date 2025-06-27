@@ -3369,7 +3369,7 @@ class Complex(Shape):
             if self._stroke_args is not None:
                 if copy:
                     layer = layer.dup()
-                layer.stroke(*self._stroke_args[0], **dict(self._stroke_args[1]))
+                layer.stroke(*self._stroke_args[0], **dict(self._stroke_args[1]))  # type: ignore[call-overload]
                 if not copy:
                     self._stroke_args = None
             return layer
@@ -3462,7 +3462,7 @@ class Complex(Shape):
                 x_y: The ``(x, y)`` argument.
             """
             for contour in self._layer:
-                contour.lineTo(*x_y)
+                contour.lineTo(x_y)
 
         def curveTo(self, cp1: _Point, cp2: _Point, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.curveTo`.
@@ -3567,7 +3567,7 @@ class Complex(Shape):
                 effective_bounding_box = glyph.boundingBox()
             proxy = Complex.Proxy()
             component.draw(
-                proxy,
+                proxy,  # type: ignore[arg-type]
                 light_line if tick else stroke_width,
                 light_line,
                 stroke_gap,
@@ -4558,7 +4558,7 @@ class Wa(Complex):
             scalar, component, skip_drawing, tick = op
             proxy = Complex.Proxy()
             component.draw(
-                proxy,
+                proxy,  # type: ignore[arg-type]
                 light_line if tick else stroke_width,
                 light_line,
                 stroke_gap,

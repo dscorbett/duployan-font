@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -180,7 +180,7 @@ mypy:
 
 .PHONY: ruff
 ruff:
-	ruff check pyproject.toml sources tests
+	ruff check pyproject.toml sources tests typings
 
 .PHONY: check-fonts
 check-fonts: $(if $(UNJOINED),check-unjoined,check-shaping check-subset) fontbakery

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2021 Google LLC
-# Copyright 2023-2024 David Corbett
+# Copyright 2023-2025 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import argparse
 from typing import TYPE_CHECKING
 
 import fontTools.misc.psCharStrings
+import fontTools.ttLib.tables.C_F_F_
+import fontTools.ttLib.tables.O_S_2f_2
+import fontTools.ttLib.tables._h_e_a_d
+import fontTools.ttLib.tables._h_h_e_a
+import fontTools.ttLib.tables._p_o_s_t
 import fontTools.ttLib.ttFont
 import uharfbuzz
 
@@ -71,15 +76,24 @@ def update_metrics(
             positive number for descents that reach below the baseline.
     """
     if 'CFF ' in tt_font:
-        cff = tt_font['CFF '].cff[0]
+        cff_table = tt_font['CFF ']
+        assert isinstance(cff_table, fontTools.ttLib.tables.C_F_F_.table_C_F_F_)
+        cff = cff_table.cff[0]
+        assert cff.UnderlineThickness is not None
         cff.UnderlinePosition = cast_cff_number(-descent - cff.UnderlineThickness / 2)
-    tt_font['OS/2'].sTypoAscender = ascent
-    tt_font['OS/2'].sTypoDescender = -descent
-    tt_font['OS/2'].usWinAscent = ascent
-    tt_font['OS/2'].usWinDescent = descent
-    tt_font['hhea'].ascender = ascent
-    tt_font['hhea'].descender = -descent
-    tt_font['post'].underlinePosition = -descent
+    os2_table = tt_font['OS/2']
+    assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
+    os2_table.sTypoAscender = ascent
+    os2_table.sTypoDescender = -descent
+    os2_table.usWinAscent = ascent
+    os2_table.usWinDescent = descent
+    hhea_table = tt_font['hhea']
+    assert isinstance(hhea_table, fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a)
+    hhea_table.ascent = ascent
+    hhea_table.descent = -descent
+    post_table = tt_font['post']
+    assert isinstance(post_table, fontTools.ttLib.tables._p_o_s_t.table__p_o_s_t)
+    post_table.underlinePosition = -descent
 
 
 def get_metrics(
@@ -105,16 +119,22 @@ def get_metrics(
         A tuple of the most extreme ascent and descent values attested
         for a font.
     """
-    ascent = max(font['OS/2'].usWinAscent, font['head'].yMax)
-    descent = max(font['OS/2'].usWinDescent, -font['head'].yMin)
+    os2_table = font['OS/2']
+    assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
+    head_table = font['head']
+    assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+    ascent = max(os2_table.usWinAscent, head_table.yMax)
+    descent = max(os2_table.usWinDescent, -head_table.yMin)
     if text is not None:
         buffer = uharfbuzz.Buffer()
         buffer.add_str(text)
         buffer.guess_segment_properties()
         hb_font = uharfbuzz.Font(uharfbuzz.Face(uharfbuzz.Blob.from_file_path(path)))
         uharfbuzz.shape(hb_font, buffer)
+        assert buffer.glyph_positions is not None
         for info, position in zip(buffer.glyph_infos, buffer.glyph_positions, strict=True):
             extents = hb_font.get_glyph_extents(info.codepoint)
+            assert extents is not None
             dy = position.y_offset
             yb = extents.y_bearing
             h = extents.height

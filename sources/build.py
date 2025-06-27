@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-# Copyright 2018-2019, 2022-2024 David Corbett
+# Copyright 2018-2019, 2022-2025 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,13 @@ from typing import TYPE_CHECKING
 import cffsubr
 import fontTools.cffLib
 import fontTools.misc.timeTools
-import fontTools.ttLib
+import fontTools.ttLib.tables.C_F_F_
+import fontTools.ttLib.tables.O_S_2f_2
+import fontTools.ttLib.tables._h_e_a_d
+import fontTools.ttLib.tables._h_h_e_a
+import fontTools.ttLib.tables._m_e_t_a
 import fontTools.ttLib.tables._n_a_m_e
+import fontTools.ttLib.tables._p_o_s_t
 import fontTools.ttLib.ttFont
 import fontforge
 
@@ -76,9 +81,8 @@ def build_font(
     font.selection.all()
     font.correctReferences()
     font.selection.none()
-    flags = ['no-hints', 'omit-instructions', 'opentype']
     Path(options.output).resolve().parent.mkdir(parents=True, exist_ok=True)
-    font.generate(options.output, flags=flags)
+    font.generate(options.output, flags=('no-hints', 'omit-instructions', 'opentype'))
 
 
 def set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, family_name: str, bold: bool) -> None:
@@ -95,6 +99,7 @@ def set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e,
 
 def set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, vendor: str) -> None:
     for name in name_table.names:
+        assert isinstance(name.string, str)
         match name.nameID:
             case 5:
                 version = name.string.removeprefix(VERSION_PREFIX)
@@ -114,7 +119,9 @@ def set_version(
     release: bool,
     dirty: bool,
 ) -> None:
-    tt_font['head'].fontRevision = version
+    head_table = tt_font['head']
+    assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+    head_table.fontRevision = version
     if noto:
         version_string = f'{version:.03f}'
         release_suffix = '' if release else ';DEV'
@@ -143,6 +150,7 @@ def set_version(
                 metadata = get_date()
             release_suffix = f'-alpha+{metadata}'
     name_table = tt_font['name']
+    assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
     name = name_table.names[0]
     name_table.setName(f'{VERSION_PREFIX}{version_string}{release_suffix}', 5, name.platformID, name.platEncID, name.langID)
 
@@ -153,6 +161,7 @@ def set_cff_data(
     cff: fontTools.cffLib.CFFFontSet,
 ) -> None:
     for name in names:
+        assert isinstance(name.string, str)
         match name.nameID:
             case 0:
                 cff[0].Copyright = name.string
@@ -172,7 +181,8 @@ def set_cff_data(
 
 
 def add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
-    meta = tt_font['meta'] = fontTools.ttLib.newTable('meta')
+    meta = tt_font['meta'] = fontTools.ttLib.ttFont.newTable('meta')
+    assert isinstance(meta, fontTools.ttLib.tables._m_e_t_a.table__m_e_t_a)
     meta.data['dlng'] = 'Dupl'
     meta.data['slng'] = 'Dupl'
 
@@ -187,11 +197,13 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         if 'name' in tt_font:
             del tt_font['name']
         if 'CFF ' in tt_font:
-            for name, value in [*tt_font['CFF '].cff[0].rawDict.items()]:
+            cff_table = tt_font['CFF ']
+            assert isinstance(cff_table, fontTools.ttLib.tables.C_F_F_.table_C_F_F_)
+            for name, value in [*cff_table.cff[0].rawDict.items()]:
                 if isinstance(value, str):
-                    del tt_font['CFF '].cff[0].rawDict[name]
-                    if hasattr(tt_font['CFF '].cff[0], name):
-                        delattr(tt_font['CFF '].cff[0], name)
+                    del cff_table.cff[0].rawDict[name]
+                    if hasattr(cff_table.cff[0], name):
+                        delattr(cff_table.cff[0], name)
 
         # Complete the OpenType Layout tables.
         builder.complete_layout(tt_font)
@@ -202,54 +214,65 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
             tables=['OS/2', 'head', 'name'],
         )
 
-        upem = tt_font['head'].unitsPerEm
-        tt_font['OS/2'].recalcAvgCharWidth(tt_font)
-        tt_font['OS/2'].ySubscriptXSize = round(upem * utils.SMALL_DIGIT_FACTOR)
-        tt_font['OS/2'].ySubscriptYSize = tt_font['OS/2'].ySubscriptXSize
-        tt_font['OS/2'].ySubscriptXOffset = 0
-        tt_font['OS/2'].ySubscriptYOffset = round(-utils.SUBSCRIPT_DEPTH)
-        tt_font['OS/2'].ySuperscriptXSize = tt_font['OS/2'].ySubscriptXSize
-        tt_font['OS/2'].ySuperscriptYSize = tt_font['OS/2'].ySuperscriptXSize
-        tt_font['OS/2'].ySuperscriptXOffset = 0
-        tt_font['OS/2'].ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
-        tt_font['OS/2'].usDefaultChar = 0
+        head_table = tt_font['head']
+        assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+        upem = head_table.unitsPerEm
+        os2_table = tt_font['OS/2']
+        assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
+        os2_table.recalcAvgCharWidth(tt_font)
+        os2_table.ySubscriptXSize = round(upem * utils.SMALL_DIGIT_FACTOR)
+        os2_table.ySubscriptYSize = os2_table.ySubscriptXSize
+        os2_table.ySubscriptXOffset = 0
+        os2_table.ySubscriptYOffset = round(-utils.SUBSCRIPT_DEPTH)
+        os2_table.ySuperscriptXSize = os2_table.ySubscriptXSize
+        os2_table.ySuperscriptYSize = os2_table.ySuperscriptXSize
+        os2_table.ySuperscriptXOffset = 0
+        os2_table.ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
+        os2_table.usDefaultChar = 0
         if options.bold:
-            tt_font['OS/2'].usWeightClass = 700
-            tt_font['OS/2'].fsSelection |= 1 << 5
-            tt_font['OS/2'].fsSelection &= ~(1 << 0 | 1 << 6)
-            tt_font['head'].macStyle |= 1 << 0
+            os2_table.usWeightClass = 700
+            os2_table.fsSelection |= 1 << 5
+            os2_table.fsSelection &= ~(1 << 0 | 1 << 6)
+            head_table.macStyle |= 1 << 0
         else:
-            tt_font['OS/2'].fsSelection |= 1 << 6
-            tt_font['OS/2'].fsSelection &= ~(1 << 0 | 1 << 5)
+            os2_table.fsSelection |= 1 << 6
+            os2_table.fsSelection &= ~(1 << 0 | 1 << 5)
 
+        name_table = tt_font['name']
+        assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
         if options.noto:
-            for name in tt_font['name'].names:
+            for name in name_table.names:
+                assert isinstance(name.string, str)
                 name.string = name.string.replace('\n', ' ')
 
-        tt_font['OS/2'].sCapHeight = round(utils.CAP_HEIGHT)
-        tt_font['OS/2'].sxHeight = round(utils.X_HEIGHT)
-        tt_font['OS/2'].yStrikeoutPosition = round(utils.STRIKEOUT_POSITION)
-        tt_font['OS/2'].yStrikeoutSize = round(utils.REGULAR_LIGHT_LINE)
-        tt_font['post'].underlineThickness = round(utils.REGULAR_LIGHT_LINE)
-        tt_font['head'].created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
-        tt_font['hhea'].lineGap = tt_font['OS/2'].sTypoLineGap
-        set_family_names(tt_font['name'], options.name, options.bold)
+        os2_table.sCapHeight = round(utils.CAP_HEIGHT)
+        os2_table.sxHeight = round(utils.X_HEIGHT)
+        os2_table.yStrikeoutPosition = round(utils.STRIKEOUT_POSITION)
+        os2_table.yStrikeoutSize = round(utils.REGULAR_LIGHT_LINE)
+        post_table = tt_font['post']
+        assert isinstance(post_table, fontTools.ttLib.tables._p_o_s_t.table__p_o_s_t)
+        post_table.underlineThickness = round(utils.REGULAR_LIGHT_LINE)
+        head_table.created = fontTools.misc.timeTools.timestampFromString('Sat Apr  7 21:21:15 2018')
+        hhea_table = tt_font['hhea']
+        assert isinstance(hhea_table, fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a)
+        hhea_table.lineGap = os2_table.sTypoLineGap
+        set_family_names(name_table, options.name, options.bold)
         set_version(tt_font, options.noto, options.version, options.release, dirty)
-        set_unique_id(tt_font['name'], tt_font['OS/2'].achVendID)
+        set_unique_id(name_table, os2_table.achVendID)
         if 'CFF ' in tt_font:
-            set_cff_data(tt_font['name'].names, tt_font['post'].underlineThickness, tt_font['CFF '].cff)
+            set_cff_data(name_table.names, post_table.underlineThickness, cff_table.cff)
         copy_metrics.update_metrics(
             tt_font,
-            max(tt_font['OS/2'].usWinAscent, tt_font['head'].yMax),
-            max(tt_font['OS/2'].usWinDescent, -tt_font['head'].yMin),
+            max(os2_table.usWinAscent, head_table.yMax),
+            max(os2_table.usWinDescent, -head_table.yMin),
         )
 
         add_meta(tt_font)
 
         if 'CFF ' in tt_font:
             cffsubr.subroutinize(tt_font)
-            tt_font['CFF '].cff[0].decompileAllCharStrings()
-            tt_font['CFF '].cff[0].Encoding = 0
+            cff_table.cff[0].decompileAllCharStrings()
+            cff_table.cff[0].Encoding = 0
 
         tt_font.save(options.output)
 
