@@ -652,7 +652,7 @@ class OrderedSet[T](dict[T, None]):
 
     def __init__(
         self,
-        iterable: Iterable[T] | None = None,
+        iterable: Iterable[T] = (),
         /,
     ) -> None:
         """Initializes this `OrderedSet`.
@@ -662,9 +662,8 @@ class OrderedSet[T](dict[T, None]):
                 to this set in the iterable’s natural iteration order.
         """
         super().__init__()
-        if iterable:
-            for item in iterable:
-                self.add(item)
+        for item in iterable:
+            self.add(item)
 
     def add(self, item: T, /) -> None:
         """Adds an item to this set.

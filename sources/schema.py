@@ -349,34 +349,34 @@ class Schema:
     _canonical_names: Final[MutableMapping[str, MutableSequence[Schema]]] = {}
 
     def __init__(
-            self,
-            cmap: int | None,
-            path: Shape,
-            size: float,
-            joining_type: Type = Type.JOINING,
-            *,
-            side_bearing: float = DEFAULT_SIDE_BEARING,
-            y_min: float | None = 0,
-            y_max: float | None = None,
-            child: bool = False,
-            can_lead_orienting_sequence: bool | None = None,
-            ignored_for_topography: bool = False,
-            anchor: str | None = None,
-            widthless: bool | None = None,
-            marks: Sequence[Schema] | None = None,
-            override_ignored: bool = False,
-            encirclable: bool = False,
-            might_be_child: bool = True,
-            maximum_tree_width: int | None = None,
-            shading_allowed: bool | None = None,
-            context_in: Context | None = None,
-            context_out: Context | None = None,
-            diphthong_1: bool = False,
-            diphthong_2: bool = False,
-            base_angle: float | None = None,
-            cps: Sequence[int] | None = None,
-            original_shape: type[Shape] | None = None,
-            _anchors: set[str] | None = None,
+        self,
+        cmap: int | None,
+        path: Shape,
+        size: float,
+        joining_type: Type = Type.JOINING,
+        *,
+        side_bearing: float = DEFAULT_SIDE_BEARING,
+        y_min: float | None = 0,
+        y_max: float | None = None,
+        child: bool = False,
+        can_lead_orienting_sequence: bool | None = None,
+        ignored_for_topography: bool = False,
+        anchor: str | None = None,
+        widthless: bool | None = None,
+        marks: Sequence[Schema] = (),
+        override_ignored: bool = False,
+        encirclable: bool = False,
+        might_be_child: bool = True,
+        maximum_tree_width: int | None = None,
+        shading_allowed: bool | None = None,
+        context_in: Context = NO_CONTEXT,
+        context_out: Context = NO_CONTEXT,
+        diphthong_1: bool = False,
+        diphthong_2: bool = False,
+        base_angle: float | None = None,
+        cps: Sequence[int] | None = None,
+        original_shape: type[Shape] | None = None,
+        _anchors: set[str] | None = None,
     ) -> None:
         """Initializes this `Schema`.
 
@@ -397,8 +397,7 @@ class Schema:
                 attribute.
             anchor: The ``anchor`` attribute.
             widthless: The ``widthless`` attribute.
-            marks: The ``marks`` attribute, or ``None`` to set the
-                attribute to an empty sequence.
+            marks: The ``marks`` attribute.
             override_ignored: The ``override_ignored`` attribute.
             encirclable: The ``encirclable`` attribute.
             might_be_child: The ``might_be_child`` attribute.
@@ -408,10 +407,8 @@ class Schema:
             shading_allowed: The ``shading_allowed`` attribute, or
                 ``None`` to set the attribute to whether ``cps`` is
                 Duployan.
-            context_in: The ``context_in`` attribute, or ``None`` to set
-                the attribute to `NO_CONTEXT`.
-            context_out: The ``context_out`` attribute, or ``None`` to
-                set the attribute to `NO_CONTEXT`.
+            context_in: The ``context_in`` attribute.
+            context_out: The ``context_out`` attribute,
             diphthong_1: The ``diphthong_1`` attribute.
             diphthong_2: The ``diphthong_2`` attribute.
             base_angle: The ``base_angle`` attribute.
@@ -437,11 +434,11 @@ class Schema:
         self.ignored_for_topography: Final = ignored_for_topography
         self.anchor: Final = anchor
         self.widthless: Final = widthless
-        self.marks: Final = marks or []
+        self.marks: Final = marks
         self.override_ignored: Final = override_ignored
         self.encirclable: Final = encirclable
-        self.context_in: Final = context_in or NO_CONTEXT
-        self.context_out: Final = context_out or NO_CONTEXT
+        self.context_in: Final = context_in
+        self.context_out: Final = context_out
         self.diphthong_1: Final = diphthong_1
         self.diphthong_2: Final = diphthong_2
         self.base_angle: Final = base_angle
@@ -528,14 +525,14 @@ class Schema:
         ignored_for_topography: CloneDefault | bool = CLONE_DEFAULT,
         anchor: CloneDefault | str | None = CLONE_DEFAULT,
         widthless: CloneDefault | bool = CLONE_DEFAULT,
-        marks: CloneDefault | Sequence[Schema] | None = CLONE_DEFAULT,
+        marks: CloneDefault | Sequence[Schema] = CLONE_DEFAULT,
         override_ignored: CloneDefault | bool = CLONE_DEFAULT,
         encirclable: CloneDefault | bool = CLONE_DEFAULT,
         might_be_child: CloneDefault | bool = CLONE_DEFAULT,
         maximum_tree_width: CloneDefault | int = CLONE_DEFAULT,
         shading_allowed: CloneDefault | bool = CLONE_DEFAULT,
-        context_in: CloneDefault | Context | None = CLONE_DEFAULT,
-        context_out: CloneDefault | Context | None = CLONE_DEFAULT,
+        context_in: CloneDefault | Context = CLONE_DEFAULT,
+        context_out: CloneDefault | Context = CLONE_DEFAULT,
         diphthong_1: CloneDefault | bool = CLONE_DEFAULT,
         diphthong_2: CloneDefault | bool = CLONE_DEFAULT,
         base_angle: CloneDefault | float | None = CLONE_DEFAULT,
@@ -614,7 +611,7 @@ class Schema:
         """
         return self.clone(
                 cmap=None,
-                marks=None,
+                marks=(),
                 encirclable=True
                     if any(mark.anchor == anchors.MIDDLE and isinstance(mark.path, Circle) for mark in self.marks)
                     else CLONE_DEFAULT,
@@ -1045,9 +1042,9 @@ class Schema:
             path=path,
             ignored_for_topography=ignored_for_topography,
             anchor=None,
-            marks=None,
-            context_in=None if ignored_for_topography else context_in,
-            context_out=None if ignored_for_topography else context_out,
+            marks=(),
+            context_in=NO_CONTEXT if ignored_for_topography else context_in,
+            context_out=NO_CONTEXT if ignored_for_topography else context_out,
         )
 
     def path_context_in(self) -> Context:

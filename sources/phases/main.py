@@ -1377,8 +1377,8 @@ def ignore_first_orienting_glyph_in_initial_sequence(
                     cmap=None,
                     path=path,
                     ignored_for_topography=True,
-                    context_in=None,
-                    context_out=None,
+                    context_in=NO_CONTEXT,
+                    context_out=NO_CONTEXT,
                 ))
     add_rule(lookup, Rule('joiner', 'i', [], 'i'))
     add_rule(lookup, Rule([], 'i', 'c', 'o'))
