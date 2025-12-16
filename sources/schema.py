@@ -995,7 +995,7 @@ class Schema:
         """Return whether this schema can give rise to a schema that is
         ignored for topography.
         """
-        return (isinstance(self.path, Circle | Ou)
+        return (isinstance(self.path, (Circle, Ou))
             or isinstance(self.path, Curve) and not self.path.hook
         )
 
@@ -1025,7 +1025,7 @@ class Schema:
         )
         path: Shape
         if ignored_for_topography:
-            if isinstance(self.path, Circle | Ou):
+            if isinstance(self.path, (Circle, Ou)):
                 path = self.path.clone(role=CircleRole.DEPENDENT)
             else:
                 path = self.path
@@ -1087,7 +1087,7 @@ class Schema:
             context: The context of the base glyph relative to which
                 this schema’s mark glyph should be rotated.
         """
-        assert isinstance(self.path, Line | RotatedComplex)
+        assert isinstance(self.path, (Line, RotatedComplex))
         return self.clone(
             cmap=None,
             path=self.path.rotate_diacritic(context),

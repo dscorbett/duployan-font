@@ -77,7 +77,7 @@ def parse_color(color: Color) -> bool:
             assert_never(color)
 
 
-def parse_json(s: str) -> Generator[str, None, None]:
+def parse_json(s: str) -> Generator[str]:
     x = 0
     y = 0
     for glyph in json.loads(s):

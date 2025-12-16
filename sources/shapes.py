@@ -3748,7 +3748,7 @@ class Complex(Shape):
             else:
                 scalar, component, skip_drawing, tick = op
                 component = component.contextualize(context_in, context_out)
-                assert isinstance(component, Circle | Curve | Line)
+                assert isinstance(component, (Circle, Curve, Line))
                 if i and initial:
                     component = component.as_reversed()
                 if forced_context is not None:
@@ -4162,7 +4162,7 @@ class Ou(Complex):
         circle_op = self.instructions[0]
         assert not callable(circle_op)
         circle_path = circle_op.shape
-        assert isinstance(circle_path, Circle | Curve)
+        assert isinstance(circle_path, (Circle, Curve))
         return (
             super().group(),
             circle_path.angle_in,
@@ -4209,7 +4209,7 @@ class Ou(Complex):
         inner_curve_size = 5 / 9 * circle_op.size
         inner_curve_stretch = 0.3
         circle_path = circle_op.shape
-        assert isinstance(circle_path, Circle | Curve)
+        assert isinstance(circle_path, (Circle, Curve))
         angle_in = circle_path.angle_in
         angle_out = circle_path.angle_out
         clockwise = circle_path.clockwise
@@ -4326,7 +4326,7 @@ class Ou(Complex):
         circle_op = contextualized.instructions[0]
         assert not callable(circle_op)
         circle_path = circle_op.shape
-        assert isinstance(circle_path, Circle | Curve)
+        assert isinstance(circle_path, (Circle, Curve))
         if self.role == CircleRole.LEADER:
             original_circle_op = self.instructions[0]
             assert not callable(original_circle_op)
@@ -4570,7 +4570,7 @@ class Wa(Complex):
                 diphthong_1=False,
                 diphthong_2=False,
             )
-            assert isinstance(component, Circle | Curve)
+            assert isinstance(component, (Circle, Curve))
             this_crossing_point = proxy.get_crossing_point(component)
             if last_crossing_point is not None:
                 proxy.transform(fontTools.misc.transform.Offset(
@@ -4630,7 +4630,7 @@ class Wa(Complex):
                 outer_circle = outer_circle_op.shape
                 assert isinstance(outer_circle, Circle)
                 tracer = original_instructions[-1].shape.contextualize(context_in, context_out)
-                assert isinstance(tracer, Circle | Curve)
+                assert isinstance(tracer, (Circle, Curve))
                 clockwise_sign = -1 if tracer.clockwise else 1
                 new_outer_angle_out = (outer_circle.angle_in + clockwise_sign * 270) % 360
                 new_inner_circle = Curve(
@@ -4668,7 +4668,7 @@ class Wa(Complex):
                     inner_circle_op._replace(shape=new_inner_circle),
                 ])
             inner_circle = original_instructions[-1].shape.contextualize(context_in, context_out)
-            assert isinstance(inner_circle, Circle | Curve)
+            assert isinstance(inner_circle, (Circle, Curve))
             return Complex(instructions=[
                 *[
                     op._replace(shape=op.shape.clone(
@@ -4801,7 +4801,7 @@ class Wi(Complex):
                                 angle_in=(op.shape.angle_in + 180) % 360,
                                 angle_out=(op.shape.angle_out + 180) % 360,
                                 clockwise=not op.shape.clockwise,
-                            ) if isinstance(op.shape, Circle | Curve)
+                            ) if isinstance(op.shape, (Circle, Curve))
                             else op.shape,
                         *op[2:],
                     ) for op in self.instructions

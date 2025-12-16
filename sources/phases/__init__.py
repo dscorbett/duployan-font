@@ -175,7 +175,7 @@ class FreezableList[T](list[T]):
         self._frozen = True
 
     @override
-    def __delitem__(self, index: SupportsIndex | slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], /) -> None:
+    def __delitem__(self, index: SupportsIndex | slice[SupportsIndex | None], /) -> None:
         """Deletes the element(s) at an index or range of indices.
 
         Args:
@@ -195,11 +195,11 @@ class FreezableList[T](list[T]):
         ...
 
     @overload
-    def __setitem__(self, index: slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], value: Iterable[T], /) -> None:
+    def __setitem__(self, index: slice[SupportsIndex | None], value: Iterable[T], /) -> None:
         ...
 
     @override
-    def __setitem__(self, index: SupportsIndex | slice[SupportsIndex | None, SupportsIndex | None, SupportsIndex | None], value: T | Iterable[T], /) -> None:
+    def __setitem__(self, index: SupportsIndex | slice[SupportsIndex | None], value: T | Iterable[T], /) -> None:
         """Sets the element(s) at an index or range of indices.
 
         Args:
@@ -1204,7 +1204,7 @@ def run_phases(
         5. A mapping from named lookups’ names to 2-tuples of named
            lookups and their generating phases.
     """
-    previous_feature = None
+    previous_feature: str | None = None
     all_schemas = OrderedSet(all_input_schemas)
     all_input_schemas = OrderedSet(all_input_schemas)
     all_lookups_with_phases: MutableSequence[tuple[Lookup, Phase]] = []

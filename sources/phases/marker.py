@@ -857,7 +857,7 @@ def sum_width_markers(
                                     flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
                                     mark_filtering_set=context_in_lookup_name,
                                 )
-                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, Schema | str) else []
+                            contexts_in = [carry_in_schema] if isinstance(carry_in_schema, (Schema, str)) else []
                             add_rule(lookup, Rule(
                                 contexts_in,
                                 [addend_schema],
@@ -951,7 +951,6 @@ def calculate_bound_extrema(
                     (left_schema_i, left_digit_schemas, left_lookup, 'ldx', 'ldx_copy', int.__gt__),
                     (right_schema_i, right_digit_schemas, right_lookup, 'rdx', 'rdx_copy', int.__lt__),
                 ]:
-                    assert schema_i is not None
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
@@ -1147,7 +1146,7 @@ def mark_maximum_bounds(
         (new_anchor_widths, anchor_lookup, 'adx', AnchorWidthDigit, DigitStatus.DONE),
     ]:
         for schema in new_digits:
-            assert isinstance(schema.path, AnchorWidthDigit | LeftBoundDigit | RightBoundDigit)
+            assert isinstance(schema.path, (AnchorWidthDigit, LeftBoundDigit, RightBoundDigit))
             if schema.path.status != DigitStatus.NORMAL:
                 continue
             add_rule(lookup, Rule(
@@ -1218,7 +1217,7 @@ def dist(
 ) -> Sequence[Lookup]:
     lookup = Lookup('dist', 'dflt')
     for schema in new_schemas:
-        if (isinstance(schema.path, LeftBoundDigit | RightBoundDigit | AnchorWidthDigit)
+        if (isinstance(schema.path, (LeftBoundDigit, RightBoundDigit, AnchorWidthDigit))
                 and schema.path.status == DigitStatus.DONE):
             place = schema.path.place
             digit = schema.path.digit

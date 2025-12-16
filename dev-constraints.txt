@@ -27,6 +27,7 @@ lxml >= 4.9.3
 munkres >= 1.0.10  # https://github.com/bmc/munkres/issues/21
 numpy >= 1.26
 openstep-plist >= 0.3.1
+openstep-plist >= 0.5.1 ; python_version >= "3.14"  # https://github.com/fonttools/openstep-plist/issues/43
 orjson >= 3.6.8, != 3.8.*, != 3.9.0.*, != 3.9.1.*
 packaging >= 14.5  # https://github.com/fonttools/fontbakery/issues/4792
 pip >= 23.1.2  # https://github.com/pypa/pip/commit/f1a7a6f942b869ae3428dbf55dfc1ca756c78d94
@@ -43,3 +44,4 @@ sre-yield >= 1.1
 tabulate >= 0.4.2
 toml >= 0.9.1  # https://github.com/uiri/toml/commit/c54810e73feb55167cb7ec327b6568fa21d43669
 urllib3 >= 1.26.5  # Avoid “No module named 'urllib3.packages.six.moves'” error
+youseedee < 0.5  # Avoid unnecessary transitive dependencies

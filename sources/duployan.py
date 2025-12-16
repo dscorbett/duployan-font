@@ -20,7 +20,6 @@ import math
 from typing import Final
 from typing import TYPE_CHECKING
 
-import fontTools.agl
 import fontTools.feaLib.ast
 import fontTools.feaLib.builder
 import fontTools.misc.transform

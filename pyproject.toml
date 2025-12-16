@@ -59,6 +59,7 @@ local_partial_types = true
 no_implicit_reexport = true
 strict_bytes = true
 strict_equality = true
+strict_equality_for_none = true
 warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
@@ -92,6 +93,7 @@ allowed-confusables = [
 exclude = [
     "sources/otf2ttf.py",
 ]
+future-annotations = true
 ignore = [
     # Not appropriate for this project
     "B011",
@@ -147,7 +149,6 @@ multiline-quotes = "single"
 "typing.cast".msg = "Use a type annotation or `# type: ignore` instead"
 
 [tool.ruff.lint.flake8-type-checking]
-quote-annotations = true
 strict = true
 
 [tool.ruff.lint.isort]

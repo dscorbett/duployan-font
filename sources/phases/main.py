@@ -117,7 +117,7 @@ def reversed_circle_kludge(
         return []
     for schema in new_schemas:
         if schema.cmap in {0x1BC44, 0x1BC53, 0x1BC5A, 0x1BC5B, 0x1BC5C, 0x1BC5D, 0x1BC5E, 0x1BC5F, 0x1BC60}:
-            assert isinstance(schema.path, Circle | Curve | Ou | Wa | Wi)
+            assert isinstance(schema.path, (Circle, Curve, Ou, Wa, Wi))
             add_rule(lookup, Rule(
                 [schema, cgj, cgj, cgj],
                 [schema.clone(
@@ -597,7 +597,7 @@ def categorize_edges(
             if not schema.path.lineage:
                 default_parent_edge = schema
     for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge | ParentEdge):
+        if isinstance(schema.path, (ChildEdge, ParentEdge)):
             classes['all'].append(schema)
     for edge in new_schemas:
         if edge.path.group() not in old_groups:
@@ -1115,7 +1115,7 @@ def separate_subantiparallel_lines(
                     clockwise = schema.path.clockwise
                     loop = not (schema.diphthong_1 or schema.diphthong_2 or schema.path.reversed_circle or issubclass(schema.original_shape, Curve))
                 case Complex() if None is not (
-                    first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, Circle | Curve)), None)
+                    first_curve_op := next((op for op in schema.path.instructions if not callable(op) and isinstance(op.shape, (Circle, Curve))), None)
                 ):
                     clockwise = first_curve_op.shape.clockwise  # type: ignore[attr-defined]
                     loop = not isinstance(schema.path, Wi) and schema.is_primary
@@ -1123,7 +1123,7 @@ def separate_subantiparallel_lines(
                     continue
             classes[f'clockwise_{clockwise}_i'].append(schema)
             classes[f'clockwise_{clockwise}_o'].append(schema)
-            if isinstance(schema.path, Wa | Wi):
+            if isinstance(schema.path, (Wa, Wi)):
                 classes[f'clockwise_{not clockwise}_i'].append(schema)
             if loop:
                 classes['loop'].append(schema)
@@ -1361,7 +1361,7 @@ def ignore_first_orienting_glyph_in_initial_sequence(
                     path = circle_op.shape
                 else:
                     path = schema.path
-                assert isinstance(path, Circle | Curve)
+                assert isinstance(path, (Circle, Curve))
                 classes['i'].append(schema)
                 angle_out = path.angle_out - path.angle_in
                 path = path.clone(
@@ -1406,7 +1406,7 @@ def tag_main_glyph_in_orienting_sequence(
             classes['dependent'].append(schema)
         elif (schema.joining_type == Type.ORIENTING
             and schema.glyph_class == GlyphClass.JOINER
-            and (isinstance(schema.path, Circle | Ou)
+            and (isinstance(schema.path, (Circle, Ou))
                 and schema.path.role == CircleRole.INDEPENDENT
             )
         ):
@@ -1466,7 +1466,7 @@ def join_with_next(
             and (
                 old_input_count == 0
                 or not (
-                    isinstance(schema.path, Curve | Circle)
+                    isinstance(schema.path, (Curve, Circle))
                     or isinstance(schema.path, Complex) and not any(not callable(op) and op.tick for op in schema.path.instructions)
                 )
             )
@@ -1557,7 +1557,7 @@ def ligate_diphthongs(
             classes['ignored_for_topography'].append(schema)
         if not schema.can_become_part_of_diphthong:
             continue
-        assert isinstance(schema.path, Circle | Curve)
+        assert isinstance(schema.path, (Circle, Curve))
         is_circle_letter = isinstance(schema.path, Circle) or bool(schema.path.reversed_circle)
         is_ignored = schema.ignored_for_topography
         is_primary = schema.is_primary
@@ -1921,7 +1921,7 @@ def avoid_cochiral_overlaps(
     maximum_unsmoothable_size = float('-inf')
     for schema in schemas:
         if (schema.glyph_class == GlyphClass.JOINER
-            and isinstance(schema.path, ComplexCurve | Curve)
+            and isinstance(schema.path, (ComplexCurve, Curve))
             and schema.path.angle_in % 90 == 0 and schema.path.angle_out % 90 == 0
             and abs(schema.path.get_da()) % 360 > 90
             and not schema.path.reversed_circle
@@ -1943,7 +1943,7 @@ def avoid_cochiral_overlaps(
     for schema in probably_smoothable_schemas:
         if maximum_unsmoothable_size >= schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1):  # type: ignore[union-attr]
             continue
-        assert isinstance(schema.path, ComplexCurve | Curve)
+        assert isinstance(schema.path, (ComplexCurve, Curve))
         context_1 = f'c1_{schema.path.angle_out}_{schema.path.clockwise}'
         contexts_1.add(context_1)
         classes[context_1].append(schema)
@@ -1955,7 +1955,7 @@ def avoid_cochiral_overlaps(
         inputs.add((schema, context_2, offset_context_1, offset_context_2))
     for iteration in range(3):
         for schema, context_2, offset_context_1, offset_context_2 in inputs:
-            assert isinstance(schema.path, ComplexCurve | Curve)
+            assert isinstance(schema.path, (ComplexCurve, Curve))
             if iteration != 2 and offset_context_1 in contexts_2 and offset_context_2 in contexts_1:
                 input_class = f'i12_{context_2}'
                 if iteration == 0:
