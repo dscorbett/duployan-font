@@ -263,7 +263,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     macron = Line(0)
     breve = Curve(270, 90, clockwise=False, stretch=0.2)
     diaeresis = Complex([(0, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (0, h)])
-    caron = Complex([(1, Line(335)), (1, Line(25))])
+    caron = Complex([(1, Line(302)), (1, Line(58))])
     vertical_line = Line(90)
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
@@ -463,7 +463,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x0307, h, 0, anchor=anchors.ABOVE),
         Schema(0x0308, diaeresis, 1, anchor=anchors.ABOVE),
         Schema(0x030A, o, 2.3, anchor=anchors.ABOVE),
-        Schema(0x030C, caron, 0.2, Type.NON_JOINING, anchor=anchors.ABOVE),
+        Schema(0x030C, caron, 0.3, Type.NON_JOINING, anchor=anchors.ABOVE),
         Schema(0x030D, vertical_line, 0.2, anchor=anchors.ABOVE),
         Schema(0x0312, turned_comma, 1, anchor=anchors.ABOVE),
         Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),

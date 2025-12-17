@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023, 2025 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,10 +51,10 @@
 1BC5F 202F 1BC02::[u1BC5F.wei@0,340|uni202F.nnbsp@638,535|u1BC02.p@668,0|_@908,0]
 
 # U+1BC01 DUPLOYAN LETTER X with diacritics
-1BC01 0324 030C::[u1BC01.x@71,0|uni0324.diaeresis_below@6,-203|uni030C.caron@0,402|_@422,0]
-1BC01 0324 030C 1BC04::[u1BC01.x@71,387|uni0324.diaeresis_below@6,184|uni030C.caron@0,789|u1BC04.f@265,0|_@793,0]
-1BC0B 1BC01 0324 030C::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1083,1289|_@1505,0]
-1BC0B 1BC01 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1083,1289|u1BC04.f@1348,500|_@1876,0]
+1BC01 0324 030C::[u1BC01.x@65,0|uni0324.diaeresis_below@0,-203|uni030C.caron@5,402|_@410,0]
+1BC01 0324 030C 1BC04::[u1BC01.x@65,387|uni0324.diaeresis_below@0,184|uni030C.caron@5,789|u1BC04.f@259,0|_@787,0]
+1BC0B 1BC01 0324 030C::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1094,1289|_@1499,0]
+1BC0B 1BC01 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC01.x@1154,887|uni0324.diaeresis_below@1089,684|uni030C.caron@1094,1289|u1BC04.f@1348,500|_@1876,0]
 
 # Space next to non-space
 1BC02 202F 1BC00 EC02::[u1BC02.p@0,0|uni202F.nnbsp@240,35|u1BC00.h@268,-14|uniEC02.reversed_p@450,0|_@690,0]
