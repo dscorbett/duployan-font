@@ -1,4 +1,4 @@
-# Copyright 2023-2024 David Corbett
+# Copyright 2023-2025 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 1BC60 1BC61 1BC62 1BC63 1BC64 1BC65 1BC66 1BC67 1BC68 1BC69 1BC6A::[u1BC5D.wo@0,0|dupl_.Dot.0.rel1@200,275|u1BC61.nasal_u@640,0|u1BC62.nasal_o@1040,0|u1BC63.nasal_i@1440,0|u1BC64.nasal_a@1840,0|u1BC65.pernin_an@2240,0|u1BC66.pernin_am@2640,0|u1BC61.nasal_u@3040,0|dupl_.Dot.1.rel1@3182,142|u1BC61.nasal_u@3440,0|dupl_.Dot.1.rel2@3364,-76|u1BC6A.vocalic_m@3840,0|dupl_.Dot.1.rel2@3764,208|u1BC6A.vocalic_m@4240,0|_@4640,0]
 1BC70 1BC71 1BC72 1BC73 1BC74 1BC75 1BC76 1BC77 1BC78 1BC79 1BC7A 1BC7B 1BC7C::[u1BC70.left_horizontal_secant@0,0|u1BC71.mid_horizontal_secant@1240,0|u1BC72.right_horizontal_secant@2480,0|u1BC73.low_vertical_secant@3720,0|u1BC74.mid_vertical_secant@3960,0|u1BC75.high_vertical_secant@4200,0|u1BC76.secant@4440,0|u1BC77.left_to_right_secant@4930,0|u1BC78.tangent@5491,0|u1BC79.tail@5731,0|u1BC7A.e_hook@6271,0|u1BC46.i@6711,0|u1BC7C.tangent_hook@7051,0|_@7491,0]
 1BC80 1BC81 1BC82 1BC83 1BC84 1BC85 1BC86 1BC87 1BC88::[u1BC80.high_acute@0,0|u1BC81.high_tight_acute@416,0|u1BC82.high_grave@832,0|u1BC83.high_long_grave@1248,0|u1BC84.high_dot@1963,0|u1BC85.high_circle@2231,0|u1BC86.high_line@2671,0|u1BC87.high_wave@3161,0|u1BC88.high_vertical@3792,0|_@4032,0]
-1BC90 1BC91 1BC92 1BC93 1BC94 1BC95 1BC96 1BC97 1BC98 1BC99 1BC9C 1BC9D 1BC9E 1BC9F::[u1BC90.low_acute@0,0|u1BC91.low_tight_acute@416,0|u1BC92.low_grave@832,0|u1BC93.low_long_grave@1248,0|u1BC94.low_dot@1963,0|u1BC95.low_circle@2231,0|u1BC96.low_line@2671,0|u1BC97.low_wave@3161,0|u1BC98.low_vertical@3792,0|u1BC99.low_arrow@4032,0|u1BC9C.o_cross@4472,0|u1BC9D.dtls@5212,0|dupl_.Line.0.dotted@6340,0|u1BC9E_.double.90.wl@6715,-112|u1BC9F.chinook_period@7330,0|_@8070,0]
+1BC90 1BC91 1BC92 1BC93 1BC94 1BC95 1BC96 1BC97 1BC98 1BC99 1BC9C 1BC9D 1BC9E 1BC9F::[u1BC90.low_acute@0,0|u1BC91.low_tight_acute@416,0|u1BC92.low_grave@832,0|u1BC93.low_long_grave@1248,0|u1BC94.low_dot@1963,0|u1BC95.low_circle@2231,0|u1BC96.low_line@2671,0|u1BC97.low_wave@3161,0|u1BC98.low_vertical@3792,0|u1BC99.low_arrow@4032,0|u1BC9C.o_cross@4488,0|u1BC9D.dtls@5228,0|dupl_.Line.0.dotted@6356,0|u1BC9E_.double.90.wl@6731,-112|u1BC9F.chinook_period@7346,0|_@8086,0]
 1BCA0 1BCA1 1BCA2 1BCA3::[u1BCA0.letter_overlap@0,0|u1BCA1.continuing_overlap@1128,0|u1BCA2.down_step@2256,0|u1BCA3.up_step@3384,0|_@4512,0]
 
 # No dotted circle insertion for orienting sequences
