@@ -39,7 +39,6 @@ from shapes import ContextMarker
 from shapes import ContinuingOverlap
 from shapes import ContinuingOverlapS
 from shapes import Curve
-from shapes import EqualsSign
 from shapes import Grammalogue
 from shapes import InitialSecantMarker
 from shapes import InvalidDTLS
@@ -993,7 +992,7 @@ def disjoin_grammalogues(
     root_parent_edge = None
     for schema in new_schemas:
         match schema:
-            case Schema(path=EqualsSign() | Grammalogue()):
+            case Schema(path=Grammalogue()):
                 grammalogues.append(schema)
             case Schema(glyph_class=GlyphClass.JOINER):
                 classes['joiner'].append(schema)
@@ -1009,7 +1008,8 @@ def disjoin_grammalogues(
     for root in grammalogues:
         if root.max_tree_width() == 0:
             continue
-        add_rule(lookup, Rule([root], [zwnj, root]))
+        if not root.can_be_child():
+            add_rule(lookup, Rule([root], [zwnj, root]))
         if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width() + 1)):
             if 'prepend_zwnj' not in named_lookups:
                 named_lookups['prepend_zwnj'] = Lookup()
@@ -1019,9 +1019,11 @@ def disjoin_grammalogues(
     for child in grammalogues:
         if not child.can_be_child():
             continue
-        add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, zwnj]))
-        add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, zwnj]))
-        add_rule(lookup, Rule([child], [child, zwnj]))
+        zwnj_tail = (zwnj,) if child.max_tree_width() == 0 else ()
+        add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, *zwnj_tail]))
+        add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, *zwnj_tail]))
+        if zwnj_tail:
+            add_rule(lookup, Rule([child], [child, *zwnj_tail]))
     return [lookup]
 
 
