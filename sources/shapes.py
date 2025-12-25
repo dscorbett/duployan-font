@@ -3939,11 +3939,6 @@ class RotatedComplex(Complex):
         return self.clone(rotation=angle)
 
 
-class EqualsSign(Complex):
-    """U+003D EQUALS SIGN.
-    """
-
-
 class Grammalogue(Complex):
     """A symbol that might overlap but is not cursively joining.
 
