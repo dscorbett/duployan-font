@@ -283,6 +283,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_double_parenthesis = Complex([*left_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(left_parenthesis.instructions)], parenthesis_horizontal_space, *left_parenthesis.instructions])  # type: ignore[attr-defined]
     right_double_parenthesis = Complex([*right_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(right_parenthesis.instructions)], parenthesis_horizontal_space, *right_parenthesis.instructions])  # type: ignore[attr-defined]
     stenographic_period = Complex([(0.5, Line(135), True), *multiplication.instructions])
+    wiggly_vertical_line = Complex([(1, Curve(20 + 180, 360 - 20, clockwise=False)), (1, Curve(360 - 20, 20 + 180, clockwise=True))] * 4)
     double_hyphen = Complex([(0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
     bound = Bound()
     cross_knob_line_factor = 0.42
@@ -517,6 +518,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E29, right_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
+        Schema(0x2E3E, wiggly_vertical_line, 2, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
         Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
