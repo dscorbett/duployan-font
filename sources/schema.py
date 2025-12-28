@@ -274,6 +274,7 @@ class Schema:
         (r'^uniE016$', 'STENOGRAPHIC QUESTION MARK'),
         (r'^uniE017$', 'STENOGRAPHIC EXCLAMATION MARK'),
         (r'^uniE018$', 'STENOGRAPHIC INVERTED EXCLAMATION MARK'),
+        (r'^uniE019$', 'WIGGLY DASH'),
         (r'^uniE021$', 'COMBINING DIGIT ONE ABOVE'),
         (r'^uniE02A$', 'COMBINING RING-AND-DOT ABOVE'),
         (r'^uniE031$', 'COMBINING DIGIT ONE BELOW'),
