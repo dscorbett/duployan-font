@@ -304,6 +304,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions]])
     stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *question.instructions[1:]])
     stenographic_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *exclamation.instructions[1:]])
+    stenographic_inverted_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(270), True), *inverted_exclamation.instructions[1:]])
     ring_and_dot = Complex([(2.3, Circle(90, 90, clockwise=False)), (light_line + stroke_gap, Space(0)), (0, h)])
     x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
     p = Line(270, stretchy=True)
@@ -527,6 +528,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0xE015, stenographic_semicolon, 1, Type.NON_JOINING),
         Schema(0xE016, stenographic_question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0xE017, stenographic_exclamation, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0xE018, stenographic_inverted_exclamation, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0xE02A, ring_and_dot, 1, anchor=anchors.ABOVE),
         Schema(0xEC02, p_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),
         Schema(0xEC03, t_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),
