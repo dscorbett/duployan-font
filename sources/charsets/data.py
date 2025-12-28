@@ -531,7 +531,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0xE015, stenographic_semicolon, 1, Type.NON_JOINING),
         Schema(0xE016, stenographic_question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0xE017, stenographic_exclamation, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0xE018, stenographic_inverted_exclamation, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0xE018, stenographic_inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH),
         Schema(0xE019, wiggly_dash, 2, Type.NON_JOINING),
         Schema(0xE02A, ring_and_dot, 1, anchor=anchors.ABOVE),
         Schema(0xEC02, p_reverse, 1, Type.ORIENTING, maximum_tree_width=MAX_TREE_WIDTH),
