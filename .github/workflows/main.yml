@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2025 David Corbett
+# Copyright 2019, 2022-2026 David Corbett
 # Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
+  HARFBUZZ_VERSION: &harfbuzz_version 12.3.0
   PYTHON_VERSION: 3.12
 jobs:
   main:
@@ -38,7 +39,7 @@ jobs:
           - build-venv: dev
             optimize: -O
             charset: testing
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             requirements: oldest
             charset: testing
@@ -46,55 +47,55 @@ jobs:
           - build-venv: dev
             requirements: newest
             charset: testing
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: standard
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: noto
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: testing
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: standard
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: noto
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: testing
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: standard
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: noto
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: testing
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: standard
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: noto
             unjoined: unjoined
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             charset: testing
             coverage: coverage
-            harfbuzz-version: 9.0.0
+            harfbuzz-version: *harfbuzz_version
     steps:
       - uses: actions/checkout@v4
       - name: Select the setup-python cache

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ endif
 unexport CHARSET
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
-HB_VERSION = 9.0.0
+HB_VERSION = 12.3.0
 NEXT_VERSION = $$(python -c 'v = "$(VERSION)".split("."); print(f"{v[0]}.{int(v[1]) + 1}")')
 
 CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
