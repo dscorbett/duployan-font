@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,6 +67,7 @@ from utils import SMALL_DIGIT_FACTOR
 from utils import SUBSCRIPT_DEPTH
 from utils import SUPERSCRIPT_HEIGHT
 from utils import Type
+from utils import WidthEffect
 from utils import mkmk
 
 
@@ -234,7 +235,7 @@ def expand_secants(
                     cmap=None,
                     path=schema.path.clone(secant_curvature_offset=-schema.path.secant_curvature_offset),
                     anchor=anchors.SECANT,
-                    widthless=False,
+                    width_effect=WidthEffect.ALWAYS_WIDE,
                 )],
             ))
             classes['secant'].append(schema)
@@ -2106,9 +2107,9 @@ def make_widthless_variants_of_marks(
     first_iteration = 'i' not in classes
     for schema in new_schemas:
         if schema.glyph_class == GlyphClass.MARK:
-            if schema.anchor and schema.widthless is None and not schema.path.invisible():
+            if schema.anchor and schema.width_effect == WidthEffect.WIDE and not schema.path.invisible():
                 classes['i'].append(schema)
-                widthless_variant = schema.clone(cmap=None, widthless=True)
+                widthless_variant = schema.clone(cmap=None, width_effect=WidthEffect.IGNORED)
                 classes['o'].append(widthless_variant)
                 classes['c'].append(widthless_variant)
                 classes['visible_mark'].append(schema)

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -1732,11 +1732,11 @@ class Line(Shape):
                 glyph.addAnchorPoint(anchors.SECANT, 'base', child_interval * (max_tree_width + 1), 0)
             if size == 2 and 0 < self.angle <= 45:
                 # Special case for U+1BC18 DUPLOYAN LETTER RH
-                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
-                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', length / 2 + light_line + stroke_gap, -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', length / 2 - (light_line + stroke_gap), -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_WIDE, 'base', length / 2 + light_line + stroke_gap, -(stroke_width + Dot.SCALAR * light_line) / 2)
             else:
-                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', length / 2, (stroke_width + Dot.SCALAR * light_line) / 2)
-                glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', length / 2, (stroke_width + Dot.SCALAR * light_line) / 2)
+                glyph.addAnchorPoint(anchors.RELATIVE_WIDE, 'base', length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
             glyph.addAnchorPoint(anchors.MIDDLE, 'base', length / 2, 0)
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -1772,7 +1772,7 @@ class Line(Shape):
     def max_double_marks(self, size: float, joining_type: Type, marks: Sequence[Schema]) -> int:
         return (0
             if self.secant or any(
-                m.anchor in {anchors.RELATIVE_1, anchors.RELATIVE_2, anchors.MIDDLE}
+                m.anchor in {anchors.RELATIVE_NARROW, anchors.RELATIVE_WIDE, anchors.MIDDLE}
                     for m in marks
             ) else int(self._get_length(size) // (250 * 0.45)) - 1)
 
@@ -1858,8 +1858,8 @@ class Line(Shape):
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
         angle = float(self.angle % 180)
         return {
-            anchors.RELATIVE_1: angle,
-            anchors.RELATIVE_2: angle,
+            anchors.RELATIVE_NARROW: angle,
+            anchors.RELATIVE_WIDE: angle,
             anchors.MIDDLE: (angle + 90) % 180,
             anchors.SECANT: angle,
         }
@@ -1921,6 +1921,9 @@ class Curve(Shape):
             that only happens to be needed for semiellipses.
         secondary: Whether this curve represents a secondary curve
             character.
+        swap_relative_anchors: Whether to swap the ``RELATIVE_NARROW``
+            and ``RELATIVE_WIDE`` anchors from their default positions,
+            which are inside and outside the curve respectively.
         may_reposition_cursive_endpoints: Whether this curve, or any
             curve contextualized from it, may have an `entry_position`
             or `exit_position` less than 1. Repositioned cursive
@@ -1957,6 +1960,7 @@ class Curve(Shape):
         reversed_circle: float = 0,
         overlap_angle: float | None = None,
         secondary: bool | None = None,
+        swap_relative_anchors: bool = False,
         may_reposition_cursive_endpoints: bool = False,
         entry_position: float = 1,
         exit_position: float = 1,
@@ -1977,6 +1981,8 @@ class Curve(Shape):
             overlap_angle: The ``overlap_angle`` attribute.
             secondary: The ``secondary`` attribute, or ``None`` to mean
                 `clockwise`.
+            swap_relative_anchors: The ``swap_relative_anchors``
+                attribute.
             may_reposition_cursive_endpoints: The ``may_reposition_cursive_endpoints`` attribute.
             entry_position: The ``entry_position`` attribute.
             exit_position: The ``exit_position`` attribute.
@@ -1999,6 +2005,7 @@ class Curve(Shape):
         self.reversed_circle: Final = reversed_circle
         self.overlap_angle: Final = overlap_angle if overlap_angle is None else overlap_angle % 180
         self.secondary: Final = clockwise if secondary is None else secondary
+        self.swap_relative_anchors: Final = swap_relative_anchors
         self.may_reposition_cursive_endpoints: Final = may_reposition_cursive_endpoints
         self.entry_position: Final = entry_position
         self.exit_position: Final = exit_position
@@ -2019,6 +2026,7 @@ class Curve(Shape):
         reversed_circle: CloneDefault | float = CLONE_DEFAULT,
         overlap_angle: CloneDefault | float | None = CLONE_DEFAULT,
         secondary: CloneDefault | bool | None = CLONE_DEFAULT,
+        swap_relative_anchors: CloneDefault | bool = CLONE_DEFAULT,
         may_reposition_cursive_endpoints: CloneDefault | bool = CLONE_DEFAULT,
         entry_position: CloneDefault | float = CLONE_DEFAULT,
         exit_position: CloneDefault | float = CLONE_DEFAULT,
@@ -2036,6 +2044,7 @@ class Curve(Shape):
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
             overlap_angle=self.overlap_angle if overlap_angle is CLONE_DEFAULT else overlap_angle,
             secondary=self.secondary if secondary is CLONE_DEFAULT else secondary,
+            swap_relative_anchors=self.swap_relative_anchors if swap_relative_anchors is CLONE_DEFAULT else swap_relative_anchors,
             may_reposition_cursive_endpoints=(
                 self.may_reposition_cursive_endpoints if may_reposition_cursive_endpoints is CLONE_DEFAULT else may_reposition_cursive_endpoints
             ),
@@ -2114,6 +2123,7 @@ class Curve(Shape):
             stretch_axis,
             self.reversed_circle,
             self.overlap_angle,
+            self.swap_relative_anchors,
             self.entry_position,
             self.exit_position,
             self.smooth_1,
@@ -2430,9 +2440,13 @@ class Curve(Shape):
             )
         glyph.addAnchorPoint(anchors.MIDDLE, 'base', *_rect(r, math.radians(relative_mark_angle)))
         if not anchor:
+            inner_relative_anchor = anchors.RELATIVE_NARROW
+            outer_relative_anchor = anchors.RELATIVE_WIDE
+            if self.swap_relative_anchors:
+                inner_relative_anchor, outer_relative_anchor = outer_relative_anchor, inner_relative_anchor
             if self.stretch:
                 theta = math.radians(stretch_axis_angle)
-                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
+                glyph.addAnchorPoint(inner_relative_anchor, 'base', *_rect(0, 0))
                 glyph.transform(
                     fontTools.misc.transform.Identity
                         .rotate(theta)
@@ -2440,17 +2454,19 @@ class Curve(Shape):
                         .rotate(-theta),
                 )
                 glyph.addAnchorPoint(
-                    anchors.RELATIVE_2,
+                    outer_relative_anchor,
                     'base',
                     *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)),
                 )
             else:
-                glyph.addAnchorPoint(anchors.RELATIVE_1, 'base',
+                glyph.addAnchorPoint(
+                    inner_relative_anchor,
+                    'base',
                     *(_rect(0, 0) if abs(da) > 180 else _rect(
                         min(stroke_width, r - (stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2)),
                         math.radians(relative_mark_angle))))
                 glyph.addAnchorPoint(
-                    anchors.RELATIVE_2,
+                    outer_relative_anchor,
                     'base',
                     *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(relative_mark_angle)),
                 )
@@ -2629,8 +2645,8 @@ class Curve(Shape):
     def calculate_diacritic_angles(self) -> Mapping[str, float]:
         halfway_angle = (self.angle_in + self.angle_out) / 2 % 180
         return {
-            anchors.RELATIVE_1: halfway_angle,
-            anchors.RELATIVE_2: halfway_angle,
+            anchors.RELATIVE_NARROW: halfway_angle,
+            anchors.RELATIVE_WIDE: halfway_angle,
             anchors.MIDDLE: (halfway_angle + 90) % 180,
             anchors.SECANT: self.angle_out % 180,
         }
@@ -2917,7 +2933,7 @@ class Circle(Shape):
             if self.hub_priority(size) != 0:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
-        glyph.addAnchorPoint(anchors.RELATIVE_1, 'base', *_rect(0, 0))
+        glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', *_rect(0, 0))
         if self.stretch:
             theta = math.radians(stretch_axis_angle)
             glyph.transform(
@@ -2927,12 +2943,12 @@ class Circle(Shape):
                     .rotate(-theta),
             )
             glyph.addAnchorPoint(
-                anchors.RELATIVE_2,
+                anchors.RELATIVE_WIDE,
                 'base',
                 *_rect(scale_x * r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians(self.angle_in)),
             )
         else:
-            glyph.addAnchorPoint(anchors.RELATIVE_2, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
+            glyph.addAnchorPoint(anchors.RELATIVE_WIDE, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
         if diphthong_1 or diphthong_2:
             glyph.removeOverlap()
@@ -3497,9 +3513,9 @@ class Complex(Shape):
             exit_list = self.anchor_points[anchors.CURSIVE, 'exit']
             assert len(exit_list) == 1
             if isinstance(component, Circle):
-                rel1_list = self.anchor_points[anchors.RELATIVE_1, 'base']
+                rel1_list = self.anchor_points[anchors.RELATIVE_NARROW, 'base']
                 assert len(rel1_list) == 1
-                rel2_list = self.anchor_points[anchors.RELATIVE_2, 'base']
+                rel2_list = self.anchor_points[anchors.RELATIVE_WIDE, 'base']
                 assert len(rel2_list) == 1
                 r = math.hypot(entry_list[0][1] - rel1_list[0][1], entry_list[0][0] - rel1_list[0][0])
                 theta = math.atan2(rel2_list[0][1] - rel1_list[0][1], rel2_list[0][0] - rel1_list[0][0])
@@ -4071,7 +4087,7 @@ class RomanianU(Complex):
         size: float,
     ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
         effective_bounding_box, singular_anchor_points = super().draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
-        singular_anchor_points[anchors.RELATIVE_1, 'base'] = singular_anchor_points[anchors.CURSIVE, 'exit']
+        singular_anchor_points[anchors.RELATIVE_NARROW, 'base'] = singular_anchor_points[anchors.CURSIVE, 'exit']
         return effective_bounding_box, singular_anchor_points
 
     @override

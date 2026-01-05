@@ -1,5 +1,5 @@
 <!--
-Copyright 2022-2024 David Corbett
+Copyright 2022-2024, 2026 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -109,11 +109,14 @@ They have no analogue in other scripts.
 
 A glyph’s anchor widths (`adx`) are measured from its cursive entry point to
 each mark anchor point.
-Each glyph has 7 anchor widths.
-The font has 8 relevant anchors (mark positioning and cursive), but each base
-glyph uses the same x coordinate for its above- and below-base anchor points, so
-the above- and below-base anchors are represented by the same anchor width
-glyph.
+Each glyph has 6 anchor widths.
+The font has 8 relevant anchors (mark positioning and cursive).
+Each base glyph uses the same x coordinate for its above- and below-base anchor
+points, so the above- and below-base anchors are represented by the same anchor
+width glyph.
+One anchor is reserved for marks that are inherently part of their base
+characters (like the dot in U+1BC5A DUPLOYAN LETTER OW) where the stenogram is
+wider than the mark, so it does not need an anchor width to represent it.
 
 ## Number encoding
 

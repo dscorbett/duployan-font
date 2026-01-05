@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -408,6 +408,35 @@ class Type(enum.Enum):
     #: The type of a character that does not cursively join to adjacent
     #: characters.
     NON_JOINING = enum.auto()
+
+
+class WidthEffect(enum.Enum):
+    """How a schema interacts with the width system.
+    """
+
+    #: Width calculations are suppressed for the schema. This is an
+    #: optimization for schemas for mark glyphs applied to non-joining
+    #: bases; otherwise, there would be a large space to the right of
+    #: the base. Technically, a wide diacritic on a narrow non-joining
+    #: base could overlap adjacent glyphs, but it is unlikely to be a
+    #: problem in practice.
+    IGNORED = enum.auto()
+
+    #: The schema is not relevant to width calculations, but it can
+    #: appear in stenograms for which width calculations are relevant,
+    #: so it gets width markers representing a width of 0. This ensures
+    #: that it precedes the final ``END`` glyph; otherwise, the final
+    #: ``END`` glyph could block the attachment of the schema to its
+    #: base.
+    ZEROED = enum.auto()
+
+    #: The schema is relevant to width calculations. Schemas derived
+    #: from it may contextually be `IGNORED`.
+    WIDE = enum.auto()
+
+    #: The schema is relevant to width calculations. Schemas derived
+    #: from it are too.
+    ALWAYS_WIDE = enum.auto()
 
 
 class Context:

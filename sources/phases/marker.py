@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2025 David Corbett
+# Copyright 2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +57,7 @@ from utils import NO_CONTEXT
 from utils import OrderedSet
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
+from utils import WidthEffect
 from utils import mkmk
 
 
@@ -269,7 +270,7 @@ def shrink_wrap_enclosing_circle(
     for schema in schemas:
         if not schema.glyph:
             continue
-        if schema.widthless and schema.anchor == anchors.MIDDLE and isinstance(schema.path, Circle):
+        if schema.width_effect == WidthEffect.IGNORED and schema.anchor == anchors.MIDDLE and isinstance(schema.path, Circle):
             if circle_schema is None:
                 circle_schema = schema
             classes['i'].append(schema)
@@ -349,7 +350,9 @@ def add_width_markers(
             return mark_anchor_selectors[anchor]
         return mark_anchor_selectors.setdefault(anchor, Schema(None, MarkAnchorSelector(anchor), 0))
 
-    def get_mark_anchor_selector(schema: Schema) -> Schema:
+    def get_mark_anchor_selector(schema: Schema) -> tuple[()] | tuple[Schema]:
+        if schema.glyph_class != GlyphClass.MARK or schema.width_effect.value < WidthEffect.WIDE.value:
+            return ()
         only_anchor_class_name = None
         assert schema.glyph is not None
         for anchor_class_name, anchor_type, *_ in schema.glyph.anchorPoints:
@@ -359,7 +362,7 @@ def add_width_markers(
         assert canonical_mark_anchor_mapping is not None, '`canonical_mark_anchor_mapping` is only implemented for the first iteration of the phase'
         assert only_anchor_class_name is not None
         only_anchor_class_name = canonical_mark_anchor_mapping.get(only_anchor_class_name, only_anchor_class_name)
-        return register_mark_anchor_selector(only_anchor_class_name)
+        return (register_mark_anchor_selector(only_anchor_class_name),)
 
     glyph_class_selectors: MutableMapping[GlyphClass, Schema] = {}
 
@@ -462,6 +465,10 @@ def add_width_markers(
             if not (entry_xs or exit_xs):
                 # This glyph never appears in the final glyph buffer.
                 continue
+            if schema.width_effect == WidthEffect.ZEROED:
+                entry_xs.clear()
+                exit_xs.clear()
+                entry_xs[anchor_class_name] = 0
             entry_xs.setdefault(anchors.CURSIVE, 0)
             if anchors.CURSIVE not in exit_xs:
                 exit_xs[anchors.CURSIVE] = exit_xs.get(anchors.CONTINUING_OVERLAP, 0)
@@ -473,7 +480,9 @@ def add_width_markers(
         anchor_groups = anchor_grouper.groups()
         canonical_mark_anchors = [
             a for a in anchors.ALL_MARK
-                if not any(a in group for group in anchor_groups) or any(a == group[0] for group in anchor_groups)
+                if ((not any(a in group for group in anchor_groups) or any(a == group[0] for group in anchor_groups))
+                    and any(a == s.anchor and s.width_effect.value >= WidthEffect.WIDE.value for s, _, _, _ in schemas_needing_width_markers)
+                )
         ]
         canonical_mark_anchor_mapping = {}
         for group in anchor_groups:
@@ -485,17 +494,14 @@ def add_width_markers(
     else:
         canonical_mark_anchors = [a for a in anchors.ALL_MARK if f'global..canonical_anchor_{a}' in classes]
     for rule_count, (schema, entry_xs, exit_xs, start_x) in enumerate(schemas_needing_width_markers):
-        if schema.glyph is None:
+        if schema.glyph is None or schema.width_effect.value < WidthEffect.WIDE.value:
             x_min = x_max = 0.0
         else:
             x_min, _, x_max, _ = schema.glyph.boundingBox()
         if x_min == x_max == 0:
             x_min = entry_xs[anchors.CURSIVE]
             x_max = exit_xs[anchors.CURSIVE]
-        if schema.glyph_class == GlyphClass.MARK:
-            mark_anchor_selector = [get_mark_anchor_selector(schema)]
-        else:
-            mark_anchor_selector = []
+        mark_anchor_selector = get_mark_anchor_selector(schema)
         glyph_class_selector = get_glyph_class_selector(schema)
         widths: MutableSequence[WidthNumber[Digit]] = []
         for width, digit_path in [

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,6 +69,7 @@ from utils import SMALL_DIGIT_FACTOR
 from utils import SUBSCRIPT_DEPTH
 from utils import SUPERSCRIPT_HEIGHT
 from utils import Type
+from utils import WidthEffect
 from utils import X_HEIGHT
 
 
@@ -319,10 +320,10 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     k_reverse = Line(60, stretchy=True)
     l_ = Line(45, stretchy=True)
     l_reverse = Line(225, stretchy=True)
-    m = Curve(180, 0, clockwise=False, stretch=0.2)
-    m_reverse = Curve(180, 0, clockwise=True, stretch=0.2)
-    n = Curve(0, 180, clockwise=True, stretch=0.2)
-    n_reverse = Curve(0, 180, clockwise=False, stretch=0.2)
+    m = Curve(180, 0, clockwise=False, stretch=0.2, swap_relative_anchors=True)
+    m_reverse = Curve(180, 0, clockwise=True, stretch=0.2, swap_relative_anchors=True)
+    n = Curve(0, 180, clockwise=True, stretch=0.2, swap_relative_anchors=True)
+    n_reverse = Curve(0, 180, clockwise=False, stretch=0.2, swap_relative_anchors=True)
     j = Curve(90, 270, clockwise=True, stretch=0.2)
     j_reverse = Curve(90, 270, clockwise=False, stretch=0.2)
     s = Curve(270, 90, clockwise=False, stretch=0.2)
@@ -332,7 +333,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     j_s = Curve(90, 270, clockwise=True, stretch=0.8)
     s_s = Curve(270, 90, clockwise=False, stretch=0.8)
     s_t = Curve(270, 0, clockwise=False, may_reposition_cursive_endpoints=True)
-    s_p = Curve(270, 180, clockwise=True, may_reposition_cursive_endpoints=True)
+    s_p = Curve(270, 180, clockwise=True, swap_relative_anchors=True, may_reposition_cursive_endpoints=True)
     t_s = Curve(0, 270, clockwise=True)
     w = Curve(180, 270, clockwise=False)
     s_n = Curve(0, 90, clockwise=False, secondary=True, may_reposition_cursive_endpoints=True)
@@ -347,6 +348,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     ui = Curve(90, 270, clockwise=True)
     ee = Curve(270, 90, clockwise=False, secondary=True, may_reposition_cursive_endpoints=True)
     ye = Complex([(0.47, Line(0, minor=True)), (0.385, Line(242)), (0.47, t), (0.385, Line(242)), (0.47, t), (0.385, Line(242)), (0.47, t)])
+    u = s_t.clone(swap_relative_anchors=True)
     u_n = Curve(90, 180, clockwise=True)
     long_u = Curve(225, 45, clockwise=False, stretch=4, long=True)
     romanian_u = RomanianU([(1, Curve(180, 0, clockwise=False)), lambda c: c, (0.5, Curve(0, 180, clockwise=False))])
@@ -405,10 +407,10 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     line = Line(0)
 
     enclosing_circle = Schema(None, circle, 10, anchor=anchors.MIDDLE)
-    small_dot_1 = Schema(None, Dot(0), 0, anchor=anchors.RELATIVE_1)
-    dot_1 = Schema(None, h, 0, anchor=anchors.RELATIVE_1)
-    dot_2 = Schema(None, h, 0, anchor=anchors.RELATIVE_2)
-    line_2 = Schema(None, line, 0.35, Type.ORIENTING, anchor=anchors.RELATIVE_2)
+    small_dot_1 = Schema(None, Dot(0), 0, anchor=anchors.RELATIVE_NARROW, width_effect=WidthEffect.ZEROED)
+    dot_1 = Schema(None, h, 0, anchor=anchors.RELATIVE_NARROW, width_effect=WidthEffect.ZEROED)
+    dot_2 = Schema(None, h, 0, anchor=anchors.RELATIVE_WIDE)
+    line_2 = Schema(None, line, 0.35, Type.ORIENTING, anchor=anchors.RELATIVE_WIDE)
     line_middle = Schema(None, line, 0.45, Type.ORIENTING, anchor=anchors.MIDDLE)
 
     schemas = [
@@ -577,8 +579,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x1BC1E, n, 6, marks=[line_middle]),
         Schema(0x1BC1F, j, 6, marks=[line_middle]),
         Schema(0x1BC20, s, 6, marks=[line_middle]),
-        Schema(0x1BC21, m, 6, marks=[dot_1]),
-        Schema(0x1BC22, n, 6, marks=[dot_1]),
+        Schema(0x1BC21, m, 6, marks=[dot_2]),
+        Schema(0x1BC22, n, 6, marks=[dot_2]),
         Schema(0x1BC23, j, 6, marks=[dot_1]),
         Schema(0x1BC24, j, 6, marks=[dot_1, dot_2]),
         Schema(0x1BC25, s, 6, marks=[dot_1]),
@@ -625,9 +627,9 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x1BC4E, ee, 2, Type.ORIENTING, marks=[line_2], shading_allowed=False),
         Schema(0x1BC4F, k, 0.5, Type.ORIENTING),
         Schema(0x1BC50, ye, 1, shading_allowed=False),
-        Schema(0x1BC51, s_t, 6, Type.ORIENTING, shading_allowed=False),
+        Schema(0x1BC51, u, 6, Type.ORIENTING, shading_allowed=False),
         Schema(0x1BC52, s_p, 6, Type.ORIENTING, shading_allowed=False),
-        Schema(0x1BC53, s_t, 6, Type.ORIENTING, marks=[dot_1], shading_allowed=False),
+        Schema(0x1BC53, u, 6, Type.ORIENTING, marks=[dot_2], shading_allowed=False),
         Schema(0x1BC54, u_n, 3, shading_allowed=False),
         Schema(0x1BC55, long_u, 2, shading_allowed=False),
         Schema(0x1BC56, romanian_u, 3, Type.ORIENTING, marks=[small_dot_1], shading_allowed=False),
@@ -647,7 +649,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x1BC64, s_k, 3.2, Type.ORIENTING, shading_allowed=False),
         Schema(0x1BC65, s_p, 3.2, can_lead_orienting_sequence=True, shading_allowed=False),
         Schema(0x1BC66, w, 3.2, can_lead_orienting_sequence=True, shading_allowed=False),
-        Schema(0x1BC67, s_t, 3.2, can_lead_orienting_sequence=True, marks=[dot_1], shading_allowed=False),
+        Schema(0x1BC67, u, 3.2, can_lead_orienting_sequence=True, marks=[dot_2], shading_allowed=False),
         Schema(0x1BC68, s_t, 3.2, can_lead_orienting_sequence=True, marks=[dot_2], shading_allowed=False),
         Schema(0x1BC69, s_k, 3.2, can_lead_orienting_sequence=True, marks=[dot_2], shading_allowed=False),
         Schema(0x1BC6A, s_k, 3.2, can_lead_orienting_sequence=True, shading_allowed=False),

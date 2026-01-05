@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +59,7 @@ from utils import MAX_TREE_WIDTH
 from utils import NO_CONTEXT
 from utils import SUBSET_FEATURES
 from utils import Type
+from utils import WidthEffect
 from utils import cps_to_scripts
 
 
@@ -168,15 +169,7 @@ class Schema:
             topographical phases.
         anchor: The anchor this schema attaches to, if this schema
             represents a mark.
-        widthless: Whether width calculations should be suppressed for
-            this schema. This is an optimization for schemas for mark
-            glyphs applied to non-joining bases; otherwise, there would
-            be a large space to the right of the base. Technically, a
-            wide diacritic on a narrow non-joining base could overlap
-            adjacent glyphs, but it is unlikely to be a problem in
-            practice. ``None`` means the widthlessness has not been
-            determined, in which case the schema should be assumed to
-            have width.
+        width_effect: How this schema interacts with the width system.
         marks: The sequence of marks of this schema, if this schema
             represents a glyph that can be decomposed into a base and
             some marks. For most schemas, this is empty.
@@ -364,7 +357,7 @@ class Schema:
         can_lead_orienting_sequence: bool | None = None,
         ignored_for_topography: bool = False,
         anchor: str | None = None,
-        widthless: bool | None = None,
+        width_effect: WidthEffect = WidthEffect.WIDE,
         marks: Sequence[Schema] = (),
         override_ignored: bool = False,
         encirclable: bool = False,
@@ -398,7 +391,7 @@ class Schema:
             ignored_for_topography: The ``ignored_for_topography``
                 attribute.
             anchor: The ``anchor`` attribute.
-            widthless: The ``widthless`` attribute.
+            width_effect: The ``width_effect`` attribute.
             marks: The ``marks`` attribute.
             override_ignored: The ``override_ignored`` attribute.
             encirclable: The ``encirclable`` attribute.
@@ -421,7 +414,7 @@ class Schema:
                 ``None`` to set the attribute to ``type(path)``.
         """
         assert not (marks and anchor), f'A schema has both marks {marks} and anchor {anchor}'
-        assert not widthless or anchor, f'A widthless schema has anchor {anchor}'
+        assert width_effect.value >= WidthEffect.WIDE.value or anchor, 'A widthless schema has no anchor'
         assert cmap is None or fontTools.merge.unicode.is_Default_Ignorable(cmap) or not override_ignored, (
             'A non-ignored schema does need overriding: it is already not ignored')
         self.cmap: Final = cmap
@@ -435,7 +428,7 @@ class Schema:
         self.can_lead_orienting_sequence: Final = can_lead_orienting_sequence if can_lead_orienting_sequence is not None else joining_type == Type.ORIENTING
         self.ignored_for_topography: Final = ignored_for_topography
         self.anchor: Final = anchor
-        self.widthless: Final = widthless
+        self.width_effect: Final = width_effect
         self.marks: Final = marks
         self.override_ignored: Final = override_ignored
         self.encirclable: Final = encirclable
@@ -526,7 +519,7 @@ class Schema:
         can_lead_orienting_sequence: CloneDefault | bool | None = CLONE_DEFAULT,
         ignored_for_topography: CloneDefault | bool = CLONE_DEFAULT,
         anchor: CloneDefault | str | None = CLONE_DEFAULT,
-        widthless: CloneDefault | bool = CLONE_DEFAULT,
+        width_effect: CloneDefault | WidthEffect = CLONE_DEFAULT,
         marks: CloneDefault | Sequence[Schema] = CLONE_DEFAULT,
         override_ignored: CloneDefault | bool = CLONE_DEFAULT,
         encirclable: CloneDefault | bool = CLONE_DEFAULT,
@@ -554,7 +547,7 @@ class Schema:
             can_lead_orienting_sequence=self.can_lead_orienting_sequence if can_lead_orienting_sequence is CLONE_DEFAULT else can_lead_orienting_sequence,
             ignored_for_topography=self.ignored_for_topography if ignored_for_topography is CLONE_DEFAULT else ignored_for_topography,
             anchor=self.anchor if anchor is CLONE_DEFAULT else anchor,
-            widthless=self.widthless if widthless is CLONE_DEFAULT else widthless,
+            width_effect=self.width_effect if width_effect is CLONE_DEFAULT else width_effect,
             marks=self.marks if marks is CLONE_DEFAULT else marks,
             override_ignored=self.override_ignored if override_ignored is CLONE_DEFAULT else override_ignored,
             encirclable=self.encirclable if encirclable is CLONE_DEFAULT else encirclable,
@@ -657,7 +650,7 @@ class Schema:
         been drawn.
         """
         return not (
-                self.child or self.ignored_for_topography or self.widthless
+                self.child or self.ignored_for_topography or self.width_effect == WidthEffect.IGNORED
             ) and self.glyph_class in {GlyphClass.JOINER, GlyphClass.MARK}
 
     @functools.cached_property
@@ -698,7 +691,7 @@ class Schema:
             self.y_max,
             self.child,
             self.anchor,
-            self.widthless,
+            self.width_effect,
             tuple(m.group for m in self.marks),
             self.glyph_class,
             self.encirclable or self.max_double_marks != 0 or self.cmap == 0x25CC,
@@ -860,7 +853,7 @@ class Schema:
                 name += '2'
         if self.child:
             name += '.sub'
-        if self.widthless:
+        if self.width_effect == WidthEffect.IGNORED:
             name += '.wl'
         if self.ignored_for_topography:
             name += '.X'
