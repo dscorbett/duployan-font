@@ -238,7 +238,7 @@ class Builder:
         cmapped_anchors: AbstractSet[str],
         _scalar: float = 1,
     ) -> None:
-        assert not schema.marks
+        assert not schema.marks, f'{glyph.glyphname} cannot be drawn because it is has inherent marks; it should be decomposed instead'
         invisible = schema.path.invisible()
         stroke_width = self.light_line if invisible or schema.cmap is not None or schema.cps[-1:] != (0x1BC9D,) else self.shaded_line
         effective_bounding_box = schema.path.draw(
@@ -539,7 +539,11 @@ class Builder:
                 self._fea.statements.append(named_lookup_ast)
                 assert name not in named_lookup_asts, name
                 named_lookup_asts[name] = named_lookup_ast
-            assert len(new_named_lookups_to_do) < len(named_lookups_to_do)
+            assert len(new_named_lookups_to_do) < len(named_lookups_to_do), (
+                f'Number of named lookups to process did not decrease when processing {name}\n'
+                f'    Old ({len(named_lookups_to_do)}): {named_lookups_to_do}\n'
+                f'    New ({len(new_named_lookups_to_do)}): {new_named_lookups_to_do}'
+            )
             named_lookups_to_do = new_named_lookups_to_do
         return named_lookup_asts
 

@@ -281,7 +281,7 @@ def validate_overlap_controls(
             new_class = f'base_{max_tree_width}'
             classes[new_class].append(schema)
             new_classes[max_tree_width] = new_class
-    assert global_max_tree_width == MAX_TREE_WIDTH
+    assert global_max_tree_width == MAX_TREE_WIDTH, f'{MAX_TREE_WIDTH=} should match the calculated value {global_max_tree_width}'
     classes['invalid'].append(letter_overlap)
     classes['invalid'].append(continuing_overlap)
     valid_letter_overlap = letter_overlap.clone(cmap=None, path=ChildEdge(lineage=((1, 0),)), side_bearing=0)

@@ -718,7 +718,7 @@ class Schema:
 
     @canonical_schema.setter
     def canonical_schema(self, canonical_schema: Schema) -> None:
-        assert self._canonical_schema is self
+        assert self._canonical_schema is self, 'Cannot set `canonical_schema` multiple times'
         canonical_schema.anchors.update(self.anchors)
         if canonical_schema.features is not None:
             if self.features is None:
@@ -1011,7 +1011,9 @@ class Schema:
             ignore_dependent_schemas: Whether the output schema might
                 have ``ignored_for_topography`` set to ``True``.
         """
-        assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep)
+        assert self.joining_type == Type.ORIENTING or isinstance(self.path, InvalidStep), (
+            f'Cannot contextualize a schema of joining type {self.joining_type.name} and shape {type(self.path).__name__}'
+        )
         ignored_for_topography = (
             ignore_dependent_schemas
             and context_out == NO_CONTEXT

@@ -130,13 +130,13 @@ def add_shims_for_pseudo_cursive(
                         case 'entry':
                             entry_x = x
                             entry_y = y
-            assert entry_y == exit_y
+            assert entry_y == exit_y, f'Pseudo-cursive glyph {schema.glyph.glyphname} has unequal {entry_y=} and {exit_y=}'
             is_space = x_min == x_max
             if exit_x is None or entry_x is None or entry_y is None:
                 return []
             if is_space:
-                assert x_min == 0
-                assert entry_x == 0
+                assert x_min == 0, f'Zero-width glyph {schema.glyph.glyphname} has a contour at {x_min=}'
+                assert entry_x == 0, f'Zero-width glyph {schema.glyph.glyphname} has {entry_x=}'
                 exit_x = 0
             bottom_bound = y_min - MINIMUM_STROKE_GAP - entry_y
             top_bound = y_max + MINIMUM_STROKE_GAP - entry_y
@@ -433,7 +433,7 @@ def add_width_markers(
             entry_xs: dict[str, float] = {}
             exit_xs: dict[str, float] = {}
             if schema.glyph is None:
-                assert isinstance(schema.path, Space)
+                assert isinstance(schema.path, Space), f'Cannot determine the width of a schema of shape {type(schema.path).__name__} without drawing its glyph'
                 entry_xs[anchors.CURSIVE] = 0
                 exit_xs[anchors.CURSIVE] = schema.size
             else:

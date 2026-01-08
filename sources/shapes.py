@@ -1990,11 +1990,11 @@ class Curve(Shape):
             smooth_2: The ``smooth_2`` attribute.
         """
         assert overlap_angle is None or abs(angle_out - angle_in) == 180, 'Only a semicircle may have an overlap angle'
-        assert stretch > -1
+        assert stretch > -1, f'{stretch=}'
         assert entry_position == 1 or may_reposition_cursive_endpoints, f'{entry_position=}'
         assert exit_position == 1 or may_reposition_cursive_endpoints, f'{exit_position=}'
-        assert 0 <= entry_position <= 1
-        assert 0 <= exit_position <= 1
+        assert 0 <= entry_position <= 1, f'{entry_position=}'
+        assert 0 <= exit_position <= 1, f'{exit_position=}'
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -2733,7 +2733,7 @@ class Circle(Shape):
             long: The ``long`` attribute.
             role: The ``role`` attribute.
         """
-        assert stretch > -1
+        assert stretch > -1, f'{stretch=}'
         self.angle_in: Final = angle_in
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
@@ -3507,16 +3507,16 @@ class Complex(Shape):
                 component: A circle or curve.
             """
             entry_list = self.anchor_points[anchors.CURSIVE, 'entry']
-            assert len(entry_list) == 1
+            assert len(entry_list) == 1, f'{entry_list=}'
             if component.angle_in == component.angle_out:
                 return entry_list[0]
             exit_list = self.anchor_points[anchors.CURSIVE, 'exit']
-            assert len(exit_list) == 1
+            assert len(exit_list) == 1, f'{exit_list=}'
             if isinstance(component, Circle):
                 rel1_list = self.anchor_points[anchors.RELATIVE_NARROW, 'base']
-                assert len(rel1_list) == 1
+                assert len(rel1_list) == 1, f'{rel1_list=}'
                 rel2_list = self.anchor_points[anchors.RELATIVE_WIDE, 'base']
-                assert len(rel2_list) == 1
+                assert len(rel2_list) == 1, f'{rel2_list=}'
                 r = math.hypot(entry_list[0][1] - rel1_list[0][1], entry_list[0][0] - rel1_list[0][0])
                 theta = math.atan2(rel2_list[0][1] - rel1_list[0][1], rel2_list[0][0] - rel1_list[0][0])
                 return _rect(r, theta)
@@ -3596,7 +3596,7 @@ class Complex(Shape):
                 diphthong_2=False,
             )
             this_entry_list = proxy.anchor_points[anchors.CURSIVE, 'entry']
-            assert len(this_entry_list) == 1
+            assert len(this_entry_list) == 1, f'{this_entry_list=}'
             this_x, this_y = this_entry_list[0]
             if exit_list := singular_anchor_points.get((anchors.CURSIVE, 'exit')):
                 last_x, last_y = exit_list[-1]
