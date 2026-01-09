@@ -1,4 +1,4 @@
-# Copyright 2022-2025 David Corbett
+# Copyright 2022-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ extend-ignore-names = [
 ]
 
 [tool.ruff.lint.pycodestyle]
-max-line-length = 170
+max-line-length = 169
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

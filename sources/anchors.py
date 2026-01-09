@@ -36,7 +36,10 @@ CHILD_EDGES: Final[Sequence[Sequence[str]]] = [
 ]
 
 
-INTER_EDGES: Final[Sequence[Sequence[str]]] = [[f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)] for layer_index in range(MAX_TREE_DEPTH)]
+INTER_EDGES: Final[Sequence[Sequence[str]]] = [
+    [f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
+    for layer_index in range(MAX_TREE_DEPTH)
+]
 
 
 #: The anchor for marks that are inherently part of their bases’

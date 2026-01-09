@@ -4259,7 +4259,10 @@ class Ou(Complex):
             intermediate_angle = (angle_out - clockwise_sign * inner_curve_da) % 360
             instructions = [
                 circle_op._replace(shape=Circle(angle_in, intermediate_angle, clockwise=clockwise)),
-                (inner_curve_size, Curve(intermediate_angle, angle_out, clockwise=clockwise, stretch=inner_curve_stretch, long=True, stretch_axis=StretchAxis.ANGLE_OUT)),
+                (
+                    inner_curve_size,
+                    Curve(intermediate_angle, angle_out, clockwise=clockwise, stretch=inner_curve_stretch, long=True, stretch_axis=StretchAxis.ANGLE_OUT),
+                ),
             ]
         elif angle_in != angle_out:
             instructions = [
