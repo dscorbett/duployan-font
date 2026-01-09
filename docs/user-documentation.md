@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2023-2025 David Corbett
+Copyright 2023-2026 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ proposals:
 * Perrault-Duployan (English)
 * Romanian Duployan
 * Sloan-Duployan (English)
-* Stenographie Duployé codifiée (French)
+* Sténographie Duployé codifiée (French)
 * Wawa Shorthand (primarily Chinook Jargon, English, and French, but also Comox
   (Sliammon), Halkomelem, Latin, Lillooet, Okanagan, Sechelt, Shuswap, Squamish,
   and Thompson)

@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023, 2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@
 1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@320,0|u1BC62.nasal_o.270n180@160,-160|u1BC62.nasal_o.180n90@0,-160|u1BC62.nasal_o.90n0@0,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
 1BC64 1BC64 1BC64 1BC62 1BC02::[u1BC64.nasal_a@0,0|u1BC62.nasal_o.0n270@160,0|u1BC62.nasal_o.270n180@160,-160|uni25CC.dotted_circle@560,0|u1BC62.nasal_o.180p270@1246,500|u1BC02.p@1246,0|_@1646,0]
 
-# Adjacent curves that would otherwise be an overlong sequence are overlong if
-# they are different nodes in a tree.
+# Adjacent curves that would otherwise be an overlong sequence are not overlong
+# if they are different nodes in a tree.
 1BC08 1BCA0 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BC46.i.180p0.sub@487,-150|u1BC46.i@737,-150|_@1240,0]
 1BC08 1BCA1 1BCA1 1BC46 1BC46::[u1BC08.d@0,0|u1BCA1.continuing_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC46.i@3496,0|uni25CC.dotted_circle@3836,0|u1BC46.i@4522,0|_@4862,0]
 

@@ -42,7 +42,7 @@ INTER_EDGES: Final[Sequence[Sequence[str]]] = [[f'edge{layer_index}_{child_index
 #: The anchor for marks that are inherently part of their bases’
 #: characters (like the dot in U+1BC5A DUPLOYAN LETTER OW) where the
 #: mark’s left and right x coordinates fall between the stenogram’s left
-#: and right coordinates (inclusive) in all contexts. If the base
+#: and right x coordinates (inclusive) in all contexts. If the base
 #: orients, the mark is positioned relative to it.
 RELATIVE_NARROW: Final[str] = 'rel1'
 
@@ -50,7 +50,7 @@ RELATIVE_NARROW: Final[str] = 'rel1'
 #: The anchor for marks that are inherently part of their bases’
 #: characters (like the line in U+1BC4E DUPLOYAN LETTER SLOAN EE) where
 #: the mark’s left and right x coordinates might not fall between the
-#: stenogram’s left and right coordinates. It is okay if they do fall
+#: stenogram’s left and right x coordinates. It is okay if they do fall
 #: between them, but in that case `RELATIVE_NARROW` is more efficient if
 #: possible. If the base orients, the mark is positioned relative to it.
 RELATIVE_WIDE: Final[str] = 'rel2'

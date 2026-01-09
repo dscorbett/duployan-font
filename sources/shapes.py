@@ -183,7 +183,7 @@ class Shape:
             glyph: The FontForge glyph to add contour points and anchor
                 points to.
             stroke_width: The diameter of the circular nib with which to
-                stroke the path traced by `pen` to get the final
+                stroke the path traced by `glyph`’s pen to get the final
                 contours of the glyph.
             light_line: The width of a light line.
             stroke_gap: The minimum distance between two different
@@ -257,8 +257,8 @@ class Shape:
         return False
 
     def is_shadable(self) -> bool:
-        """Returns whether this shape may be followed by U+1BC9D
-        DUPLOYAN THICK LETTER SELECTOR.
+        """Returns whether a character with this shape may be followed
+        by U+1BC9D DUPLOYAN THICK LETTER SELECTOR.
         """
         return False
 
@@ -1135,7 +1135,7 @@ class Bound(Shape):
     """The shape of a special glyph used in tests to indicate the
     precise left and right bounds of a test string’s rendered form.
 
-    The glyph is two squares, one on the baseline and on at cap height.
+    The glyph is two squares, one on the baseline and one at cap height.
     """
 
     @override
@@ -1983,7 +1983,8 @@ class Curve(Shape):
                 `clockwise`.
             swap_relative_anchors: The ``swap_relative_anchors``
                 attribute.
-            may_reposition_cursive_endpoints: The ``may_reposition_cursive_endpoints`` attribute.
+            may_reposition_cursive_endpoints: The
+                ``may_reposition_cursive_endpoints`` attribute.
             entry_position: The ``entry_position`` attribute.
             exit_position: The ``exit_position`` attribute.
             smooth_1: The ``smooth_1`` attribute.
@@ -2814,7 +2815,7 @@ class Circle(Shape):
 
     @functools.cached_property
     def _pre_stretch_values(self) -> tuple[float, float, float, float, float]:
-        """Returns various values related to drawing this curve before
+        """Returns various values related to drawing this circle before
         it is stretched.
 
         Stretching a glyph changes its angles. To make the final glyph
@@ -2833,11 +2834,11 @@ class Circle(Shape):
             1. The pre-stretch entry angle.
             2. The pre-stretch exit angle.
             3. The non-negative number of degrees by which to rotate the
-               curve clockwise before stretching it. After stretching,
-               the curve is rotated back the same amount
+               circle clockwise before stretching it. After stretching,
+               the circle is rotated back the same amount
                counterclockwise.
-            4. How much to stretch this curve in the x axis.
-            5. How much to stretch this curve in the y axis.
+            4. How much to stretch this circle in the x axis.
+            5. How much to stretch this circle in the y axis.
         """
         scale_x = 1.0 + self.stretch
         scale_y = 1.0
@@ -3193,9 +3194,8 @@ class Complex(Shape):
     Attributes:
         instructions: A sequence of instructions for how to build this
             compound shape. Each instruction is either a `Component`,
-            representing a shape to include in this one, a tuple to be
-            converted to a `Component`, or a callable, which modifies
-            the context.
+            representing a shape to include in this one, or a callable,
+            which modifies the context.
 
             The components are drawn (or not) in order, and connected
             end to end by their `anchors.CURSIVE` anchor points. Every
@@ -3225,10 +3225,11 @@ class Complex(Shape):
         self,
         instructions: Instructions,
     ) -> None:
-        """Initializes this `Complex`.
+        r"""Initializes this `Complex`.
 
         Args:
-            instructions: The ``instructions`` attribute.
+            instructions: The ``instructions`` attribute. Tuple
+                instructions are converted to `Component`\ s.
         """
         self.instructions: Final[_StrictInstructions] = [op if callable(op) else Component(*op) for op in instructions]
 
@@ -3289,7 +3290,7 @@ class Complex(Shape):
 
         Returns:
             The shape of the component at the index indicated by
-            `base_index`, or ``None`` if that returns ``None``.
+            `base_index`, or ``None`` if that is ``None``.
         """
         base_index = self.base_index
         if base_index is None:

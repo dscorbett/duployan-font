@@ -987,7 +987,7 @@ class Schema:
         )
 
     def can_be_ignored_for_topography(self) -> bool:
-        """Return whether this schema can give rise to a schema that is
+        """Returns whether this schema can give rise to a schema that is
         ignored for topography.
         """
         return (isinstance(self.path, (Circle, Ou))

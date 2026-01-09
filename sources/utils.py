@@ -153,7 +153,7 @@ MAX_TREE_DEPTH: Final[int] = 3
 #: The maximum width of a shorthand overlap sequence, i.e. the maximum
 #: number of overlap controls that can immediately follow a letter. The
 #: maximum known attested depth in any mode supposedly supported by
-#: Unicode is 2. Another much more than that would not be practical.
+#: Unicode is 2. Anything much more than that would not be practical.
 MAX_TREE_WIDTH: Final[int] = 2
 
 
@@ -393,7 +393,7 @@ class GlyphClass(enum.StrEnum):
 class Type(enum.Enum):
     """How a character cursively joins to adjacent characters.
 
-    This is analogous to Unicode’ Joining_Type property but specific
+    This is analogous to Unicode’s Joining_Type property but specific
     to Duployan.
     """
 
@@ -446,7 +446,7 @@ class Context:
     A shape has two endpoints: the entry and the exit. Each endpoint has
     certain properties which influence the contextual forms of adjacent
     shapes, which are all together called its context. A context ignores
-    everything about the shape that is not right at the end or very
+    everything about the shape that is not right at the endpoint or very
     close to it.
 
     Attributes:
