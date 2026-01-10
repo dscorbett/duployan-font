@@ -628,13 +628,13 @@ def clear_entry_width_markers(
         named_lookups['zero'] = Lookup()
     continuing_overlap = None
     for schema in schemas:
-        match schema.path:
-            case EntryWidthDigit():
+        match schema:
+            case Schema(path=EntryWidthDigit() as path):
                 classes['all'].append(schema)
                 classes['idx'].append(schema)
-                if schema.path.digit == 0:
-                    zeros[schema.path.place] = schema
-            case ContinuingOverlap():
+                if path.digit == 0:
+                    zeros[path.place] = schema
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 classes['all'].append(schema)
                 continuing_overlap = schema
     if continuing_overlap is None:
@@ -714,42 +714,42 @@ def sum_width_markers(
         return glyph_class_selectors.setdefault(glyph_class, rv)
 
     for schema in schemas:
-        match schema.path:
-            case ContinuingOverlap():
+        match schema:
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 classes['all'].append(schema)
                 continuing_overlap = schema
-            case Carry():
+            case Schema(path=Carry()):
                 carry_schema = schema
-            case EntryWidthDigit():
-                entry_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+            case Schema(path=EntryWidthDigit() as path):
+                entry_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
                 original_entry_digit_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
-                    classes[f'idx_{schema.path.place}'].append(schema)
-                    classes[f'iadx_{schema.path.place}'].append(schema)
-            case LeftBoundDigit():
-                left_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                    classes[f'idx_{path.place}'].append(schema)
+                    classes[f'iadx_{path.place}'].append(schema)
+            case Schema(path=LeftBoundDigit() as path):
+                left_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
                 original_left_digit_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
-                    classes[f'ldx_{schema.path.place}'].append(schema)
-            case RightBoundDigit():
-                right_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                    classes[f'ldx_{path.place}'].append(schema)
+            case Schema(path=RightBoundDigit() as path):
+                right_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
                 original_right_digit_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
-                    classes[f'rdx_{schema.path.place}'].append(schema)
-            case AnchorWidthDigit():
-                anchor_digit_schemas[schema.path.place * WIDTH_MARKER_RADIX + schema.path.digit] = schema
+                    classes[f'rdx_{path.place}'].append(schema)
+            case Schema(path=AnchorWidthDigit() as path):
+                anchor_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
                 original_anchor_digit_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
-                    classes[f'adx_{schema.path.place}'].append(schema)
-                    classes[f'iadx_{schema.path.place}'].append(schema)
-            case MarkAnchorSelector():
-                mark_anchor_selectors[schema.path.anchor] = schema
-            case GlyphClassSelector():
-                glyph_class_selectors[schema.path.glyph_class] = schema
+                    classes[f'adx_{path.place}'].append(schema)
+                    classes[f'iadx_{path.place}'].append(schema)
+            case Schema(path=MarkAnchorSelector() as path):
+                mark_anchor_selectors[path.anchor] = schema
+            case Schema(path=GlyphClassSelector() as path):
+                glyph_class_selectors[path.glyph_class] = schema
     if carry_schema is None:
         carry_schema = Schema(None, Carry(), 0)
         classes['all'].append(carry_schema)
@@ -1054,15 +1054,15 @@ def find_real_hub(
     )
     hubs = collections.defaultdict(list)
     for schema in new_schemas:
-        match schema.path:
-            case Dummy():
+        match schema:
+            case Schema(path=Dummy()):
                 dummy = schema
-            case Hub():
-                hubs[schema.path.priority].append(schema)
+            case Schema(path=Hub() as path):
+                hubs[path.priority].append(schema)
                 classes['all'].append(schema)
-            case InitialSecantMarker():
+            case Schema(path=InitialSecantMarker()):
                 classes['all'].append(schema)
-            case ContinuingOverlap():
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 continuing_overlap = schema
                 classes['all'].append(schema)
     for priority_a, hubs_a in sorted(hubs.items()):

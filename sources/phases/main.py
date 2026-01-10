@@ -37,7 +37,6 @@ from shapes import Complex
 from shapes import ComplexCurve
 from shapes import ContextMarker
 from shapes import ContinuingOverlap
-from shapes import ContinuingOverlapS
 from shapes import Curve
 from shapes import Grammalogue
 from shapes import InitialSecantMarker
@@ -270,17 +269,18 @@ def validate_overlap_controls(
     new_classes = {}
     global_max_tree_width = 0
     for schema in new_schemas:
-        if isinstance(schema.path, InvalidOverlap):
-            if schema.path.continuing:
-                continuing_overlap = schema
-            else:
-                letter_overlap = schema
-        elif not schema.anchor and (max_tree_width := schema.max_tree_width()):
-            global_max_tree_width = max(global_max_tree_width, max_tree_width)
-            classes['base'].append(schema)
-            new_class = f'base_{max_tree_width}'
-            classes[new_class].append(schema)
-            new_classes[max_tree_width] = new_class
+        match schema:
+            case Schema(path=InvalidOverlap(continuing=continuing)):
+                if continuing:
+                    continuing_overlap = schema
+                else:
+                    letter_overlap = schema
+            case Schema(anchor=None, max_tree_width=max_tree_width) if max_tree_width:
+                global_max_tree_width = max(global_max_tree_width, max_tree_width)
+                classes['base'].append(schema)
+                new_class = f'base_{max_tree_width}'
+                classes[new_class].append(schema)
+                new_classes[max_tree_width] = new_class
     assert global_max_tree_width == MAX_TREE_WIDTH, f'{MAX_TREE_WIDTH=} should match the calculated value {global_max_tree_width}'
     classes['invalid'].append(letter_overlap)
     classes['invalid'].append(continuing_overlap)
@@ -389,21 +389,21 @@ def invalidate_overlap_controls(
     )
     valid_letter_overlap = None
     for schema in new_schemas:
-        match schema.path:
-            case ParentEdge():
+        match schema:
+            case Schema(path=ParentEdge()):
                 node = schema
                 classes['all'].append(schema)
-            case RootOnlyParentEdge():
+            case Schema(path=RootOnlyParentEdge()):
                 classes['all'].append(schema)
-            case ChildEdge():
+            case Schema(path=ChildEdge()):
                 valid_letter_overlap = schema
                 classes['all'].append(schema)
-            case ContinuingOverlap():
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 valid_continuing_overlap = schema
                 classes['all'].append(schema)
-            case InvalidOverlap(continuing=True):
+            case Schema(path=InvalidOverlap(continuing=True)):
                 invalid_continuing_overlap = schema
-            case InvalidOverlap():
+            case Schema(path=InvalidOverlap()):
                 invalid_letter_overlap = schema
     if valid_letter_overlap is None:
         return []
@@ -466,7 +466,7 @@ def add_secant_guidelines(
     if len(original_schemas) != len(schemas):
         return [lookup]
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
-    valid_continuing_overlap = next((s for s in schemas if isinstance(s.path, ContinuingOverlap)), None)
+    valid_continuing_overlap = next((s for s in schemas if isinstance(s.path, ContinuingOverlap) and s.cps), None)
     if valid_continuing_overlap is None:
         return []
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
@@ -516,17 +516,16 @@ def add_placeholders_for_missing_children(
         return [lookup]
     base_classes = {}
     for schema in new_schemas:
-        if isinstance(schema.path, ChildEdge):
-            valid_letter_overlap = schema
-            classes['valid_final_overlap'].append(schema)
-        elif isinstance(schema.path, ContinuingOverlap):
-            classes['valid_final_overlap'].append(schema)
-        elif (schema.glyph_class == GlyphClass.JOINER
-            and (max_tree_width := schema.max_tree_width()) > 1
-        ):
-            new_class = f'base_{max_tree_width}'
-            classes[new_class].append(schema)
-            base_classes[max_tree_width] = new_class
+        match schema:
+            case Schema(path=ChildEdge()):
+                valid_letter_overlap = schema
+                classes['valid_final_overlap'].append(schema)
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
+                classes['valid_final_overlap'].append(schema)
+            case Schema(glyph_class=GlyphClass.JOINER, max_tree_width=max_tree_width) if max_tree_width > 1:
+                new_class = f'base_{max_tree_width}'
+                classes[new_class].append(schema)
+                base_classes[max_tree_width] = new_class
     placeholder = Schema(None, Space(0), 0, Type.JOINING, side_bearing=0, child=True)
     for max_tree_width, base_class in base_classes.items():
         inputs = [valid_letter_overlap] * (max_tree_width - 1) + ['valid_final_overlap']
@@ -648,18 +647,18 @@ def promote_final_letter_overlap_to_continuing_overlap(
     lookup = Lookup('rclt', 'dflt')
     continuing_overlap = None
     for schema in new_schemas:
-        match schema.path:
-            case ChildEdge():
+        match schema:
+            case Schema(path=ChildEdge() as path):
                 classes['overlap'].append(schema)
-                if all(x[0] == x[1] for x in schema.path.lineage[:-1]):
+                if all(x[0] == x[1] for x in path.lineage[:-1]):
                     classes['final_letter_overlap'].append(schema)
-            case ContinuingOverlap():
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 continuing_overlap = schema
                 classes['overlap'].append(schema)
-            case ParentEdge(lineage=[]):
+            case Schema(path=ParentEdge(lineage=[])):
                 root_parent_edge = schema
                 classes['secant_or_root_parent_edge'].append(schema)
-            case Line() if schema.path.secant and schema.glyph_class == GlyphClass.MARK:
+            case Schema(path=Line(secant=secant), glyph_class=GlyphClass.MARK) if secant:
                 classes['secant_or_root_parent_edge'].append(schema)
     if continuing_overlap is None:
         return []
@@ -718,38 +717,40 @@ def reposition_chinook_jargon_overlap_points(
     )
     line_classes = {}
     for schema in schemas:
-        if schema.glyph_class == GlyphClass.MARK:
-            if isinstance(schema.path, ChildEdge):
-                classes['all'].append(schema)
-                classes['overlap'].append(schema)
-                classes['letter_overlap'].append(schema)
-            elif isinstance(schema.path, ContinuingOverlap):
-                classes['all'].append(schema)
-                classes['overlap'].append(schema)
-                classes['continuing_overlap'].append(schema)
-            elif not schema.path.invisible():
-                classes['all'].append(schema)
-        elif schema.glyph_class == GlyphClass.JOINER:
-            if schema.max_tree_width() == 0:
-                continue
-            if (isinstance(schema.path, Line)
-                and (schema.size == 1 or schema.cps == (0x1BC07,))
-                and not schema.path.secant
-                and not schema.path.dots
-            ):
-                angle = schema.path.angle % 180
-                max_tree_width = schema.max_tree_width()
-                line_class = f'line_{angle}_{max_tree_width}'
-                classes['line'].append(schema)
-                classes[line_class].append(schema)
-                line_classes[line_class] = (angle, max_tree_width)
-            elif (isinstance(schema.path, Curve)
-                and schema.cps in {(0x1BC1B,), (0x1BC1C,)}
-                and schema.size == 6
-                and schema.joining_type == Type.JOINING
-                and (schema.path.angle_in, schema.path.angle_out) in {(90, 270), (270, 90)}
-            ):
-                classes['curve'].append(schema)
+        match schema.glyph_class:
+            case GlyphClass.MARK:
+                match schema:
+                    case Schema(path=ChildEdge()):
+                        classes['all'].append(schema)
+                        classes['overlap'].append(schema)
+                        classes['letter_overlap'].append(schema)
+                    case Schema(path=ContinuingOverlap(), cps=[_, *_]):
+                        classes['all'].append(schema)
+                        classes['overlap'].append(schema)
+                        classes['continuing_overlap'].append(schema)
+                    case _ if not schema.path.invisible():
+                        classes['all'].append(schema)
+            case GlyphClass.JOINER:
+                if schema.max_tree_width == 0:
+                    continue
+                if (isinstance(schema.path, Line)
+                    and (schema.size == 1 or schema.cps == (0x1BC07,))
+                    and not schema.path.secant
+                    and not schema.path.dots
+                ):
+                    angle = schema.path.angle % 180
+                    max_tree_width = schema.max_tree_width
+                    line_class = f'line_{angle}_{max_tree_width}'
+                    classes['line'].append(schema)
+                    classes[line_class].append(schema)
+                    line_classes[line_class] = (angle, max_tree_width)
+                elif (isinstance(schema.path, Curve)
+                    and schema.cps in {(0x1BC1B,), (0x1BC1C,)}
+                    and schema.size == 6
+                    and schema.joining_type == Type.JOINING
+                    and (schema.path.angle_in, schema.path.angle_out) in {(90, 270), (270, 90)}
+                ):
+                    classes['curve'].append(schema)
     if len(original_schemas) == len(schemas):
         for width in range(1, MAX_TREE_WIDTH + 1):
             add_rule(lookup, Rule(['line', *['letter_overlap'] * (width - 1), 'overlap'], 'curve', 'overlap', 'curve'))
@@ -758,7 +759,7 @@ def reposition_chinook_jargon_overlap_points(
             assert isinstance(curve.path, Curve)
             for line_class, (angle, _) in line_classes.items():
                 curve_output = curve.clone(cmap=None, path=curve.path.clone(overlap_angle=angle))
-                for width in range(1, curve.max_tree_width() + 1):
+                for width in range(1, curve.max_tree_width + 1):
                     add_rule(lookup, Rule(
                         [],
                         [curve],
@@ -769,7 +770,7 @@ def reposition_chinook_jargon_overlap_points(
                     for curve_0 in classes['curve']:
                         assert isinstance(curve_0.path, Curve)
                         if curve_0 in new_schemas and curve_0.cps == (0x1BC1C,) and curve.cps == (0x1BC1B,):
-                            for width in range(1, curve_0.max_tree_width() + 1):
+                            for width in range(1, curve_0.max_tree_width + 1):
                                 add_rule(lookup, Rule(
                                     [],
                                     [curve_0],
@@ -997,7 +998,7 @@ def disjoin_grammalogues(
                 grammalogues.append(schema)
             case Schema(glyph_class=GlyphClass.JOINER):
                 classes['joiner'].append(schema)
-            case Schema(path=ContinuingOverlap()):
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 continuing_overlap = schema
                 classes['all'].append(continuing_overlap)
             case Schema(path=ParentEdge(lineage=[])):
@@ -1007,11 +1008,11 @@ def disjoin_grammalogues(
         return []
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
     for root in grammalogues:
-        if root.max_tree_width() == 0:
+        if root.max_tree_width == 0:
             continue
         if not root.can_be_child():
             add_rule(lookup, Rule([root], [zwnj, root]))
-        if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width() + 1)):
+        if trees := _make_trees('joiner', None, MAX_TREE_DEPTH, top_widths=range(root.max_tree_width + 1)):
             if 'prepend_zwnj' not in named_lookups:
                 named_lookups['prepend_zwnj'] = Lookup()
                 add_rule(named_lookups['prepend_zwnj'], Rule([root_parent_edge], [zwnj, root_parent_edge]))
@@ -1020,7 +1021,7 @@ def disjoin_grammalogues(
     for child in grammalogues:
         if not child.can_be_child():
             continue
-        zwnj_tail = (zwnj,) if child.max_tree_width() == 0 else ()
+        zwnj_tail = (zwnj,) if child.max_tree_width == 0 else ()
         add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, *zwnj_tail]))
         add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, *zwnj_tail]))
         if zwnj_tail:
@@ -1461,7 +1462,7 @@ def join_with_next(
                     classes['secant_i'].append(schema)
                     classes['secant_o'].append(schema)
         continuing_overlap = next(iter(classes[phases.CONTINUING_OVERLAP_CLASS]))
-        continuing_overlap_after_secant = Schema(None, ContinuingOverlapS(), 0)
+        continuing_overlap_after_secant = Schema(None, ContinuingOverlap(), 0)
         classes['continuing_overlap_after_secant'].append(continuing_overlap_after_secant)
         add_rule(pre_lookup, Rule('secant_i', [continuing_overlap], [], [continuing_overlap_after_secant]))
     for schema in new_schemas:

@@ -914,9 +914,10 @@ class Schema:
     def can_be_child(self) -> bool:
         return self.might_be_child and self.path.can_be_child(self.size)
 
+    @functools.cached_property
     def max_tree_width(self) -> int:
-        """Returns the maximum width of a shorthand overlap sequence
-        following this schema.
+        """The maximum width of a shorthand overlap sequence following
+        this schema.
         """
         return min(self.maximum_tree_width, self.path.max_tree_width(self.size)) * (self.glyph_class == GlyphClass.JOINER)
 

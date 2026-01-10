@@ -1289,7 +1289,7 @@ class ChildEdge(Shape):
         return GlyphClass.MARK
 
 
-class ContinuingOverlapS(Shape):
+class ContinuingOverlap(Shape):
     """A marker for a continuing edge pointing from a glyph to its child
     in an overlap tree.
 
@@ -1318,12 +1318,6 @@ class ContinuingOverlapS(Shape):
     @override
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
-
-
-class ContinuingOverlap(ContinuingOverlapS):
-    """A ``ContinuingOverlapS`` that corresponds to a character in the
-    input string.
-    """
 
 
 class ParentEdge(Shape):

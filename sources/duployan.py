@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2019-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -365,7 +365,7 @@ class Builder:
         anchor_tests[anchors.MIDDLE] = schema.encirclable or schema.max_double_marks != 0 or schema.cmap == 0x25CC
         anchor_tests[anchors.SECANT] |= schema.can_take_secant
         anchor_tests[anchors.CONTINUING_OVERLAP] = schema.joining_type != Type.NON_JOINING and (
-            schema.can_take_secant or schema.max_tree_width() != 0 or schema.can_be_child()
+            schema.can_take_secant or schema.max_tree_width != 0 or schema.can_be_child()
         )
         anchor_tests[anchors.CURSIVE] = schema.joining_type != Type.NON_JOINING and not schema.is_secant
         anchor_tests[anchors.PRE_HUB_CONTINUING_OVERLAP] = schema.is_secant
