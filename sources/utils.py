@@ -22,6 +22,7 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 import enum
 import functools
+import math
 from typing import Final
 from typing import Literal
 from typing import Self
@@ -192,6 +193,28 @@ WIDTH_MARKER_RADIX: Final[int] = 4
 
 
 assert WIDTH_MARKER_RADIX % 2 == 0, 'WIDTH_MARKER_RADIX must be even'
+
+
+#: The minimum number of times a width number needs to appear before it
+#: is worth creating a new ``WidthNumber``.
+#:
+#: A sequence of width digits can be represented by a single width
+#: number, which a subsequent lookup expands into its digits. This makes
+#: the first lookup a lot smaller at the expense of a new rule in the
+#: second lookup. It is therefore optimal to compress only widths that
+#: are frequent enough.
+#:
+#: Let 𝑝 stand for ``WIDTH_MARKER_PLACES`` and 𝑛 for
+#: ``MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT``. If a number is
+#: compressed, 𝑝 glyph IDs are replaced with 1 glyph ID, saving 𝑝 − 1
+#: glyph IDs (i.e. 2 × (𝑝 − 1) bytes) per occurrence of that width in
+#: the first lookup. In the second lookup’s coverage table, the worst
+#: case is that it is format 2 and the new width requires a new coverage
+#: range (6 bytes). The rule expanding the width to its digits takes 𝑝
+#: glyph IDs (2 × 𝑝 bytes). Overall, every compressed width saves 2 × (𝑝
+#: − 1) × 𝑛 − (6 + 2 × 𝑝) bytes. To save a positive number of bytes, the
+#: optimal 𝑛 is therefore ⌈(6 + 2 × 𝑝) ∕ (2 × (𝑝 − 1))⌉.
+MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT: Final[int] = math.ceil((6 + 2 * WIDTH_MARKER_PLACES) / (2 * (WIDTH_MARKER_PLACES - 1)))
 
 
 _INITIAL_STAGES: Final[Sequence[AbstractSet[str]]] = [

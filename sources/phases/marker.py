@@ -52,6 +52,7 @@ from shapes import WidthNumber
 import sifting
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
+from utils import MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
@@ -394,7 +395,6 @@ def add_width_markers(
         return width_number_schemas.setdefault(width_number, Schema(None, width_number, 0))
 
     width_number_counter: collections.Counter[WidthNumber[Digit]] = collections.Counter()
-    minimum_optimizable_width_number_count = 2
     width_numbers: MutableMapping[tuple[type[Digit], int], WidthNumber[Digit]] = {}
 
     def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber[Digit]:
@@ -405,7 +405,7 @@ def add_width_markers(
             width_number = WidthNumber(digit_path, width)
             width_numbers[digit_path, width] = width_number
         width_number_counter[width_number] += 1
-        if width_number_counter[width_number] == minimum_optimizable_width_number_count:
+        if width_number_counter[width_number] == MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT:
             add_rule(digit_expansion_lookup, Rule(
                 [get_width_number_schema(width_number)],
                 width_number.to_digits(functools.partial(register_width_marker, path_to_markers[digit_path])),
@@ -545,7 +545,7 @@ def add_width_markers(
     for widths, rule_to_add in rules_to_add:
         final_widths = []
         for width_number in widths:
-            if width_number_counter[width_number] >= minimum_optimizable_width_number_count:
+            if width_number_counter[width_number] >= MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT:
                 final_widths.append(get_width_number_schema(width_number))
             else:
                 final_widths.extend(width_number.to_digits(functools.partial(

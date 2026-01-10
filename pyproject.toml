@@ -86,10 +86,6 @@ src = [".", "sources"]
 target-version = "py312"
 
 [tool.ruff.lint]
-allowed-confusables = [
-    # https://github.com/astral-sh/ruff/issues/3977
-    "’",
-]
 exclude = [
     "sources/otf2ttf.py",
 ]
@@ -108,6 +104,8 @@ ignore = [
     "PLR5501",
     "PT015",
     "RET505",
+    "RUF002",
+    "RUF003",
     "RUF021",
     "S101",
     "S404",
