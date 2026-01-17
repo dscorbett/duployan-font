@@ -1,5 +1,5 @@
 # Copyright 2021-2022 Google LLC
-# Copyright 2022-2025 David Corbett
+# Copyright 2022-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,5 +18,5 @@
 coverage ~= 7.6
 fontbakery[notofonts] >= 0.13, < 1.1.1
 mypy >= 1.16, < 2
-ruff >= 0.12.4, < 0.14.10
+ruff >= 0.14.11, < 0.14.12
 uv >= 0.2.35
