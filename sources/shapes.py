@@ -3691,7 +3691,9 @@ class Complex(Shape):
                         or any(singular_anchor in layer for layer in anchors.CHILD_EDGES)
                     )
                 ):
-                    glyph.addAnchorPoint(singular_anchor, anchor_type, *points[-1])
+                    glyph.addAnchorPoint(singular_anchor, anchor_type, *points[
+                        0 if (singular_anchor == anchors.PARENT_EDGE or anchor_type == 'entry') and self.enter_on_first_path() else -1
+                    ])
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.rotation)),
             ('round',),
@@ -3753,8 +3755,8 @@ class Complex(Shape):
         for i, op in enumerate(self.instructions):
             if callable(op):
                 forced_context = op(context_out if initial else context_in)
-                if forced_context.ignorable_for_topography:
-                    forced_context = forced_context.clone(ignorable_for_topography=False)
+                if forced_context.ou or forced_context.ignorable_for_topography:
+                    forced_context = forced_context.clone(ou=False, ignorable_for_topography=False)
                 instructions.append(op)
             else:
                 scalar, component, skip_drawing, tick = op
@@ -4240,14 +4242,30 @@ class Ou(Complex):
                     (inner_curve_size, Curve(intermediate_angle, angle_in, clockwise=clockwise)),
                 ]
         elif self._initial:
-            instructions = [
-                (inner_curve_size, Curve(angle_out - clockwise_sign * inner_curve_da, angle_out, clockwise=clockwise, stretch=inner_curve_stretch, long=True)),
-                circle_op._replace(shape=Circle(
-                    angle_out,
-                    angle_out,
-                    clockwise=clockwise,
-                )),
+            rv = self.as_reversed().clone(_initial=False).draw(
+                glyph,
+                stroke_width,
+                light_line,
+                stroke_gap,
+                size,
+                anchor,
+                joining_type,
+                initial_circle_diphthong,
+                final_circle_diphthong,
+                diphthong_1,
+                diphthong_2,
+            )
+            glyph.anchorPoints = [
+                (  # type: ignore[misc]
+                    {anchors.PRE_HUB_CURSIVE: anchors.POST_HUB_CURSIVE, anchors.POST_HUB_CURSIVE: anchors.PRE_HUB_CURSIVE}.get(anchor_class_name, anchor_class_name),
+                    anchor_type
+                        if anchor_class_name not in {anchors.PRE_HUB_CURSIVE, anchors.POST_HUB_CURSIVE, anchors.CURSIVE}
+                        else {'entry': 'exit', 'exit': 'entry'}.get(anchor_type, anchor_type),
+                    *anchor_details,
+                )
+                for anchor_class_name, anchor_type, *anchor_details in glyph.anchorPoints
             ]
+            return rv
         elif self._angled_against_next and circle_path.reversed_circle:
             angle_out = (angle_out - clockwise_sign * angle_against_next) % 360
             intermediate_angle = (angle_out - clockwise_sign * inner_curve_da) % 360
@@ -4259,15 +4277,27 @@ class Ou(Complex):
                 ),
             ]
         elif angle_in != angle_out:
+            outer_curve_da = 180
+            angle_against_next = 25
+            target_overshoot = 60
+            total_da = outer_curve_da + inner_curve_da
+            target_da = abs(Curve(angle_in, (angle_out - clockwise_sign * angle_against_next + 180) % 360, clockwise=clockwise).get_da())
+            if target_da < 180:
+                target_da += 360
+            target_da = min(360 + target_overshoot, target_da)
+            if total_da != target_da:
+                outer_curve_da *= target_da / total_da
+                inner_curve_da *= target_da / total_da
+            intermediate_angle = (angle_in + clockwise_sign * outer_curve_da) % 360
             instructions = [
                 circle_op._replace(shape=(Curve if self.role == CircleRole.INDEPENDENT else Circle)(
                     angle_in,
-                    angle_out,
+                    intermediate_angle,
                     clockwise=clockwise,
                 )),
                 (inner_curve_size, Curve(
-                    angle_out,
-                    angle_out + clockwise_sign * inner_curve_da,
+                    intermediate_angle,
+                    (intermediate_angle + clockwise_sign * inner_curve_da) % 360,
                     clockwise=clockwise,
                     stretch=0 if self.role == CircleRole.INDEPENDENT else inner_curve_stretch,
                     long=True,
@@ -4275,31 +4305,33 @@ class Ou(Complex):
                 )),
             ]
         elif self._isolated:
-            intermediate_angle = (270 - clockwise_sign * inner_curve_da - 180) % 360
-            angle_in = (intermediate_angle - clockwise_sign * outer_rewind_da - 180) % 360
-            clockwise = not clockwise
-            instructions = [
-                (inner_curve_size, Curve(intermediate_angle + clockwise_sign * inner_curve_da,
-                    intermediate_angle,
-                    clockwise=clockwise,
-                    stretch=inner_curve_stretch,
-                    long=True,
-                )),
-                circle_op._replace(shape=Circle(
-                    intermediate_angle,
-                    angle_in,
-                    clockwise=clockwise,
-                )),
-            ]
+            return (self
+                .contextualize(Context(angle=0 if circle_path.clockwise else 180), NO_CONTEXT)
+                .draw(
+                    glyph,
+                    stroke_width,
+                    light_line,
+                    stroke_gap,
+                    size,
+                    anchor,
+                    joining_type,
+                    initial_circle_diphthong,
+                    final_circle_diphthong,
+                    diphthong_1,
+                    diphthong_2,
+                )
+            )
         else:
+            intermediate_angle = (angle_in + clockwise_sign * outer_rewind_da) % 360
             instructions = [
                 circle_op._replace(shape=Circle(
                     angle_in,
-                    angle_in,
+                    intermediate_angle,
                     clockwise=clockwise,
                 )),
-                (inner_curve_size, Curve(angle_in,
-                    (angle_in + clockwise_sign * inner_curve_da) % 360,
+                (inner_curve_size, Curve(
+                    intermediate_angle,
+                    (intermediate_angle + clockwise_sign * inner_curve_da) % 360,
                     clockwise=clockwise,
                     stretch=inner_curve_stretch,
                     long=True,
@@ -4321,6 +4353,28 @@ class Ou(Complex):
         )
 
     @override
+    def draw_to_proxy(
+        self,
+        glyph: fontforge.glyph,
+        stroke_width: float,
+        light_line: float,
+        stroke_gap: float,
+        size: float,
+    ) -> tuple[tuple[float, float, float, float] | None, collections.defaultdict[tuple[str, _AnchorType], list[_Point]]]:
+        effective_bounding_box, singular_anchor_points = super().draw_to_proxy(glyph, stroke_width, light_line, stroke_gap, size)
+        max_size = 0
+        max_size_i = 0
+        for i, op in enumerate(self.instructions):
+            assert not callable(op)
+            if op.size > max_size:
+                max_size_i = i
+                max_size = op.size
+        for key in [*singular_anchor_points]:
+            if key[0] not in {anchors.PRE_HUB_CURSIVE, anchors.POST_HUB_CURSIVE, anchors.CURSIVE} and max_size_i < len(singular_anchor_points[key]) >= 2:
+                singular_anchor_points[key] = [singular_anchor_points[key][max_size_i]]
+        return effective_bounding_box, singular_anchor_points
+
+    @override
     def can_be_child(self, size: float) -> bool:
         return True
 
@@ -4336,6 +4390,8 @@ class Ou(Complex):
         assert not callable(circle_op)
         circle_path = circle_op.shape
         assert isinstance(circle_path, (Circle, Curve))
+        instructions = CLONE_DEFAULT
+        role = CLONE_DEFAULT
         if self.role == CircleRole.LEADER:
             original_circle_op = self.instructions[0]
             assert not callable(original_circle_op)
@@ -4350,7 +4406,16 @@ class Ou(Complex):
                     ).contextualize(context_in, context_out)
                 assert isinstance(contextualized, Ou)
                 return contextualized.clone(role=CircleRole.LEADER)
+        else:
+            new_circle_op = contextualized.instructions[0]
+            assert not callable(new_circle_op)
+            new_circle_path = new_circle_op.shape
+            if context_in == NO_CONTEXT and isinstance(new_circle_path, Circle):
+                role = new_circle_path.role
+                instructions = [new_circle_op._replace(shape=new_circle_path.clone(angle_in=new_circle_path.angle_out))]
         return contextualized.clone(
+            instructions=instructions,
+            role=role,
             _initial=context_in == NO_CONTEXT,
             _angled_against_next=context_out.angle is not None is not context_in.angle != context_out.angle != circle_path.angle_out,
             _isolated=False,

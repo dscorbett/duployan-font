@@ -226,9 +226,9 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, union-attr]
     question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, union-attr]
-    less_than = Grammalogue([(1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
-    equal = Grammalogue([(305, Space(90)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
-    greater_than = Grammalogue([(1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
+    less_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(0), True), (math.cos(math.radians(27)) * 0.84, Line(180), True), (1, Line(153 + 180), True), (1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
+    equal = Grammalogue([(395, Space(90)), (1, Line(0), True), (1, Line(180), True), (90, Space(270)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
+    greater_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True), (1, Line(27 + 180), True), (1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
     left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
     right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
     left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])
@@ -255,7 +255,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     right_single_guillemet = Complex(right_guillemet)
     circle = Circle(180, 180, clockwise=False)
     masculine_ordinal_indicator = Complex([(2.3, Circle(180, 180, clockwise=False, stretch=0.078125, long=True)), (370, Space(270)), (105, Space(180)), (0.42, Line(0))])
-    multiplication = Grammalogue([(1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True), (0, Line(0), True)])
+    multiplication = Grammalogue([(0, Line(0), True), (0.5, Line(135), True), (1, Line(315)), (0.5, Line(135), True), (0.5, Line(225), True), (1, Line(45)), (0.5, Line(225), True), (0, Line(0), True)])
     reference_mark = Complex([*multiplication.instructions, (0.3, Line(0), True), (0, h), (0.3 * 2, Line(180), True), (0, h), (0.3, Line(0), True), (0.3, Line(90), True), (0, h), (0.3 * 2, Line(270), True), (0, h)])
     grave = Line(150)
     acute = Line(45)
@@ -268,6 +268,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
+    x_mark = Complex(instructions=multiplication.instructions[1:])
     cgj = InvisibleMark()
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
     right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])
@@ -283,7 +284,6 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     parenthesis_horizontal_space = (8.89, Space(0))
     left_double_parenthesis = Complex([*left_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(left_parenthesis.instructions)], parenthesis_horizontal_space, *left_parenthesis.instructions])  # type: ignore[attr-defined]
     right_double_parenthesis = Complex([*right_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(right_parenthesis.instructions)], parenthesis_horizontal_space, *right_parenthesis.instructions])  # type: ignore[attr-defined]
-    stenographic_period = Complex([(0.5, Line(135), True), *multiplication.instructions])
     wiggly_vertical_line = Complex([(1, Curve(20 + 180, 360 - 20, clockwise=False)), (1, Curve(360 - 20, 20 + 180, clockwise=True))] * 4)
     double_hyphen = Complex([(0.5, Line(0)), (179, Space(90)), (0.5, Line(180))])
     bound = Bound()
@@ -303,10 +303,10 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
     right_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(parenthesis_angle, 90, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
     vertical_line_with_stroke = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270)), *parenthesis_stroke, (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270))])
-    stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in stenographic_period.instructions]])
-    stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *question.instructions[1:]])
-    stenographic_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(90), True), *exclamation.instructions[1:]])
-    stenographic_inverted_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in stenographic_period.instructions], (0.2, Line(270), True), *inverted_exclamation.instructions[1:]])
+    stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in multiplication.instructions]])
+    stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in multiplication.instructions], (0.2, Line(90), True), *question.instructions[1:]])
+    stenographic_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in multiplication.instructions], (0.2, Line(90), True), *exclamation.instructions[1:]])
+    stenographic_inverted_exclamation = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in multiplication.instructions], (0.2, Line(270), True), *inverted_exclamation.instructions[1:]])
     wiggly_dash = Complex([(1, Curve(60, 360 - 60, clockwise=True)), (1, Curve(360 - 60, 60, clockwise=False))] * 3)
     ring_and_dot = Complex([(2.3, Circle(90, 90, clockwise=False)), (light_line + stroke_gap, Space(0)), (0, h)])
     x = XShape([(2, Curve(30, 130, clockwise=False)), (2, Curve(130, 30, clockwise=True))])
@@ -478,7 +478,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
         Schema(0x0331, macron, 0.2, anchor=anchors.BELOW),
         Schema(0x0339, right_half_ring, 1, anchor=anchors.BELOW),
-        Schema(0x033D, stenographic_period, 0.5, anchor=anchors.ABOVE),
+        Schema(0x033D, x_mark, 0.5, anchor=anchors.ABOVE),
         Schema(0x034F, cgj, 0, Type.NON_JOINING),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
@@ -519,7 +519,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E29, right_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
-        Schema(0x2E3C, stenographic_period, 0.5, Type.NON_JOINING),
+        Schema(0x2E3C, x_mark, 0.5, Type.NON_JOINING),
         Schema(0x2E3E, wiggly_vertical_line, 2, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
