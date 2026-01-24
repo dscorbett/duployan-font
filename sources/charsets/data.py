@@ -661,7 +661,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x1BC75, high_vertical_secant, 2, Type.ORIENTING, shading_allowed=False),
         Schema(0x1BC76, rtl_secant, 1, Type.ORIENTING),
         Schema(0x1BC77, ltr_secant, 1, Type.ORIENTING),
-        Schema(0x1BC78, tangent, 0.5, Type.ORIENTING, shading_allowed=False),
+        Schema(0x1BC78, tangent, 0.5, Type.ORIENTING),
         Schema(0x1BC79, n_reverse, 6, shading_allowed=False),
         Schema(0x1BC7A, e_hook, 2, Type.ORIENTING, shading_allowed=False),
         Schema(0x1BC7B, i_hook, 2, Type.ORIENTING, shading_allowed=False),
