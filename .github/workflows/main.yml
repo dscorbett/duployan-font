@@ -28,7 +28,7 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  HARFBUZZ_VERSION: &harfbuzz_version 12.3.0
+  HARFBUZZ_VERSION: &harfbuzz_version 12.3.2
   PYTHON_VERSION: 3.12
 jobs:
   main:
