@@ -276,6 +276,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     nnbsp = Space(0)
     prime = Line(240)
     double_prime = Complex([(1, prime), (274, Space(0)), (1, prime.as_reversed())])
+    dotted_cross = Complex([*plus.instructions, (plus.instructions[1].size * (1 - 2 / 3), Line(180), True), (plus.instructions[1].size * 2 / 3, Line(90), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(180), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(270), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(0), True), (0, h)])  # type: ignore[union-attr]
     tricolon = Complex([(0, h), (322, Space(90)), (0, h), (322, Space(90)), (0, h)])
     northeast_arrow = Complex([(1, Line(53)), (0.25, Line(180 + 53 - 20)), (0.25, Line(53 - 20), True), (0.25, Line(180 + 53 + 20))])
     dotted_circle = Complex([(0, Dot(0)), (446, Space(90)), (0, Dot(0)), (223, Space(270)), (223, Space(60)), (0, Dot(0)), (446, Space(240)), (0, Dot(0)), (223, Space(60)), (223, Space(30)), (0, Dot(0)), (446, Space(210)), (0, Dot(0)), (223, Space(30)), (223, Space(0)), (0, Dot(0)), (446, Space(180)), (0, Dot(0)), (223, Space(0)), (223, Space(330)), (0, Dot(0)), (446, Space(150)), (0, Dot(0)), (223, Space(330)), (223, Space(300)), (0, Dot(0)), (446, Space(120)), (0, Dot(0))])
@@ -503,6 +504,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x203B, reference_mark, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
         Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x205C, dotted_cross, 1, Type.NON_JOINING, y_min=111),
         Schema(0x205D, tricolon, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
