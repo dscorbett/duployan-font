@@ -242,7 +242,7 @@ class Schema:
     _COLLAPSIBLE_UNI_NAME: Final[re.Pattern[str]] = re.compile(r'(?<=(^|(?<=_))uni[0-9A-F]{4})_uni(?=[0-9A-F]{4}(_|$))')
 
     #: A pattern matching the first component of a glyph name.
-    _FIRST_COMPONENT_PATTERN: Final[re.Pattern[str]] = re.compile(r'^([^.]*)')
+    _FIRST_COMPONENT_PATTERN: Final[re.Pattern[str]] = re.compile(r'^[^.]*')
 
     #: An iterable of substitutions to apply to a character name to get
     #: its glyph name. A substitution is a tuple of a search string and
@@ -866,7 +866,7 @@ class Schema:
                     name = name.removeprefix('dupl')
                 name = f'_{name}'
         if (self.features is not None and SUBSET_FEATURES.isdisjoint(self.features)) != (name.startswith('_') or name.count('.') > 1):
-            name = self._FIRST_COMPONENT_PATTERN.sub(r'\1_', name)
+            name = self._FIRST_COMPONENT_PATTERN.sub(r'\g<0>_', name)
         if __debug__:
             agl_string = fontTools.agl.toUnicode(name)
             agl_cps = tuple(map(ord, agl_string))
