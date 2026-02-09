@@ -269,6 +269,8 @@ class Schema:
         (r'^uniE018$', 'STENOGRAPHIC INVERTED EXCLAMATION MARK'),
         (r'^uniE019$', 'WIGGLY DASH'),
         (r'^uniE01A$', 'LONG WIGGLY DASH'),
+        (r'^uniE01B$', 'WIGGLY RISING DIAGONAL'),
+        (r'^uniE01C$', 'WIGGLY FALLING DIAGONAL'),
         (r'^uniE021$', 'COMBINING DIGIT ONE ABOVE'),
         (r'^uniE02A$', 'COMBINING RING-AND-DOT ABOVE'),
         (r'^uniE031$', 'COMBINING DIGIT ONE BELOW'),
