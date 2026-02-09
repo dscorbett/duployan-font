@@ -276,6 +276,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     nnbsp = Space(0)
     prime = Line(240)
     double_prime = Complex([(1, prime), (274, Space(0)), (1, prime.as_reversed())])
+    reversed_pilcrow = Complex([(8, Line(90)), (0.8, Line(270), True), (1.8, Line(180), True), (1.8, Line(0)), (16.5, Curve(0, 180, clockwise=True, stretch=1, long=True)), (1.8, Line(180))])
     dotted_cross = Complex([*plus.instructions, (plus.instructions[1].size * (1 - 2 / 3), Line(180), True), (plus.instructions[1].size * 2 / 3, Line(90), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(180), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(270), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(0), True), (0, h)])  # type: ignore[union-attr]
     tricolon = Complex([(0, h), (322, Space(90)), (0, h), (322, Space(90)), (0, h)])
     northeast_arrow = Complex([(1, Line(53)), (0.25, Line(180 + 53 - 20)), (0.25, Line(53 - 20), True), (0.25, Line(180 + 53 + 20))])
@@ -510,6 +511,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x203B, reference_mark, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
         Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x204B, reversed_pilcrow, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x205C, dotted_cross, 1, Type.NON_JOINING, y_min=111),
         Schema(0x205D, tricolon, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
