@@ -517,6 +517,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
         Schema(0x2197, northeast_arrow, 2.88, Type.NON_JOINING),
+        Schema(0x2212, t, plus.instructions[0].size, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),  # type: ignore[union-attr]
         Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2309, right_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
