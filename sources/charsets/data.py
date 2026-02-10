@@ -428,7 +428,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x0028, left_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x0029, right_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x002A, asterisk, 1, Type.NON_JOINING, y_min=None, y_max=1.073 * CAP_HEIGHT),
-        Schema(0x002B, plus, 1, Type.NON_JOINING, y_min=111),
+        Schema(0x002B, plus, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[union-attr]
         Schema(0x002C, comma, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x002E, h, 0, Type.NON_JOINING),
         Schema(0x002F, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
@@ -512,7 +512,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
         Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x204B, reversed_pilcrow, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
-        Schema(0x205C, dotted_cross, 1, Type.NON_JOINING, y_min=111),
+        Schema(0x205C, dotted_cross, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[union-attr]
         Schema(0x205D, tricolon, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
