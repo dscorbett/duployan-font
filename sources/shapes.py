@@ -4465,7 +4465,7 @@ class SeparateAffix(Complex):
         low: bool = False,
         tight: bool = False,
     ) -> None:
-        """Initializes this ``.
+        """Initializes this `SeparateAffix`.
 
         Args:
             instructions: The ``instructions`` attribute.
