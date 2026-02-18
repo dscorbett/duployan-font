@@ -26,7 +26,6 @@ from . import Lookup
 from . import Rule
 import anchors
 import phases
-from schema import MAX_HUB_PRIORITY
 from schema import Schema
 from shapes import AnchorWidthDigit
 from shapes import Carry
@@ -39,6 +38,7 @@ from shapes import End
 from shapes import EntryWidthDigit
 from shapes import GlyphClassSelector
 from shapes import Hub
+from shapes import HubPriority
 from shapes import InitialSecantMarker
 from shapes import LeftBoundDigit
 from shapes import Line
@@ -333,8 +333,10 @@ def add_width_markers(
     if start is None:
         start = Schema(None, Start(), 0)
         classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(start)
-    hubs: MutableMapping[int, list[Schema]] = {-1: []}
-    for hub_priority in range(MAX_HUB_PRIORITY + 1):
+    hubs: MutableMapping[HubPriority, list[Schema]] = {HubPriority.NEVER: []}
+    for hub_priority in HubPriority:
+        if hub_priority == HubPriority.NEVER:
+            continue
         hub = next((s for s in schemas if isinstance(s.path, Hub) and s.path.priority == hub_priority), None)
         if hub is None:
             hub = Schema(None, Hub(hub_priority), 0, side_bearing=0)
@@ -1052,6 +1054,13 @@ def find_real_hub(
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
+    remove_steps_lookup = Lookup(
+        'dist',
+        'dflt',
+        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+        mark_filtering_set='all',
+        reverse=True,
+    )
     hubs = collections.defaultdict(list)
     for schema in new_schemas:
         match schema:
@@ -1075,11 +1084,13 @@ def find_real_hub(
                     assert isinstance(hub_b.path, Hub)
                     if hub_b.path.initial_secant:
                         continue
-                    if priority_a <= priority_b:
+                    if priority_b == HubPriority.STEP:
+                        add_rule(remove_steps_lookup, Rule([hub_a], [hub_b], [], [dummy]))
+                    elif priority_a >= priority_b:
                         add_rule(lookup, Rule([hub_a], [hub_b], [], [dummy]))
                     else:
                         add_rule(lookup, Rule([], [hub_a], [hub_b], [dummy]))
-    return [lookup]
+    return [lookup, remove_steps_lookup]
 
 
 def expand_start_markers(

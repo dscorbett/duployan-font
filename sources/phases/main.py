@@ -1046,23 +1046,14 @@ def join_with_next_step(
     )
     old_input_count = len(classes['i'])
     for schema in new_schemas:
-        if isinstance(schema.path, InvalidStep):
-            classes['i'].append(schema)
-            if schema.path.angle == 90:
-                classes['i_up'].append(schema)
-            elif schema.path.angle == 270:
-                classes['i_down'].append(schema)
-            else:
-                raise ValueError(f'Unsupported step angle: {schema.path.angle}')
-        if isinstance(schema.path, Space) and schema.hub_priority == 0:
-            if schema.path.angle == 90:
-                classes['c_up'].append(schema)
-            elif schema.path.angle == 270:
-                classes['c_down'].append(schema)
-            else:
-                raise ValueError(f'Unsupported step angle: {schema.path.angle}')
-        elif schema.glyph_class == GlyphClass.JOINER:
-            classes['c'].append(schema)
+        match schema:
+            case Schema(path=InvalidStep() as path):
+                classes['i'].append(schema)
+                classes['i_up' if path.up else 'i_down'].append(schema)
+            case Schema(path=Space(angle=90.0 | 270.0) as path):
+                classes['c_up' if path.angle == 90 else 'c_down'].append(schema)
+            case Schema(glyph_class=GlyphClass.JOINER):
+                classes['c'].append(schema)
     new_context = 'o' not in classes
     for i, target_schema in enumerate(classes['i']):
         if new_context or i >= old_input_count:

@@ -36,6 +36,7 @@ from schema import Ignorability
 from schema import NO_PHASE_INDEX
 from schema import Schema
 from shapes import Circle
+from shapes import HubPriority
 from shapes import Line
 from shapes import Notdef
 import sifting
@@ -371,8 +372,8 @@ class Builder:
         anchor_tests[anchors.PRE_HUB_CONTINUING_OVERLAP] = schema.is_secant
         anchor_tests[anchors.POST_HUB_CONTINUING_OVERLAP] = (
             anchor_tests[anchors.CONTINUING_OVERLAP] and (schema.can_be_child() or isinstance(schema.path, Line) and schema.path.dots is not None))
-        anchor_tests[anchors.PRE_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != 0 and not schema.pseudo_cursive
-        anchor_tests[anchors.POST_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != -1
+        anchor_tests[anchors.PRE_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != HubPriority.NORMAL and not schema.pseudo_cursive
+        anchor_tests[anchors.POST_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != HubPriority.NEVER
         if schema.encirclable:
             glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.MIDDLE]
         anchor_class_names = {a[0] for a in glyph.anchorPoints}

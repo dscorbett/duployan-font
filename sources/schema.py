@@ -43,6 +43,7 @@ from shapes import DigitStatus
 from shapes import EntryWidthDigit
 from shapes import GlyphClassSelector
 from shapes import Hub
+from shapes import HubPriority
 from shapes import InvalidStep
 from shapes import LeftBoundDigit
 from shapes import Line
@@ -96,10 +97,6 @@ CURRENT_PHASE_INDEX: int = NO_PHASE_INDEX
 #: The maximum number of consecutive instances of U+1BC9E DUPLOYAN
 #: DOUBLE MARK supported after any base.
 MAX_DOUBLE_MARKS: Final[int] = 3
-
-
-#: The maximum hub priority.
-MAX_HUB_PRIORITY: Final[int] = 2
 
 
 class Ignorability(enum.Enum):
@@ -1104,13 +1101,9 @@ class Schema:
         return not self.is_secant and self.glyph_class == GlyphClass.JOINER and self.path.can_take_secant()
 
     @functools.cached_property
-    def hub_priority(self) -> int:
+    def hub_priority(self) -> HubPriority:
         """Returns this schema’s hub priority.
-
-        See `Hub`.
         """
         if self.glyph_class != GlyphClass.JOINER:
-            return -1
-        priority = self.path.hub_priority(self.size)
-        assert -1 <= priority <= MAX_HUB_PRIORITY, f'Invalid hub priority for {self}: {priority}'
-        return priority
+            return HubPriority.NEVER
+        return self.path.hub_priority(self.size)

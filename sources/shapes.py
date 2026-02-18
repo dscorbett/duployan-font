@@ -151,17 +151,13 @@ class Shape:
         """
         return False
 
-    def hub_priority(self, size: float) -> int:
+    def hub_priority(self, size: float) -> HubPriority:
         """Returns this shape’s hub priority.
 
         Args:
             size: The size of the schema that this is the shape of.
-
-        Returns:
-            This shape’s hub priority (see `Hub`), or -1 if it should
-            never be placed on the baseline.
         """
-        return 0 if self.invisible() else -1
+        return HubPriority.NEVER
 
     def draw(
         self,
@@ -430,25 +426,48 @@ class Start(Shape):
         return GlyphClass.MARK
 
 
+@functools.total_ordering
+class HubPriority(enum.Enum):
+    """The visual prominence of a glyph.
+
+    This bins cursively joining glyphs roughly by height. Taller and
+    more visually prominent glyphs are better candidates for a
+    stenogram’s overall `Hub`.
+    """
+
+    #: Secants, short lines, and most invisible glyphs.
+    NEVER = enum.auto()
+
+    #: U+1BC03 DUPLOYAN LETTER T, its cognates, and U+1BC00 DUPLOYAN
+    #: LETTER H.
+    FLAT = enum.auto()
+
+    #: U+1BC01 DUPLOYAN LETTER X and most orienting letters.
+    SMALL = enum.auto()
+
+    #: Dotted guidelines and most non-orienting letters.
+    NORMAL = enum.auto()
+
+    #: Steps.
+    STEP = enum.auto()
+
+    def __lt__(self, other: HubPriority) -> bool:
+        return self.value < other.value
+
+
 class Hub(Shape):
     """A candidate for which letter to place on the baseline.
 
     A hub precedes each candidate for which letter to place on the
-    baseline. Each hub has a priority level. The first hub at the most
-    visually prominent priority level in a stenogram defines the
-    baseline. The levels (by decreasing prominence) are:
-
-    1. Dotted guidelines and most non-orienting letters
-    2. Orienting letters and U+1BC01 DUPLOYAN LETTER X
-    3. U+1BC03 DUPLOYAN LETTER T and its cognates and U+1BC00 DUPLOYAN
-       LETTER H
-
-    Anything else (like secants) or anything following an overlap
-    control is ignored for determining the baseline.
+    baseline. Each hub has a priority level. The first hub at the
+    highest priority level in a stenogram defines the baseline. A step
+    only defines the baseline if no other candidates precede it; that
+    is, it is higher priority than anything after it and lower priority
+    than anything before it. Anything following an overlap control or a
+    step is ignored for determining the baseline.
 
     Attributes:
-        priority: The priority level. Lower numbers have higher
-            priority and represent greater visual prominence.
+        priority: The priority level.
         initial_secant: Whether this hub marks a letter after an initial
             secant. This determines which set of cursive anchors to use.
     """
@@ -456,7 +475,7 @@ class Hub(Shape):
     @override
     def __init__(
         self,
-        priority: int,
+        priority: HubPriority,
         *,
         initial_secant: bool = False,
     ) -> None:
@@ -473,7 +492,7 @@ class Hub(Shape):
     def clone(
         self,
         *,
-        priority: CloneDefault | int = CLONE_DEFAULT,
+        priority: CloneDefault | HubPriority = CLONE_DEFAULT,
         initial_secant: CloneDefault | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
@@ -483,7 +502,10 @@ class Hub(Shape):
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        return f'HUB.{self.priority}{"s" if self.initial_secant else ""}'
+        priority_name = self.priority.name
+        if not self.initial_secant:
+            priority_name = priority_name.lower()
+        return f'hub.{priority_name}'
 
     @staticmethod
     @override
@@ -1066,8 +1088,8 @@ class Space(Shape):
         return True
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return 0 if self.angle % 180 == 90 else -1
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.STEP if self.angle % 180 == 90 else HubPriority.NEVER
 
     @override
     def draw(
@@ -1087,9 +1109,9 @@ class Space(Shape):
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
-            if self.hub_priority(size) != -1:
+            if self.hub_priority(size) != HubPriority.NEVER:
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
-            if self.hub_priority(size) != 0:
+            if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             glyph.transform(
                 fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
@@ -1099,7 +1121,7 @@ class Space(Shape):
 
     @override
     def is_pseudo_cursive(self, size: float) -> bool:
-        return bool(size) and self.hub_priority(size) == -1
+        return bool(size) and self.hub_priority(size) == HubPriority.NEVER
 
     @override
     def context_in(self) -> Context:
@@ -1472,8 +1494,8 @@ class Dot(Shape):
         )
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return 2
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.FLAT
 
     @override
     def draw(
@@ -1633,16 +1655,16 @@ class Line(Shape):
         return True
 
     @override
-    def hub_priority(self, size: float) -> int:
+    def hub_priority(self, size: float) -> HubPriority:
         if self.dots:
-            return 0
+            return HubPriority.NORMAL
         if self.secant:
-            return -1
+            return HubPriority.NEVER
         if self.angle % 180 == 0:
-            return 2
+            return HubPriority.FLAT
         if size >= 1:
-            return 0
-        return -1
+            return HubPriority.NORMAL
+        return HubPriority.NEVER
 
     def _get_length(self, size: float) -> int:
         """Returns the length of this line segment.
@@ -1719,9 +1741,9 @@ class Line(Shape):
                 glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
                 glyph.addAnchorPoint(anchors.CURSIVE, 'exit', length, end_y)
                 glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', child_interval, 0)
-                if self.hub_priority(size) != -1:
+                if self.hub_priority(size) != HubPriority.NEVER:
                     glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', 0, 0)
-                if self.hub_priority(size) != 0:
+                if self.hub_priority(size) != HubPriority.NORMAL:
                     glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', length, end_y)
                 glyph.addAnchorPoint(anchors.SECANT, 'base', child_interval * (max_tree_width + 1), 0)
             if size == 2 and 0 < self.angle <= 45:
@@ -2130,8 +2152,8 @@ class Curve(Shape):
         return True
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return 0 if size >= 6 else 1
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.NORMAL if size >= 6 else HubPriority.SMALL
 
     def _pre_stretch(self, *angles: float) -> tuple[Sequence[float], float, float, float]:
         """Returns various values related to drawing this curve before
@@ -2422,9 +2444,9 @@ class Curve(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
-            if self.hub_priority(size) != -1:
+            if self.hub_priority(size) != HubPriority.NEVER:
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *_rect(r, math.radians(a1)))
-            if self.hub_priority(size) != 0:
+            if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(
                 anchors.SECANT,
@@ -2804,8 +2826,8 @@ class Circle(Shape):
         return True
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return 0 if size >= 6 else 1
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.NORMAL if size >= 6 else HubPriority.SMALL
 
     @functools.cached_property
     def _pre_stretch_values(self) -> tuple[float, float, float, float, float]:
@@ -2923,9 +2945,9 @@ class Circle(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
-            if self.hub_priority(size) != -1:
+            if self.hub_priority(size) != HubPriority.NEVER:
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
-            if self.hub_priority(size) != 0:
+            if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
             glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
         glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', *_rect(0, 0))
@@ -3298,7 +3320,7 @@ class Complex(Shape):
         return self._base_shape is not None and self._base_shape.can_take_secant()
 
     @override
-    def hub_priority(self, size: float) -> int:
+    def hub_priority(self, size: float) -> HubPriority:
         first_scalar, first_component, *_ = next(op for op in self.instructions if not (callable(op) or op.shape.invisible()))
         return first_component.hub_priority(first_scalar * size)
 
@@ -3663,9 +3685,9 @@ class Complex(Shape):
             exit = singular_anchor_points[anchors.CURSIVE, 'exit'][-1]
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
-            if self.hub_priority(size) != -1:
+            if self.hub_priority(size) != HubPriority.NEVER:
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
-            if self.hub_priority(size) != 0:
+            if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
         if anchor is None:
             for (singular_anchor, anchor_type), points in singular_anchor_points.items():
@@ -4034,40 +4056,40 @@ class InvalidStep(Complex):
     U+1BCA3 SHORTHAND FORMAT UP STEP.
 
     Attributes:
-        angle: The ``angle`` of the `Space` the step would be if it were
-            valid.
+        up: Whether this is U+1BCA3.
     """
 
     @override
     def __init__(
         self,
-        angle: float,
         instructions: Instructions,
+        *,
+        up: bool,
     ) -> None:
         """Initializes this `InvalidStep`.
 
         Args:
-            angle: The ``angle`` attribute.
             instructions: The ``instructions`` attribute.
+            up: The ``up`` attribute.
         """
         super().__init__(instructions)
-        self.angle: Final = angle
+        self.up: Final = up
 
     @override
     def clone(
         self,
         *,
-        angle: CloneDefault | float = CLONE_DEFAULT,
         instructions: CloneDefault | Instructions = CLONE_DEFAULT,
+        up: CloneDefault | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
-            self.angle if angle is CLONE_DEFAULT else angle,
             self.instructions if instructions is CLONE_DEFAULT else instructions,
+            up=self.up if up is CLONE_DEFAULT else up,
         )
 
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
-        return Space(self.angle, margins=True)
+        return Space(90 if self.up else 270, margins=True)
 
 
 class RomanianU(Complex):
@@ -4503,8 +4525,8 @@ class SeparateAffix(Complex):
         return False
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return -1
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.NEVER
 
     @override
     def draw(
@@ -4963,8 +4985,8 @@ class XShape(Complex):
     """
 
     @override
-    def hub_priority(self, size: float) -> int:
-        return 1
+    def hub_priority(self, size: float) -> HubPriority:
+        return HubPriority.SMALL
 
     @override
     def draw(
