@@ -126,7 +126,8 @@ ignore = [
     "TRY003",  # https://github.com/astral-sh/ruff/issues/14398
     # Too many true positives
     "C901",
-    "D1",
+    "D100",
+    "D102",
     "FBT001",
     "PLR09",
     "PLR1702",
@@ -182,6 +183,8 @@ extend-ignore-names = [
 "sources/phases/**" = [
     # Phases must all have the same signature.
     "ARG001",
+    # Too many true positives
+    "D103",
 ]
 "sources/shapes.py" = [
     # Shape classes are designed for inheritance. Even if a certain

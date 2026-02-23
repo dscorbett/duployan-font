@@ -912,6 +912,8 @@ class Schema:
         return self._glyph_name
 
     def can_be_child(self) -> bool:
+        """Returns whether this schema can be a child.
+        """
         return self.might_be_child and self.path.can_be_child(self.size)
 
     @functools.cached_property
@@ -1094,15 +1096,19 @@ class Schema:
 
     @functools.cached_property
     def is_secant(self) -> bool:
+        """Whether this schema represents a secant letter like U+1BC70.
+        """
         return isinstance(self.path, Line) and self.path.secant is not None and self.glyph_class == GlyphClass.JOINER
 
     @functools.cached_property
     def can_take_secant(self) -> bool:
+        """Whether a secant letter like U+1BC70 can overlap this schema.
+        """
         return not self.is_secant and self.glyph_class == GlyphClass.JOINER and self.path.can_take_secant()
 
     @functools.cached_property
     def hub_priority(self) -> HubPriority:
-        """Returns this schema’s hub priority.
+        """This schema’s hub priority.
         """
         if self.glyph_class != GlyphClass.JOINER:
             return HubPriority.NEVER

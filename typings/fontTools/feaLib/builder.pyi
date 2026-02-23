@@ -1,7 +1,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
-# Copyright (c) 2025 David Corbett
+# Copyright (c) 2025-2026 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,15 @@
 # SOFTWARE.
 
 from collections.abc import Iterable
-from io import IOBase
+from io import TextIOBase
 
+from _typeshed import FileDescriptorOrPath
 from fontTools.feaLib.ast import FeatureFile
 from fontTools.ttLib.ttFont import TTFont
 
 def addOpenTypeFeatures(
     font: TTFont,
-    featurefile: FeatureFile | IOBase,
+    featurefile: FeatureFile | FileDescriptorOrPath | TextIOBase,
     tables: Iterable[str] | None = ...,
     debug: bool = ...,
 ) -> None: ...

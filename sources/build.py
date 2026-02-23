@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""A CLI to make a Duployan font.
+"""
 
 from __future__ import annotations
 
@@ -56,7 +59,17 @@ TIMESTAMP_FORMAT = '%Y%m%dT%H%M%SZ'
 VERSION_PREFIX = 'Version '
 
 
-def set_environment_variables(dirty: bool) -> None:
+def _prepare_environment_variables(dirty: bool) -> None:
+    """Sets or unsets environment variables needed to build the font.
+
+    The point is to make builds reproducible by setting
+    ``GIT_CONFIG_GLOBAL``, ``GIT_CONFIG_NOSYSTEM``, ``TZ``, and (if not
+    already set) ``SOURCE_DATE_EPOCH``. It also unsets ``TMPDIR`` to
+    avoid segmentation faults in FontForge and cffsubr.
+
+    Args:
+        dirty: Whether the font is being built with uncommitted changes.
+    """
     os.environ['GIT_CONFIG_GLOBAL'] = ''
     os.environ['GIT_CONFIG_NOSYSTEM'] = 'true'
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
@@ -74,18 +87,31 @@ def set_environment_variables(dirty: bool) -> None:
     os.environ['TZ'] = 'UTC'
 
 
-def build_font(
-    options: argparse.Namespace,
+def _save_font(
     font: fontforge.font,
+    output_path: str,
 ) -> None:
+    """Saves a font to a file using FontForge.
+
+    Args:
+        font: A font.
+        output_path: The file to save the font to.
+    """
     font.selection.all()
     font.correctReferences()
     font.selection.none()
-    Path(options.output).resolve().parent.mkdir(parents=True, exist_ok=True)
-    font.generate(options.output, flags=('no-hints', 'omit-instructions', 'opentype'))
+    Path(output_path).resolve().parent.mkdir(parents=True, exist_ok=True)
+    font.generate(output_path, flags=('no-hints', 'omit-instructions', 'opentype'))
 
 
-def set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, family_name: str, bold: bool) -> None:
+def _set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, family_name: str, bold: bool) -> None:
+    """Sets names in a 'name' table that are related to a font name.
+
+    Args:
+        name_table: A 'name' table.
+        family_name: The name of the font family (name ID 1).
+        bold: Whether a bold font is being built.
+    """
     name_0 = name_table.names[0]
     platform_id = name_0.platformID
     encoding_id = name_0.platEncID
@@ -97,7 +123,17 @@ def set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e,
     name_table.setName(re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', f'{family_name}-{subfamily_name}'), 6, platform_id, encoding_id, language_id)
 
 
-def set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, vendor: str) -> None:
+def _set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, vendor: str) -> None:
+    """Sets the unique ID in a 'name' table.
+
+    The unique ID depends on the version ('name' ID 5) and the font name
+    ('name' ID 6), which must already be set in the input 'name' table,
+    plus the font vendor (OS/2.achVendID).
+
+    Args:
+        name_table: A 'name' table.
+        vendor: The font vendor.
+    """
     for name in name_table.names:
         assert isinstance(name.string, str)
         match name.nameID:
@@ -108,17 +144,32 @@ def set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, ve
     name_table.setName(f'{version};{vendor};{postscript_name}', 3, name.platformID, name.platEncID, name.langID)
 
 
-def get_date() -> str:
+def _get_date() -> str:
+    """Returns the font’s modification date.
+
+    This is based on ``SOURCE_DATE_EPOCH``, so
+    `_prepare_environment_variables` should already have been run.
+    """
     return datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.UTC).strftime(TIMESTAMP_FORMAT)
 
 
-def set_version(
+def _set_version(
     tt_font: fontTools.ttLib.ttFont.TTFont,
     noto: bool,
     version: float,
     release: bool,
     dirty: bool,
 ) -> None:
+    """Sets the version in a font’s 'head' and 'name' tables.
+
+    Args:
+        tt_font: A font.
+        noto: Whether to use Noto’s conventions in the 'name' table, as
+            opposed to semver.
+        version: The first two components of the version number.
+        release: Whether this is a release build.
+        dirty: Whether the font is being built with uncommitted changes.
+    """
     head_table = tt_font['head']
     assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
     head_table.fontRevision = version
@@ -132,7 +183,7 @@ def set_version(
         else:
             try:
                 if dirty:
-                    date = get_date()
+                    date = _get_date()
                 else:
                     date = subprocess.check_output(
                             ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
@@ -147,7 +198,7 @@ def set_version(
                     except AttributeError:
                         metadata += '.dirty'
             except (FileNotFoundError, subprocess.CalledProcessError):
-                metadata = get_date()
+                metadata = _get_date()
             release_suffix = f'-alpha+{metadata}'
     name_table = tt_font['name']
     assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
@@ -155,11 +206,19 @@ def set_version(
     name_table.setName(f'{VERSION_PREFIX}{version_string}{release_suffix}', 5, name.platformID, name.platEncID, name.langID)
 
 
-def set_cff_data(
+def _set_cff_data(
     names: Collection[fontTools.ttLib.tables._n_a_m_e.NameRecord],
     underline_thickness: float,
     cff: fontTools.cffLib.CFFFontSet,
 ) -> None:
+    """Sets some fields of a 'CFF ' table.
+
+    Args:
+        names: The names from 'name'. The CFF-relevant ones are copied
+            to 'CFF '.
+        underline_thickness: The underline thickness from 'post'.
+        cff: The 'CFF ' table to modify.
+    """
     for name in names:
         assert isinstance(name.string, str)
         match name.nameID:
@@ -180,15 +239,43 @@ def set_cff_data(
     cff[0].UnderlineThickness = copy_metrics.cast_cff_number(underline_thickness)
 
 
-def add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
+def _add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
+    """Adds a 'meta' table to a font.
+
+    Args:
+        tt_font: A font.
+    """
     meta = tt_font['meta'] = fontTools.ttLib.ttFont.newTable('meta')
     assert isinstance(meta, fontTools.ttLib.tables._m_e_t_a.table__m_e_t_a)
     meta.data['dlng'] = 'Dupl'
     meta.data['slng'] = 'Dupl'
 
 
-def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bool) -> None:
-    with fontTools.ttLib.ttFont.TTFont(options.output, recalcBBoxes=False) as tt_font:
+def tweak_font(
+    font_path: str,
+    builder: duployan.Builder,
+    family_name: str,
+    noto: bool,
+    bold: bool,
+    version: float,
+    release: bool,
+    dirty: bool,
+    fea: str,
+) -> None:
+    """Loads a font and modifies it with fontTools.
+
+    Args:
+        font_path: The file to load the font from and save it back to.
+        builder: The font’s `Builder`.
+        family_name: The name of the font family.
+        noto: Whether the font is a Noto font.
+        bold: Whether the font is bold.
+        version: The first two components of the font’s version number.
+        release: Whether this is a release build.
+        dirty: Whether the font is being built with uncommitted changes.
+        fea: The path of a feature file to add to the font.
+    """
+    with fontTools.ttLib.ttFont.TTFont(font_path, recalcBBoxes=False) as tt_font:
         # Remove the FontForge timestamp table.
         if 'FFTM' in tt_font:
             del tt_font['FFTM']
@@ -210,7 +297,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
 
         fontTools.feaLib.builder.addOpenTypeFeatures(
             tt_font,
-            options.fea,
+            fea,
             tables=['OS/2', 'head', 'name'],
         )
 
@@ -229,7 +316,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         os2_table.ySuperscriptXOffset = 0
         os2_table.ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
         os2_table.usDefaultChar = 0
-        if options.bold:
+        if bold:
             os2_table.usWeightClass = 700
             os2_table.fsSelection |= 1 << 5
             os2_table.fsSelection &= ~(1 << 0 | 1 << 6)
@@ -240,7 +327,7 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
 
         name_table = tt_font['name']
         assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
-        if options.noto:
+        if noto:
             for name in name_table.names:
                 assert isinstance(name.string, str)
                 name.string = name.string.replace('\n', ' ')
@@ -256,47 +343,58 @@ def tweak_font(options: argparse.Namespace, builder: duployan.Builder, dirty: bo
         hhea_table = tt_font['hhea']
         assert isinstance(hhea_table, fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a)
         hhea_table.lineGap = os2_table.sTypoLineGap
-        set_family_names(name_table, options.name, options.bold)
-        set_version(tt_font, options.noto, options.version, options.release, dirty)
-        set_unique_id(name_table, os2_table.achVendID)
+        _set_family_names(name_table, family_name, bold)
+        _set_version(tt_font, noto, version, release, dirty)
+        _set_unique_id(name_table, os2_table.achVendID)
         if 'CFF ' in tt_font:
-            set_cff_data(name_table.names, post_table.underlineThickness, cff_table.cff)
+            _set_cff_data(name_table.names, post_table.underlineThickness, cff_table.cff)
         copy_metrics.update_metrics(
             tt_font,
             max(os2_table.usWinAscent, head_table.yMax),
             max(os2_table.usWinDescent, -head_table.yMin),
         )
 
-        add_meta(tt_font)
+        _add_meta(tt_font)
 
         if 'CFF ' in tt_font:
             cffsubr.subroutinize(tt_font)
             cff_table.cff[0].decompileAllCharStrings()
             cff_table.cff[0].Encoding = 0
 
-        tt_font.save(options.output)
+        tt_font.save(font_path)
 
 
-def is_dirty() -> bool:
+def _is_dirty() -> bool:
+    """Returns whether the font is being built with uncommitted changes.
+
+    Returns:
+        Whether the font is being built with uncommitted changes. If
+        there is a problem running Git, it returns ``False``.
+    """
     try:
         return bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no']))
     except (FileNotFoundError, subprocess.CalledProcessError):
         return False
 
 
-def make_font(options: argparse.Namespace) -> None:
+def _make_font(options: argparse.Namespace) -> None:
+    """Makes a Duployan font.
+
+    Args:
+        options: The CLI options.
+    """
     font = fontforge.font()
     font.encoding = 'UnicodeFull'
     builder = duployan.Builder(font, options.bold, options.charset, options.unjoined)
-    builder.augment()
-    dirty = is_dirty()
-    set_environment_variables(dirty)
-    build_font(options, builder.font)
-    tweak_font(options, builder, dirty)
+    builder.build()
+    dirty = _is_dirty()
+    _prepare_environment_variables(dirty)
+    _save_font(builder.font, options.output)
+    tweak_font(options.output, builder, options.name, options.noto, options.bold, options.version, options.release, dirty, options.fea)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Add Duployan glyphs to a font.')
+    parser = argparse.ArgumentParser(description='Makes a Duployan font.')
     parser.add_argument('--bold', action='store_true', help='Make a bold font.')
     parser.add_argument(
         '--charset', default=charsets.Charset.STANDARD, type=charsets.Charset,
@@ -310,4 +408,4 @@ if __name__ == '__main__':
     parser.add_argument('--unjoined', action='store_true', help='Disable cursive joining.')
     parser.add_argument('--version', type=float, required=True, help='The base version number.')
     args = parser.parse_args()
-    make_font(args)
+    _make_font(args)

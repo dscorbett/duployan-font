@@ -452,6 +452,9 @@ class HubPriority(enum.Enum):
     STEP = enum.auto()
 
     def __lt__(self, other: HubPriority) -> bool:
+        """Returns whether this priority has a lower priority than
+        another.
+        """
         return self.value < other.value
 
 

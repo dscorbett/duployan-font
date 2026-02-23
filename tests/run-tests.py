@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2019, 2023-2025 David Corbett
+# Copyright 2018-2019, 2023-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""A CLI to run shaping tests.
+"""
 
 from __future__ import annotations
 
@@ -60,12 +63,25 @@ UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-
 
 
 class Color(enum.StrEnum):
+    """Whether to print diffs in color.
+    """
+
+    #: Choose automatically.
     AUTO = enum.auto()
+
+    #: Do not use color.
     NO = enum.auto()
+
+    #: Use color.
     YES = enum.auto()
 
 
 def parse_color(color: Color) -> bool:
+    """Resolves a `Color` to a `bool`.
+
+    Returns:
+        Whether to print diffs in color.
+    """
     match color:
         case Color.AUTO:
             return CI or sys.stdout.isatty()
@@ -78,6 +94,13 @@ def parse_color(color: Color) -> bool:
 
 
 def parse_json(s: str) -> Generator[str]:
+    """Converts HarfBuzz’s JSON output to the test storage format.
+
+    Yields:
+        One test string per visible glyph in the JSON, representing its
+        name and absolute position, plus one final test string
+        representing the total advance width.
+    """
     x = 0
     y = 0
     for glyph in json.loads(s):
@@ -95,6 +118,21 @@ def parse_json(s: str) -> Generator[str]:
 
 
 def munge(output: str, regular: bool, incomplete: bool) -> str:
+    """Modifies a test string before comparing the expected output to
+    the actual output.
+
+    Args:
+        output: A test output string, which is either the expected
+            output or the actual output.
+        regular: Whether the font being tested is a regular-weight font.
+            If not, glyph positions are ignored.
+        incomplete: Whether the font uses a subset of the available
+            glyphs such that glyph names cannot be tested and must be
+            ignored.
+
+    Returns:
+        The modified test string.
+    """
     if incomplete:
         output = UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
     if not regular:
@@ -103,6 +141,21 @@ def munge(output: str, regular: bool, incomplete: bool) -> str:
 
 
 def may_fail(code_points: str, actual_output: str) -> bool:
+    """Returns whether a test failure should be ignored.
+
+    A failure should be ignored if the test does not apply to the font.
+    If the actual test output includes a ``.notdef`` glyph, the test is
+    ignored: the font is more likely to be using a restricted character
+    set than it is to be accidentally missing a character in its 'cmap'.
+    A failure is also ignored if the test includes any default-ignorable
+    code points: it doesn’t necessarily matter if a font is missing an
+    ignorable code point.
+
+    Args:
+        code_points: The space-separated code points of the test’s
+            input.
+        actual_output: The actual test output.
+    """
     return bool(NOTDEF_PATTERN.search(actual_output)
         or any((cp := int(cp_str, 16)) in DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ
                 or cp != 0x0020 and unicodedata.category(chr(cp)) == 'Zs'
@@ -118,6 +171,16 @@ def print_diff(
     expected_output: str,
     color: bool,
 ) -> None:
+    """Prints a diff between the actual and expected outputs.
+
+    Args:
+        code_points: The space-separated code points of the test’s
+            input.
+        options: The HarfBuzz options of the test’s input.
+        actual_output: The actual test output.
+        expected_output: The expected test output.
+        color: Whether to print the diff in color.
+    """
     if color:
         highlighted_actual_output = []
         highlighted_expected_output = []
@@ -134,7 +197,7 @@ def print_diff(
                 highlighted_actual_output.append(f'\x1B[1;96m{actual_output[i1:i2]}\x1B[0m')
                 highlighted_expected_output.append(f'\x1B[1;93m{expected_output[j1:j2]}\x1B[0m')
             else:
-                raise ValueError(f'Unknown tag: {tag}')
+                assert_never(tag)
         actual_output = ''.join(highlighted_actual_output)
         expected_output = ''.join(highlighted_expected_output)
     print()
@@ -151,6 +214,30 @@ def run_test(
     incomplete: bool,
     view_all: bool,
 ) -> tuple[bool, str]:
+    """Runs one test from a test file.
+
+    Args:
+        font: The path of the font to test.
+        line: A test line from a test file.
+        png_path_prefix: The path of the generated PNG file, to which
+            are appended a hyphen-separated code point sequence and
+            ``'.png'``. By default, only failed tests get PNGs.
+        color: Whether to print the diff in color if the test fails.
+        incomplete: Whether the font uses a subset of the available
+            glyphs such that glyph names cannot be tested and must be
+            ignored, and whether some test failures are acceptable.
+        view_all: Whether to generate a PNG regardless of the test
+            result.
+
+    Returns:
+        A tuple of two elements.
+
+        1. Whether the test passed.
+        2. A test line corresponding to the actual output. If the test
+           passed, this is equivalent to the expected output. Otherwise,
+           it is suitable as a replacement for the expected output in
+           the test file if the actual output is correct.
+    """
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
         [

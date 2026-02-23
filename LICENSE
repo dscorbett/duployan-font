@@ -10,13 +10,13 @@ License: OFL-1.1
 
 Files: sources/build.py
 Copyright: Copyright 2010-2019 Khaled Hosny <khaledhosny@eglug.org>
-  Copyright 2018-2019, 2022-2024 David Corbett
+  Copyright 2018-2019, 2022-2026 David Corbett
   Copyright 2020-2022 Google LLC
 License: Apache-2.0
 
 Files: sources/otf2ttf.py typings/fontTools/*.pyi
 Copyright: Copyright (c) 2017 Just van Rossum
-  Copyright (c) 2022, 2025 David Corbett
+  Copyright (c) 2022, 2025-2026 David Corbett
 License: MIT
 
 Files: typings/fontTools/merge/unicode.pyi

@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2022-2025 David Corbett
+# Copyright 2018-2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,9 +163,17 @@ CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 
 class FreezableList[T](list[T]):
     """A list that can be frozen, making it immutable.
+
+    Type parameters:
+        T: The type of this list’s items.
     """
 
     def __init__(self, iterable: Sequence[T] = (), /) -> None:
+        """Initializes this `FreezableList`.
+
+        Args:
+            iterable: The initial items to add to this list.
+        """
         super().__init__(iterable)
         self._frozen: bool = False
 

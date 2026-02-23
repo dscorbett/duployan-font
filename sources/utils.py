@@ -166,6 +166,10 @@ MINIMUM_STROKE_GAP: Final[float] = 70
 REGULAR_LIGHT_LINE: Final[float] = 70
 
 
+#: The thickness of a light line in the bold font.
+BOLD_LIGHT_LINE: Final[float] = 101
+
+
 #: The factor by which to scale the light line’s thickness to get the
 #: shaded line’s thickness.
 SHADING_FACTOR: Final[float] = 12 / 7

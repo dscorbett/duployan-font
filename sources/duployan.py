@@ -40,6 +40,7 @@ from shapes import HubPriority
 from shapes import Line
 from shapes import Notdef
 import sifting
+from utils import BOLD_LIGHT_LINE
 from utils import CAP_HEIGHT
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
@@ -70,22 +71,19 @@ if TYPE_CHECKING:
     from phases import Phase
 
 
-def rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
-    for group in grouper.groups():
-        if all(s.phase_index < phase_index for s in group):
-            continue
-        group.sort(key=Schema.sort_key)
-        canonical_schema = next((s for s in group if s.phase_index < phase_index), None)
-        if canonical_schema is None:
-            canonical_schema = group[0]
-        for schema in list(group):
-            if schema.phase_index >= phase_index:
-                schema.canonical_schema = canonical_schema
-                if grouper.group_of(schema):
-                    grouper.remove_item(group, schema)
-
-
 class Builder:
+    """A global state manager for building a Duployan font.
+
+    Attributes:
+        font: A FontForge font object. Glyphs, anchors, and 'cmap' are
+            built using FontForge. Most things that can use OpenType
+            feature file are built using fontTools and don’t use this
+            attribute.
+        light_line: The width of a light (unshaded) line.
+        shaded_line: The width of a shaded line.
+        stroke_gap: The minimum distance between non-touching strokes.
+        unjoined: Whether to build an unjoined font.
+    """
     def __init__(
         self,
         font: fontforge.font,
@@ -93,11 +91,20 @@ class Builder:
         charset: charsets.Charset,
         unjoined: bool,
     ) -> None:
+        """Initializes this `Builder`.
+
+        Args:
+            font: The ``font`` attribute.
+            bold: Whether to build a bold font. This affects the
+                ``light_line`` and ``shaded_line`` attributes.
+            charset: The set of characters to include in the font.
+            unjoined: The ``unjoined`` attribute.
+        """
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
         self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
         self._initialize_phases()
-        self.light_line: Final = 101 if bold else REGULAR_LIGHT_LINE
+        self.light_line: Final = BOLD_LIGHT_LINE if bold else REGULAR_LIGHT_LINE
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
         self.stroke_gap: Final = max(MINIMUM_STROKE_GAP, self.light_line)
         self._schemas = charsets.data.initialize_schemas(charset, self.light_line, self.stroke_gap)
@@ -501,7 +508,7 @@ class Builder:
         schema.glyph = glyph
         return schema
 
-    def convert_classes(
+    def _convert_classes(
         self,
         classes: Mapping[str, Collection[Schema]],
     ) -> dict[str, fontTools.feaLib.ast.GlyphClassDefinition]:
@@ -515,7 +522,7 @@ class Builder:
             class_asts[name] = class_ast
         return class_asts
 
-    def convert_named_lookups(
+    def _convert_named_lookups(
         self,
         named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
         class_asts: MutableMapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
@@ -559,12 +566,12 @@ class Builder:
         previous_phase: Phase | None = None
         for lookup, phase in reversed(lookups_with_phases):
             if phase is not previous_phase is not None:
-                rename_schemas(grouper, self.phase_index(previous_phase))
+                self._rename_schemas(grouper, self.phase_index(previous_phase))
             previous_phase = phase
             prefix_classes = PrefixView(phase, classes)
             prefix_named_lookups_with_phases = PrefixView(phase, named_lookups_with_phases)
             sifting.sift_groups(grouper, lookup, prefix_classes, prefix_named_lookups_with_phases)
-        rename_schemas(grouper, NO_PHASE_INDEX)
+        self._rename_schemas(grouper, NO_PHASE_INDEX)
 
     def phase_index(self, phase: Phase) -> int:
         """Returns the index of a phase among all this builder’s phases.
@@ -577,7 +584,28 @@ class Builder:
         """
         return [*self._phases, *self._middle_phases, *self._marker_phases].index(phase)
 
-    def augment(self) -> None:
+    @staticmethod
+    def _rename_schemas(grouper: sifting.Grouper[Schema], phase_index: int) -> None:
+        for group in grouper.groups():
+            if all(s.phase_index < phase_index for s in group):
+                continue
+            group.sort(key=Schema.sort_key)
+            canonical_schema = next((s for s in group if s.phase_index < phase_index), None)
+            if canonical_schema is None:
+                canonical_schema = group[0]
+            for schema in list(group):
+                if schema.phase_index >= phase_index:
+                    schema.canonical_schema = canonical_schema
+                    if grouper.group_of(schema):
+                        grouper.remove_item(group, schema)
+
+    def build(self) -> None:
+        """Does most of the work of building the font.
+
+        When this method returns, the FontForge font is ready to
+        generate. GDEF, GPOS, and GSUB are almost ready but are not in
+        the font; see `complete_layout`.
+        """
         (
             schemas,
             output_schemas,
@@ -586,8 +614,8 @@ class Builder:
             named_lookups_with_phases,
         ) = phases.run_phases(self, self._schemas, self._phases)
         self._merge_schemas(schemas, lookups_with_phases, classes, named_lookups_with_phases)
-        class_asts = self.convert_classes(classes)
-        named_lookup_asts = self.convert_named_lookups(named_lookups_with_phases, class_asts)
+        class_asts = self._convert_classes(classes)
+        named_lookup_asts = self._convert_named_lookups(named_lookups_with_phases, class_asts)
         (
             _,
             more_output_schemas,
@@ -597,8 +625,8 @@ class Builder:
         ) = phases.run_phases(self, [schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         classes |= more_classes
-        class_asts |= self.convert_classes(more_classes)
-        named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
+        class_asts |= self._convert_classes(more_classes)
+        named_lookup_asts |= self._convert_named_lookups(more_named_lookups_with_phases, class_asts)
         cmapped_anchors = {schema.anchor for schema in schemas if schema.anchor is not None and schema.cmap is not None}
         for schema in schemas.sorted(key=lambda schema: (
             schema.canonical_schema is not schema,
@@ -624,8 +652,8 @@ class Builder:
         for schema in schemas.sorted(key=Schema.glyph_id_sort_key):
             if schema.glyph is None:
                 self._create_marker(schema)
-        class_asts |= self.convert_classes(more_classes)
-        named_lookup_asts |= self.convert_named_lookups(more_named_lookups_with_phases, class_asts)
+        class_asts |= self._convert_classes(more_classes)
+        named_lookup_asts |= self._convert_named_lookups(more_named_lookups_with_phases, class_asts)
         features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)
         for lp in lookups_with_phases:
             if lp[0].feature:
@@ -647,6 +675,11 @@ class Builder:
         self,
         tt_font: fontTools.ttLib.ttFont.TTFont,
     ) -> None:
+        """Adds GDEF, GPOS, and GSUB to a font.
+
+        Args:
+            tt_font: The font to modify.
+        """
         self._complete_gpos()
         self._recreate_gdef()
         fontTools.feaLib.builder.addOpenTypeFeatures(

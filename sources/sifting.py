@@ -1,4 +1,4 @@
-# Copyright 2019, 2022-2025 David Corbett
+# Copyright 2019, 2022-2026 David Corbett
 # Copyright 2020-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,23 @@ type _Group[T] = list[T]
 
 
 class Grouper[T]:
+    """A mutable bidirectional mapping between disjoint groups and their
+    items.
+
+    A group is a list of items. Every item is mapped to the group it is
+    in. The minimum length of a group is 2. Every item is logically part
+    of a group, but singleton groups are not represented explicitly.
+
+    Type parameters:
+        T: The type of the groups’ items.
+    """
     def __init__(self, groups: Collection[_Group[T]]) -> None:
+        """Initializes this `Grouper`.
+
+        Args:
+            groups: The initial groups. Empty and singleton groups are
+                ignored.
+        """
         self._groups: Final[MutableSequence[_Group[T]]] = []
         self._inverted: Final[MutableMapping[T, _Group[T]]] = {}
         for group in groups:
@@ -45,33 +61,82 @@ class Grouper[T]:
                 self.add(group)
 
     def groups(self) -> Sequence[_Group[T]]:
+        """Returns a copy of the current groups.
+        """
         return list(self._groups)
 
     def group_of(self, item: T) -> _Group[T] | None:
+        """Returns an item’s group.
+
+        Args:
+            item: An item.
+
+        Returns:
+            The item’s group, or ``None`` if it is not explicitly in a
+            group, which represents being in a singleton group.
+        """
         return self._inverted.get(item)
 
     def add(self, group: _Group[T]) -> None:
+        """Adds a group.
+
+        Args:
+            group: A new group. Its items must not be in any existing
+                groups, but the grouper does not validate that.
+        """
         self._groups.append(group)
         for item in group:
             self._inverted[item] = group
 
     def remove(self, group: _Group[T]) -> None:
+        """Removes a group.
+
+        Args:
+            group: The group to remove.
+        """
         self._groups.remove(group)
         for item in group:
             del self._inverted[item]
 
     def remove_item(self, group: _Group[T], item: T) -> None:
+        """Removes an item from a group.
+
+        Args:
+            group: The group to remove from.
+            item: The item to remove.
+
+        Raises:
+            ValueError: If `item` is not in `group`.
+        """
         group.remove(item)
         del self._inverted[item]
         if len(group) == 1:
             self.remove(group)
 
     def remove_items(self, minuend: _Group[T], subtrahend: Collection[T]) -> None:
+        """Removes items from a group.
+
+        Args:
+            minuend: The group to remove from.
+            subtrahend: A collection of items to remove.
+
+        Raises:
+            ValueError: If any item in `subtrahend` is not in `minuend`.
+        """
         for item in subtrahend:
             self.remove_item(minuend, item)
 
 
 def group_schemas(schemas: Collection[Schema]) -> Grouper[Schema]:
+    """Groups schemas by `Schema.group`.
+
+    Args:
+        schemas: A collection of schemas.
+
+    Returns:
+        A `Grouper` that initially groups schemas by their default
+        groups.
+    """
     group_dict = collections.defaultdict(list)
     for schema in schemas:
         group_dict[schema.group].append(schema)
@@ -151,6 +216,18 @@ def sift_groups(
     named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
     _intersection_cache: MutableMapping[int, MutableMapping[str, Collection[Schema]]] | None = None,
 ) -> None:
+    """Regroups schemas into groups of interchangeable schemas.
+
+    Args:
+        grouper: A `Grouper` that initially maps schemas to their
+            default groups. Sifting may mutate it.
+        lookup: A lookup whose rules may affect which schemas are
+            considered interchangeable.
+        classes: A mapping of glyph class names to their schemas
+            corresponding to the glyphs in each class, used by `lookup`.
+        named_lookups_with_phases: A mapping of lookup names to lookups
+            and phases, used by `lookup`.
+    """
     if _intersection_cache is None:
         _intersection_cache = {}
     for rule in lookup.rules:
