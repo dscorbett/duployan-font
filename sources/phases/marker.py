@@ -280,13 +280,12 @@ def shrink_wrap_enclosing_circle(
             x_min, y_min, x_max, y_max = schema.glyph.boundingBox()
             dx = x_max - x_min
             dy = y_max - y_min
-            # This should stay consistent with `Builder._draw_glyph`.
-            dx += 3 * builder.stroke_gap + builder.light_line
-            dy += 3 * builder.stroke_gap + builder.light_line
+            dx += builder.enclosing_gap
+            dy += builder.enclosing_gap
             if dx > dy:
-                dy = max(dy, dx * 0.75)
+                dy = max(dy, dx * 0.84)
             elif dx < dy:
-                dx = max(dx, dy * 0.75)
+                dx = max(dx, dy * 0.84)
             stretch = round(max(dx, dy) / min(dx, dy) - 1, 2)
             long = dx < dy
             size = round(min(dx, dy) / 100, 2)

@@ -167,27 +167,27 @@
 1BC02 0331 1BC70::[u1BC02.p@667,0|uni0331.macron_below@617,-245|u1BC70.left_horizontal_secant.0@0,-166|_@1240,0]
 
 # U+20DD COMBINING ENCLOSING CIRCLE
-0021 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
+0021 20DD::[exclam@398,0|uni20DD_.enclosing_circle.wl@758,0|_@1064,0]
 00D7 20DD::[uni200C.zwnj@0,0|uni00D7.multiplication@0,0|uni200C.zwnj@594,0|uni20DD_.enclosing_circle.wl@594,0|_@594,0]
-002C 20DD::[comma@140,0|uni20DD_.enclosing_circle.wl@372,-353|_@572,0]
-003A 20DD::[colon@246,0|uni20DD_.enclosing_circle.wl@533,-103|_@760,0]
-003B 20DD::[semicolon@276,0|uni20DD_.enclosing_circle.wl@605,-159|_@844,0]
-003F 20DD::[question@210,0|uni20DD_.enclosing_circle.wl@667,0|_@917,0]
-00A1 20DD::[uni00A1.inverted_exclamation@324,0|uni20DD_.enclosing_circle.wl@666,-193|_@916,0]
-00BF 20DD::[uni00BF.inverted_question@210,0|uni20DD_.enclosing_circle.wl@667,-193|_@917,0]
-2014 20DD::[uni2014.em_dash@140,0|uni20DD_.enclosing_circle.wl@755,0|_@1020,0]
-2018 20DD::[uni2018.left_single_quote@140,0|uni20DD_.enclosing_circle.wl@372,317|_@572,0]
-2019 20DD::[uni2019.right_single_quote@140,0|uni20DD_.enclosing_circle.wl@372,324|_@572,0]
-201C 20DD::[uni201C.left_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,317|_@732,0]
-201D 20DD::[uni201D.right_double_quote@140,0|uni20DD_.enclosing_circle.wl@509,324|_@732,0]
-201E 20DD::[uni201E.double_low_9_quote@140,0|uni20DD_.enclosing_circle.wl@509,-353|_@732,0]
-2026 20DD::[uni2026.horizontal_ellipsis@140,0|uni20DD_.enclosing_circle.wl@687,-308|_@940,0]
+002C 20DD::[comma@184,0|uni20DD_.enclosing_circle.wl@412,-353|_@660,0]
+003A 20DD::[colon@310,0|uni20DD_.enclosing_circle.wl@608,-103|_@888,0]
+003B 20DD::[semicolon@346,0|uni20DD_.enclosing_circle.wl@689,-159|_@984,0]
+003F 20DD::[question@284,0|uni20DD_.enclosing_circle.wl@759,0|_@1065,0]
+00A1 20DD::[uni00A1.inverted_exclamation@398,0|uni20DD_.enclosing_circle.wl@758,-193|_@1064,0]
+00BF 20DD::[uni00BF.inverted_question@284,0|uni20DD_.enclosing_circle.wl@759,-193|_@1065,0]
+2014 20DD::[uni2014.em_dash@176,0|uni20DD_.enclosing_circle.wl@781,0|_@1092,0]
+2018 20DD::[uni2018.left_single_quote@184,0|uni20DD_.enclosing_circle.wl@412,317|_@660,0]
+2019 20DD::[uni2019.right_single_quote@184,0|uni20DD_.enclosing_circle.wl@412,324|_@660,0]
+201C 20DD::[uni201C.left_double_quote@176,0|uni20DD_.enclosing_circle.wl@536,317|_@804,0]
+201D 20DD::[uni201D.right_double_quote@176,0|uni20DD_.enclosing_circle.wl@536,324|_@804,0]
+201E 20DD::[uni201E.double_low_9_quote@176,0|uni20DD_.enclosing_circle.wl@536,-353|_@804,0]
+2026 20DD::[uni2026.horizontal_ellipsis@176,0|uni20DD_.enclosing_circle.wl@713,-308|_@1012,0]
 
 # U+2463 CIRCLED DIGIT FOUR is implemented using U+20DD.
-2463::[uni2463.circled_four@140,0|uni20DD_.enclosing_circle.wl@719,0|_@978,0]
+2463::[uni2463.circled_four@182,0|uni20DD_.enclosing_circle.wl@757,0|_@1062,0]
 
 # U+034F COMBINING GRAPHEME JOINER does not block mark substitution or
 # positioning.
-0021 034F 20DD::[exclam@324,0|uni20DD_.enclosing_circle.wl@666,0|_@916,0]
+0021 034F 20DD::[exclam@398,0|uni20DD_.enclosing_circle.wl@758,0|_@1064,0]
 25CC 034F 0307 034F 0323::[uni25CC.dotted_circle@0,0|uni0307_.dot_above.1.wl@209,654|uni0323_.dot_below.1.wl@209,-171|_@686,0]
 1BC03 1BC9E 034F 1BC9E::[u1BC03.t@0,0|u1BC9E_u1BC9E_.double__double.90@194,-113|_@740,0]

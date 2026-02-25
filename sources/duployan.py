@@ -306,14 +306,20 @@ class Builder:
             if schema.cps == (0x20DD,) and x_min != x_max:
                 radius = (x_max - x_min - self.light_line) / 2
                 inscribed_square_size = math.sqrt(2) * radius
-                # This should stay consistent with `shrink_wrap_enclosing_circle`.
-                shrunk_square_size = inscribed_square_size - 3 * self.stroke_gap - self.light_line
+                shrunk_square_size = inscribed_square_size - self.enclosing_gap
                 glyph.transform(fontTools.misc.transform.Offset(0, (CAP_HEIGHT - (y_max - y_min)) / 2))
                 glyph.left_side_bearing = -int(DEFAULT_SIDE_BEARING + (shrunk_square_size + x_max - x_min) / 2)
             glyph.width = 0
         else:
             glyph.right_side_bearing = side_bearing
         self._wrangle_anchor_points(schema, glyph, cmapped_anchors, stroke_width)
+
+    @property
+    def enclosing_gap(self) -> float:
+        """The minimum distance between an enclosing mark and its inner
+        glyph.
+        """
+        return 4 * self.stroke_gap + self.light_line
 
     def _add_mkmk_anchor_points(
         self,
