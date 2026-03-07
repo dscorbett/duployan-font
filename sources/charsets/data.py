@@ -86,16 +86,14 @@ _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     # Some punctuation marks are marked as encirclable for consistency with
     # related characters without having direct attestations.
     0x00A1, 0x00BF, 0x2018, 0x2019,
-    # Weiler’s German mode is not fully supported in Unicode. It is not
-    # useful to include code points specific to unsupported modes.
-    0x030D,
     # It is not clear whether this is the right code point for the Chinese
     # aspiration mark.
     0x0312,
-    # Duployé-Flageul for Esperanto is not fully supported in Unicode.
+    # Duployé-Flageul for Esperanto is not fully supported in Unicode. It is
+    # not useful to include code points specific to unsupported modes.
     0x031C, 0x0339, 0x0351, 0x0357,
     # Lockett’s Shorthand is not fully supported in Unicode.
-    0x0325, 0x0329, 0x032E, 0x033D,
+    0x0325, 0x032E, 0x033D,
     # U+034F COMBINING GRAPHEME JOINER creates reversed circle letters not
     # supported by Unicode. It is effectively a private use character.
     0x034F,
