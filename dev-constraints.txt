@@ -1,4 +1,4 @@
-# Copyright 2023-2025 David Corbett
+# Copyright 2023-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 babelfont != 3.0.2.*, != 3.0.3.*, != 3.0.4.*  # https://github.com/simoncozens/babelfont/issues/55
 cffi >= 1.14.1
 collidoscope >= 0.6
+cu2qu >= 1.6.7.post1
 defcon >= 0.6
 fontFeatures != 1.0.6  # https://github.com/simoncozens/fontFeatures/commit/889b7e455d8dbb1eeda22de28252db9c37771a09
 fonttools >= 4.47  # https://github.com/fonttools/fontbakery/issues/4961
@@ -24,15 +25,19 @@ GitPython >= 3.0.6
 importlib-resources >= 2  # https://github.com/googlefonts/nam-files/commit/6d12b577cb778f178e9653b7b89c40b182c44a7a
 Jinja2 >= 3a0  # https://github.com/fonttools/fontbakery/issues/4717
 lxml >= 4.9.3
+lxml >= 5.0.1 ; python_version >= "3.13"
 munkres >= 1.0.10  # https://github.com/bmc/munkres/issues/21
 numpy >= 1.26
+numpy >= 1.26.2 ; python_version >= "3.13"
 openstep-plist >= 0.3.1
+openstep-plist >= 0.4 ; python_version >= "3.13"
 openstep-plist >= 0.5.1 ; python_version >= "3.14"  # https://github.com/fonttools/openstep-plist/issues/43
 orjson >= 3.6.8, != 3.8.*, != 3.9.0.*, != 3.9.1.*
 packaging >= 14.5  # https://github.com/fonttools/fontbakery/issues/4792
 pip >= 23.1.2  # https://github.com/pypa/pip/commit/f1a7a6f942b869ae3428dbf55dfc1ca756c78d94
 protobuf >= 3.12.2
 pyclipper >= 1.3.post5
+pyclipper >= 1.3.post6 ; python_version >= "3.13"
 pytz >= 2014.9
 pyyaml >= 6.0.1  # https://github.com/yaml/pyyaml/issues/601
 requests >= 2.25  # https://github.com/psf/requests/commit/03957eb1c2b9a1e5e6d61f5e930d7c5ed7cfe853#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R47
@@ -40,8 +45,10 @@ rich >= 13.2  # https://github.com/Textualize/rich/commit/6aac8da6984482ad767c06
 rstr >= 2.2
 ruamel-yaml >= 0.2
 setuptools >= 66.1  # https://github.com/pypa/setuptools/pull/3685
+skia-pathops >= 0.9
 sre-yield >= 1.1
 tabulate >= 0.4.2
 toml >= 0.9.1  # https://github.com/uiri/toml/commit/c54810e73feb55167cb7ec327b6568fa21d43669
+unicodedata2 >= 15 ; python_version >= "3.13"
 urllib3 >= 1.26.5  # Avoid “No module named 'urllib3.packages.six.moves'” error
 youseedee < 0.5  # Avoid unnecessary transitive dependencies
