@@ -93,6 +93,7 @@ $(SUBSET_PREFIX)fonts/%: fonts/% $(SUBSET_PREFIX)fonts/%.subset-glyphs.txt
 		--glyph-names \
 		--glyphs-file="$(word 2,$^)" \
 		--layout-features="$$(PYTHONPATH="sources:$$PYTHONPATH" python3 -c 'from utils import SUBSET_FEATURES; print(",".join(SUBSET_FEATURES))')" \
+		--no-harfbuzz-repacker \
 		--no-layout-closure \
 		--notdef-outline \
 		--output-file="$@" \

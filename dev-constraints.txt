@@ -18,7 +18,6 @@ collidoscope >= 0.6
 cu2qu >= 1.6.7.post1
 defcon >= 0.6
 fontFeatures != 1.0.6  # https://github.com/simoncozens/fontFeatures/commit/889b7e455d8dbb1eeda22de28252db9c37771a09
-fonttools >= 4.47  # https://github.com/fonttools/fontbakery/issues/4961
 freetype-py >= 2.1  # https://github.com/rougier/freetype-py/issues/107
 fs >= 2.4.16
 GitPython >= 3.0.6

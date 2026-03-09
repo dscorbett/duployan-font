@@ -1,4 +1,4 @@
-# Copyright 2025 David Corbett
+# Copyright 2025-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -75,3 +75,15 @@ def shape(
     features: dict[str, int | Sequence[tuple[int, int, int]]] | None = ...,
     shapers: list[str] | None = ...,
 ) -> None: ...
+
+def repack_with_tag(
+    tag: str,
+    subtables: list[bytes],
+    graphnodes: list[tuple[list[tuple[int, int, int]], list[tuple[int, int, int]]]],
+) -> bytes: ...
+
+def serialize_with_tag(
+    tag: str,
+    subtables: list[bytes],
+    graphnodes: list[tuple[list[tuple[int, int, int]], list[tuple[int, int, int]]]],
+) -> bytes: ...

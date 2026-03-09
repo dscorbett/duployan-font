@@ -42,6 +42,7 @@ import fontTools.ttLib.tables._n_a_m_e
 import fontTools.ttLib.tables._p_o_s_t
 import fontTools.ttLib.ttFont
 import fontforge
+import uharfbuzz
 
 import charsets
 import copy_metrics
@@ -357,6 +358,7 @@ def tweak_font(
         _add_meta(tt_font)
 
         if 'CFF ' in tt_font:
+            uharfbuzz.serialize_with_tag = uharfbuzz.repack_with_tag  # Work around https://github.com/fonttools/fonttools/pull/3973
             cffsubr.subroutinize(tt_font)
             cff_table.cff[0].decompileAllCharStrings()
             cff_table.cff[0].Encoding = 0
