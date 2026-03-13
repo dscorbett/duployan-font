@@ -97,12 +97,12 @@ jobs:
             coverage: coverage
             harfbuzz-version: *harfbuzz_version
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Select the setup-python cache
         run: |
           echo '${{ matrix.requirements }}' >>setup-python-cache-key.txt
           echo '${{ matrix.build-venv }}' >>setup-python-cache-key.txt
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -114,7 +114,7 @@ jobs:
             setup-python-cache-key.txt
       - name: Cache FontForge
         id: cache-fontforge
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
           path: fontforge
@@ -164,7 +164,7 @@ jobs:
       - name: Cache HarfBuzz
         if: matrix.coverage == ''
         id: cache-harfbuzz
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ runner.os }}-harfbuzz-${{ matrix.harfbuzz-version }}
           path: .hb/harfbuzz-${{ matrix.harfbuzz-version }}
@@ -236,13 +236,13 @@ jobs:
           make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.noto == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
       - name: Upload build artifacts
         if: matrix.build-venv == 'build'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fonts-${{ matrix.charset }}${{ matrix.unjoined && '-unjoined' || '' }}
           path: fonts
       - name: Cache the fonts for the next job
         if: matrix.build-venv == 'build' || matrix.optimize != ''
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.charset }}-${{ matrix.unjoined }}
           path: fonts
@@ -251,54 +251,54 @@ jobs:
     needs:
       - main
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache/restore@v4
+      - uses: actions/checkout@v6
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-unjoined
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-unjoined
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-unjoined
           path: fonts
       - name: Move the fonts from the optimized builds
         run: mv fonts fonts-PYTHONOPTIMIZE
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--testing-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--standard-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--noto-
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--testing-unjoined
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--standard-unjoined
           path: fonts
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}--noto-unjoined
           path: fonts
@@ -312,8 +312,8 @@ jobs:
     needs:
       - compare-PYTHONOPTIMIZE
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Tag the release commit and bump the version number
