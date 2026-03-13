@@ -64,7 +64,7 @@ fontbakery==1.1.0
     # via -r dev-requirements.in
 fontmath==0.10.0
     # via ufo2ft
-fonttools==4.62.0
+fonttools==4.62.1
     # via
     #   -r requirements.in
     #   axisregistry
@@ -110,7 +110,7 @@ jinja2==3.1.6
     # via
     #   -c dev-constraints.txt
     #   fontbakery
-kurbopy==0.13.0
+kurbopy==0.13.1
     # via collidoscope
 librt==0.8.1 ; platform_python_implementation != 'PyPy'
     # via mypy
@@ -132,7 +132,7 @@ mypy==1.19.1
     # via -r dev-requirements.in
 mypy-extensions==1.1.0
     # via mypy
-openstep-plist==0.5.1
+openstep-plist==0.5.2
     # via
     #   -c dev-constraints.txt
     #   babelfont
@@ -191,7 +191,7 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.15.5
+ruff==0.15.6
     # via -r dev-requirements.in
 setuptools==82.0.1
     # via
