@@ -111,6 +111,7 @@ from utils import SUBSET_FEATURES
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from collections.abc import Hashable
     from collections.abc import Iterable
     from collections.abc import Mapping
     from collections.abc import MutableMapping
@@ -161,7 +162,7 @@ HUB_CLASS: Final[str] = 'global..hub'
 CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 
 
-class FreezableList[T](list[T]):
+class FreezableList[T: Hashable](list[T]):
     """A list that can be frozen, making it immutable.
 
     Type parameters:
@@ -175,6 +176,7 @@ class FreezableList[T](list[T]):
             iterable: The initial items to add to this list.
         """
         super().__init__(iterable)
+        self._contents: set[T] | None = None
         self._frozen: bool = False
 
     def freeze(self) -> None:
@@ -197,6 +199,7 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().__delitem__(index)
+        self._contents = None
 
     @overload
     def __setitem__(self, index: SupportsIndex, value: T, /) -> None:
@@ -222,6 +225,7 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().__setitem__(index, value)  # type: ignore[assignment, index]
+        self._contents = None
 
     @override
     def insert(self, index: SupportsIndex, value: T, /) -> None:
@@ -238,6 +242,8 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().insert(index, value)
+        if self._contents is not None:
+            self._contents.add(value)
 
     @override
     def append(self, value: T, /) -> None:
@@ -252,6 +258,8 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().append(value)
+        if self._contents is not None:
+            self._contents.add(value)
 
     @override
     def clear(self, /) -> None:
@@ -263,6 +271,7 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().clear()
+        self._contents = None
 
     @override
     def __iadd__(self, iterable: Iterable[T], /) -> Self:  # type: ignore[override]
@@ -280,7 +289,10 @@ class FreezableList[T](list[T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
-        return super().__iadd__(iterable)
+        rv = super().__iadd__(iterable)
+        if self._contents is not None:
+            self._contents.update(iterable)
+        return rv
 
     @override
     def extend(self, iterable: Iterable[T], /) -> None:
@@ -296,6 +308,8 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().extend(iterable)
+        if self._contents is not None:
+            self._contents.update(iterable)
 
     @override
     def __imul__(self, value: SupportsIndex, /) -> Self:
@@ -312,7 +326,19 @@ class FreezableList[T](list[T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
+        self._contents = None
         return super().__imul__(value)
+
+    @override
+    def __contains__(self, value: object, /) -> bool:
+        """Returns whether an element is in this list.
+
+        Args:
+            value: The element to check for.
+        """
+        if self._contents is None:
+            self._contents = {*self}
+        return value in self._contents
 
     @override
     def pop(self, index: SupportsIndex = -1, /) -> T:
@@ -327,6 +353,7 @@ class FreezableList[T](list[T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
+        self._contents = None
         return super().pop(index)
 
     @override
@@ -342,6 +369,7 @@ class FreezableList[T](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().remove(value)
+        self._contents = None
 
     @override
     def reverse(self) -> None:
