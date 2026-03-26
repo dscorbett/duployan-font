@@ -153,8 +153,10 @@ def _sift_groups_in_rule_part(
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
+            cls_set = dict.fromkeys(cls)
+            intersection_sort_key = {schema: i for i, schema in enumerate(cls_set)}.__getitem__
             intersection_cache: dict[int, tuple[_Group[Schema], set[Schema]]] = {}
-            for schema in dict.fromkeys(cls):
+            for schema in cls_set:
                 if (group := grouper.group_of(schema)) is not None:
                     key = id(group)
                     cache_entry = intersection_cache.get(key)
@@ -169,7 +171,7 @@ def _sift_groups_in_rule_part(
                 else:
                     grouper.remove_items(group, intersection_set)
                     if overlap != 1:
-                        intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
+                        intersection = sorted(intersection_set, key=intersection_sort_key)
                         grouper.add(intersection)
                 if overlap != 1 and target_part is rule.inputs:
                     if rule.outputs is not None:
