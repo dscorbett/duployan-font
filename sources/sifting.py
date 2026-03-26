@@ -149,64 +149,56 @@ def _sift_groups_in_rule_part(
     target_part: Sequence[Schema | str],
     classes: Mapping[str, Collection[Schema]],
     named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
-    intersection_cache: MutableMapping[int, MutableMapping[str, Collection[Schema]]],
 ) -> None:
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
-            cls_intersection = set(cls).intersection
-            for group in grouper.groups():
-                if ((intersection_cache_2 := intersection_cache.get(id(group))) is None
-                    or (intersection_set := intersection_cache_2.get(s)) is None
-                ):
-                    intersection_set = cls_intersection(group)
-                    if intersection_cache_2 is not None:
-                        intersection_cache_2[s] = intersection_set
+            intersection_cache: dict[int, tuple[_Group[Schema], set[Schema]]] = {}
+            for schema in dict.fromkeys(cls):
+                if (group := grouper.group_of(schema)) is not None:
+                    key = id(group)
+                    cache_entry = intersection_cache.get(key)
+                    if cache_entry is None:
+                        intersection_cache[key] = (group, {schema})
                     else:
-                        intersection_cache[id(group)] = {s: intersection_set}
-                if overlap := len(intersection_set):
-                    if overlap == len(group):
-                        intersection = group
-                    else:
-                        grouper.remove_items(group, intersection_set)
-                        intersection_cache.pop(id(group), None)
-                        if overlap != 1:
-                            intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
-                            grouper.add(intersection)
-                            intersection_cache[id(intersection)] = {s: intersection}
-                    if overlap != 1 and target_part is rule.inputs:
-                        if rule.outputs is not None:
-                            for output in rule.outputs:
-                                if isinstance(output, str) and len(output_class := classes[output]) != 1:
-                                    grouper.remove(intersection)
-                                    intersection_cache.pop(id(group), None)
-                                    new_groups = collections.defaultdict(list)
-                                    for input_schema, output_schema in zip(cls, output_class, strict=True):
-                                        if input_schema in intersection_set:
-                                            key = id(grouper.group_of(output_schema) or output_schema)
-                                            new_groups[key].append(input_schema)
-                                    new_intersection: MutableSequence[Schema] | None = None
-                                    for schema in intersection:
-                                        new_group = new_groups.get(id(schema))
-                                        if new_group and schema in new_group:
-                                            if new_intersection is None:
-                                                new_intersection = new_group
-                                            else:
-                                                new_intersection += new_group
-                                                new_group *= 0
-                                    for new_group in new_groups.values():
-                                        if len(new_group) > 1:
-                                            grouper.add([*dict.fromkeys(new_group)])
-                        elif rule.lookups is not None:
-                            for lookup in rule.lookups:
-                                if lookup is not None:
-                                    sift_groups(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases, intersection_cache)
-        else:
-            for group in grouper.groups():
-                if s in group:
-                    grouper.remove_item(group, s)
-                    intersection_cache.pop(id(group), None)
-                    break
+                        cache_entry[1].add(schema)
+            for group, intersection_set in intersection_cache.values():
+                overlap = len(intersection_set)
+                if overlap == len(group):
+                    intersection = group
+                else:
+                    grouper.remove_items(group, intersection_set)
+                    if overlap != 1:
+                        intersection = [*dict.fromkeys(x for x in cls if x in intersection_set)]
+                        grouper.add(intersection)
+                if overlap != 1 and target_part is rule.inputs:
+                    if rule.outputs is not None:
+                        for output in rule.outputs:
+                            if isinstance(output, str) and len(output_class := classes[output]) != 1:
+                                grouper.remove(intersection)
+                                new_groups = collections.defaultdict(list)
+                                for input_schema, output_schema in zip(cls, output_class, strict=True):
+                                    if input_schema in intersection_set:
+                                        key = id(grouper.group_of(output_schema) or output_schema)
+                                        new_groups[key].append(input_schema)
+                                new_intersection: MutableSequence[Schema] | None = None
+                                for schema in intersection:
+                                    new_group = new_groups.get(id(schema))
+                                    if new_group and schema in new_group:
+                                        if new_intersection is None:
+                                            new_intersection = new_group
+                                        else:
+                                            new_intersection += new_group
+                                            new_group *= 0
+                                for new_group in new_groups.values():
+                                    if len(new_group) > 1:
+                                        grouper.add([*dict.fromkeys(new_group)])
+                    elif rule.lookups is not None:
+                        for lookup in rule.lookups:
+                            if lookup is not None:
+                                sift_groups(grouper, named_lookups_with_phases[lookup][0], classes, named_lookups_with_phases)
+        elif (group := grouper.group_of(s)) is not None:
+            grouper.remove_item(group, s)
 
 
 def sift_groups(
@@ -214,7 +206,6 @@ def sift_groups(
     lookup: Lookup,
     classes: Mapping[str, Collection[Schema]],
     named_lookups_with_phases: Mapping[str, tuple[Lookup, Phase]],
-    _intersection_cache: MutableMapping[int, MutableMapping[str, Collection[Schema]]] | None = None,
 ) -> None:
     """Regroups schemas into groups of interchangeable schemas.
 
@@ -228,10 +219,8 @@ def sift_groups(
         named_lookups_with_phases: A mapping of lookup names to lookups
             and phases, used by `lookup`.
     """
-    if _intersection_cache is None:
-        _intersection_cache = {}
     for rule in lookup.rules:
-        _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases, _intersection_cache)
+        _sift_groups_in_rule_part(grouper, rule, rule.contexts_in, classes, named_lookups_with_phases)
         assert rule.contexts_out is not None
-        _sift_groups_in_rule_part(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases, _intersection_cache)
-        _sift_groups_in_rule_part(grouper, rule, rule.inputs, classes, named_lookups_with_phases, _intersection_cache)
+        _sift_groups_in_rule_part(grouper, rule, rule.contexts_out, classes, named_lookups_with_phases)
+        _sift_groups_in_rule_part(grouper, rule, rule.inputs, classes, named_lookups_with_phases)
