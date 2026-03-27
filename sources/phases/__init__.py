@@ -786,6 +786,13 @@ class Lookup:
             single substitution, but this would cover other reverse
             lookup types if they existed.)
         rules: The list of rules.
+        has_named_lookup: Whether any rule in this lookup uses a named
+            lookup.
+        output_class_names: The set of class names in this lookup’s
+            rules’ outputs. It is only accurate if `has_named_lookup` is
+            false.
+        output_schemas: The set of schemas in this lookup’s rules’
+            outputs. It is only accurate if `has_named_lookup` is false.
     """
 
     @overload
@@ -847,6 +854,9 @@ class Lookup:
         self.required: Final = feature in REQUIRED_FEATURES
         self.reverse: Final = reverse
         self.rules: Final[FreezableList[Rule]] = FreezableList()
+        self.has_named_lookup = False
+        self.output_class_names: Final[MutableSet[str]] = set()
+        self.output_schemas: Final[MutableSet[schema.Schema]] = set()
 
     def get_scripts(
         self,
@@ -980,6 +990,18 @@ class Lookup:
             ValueError: If the list of rules is frozen.
         """
         self.rules.append(rule)
+        if not self.has_named_lookup:
+            if rule.lookups is not None:
+                for named_lookup in rule.lookups:
+                    if named_lookup:
+                        self.has_named_lookup = True
+                        return
+            if rule.outputs is not None:
+                for output in rule.outputs:
+                    if isinstance(output, str):
+                        self.output_class_names.add(output)
+                    else:
+                        self.output_schemas.add(output)
 
     def extend(self, other: Lookup) -> None:
         """Extends this lookup with rules from another lookup.
@@ -1000,7 +1022,8 @@ class Lookup:
         assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
         assert self.required == other.required, f'Incompatible required values: {self.required} != {other.required}'
         assert self.reverse == other.reverse, f'Incompatible reverse values: {self.reverse} != {other.reverse}'
-        self.rules.extend(other.rules)
+        for rule in other.rules:
+            self.append(rule)
 
 
 if TYPE_CHECKING:
@@ -1137,6 +1160,7 @@ def _add_rule(
         phase) that schema in its output.
         """
         if not (lookup.required
+            and not lookup.has_named_lookup
             and not rule.is_contextual()
             and len(rule.inputs) == 1
             and rule.x_placements is None
@@ -1145,16 +1169,9 @@ def _add_rule(
             return
         input = rule.inputs[0]
         unconditionally_substituted_schemas = set(classes[input]) if isinstance(input, str) else {input}
-        for lookup_rule in lookup.rules:
-            for named_lookup in lookup_rule.lookups or []:
-                if named_lookup:
-                    unconditionally_substituted_schemas.clear()
-                    return
-            for output in lookup_rule.outputs or []:
-                if isinstance(output, str):
-                    unconditionally_substituted_schemas.difference_update(classes[output])
-                else:
-                    unconditionally_substituted_schemas.discard(output)
+        unconditionally_substituted_schemas -= lookup.output_schemas
+        for class_name in lookup.output_class_names:
+            unconditionally_substituted_schemas.difference_update(classes[class_name])
             if not unconditionally_substituted_schemas:
                 return
         for schema_to_remove in unconditionally_substituted_schemas:
