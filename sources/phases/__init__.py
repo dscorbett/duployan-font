@@ -727,19 +727,24 @@ class Rule:
     def get_scripts(
         self,
         classes: Mapping[str, Sequence[schema.Schema]],
+        cache: MutableMapping[str, AbstractSet[str]],
     ) -> AbstractSet[str]:
         """Returns the minimal set of script tags relevant to this rule.
 
         Args:
             classes: A mapping to glyph classes from their names.
+            cache: A mapping from class names to their script sets.
         """
         def s_to_scripts(
             s: schema.Schema | str,
         ) -> AbstractSet[str]:
             if isinstance(s, str):
+                if (scripts := cache.get(s)) is not None:
+                    return scripts
                 scripts = set()
                 for s_schema in classes[s]:
                     scripts |= s_schema.scripts
+                cache[s] = scripts
                 return scripts
             return s.scripts
 
@@ -854,8 +859,9 @@ class Lookup:
             classes: A mapping to glyph classes from their names.
         """
         scripts: MutableSet[str] = set()
+        cache: MutableMapping[str, AbstractSet[str]] = {}
         for rule in self.rules:
-            scripts |= rule.get_scripts(classes)
+            scripts |= rule.get_scripts(classes, cache)
         return scripts
 
     def _get_sorted_scripts(self, features_to_scripts: Mapping[str, AbstractSet[str]]) -> Iterable[str]:
@@ -1083,7 +1089,7 @@ def _add_rule(
             check_ignored(rule.inputs)
         check_ignored(rule.contexts_out)
 
-    if not rule.get_scripts(classes):
+    if not rule.get_scripts(classes, {}):
         # If a rule has no scripts, its pieces must have non-overlapping script
         # sets, so the rule can never apply and should be skipped. As an
         # exception, if a class in the rule is empty, the phase is probably not
