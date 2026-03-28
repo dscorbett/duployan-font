@@ -233,7 +233,7 @@ jobs:
         if: matrix.coverage != ''
         run: |
           . dev-venv/bin/activate
-          make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.noto == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
+          make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
       - name: Upload build artifacts
         if: matrix.build-venv == 'build'
         uses: actions/upload-artifact@v7
