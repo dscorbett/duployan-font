@@ -517,16 +517,18 @@ class Builder:
     def _convert_classes(
         self,
         classes: Mapping[str, Collection[Schema]],
-    ) -> dict[str, fontTools.feaLib.ast.GlyphClassDefinition]:
-        class_asts = {}
+        class_asts: MutableMapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
+    ) -> None:
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
                 fontTools.feaLib.ast.GlyphClass([schema.glyph_name for schema in schemas]),
             )
-            self._fea.statements.append(class_ast)
+            if name in class_asts:
+                self._fea.statements[self._fea.statements.index(class_asts[name])] = class_ast
+            else:
+                self._fea.statements.append(class_ast)
             class_asts[name] = class_ast
-        return class_asts
 
     def _convert_named_lookups(
         self,
@@ -620,7 +622,8 @@ class Builder:
             named_lookups_with_phases,
         ) = phases.run_phases(self, self._schemas, self._phases)
         self._merge_schemas(schemas, lookups_with_phases, classes, named_lookups_with_phases)
-        class_asts = self._convert_classes(classes)
+        class_asts: dict[str, fontTools.feaLib.ast.GlyphClassDefinition] = {}
+        self._convert_classes(classes, class_asts)
         named_lookup_asts = self._convert_named_lookups(named_lookups_with_phases, class_asts)
         (
             _,
@@ -631,7 +634,7 @@ class Builder:
         ) = phases.run_phases(self, [schema for schema in output_schemas if schema.canonical_schema is schema], self._middle_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         classes |= more_classes
-        class_asts |= self._convert_classes(more_classes)
+        self._convert_classes(more_classes, class_asts)
         named_lookup_asts |= self._convert_named_lookups(more_named_lookups_with_phases, class_asts)
         cmapped_anchors = {schema.anchor for schema in schemas if schema.anchor is not None and schema.cmap is not None}
         for schema in schemas.sorted(key=lambda schema: (
@@ -658,7 +661,7 @@ class Builder:
         for schema in schemas.sorted(key=Schema.glyph_id_sort_key):
             if schema.glyph is None:
                 self._create_marker(schema)
-        class_asts |= self._convert_classes(more_classes)
+        self._convert_classes(more_classes, class_asts)
         named_lookup_asts |= self._convert_named_lookups(more_named_lookups_with_phases, class_asts)
         features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)
         for lp in lookups_with_phases:
