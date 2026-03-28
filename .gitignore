@@ -1,4 +1,4 @@
-# Copyright 2018-2019, 2024 David Corbett
+# Copyright 2018-2019, 2024, 2026 David Corbett
 # Copyright 2021-2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ coverage.lcov
 coverage.xml
 *,cover
 *.otf
+*.subset-glyphs.txt
 *.pdf
 *.png
 *.pyc
