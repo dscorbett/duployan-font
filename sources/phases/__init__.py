@@ -289,10 +289,8 @@ class FreezableList[T: Hashable](list[T]):
         """
         if self._frozen:
             raise ValueError('Modifying a frozen list')
-        rv = super().__iadd__(iterable)
-        if self._contents is not None:
-            self._contents.update(iterable)
-        return rv
+        self._contents = None
+        return super().__iadd__(iterable)
 
     @override
     def extend(self, iterable: Iterable[T], /) -> None:
@@ -308,8 +306,7 @@ class FreezableList[T: Hashable](list[T]):
         if self._frozen:
             raise ValueError('Modifying a frozen list')
         super().extend(iterable)
-        if self._contents is not None:
-            self._contents.update(iterable)
+        self._contents = None
 
     @override
     def __imul__(self, value: SupportsIndex, /) -> Self:
