@@ -3852,7 +3852,7 @@ class ComplexCurve(Complex):
     @override
     def __init__(self, instructions: Instructions) -> None:
         super().__init__(instructions)
-        assert len(instructions) >= 2, 'Not enough instructions: {len(instructions)}'
+        assert len(instructions) >= 2, f'Not enough instructions: {len(instructions)}'
         assert all(
             not callable(op) and isinstance(op.shape, Curve) and not op.shape.reversed_circle
             and op.shape.clockwise is self.instructions[0].shape.clockwise  # type: ignore[union-attr]
