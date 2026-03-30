@@ -338,11 +338,6 @@ class Schema:
         (re.compile(pattern_repl[0]), pattern_repl[1]) for pattern_repl in _SEQUENCE_NAME_RAW_SUBSTITUTIONS
     ]
 
-    # TODO: This seems like a bad design.
-    #: A mutable mapping of undisambiguated schema names to mutable
-    #: sequences of all the schemas that share that name.
-    _canonical_names: Final[MutableMapping[str, MutableSequence[Schema]]] = {}
-
     def __init__(
         self,
         cmap: int | None,
@@ -879,8 +874,7 @@ class Schema:
         assert not self._RESERVED_GLYPH_NAME_PATTERN.search(name), f'The glyph name "{name}" misleadingly appears to have a disambiguatory suffix'
         return name
 
-    @property
-    def glyph_name(self) -> str:
+    def glyph_name(self, canonical_names: MutableMapping[str, MutableSequence[Schema]]) -> str:
         """Returns this schema’s disambiguated glyph name.
 
         Every non-canonical schema has same glyph name as its canonical
@@ -894,20 +888,25 @@ class Schema:
         the rest get numeric suffixes, starting at 1 and incrementing by
         1 for each subsequent glyph. The suffix is ``"._"`` followed by
         the number in uppercase hexadecimal.
+
+        Args:
+            canonical_names: A mapping from undisambiguated glyph names
+                to the schemas that share each name. The return value is
+                cached in this mapping.
         """
         if self._glyph_name is None:
             if self is not (canonical := self._canonical_schema):
-                self._glyph_name = canonical.glyph_name
+                self._glyph_name = canonical.glyph_name(canonical_names)
             else:
                 name = str(self)
                 while len(name) > self._MAX_GLYPH_NAME_LENGTH:
                     name = name.rsplit('.', 1)[0]
-                if name in self._canonical_names:
-                    if self not in self._canonical_names[name]:
-                        self._canonical_names[name].append(self)
-                        name += f'._{len(self._canonical_names[name]) - 1:X}'
+                if name in canonical_names:
+                    if self not in canonical_names[name]:
+                        canonical_names[name].append(self)
+                        name += f'._{len(canonical_names[name]) - 1:X}'
                 else:
-                    self._canonical_names[name] = [self]
+                    canonical_names[name] = [self]
                 self._glyph_name = name
         return self._glyph_name
 

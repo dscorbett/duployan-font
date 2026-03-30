@@ -558,6 +558,7 @@ class Rule:
         self,
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        canonical_names: MutableMapping[str, MutableSequence[schema.Schema]],
         in_contextual_lookup: bool,
         in_multiple_lookup: bool,
         in_reverse_lookup: bool,
@@ -586,6 +587,8 @@ class Rule:
             class_asts: A map to glyph classes from their names.
             named_lookup_asts: A map to named lookup ASTs from their
                 names.
+            canonical_names: A mapping from undisambiguated glyph names
+                to the schemas that share each name.
             in_contextual_lookup: Whether this rule is in a contextual
                 lookup.
             in_multiple_lookup: Whether this rule is in a multiple
@@ -604,7 +607,7 @@ class Rule:
         ) -> fontTools.feaLib.ast.GlyphClassName | fontTools.feaLib.ast.GlyphName:
             if isinstance(glyph, str):
                 return fontTools.feaLib.ast.GlyphClassName(class_asts[glyph])
-            return fontTools.feaLib.ast.GlyphName(glyph.glyph_name)
+            return fontTools.feaLib.ast.GlyphName(glyph.glyph_name(canonical_names))
 
         def glyphs_to_ast(
             glyphs: Iterable[str | schema.Schema],
@@ -706,7 +709,7 @@ class Rule:
                     glyphs_to_ast(self.contexts_in),
                     glyphs_to_ast(self.inputs),
                     glyphs_to_ast(self.contexts_out),
-                    output.glyph_name,
+                    output.glyph_name(canonical_names),
                     in_contextual_lookup,
                 )]
 
@@ -898,6 +901,7 @@ class Lookup:
         features_to_scripts: None,
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        canonical_names: MutableMapping[str, MutableSequence[schema.Schema]],
         name: str,
     ) -> fontTools.feaLib.ast.LookupBlock:
         ...
@@ -908,6 +912,7 @@ class Lookup:
         features_to_scripts: Mapping[str, AbstractSet[str]],
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        canonical_names: MutableMapping[str, MutableSequence[schema.Schema]],
         name: int,
     ) -> tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock]:
         ...
@@ -917,6 +922,7 @@ class Lookup:
         features_to_scripts: Mapping[str, AbstractSet[str]] | None,
         class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition],
         named_lookup_asts: Mapping[str, fontTools.feaLib.ast.LookupBlock],
+        canonical_names: MutableMapping[str, MutableSequence[schema.Schema]],
         name: str | int,
     ) -> fontTools.feaLib.ast.LookupBlock | tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock]:
         """Converts this lookup to fontTools feaLib ASTs.
@@ -933,6 +939,8 @@ class Lookup:
             class_asts: A map to glyph classes from their names.
             named_lookup_asts: A map to named lookup ASTs from their
                 names.
+            canonical_names: A mapping from undisambiguated glyph names
+                to the schemas that share each name.
             name: The name of this lookup, if it is a named lookup, or
                 else an arbitrary number uniquely identifying this
                 lookup among all anonymous lookups.
@@ -968,7 +976,7 @@ class Lookup:
         lookup_block.statements.extend({
                 ast.asFea(): ast
                     for r in self.rules
-                    for ast in r.to_asts(class_asts, named_lookup_asts, contextual, multiple, self.reverse)
+                    for ast in r.to_asts(class_asts, named_lookup_asts, canonical_names, contextual, multiple, self.reverse)
             }.values())
         return asts
 

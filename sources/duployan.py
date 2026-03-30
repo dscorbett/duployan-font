@@ -103,6 +103,7 @@ class Builder:
         self.font: Final = font
         self._fea: Final = fontTools.feaLib.ast.FeatureFile()
         self._anchors: Final[MutableMapping[str, fontTools.feaLib.ast.LookupBlock]] = {}
+        self._canonical_names: Final[MutableMapping[str, MutableSequence[Schema]]] = {}
         self._initialize_phases()
         self.light_line: Final = BOLD_LIGHT_LINE if bold else REGULAR_LIGHT_LINE
         self.shaded_line: Final = SHADING_FACTOR * self.light_line
@@ -417,7 +418,7 @@ class Builder:
         *,
         drawing: bool,
     ) -> fontforge.glyph:
-        glyph_name = schema.glyph_name
+        glyph_name = schema.glyph_name(self._canonical_names)
         uni = -1 if schema.cmap is None else schema.cmap
         if glyph_name in self.font:
             return self._add_altuni(uni, glyph_name)
@@ -522,7 +523,7 @@ class Builder:
         for name, schemas in classes.items():
             class_ast = fontTools.feaLib.ast.GlyphClassDefinition(
                 name,
-                fontTools.feaLib.ast.GlyphClass([schema.glyph_name for schema in schemas]),
+                fontTools.feaLib.ast.GlyphClass([schema.glyph_name(self._canonical_names) for schema in schemas]),
             )
             if name in class_asts:
                 self._fea.statements[self._fea.statements.index(class_asts[name])] = class_ast
@@ -547,6 +548,7 @@ class Builder:
                         None,
                         PrefixView(phase, class_asts),
                         PrefixView(phase, named_lookup_asts),
+                        self._canonical_names,
                         name,
                     )
                 except KeyError:
@@ -640,7 +642,7 @@ class Builder:
         for schema in schemas.sorted(key=lambda schema: (
             schema.canonical_schema is not schema,
             schema.cmap is None and schema.glyph_class == GlyphClass.MARK
-                or schema.glyph_name.startswith('_')
+                or schema.glyph_name(self._canonical_names).startswith('_')
                 or not (not schema.ignored_for_topography and schema in output_schemas and schema in more_output_schemas),
         )):
             if schema.canonical_schema is schema or schema.cmap is not None:
@@ -669,7 +671,9 @@ class Builder:
                 prefix_classes = PrefixView(lp[1], classes)
                 features_to_scripts[lp[0].feature] |= lp[0].get_scripts(prefix_classes)
         for i, lp in enumerate(lookups_with_phases):
-            self._fea.statements.extend(lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), i))
+            self._fea.statements.extend(
+                lp[0].to_asts(features_to_scripts, PrefixView(lp[1], class_asts), PrefixView(lp[1], named_lookup_asts), self._canonical_names, i),
+            )
         self._add_lookups(class_asts)
         self.font.selection.all()
         self.font.round()
