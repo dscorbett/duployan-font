@@ -444,12 +444,8 @@ def invalidate_overlap_controls(
                 'valid',
             ))
     # If an overlap gets here without being kept valid, it is invalid.
-    # FIXME: This should be just one rule, without context, but `add_rule`
-    # is broken: it does not take into account what rules precede it in the
-    # lookup when determining the possible output schemas.
     add_rule(lookup, Rule([], 'valid', 'valid', 'valid'))
-    add_rule(lookup, Rule([node], 'valid', [], 'invalid'))
-    add_rule(lookup, Rule('valid', 'valid', [], 'invalid'))
+    add_rule(lookup, Rule('valid', 'invalid'))
     return [lookup]
 
 
@@ -1485,9 +1481,7 @@ def join_with_next(
         if new_context:
             add_rule(lookup, Rule([], 'i', f'c_{context_out}', output_class_name))
     if old_input_count == 0:
-        # FIXME: This rule shouldn’t need to be contextual, but without the
-        # context, fontTools throws a `KeyError` in `buildCoverage`.
-        add_rule(post_lookup, Rule(['secant_o'], [continuing_overlap_after_secant], [], [continuing_overlap]))
+        add_rule(post_lookup, Rule([continuing_overlap_after_secant], [continuing_overlap]))
     return [pre_lookup, lookup, post_lookup]
 
 

@@ -97,7 +97,6 @@ ignore = [
     "DOC502",
     "EM",
     "FBT002",
-    "FIX001",
     "FIX002",
     "FURB154",
     "FURB189",
