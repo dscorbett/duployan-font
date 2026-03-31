@@ -424,10 +424,9 @@ def invalidate_overlap_controls(
                     [invalid_letter_overlap],
                 ))
         # Trees have a maximum depth of `MAX_TREE_DEPTH` letters.
-        # TODO: Optimization: Why use a nested `for` loop? Can a combination of
-        # `top_width` and `prefix_depth` work?
+        deep_subtrees = _make_trees(node, 'valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH)
         for subtrees in _make_trees(node, valid_letter_overlap, MAX_TREE_DEPTH, top_widths=range(older_sibling_count + 1)):
-            for deep_subtree in _make_trees(node, 'valid', MAX_TREE_DEPTH, prefix_depth=MAX_TREE_DEPTH):
+            for deep_subtree in deep_subtrees:
                 add_rule(lookup, Rule(
                     [valid_letter_overlap] * older_sibling_count,
                     'valid',
