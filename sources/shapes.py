@@ -168,8 +168,8 @@ class Shape:
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -188,10 +188,10 @@ class Shape:
                 stroked.
             anchor: The anchor to generate anchor points for, if any.
             joining_type: This shape’s schema’s joining type.
-            initial_circle_diphthong: Whether this shape is a circle at
-                the beginning of a diphthong ligature.
-            final_circle_diphthong: Whether this shape is a circle at
-                the end of a diphthong ligature.
+            initial_circle: Whether this shape is a circle at the start
+                of a cursively joined sequence.
+            final_circle: Whether this shape is a circle at the end of a
+                cursively joined sequence.
             diphthong_1: Whether this shape is a non-final element of a
                 diphthong ligature.
             diphthong_2: Whether this shape is a non-initial element of
@@ -413,8 +413,8 @@ class Start(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -529,8 +529,8 @@ class Hub(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -750,8 +750,8 @@ class RightBoundDigit(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1009,8 +1009,8 @@ class Notdef(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1104,8 +1104,8 @@ class Space(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1185,8 +1185,8 @@ class Bound(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1298,8 +1298,8 @@ class ChildEdge(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1405,8 +1405,8 @@ class ParentEdge(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1510,8 +1510,8 @@ class Dot(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -1698,8 +1698,8 @@ class Line(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -2306,8 +2306,8 @@ class Curve(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -2339,8 +2339,8 @@ class Curve(Shape):
         a1, a2, da = self._get_normalized_angles_and_da(
             pre_stretch_offset_angle_in,
             pre_stretch_offset_angle_out,
-            final_circle_diphthong,
-            initial_circle_diphthong,
+            final_circle,
+            initial_circle,
         )
         r = int(RADIUS * size)
         beziers_needed = math.ceil(abs(da) / 90)
@@ -2386,8 +2386,8 @@ class Curve(Shape):
                     size,
                     anchor,
                     joining_type,
-                    initial_circle_diphthong,
-                    final_circle_diphthong,
+                    initial_circle,
+                    final_circle,
                     diphthong_1,
                     diphthong_2,
                 )
@@ -2882,8 +2882,8 @@ class Circle(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -2903,8 +2903,8 @@ class Circle(Shape):
                     size,
                     anchor,
                     joining_type,
-                    initial_circle_diphthong,
-                    final_circle_diphthong,
+                    initial_circle and diphthong_1,
+                    final_circle and diphthong_2,
                     diphthong_1,
                     diphthong_2,
                 )
@@ -3610,8 +3610,8 @@ class Complex(Shape):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                initial_circle_diphthong=False,
-                final_circle_diphthong=False,
+                initial_circle=False,
+                final_circle=False,
                 diphthong_1=False,
                 diphthong_2=False,
             )
@@ -3675,8 +3675,8 @@ class Complex(Shape):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -4215,8 +4215,8 @@ class Ou(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -4229,8 +4229,8 @@ class Ou(Complex):
                 size,
                 anchor,
                 joining_type,
-                initial_circle_diphthong,
-                final_circle_diphthong,
+                initial_circle,
+                final_circle,
                 diphthong_1,
                 diphthong_2,
             )
@@ -4275,8 +4275,8 @@ class Ou(Complex):
                 size,
                 anchor,
                 joining_type,
-                initial_circle_diphthong,
-                final_circle_diphthong,
+                initial_circle,
+                final_circle,
                 diphthong_1,
                 diphthong_2,
             )
@@ -4340,8 +4340,8 @@ class Ou(Complex):
                     size,
                     anchor,
                     joining_type,
-                    initial_circle_diphthong,
-                    final_circle_diphthong,
+                    initial_circle,
+                    final_circle,
                     diphthong_1,
                     diphthong_2,
                 )
@@ -4371,8 +4371,8 @@ class Ou(Complex):
             size,
             anchor,
             joining_type,
-            initial_circle_diphthong,
-            final_circle_diphthong,
+            initial_circle,
+            final_circle,
             diphthong_1,
             diphthong_2,
         )
@@ -4541,8 +4541,8 @@ class SeparateAffix(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -4554,8 +4554,8 @@ class SeparateAffix(Complex):
             size,
             anchor,
             joining_type,
-            initial_circle_diphthong,
-            final_circle_diphthong,
+            initial_circle,
+            final_circle,
             diphthong_1,
             diphthong_2,
         )
@@ -4664,8 +4664,8 @@ class Wa(Complex):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                initial_circle_diphthong=False,
-                final_circle_diphthong=False,
+                initial_circle=False,
+                final_circle=False,
                 diphthong_1=False,
                 diphthong_2=False,
             )
@@ -5001,8 +5001,8 @@ class XShape(Complex):
         size: float,
         anchor: str | None,
         joining_type: Type,
-        initial_circle_diphthong: bool,
-        final_circle_diphthong: bool,
+        initial_circle: bool,
+        final_circle: bool,
         diphthong_1: bool,
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
@@ -5014,8 +5014,8 @@ class XShape(Complex):
             size,
             anchor,
             joining_type,
-            initial_circle_diphthong,
-            final_circle_diphthong,
+            initial_circle,
+            final_circle,
             diphthong_1,
             diphthong_2,
         )
