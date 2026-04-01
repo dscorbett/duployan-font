@@ -4698,9 +4698,7 @@ class Wa(Complex):
         if context_in == NO_CONTEXT and context_out != NO_CONTEXT:
             assert context_out.angle is not None
             outer_circle_op = original_instructions[0]
-            assert not callable(outer_circle_op)
             inner_circle_op = original_instructions[-1]
-            assert not callable(inner_circle_op)
             inner_circle = inner_circle_op.shape
             assert isinstance(inner_circle, Circle)
             inner_curve = inner_circle.contextualize(outer_circle_op.shape.context_out(), context_out)

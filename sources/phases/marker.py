@@ -293,7 +293,6 @@ def shrink_wrap_enclosing_circle(
             class_name = f'c_{stretch}_{long}_{size}_{side_bearing}'
             classes[class_name].append(schema)
             punctuation[class_name] = (stretch, long, size, side_bearing)
-    assert circle_schema is not None
     for class_name, (stretch, long, size, side_bearing) in punctuation.items():
         new_circle_schema = get_new_circle_schema(stretch, long, size)
         add_rule(lookup, Rule(class_name, 'i', [], [new_circle_schema]))

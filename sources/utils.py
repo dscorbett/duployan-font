@@ -553,7 +553,7 @@ class Context:
             diphthong_start: The ``diphthong_start`` attribute.
             diphthong_end: The ``diphthong_end`` attribute.
         """
-        assert clockwise is not None or not ignorable_for_topography
+        assert clockwise is not None or not ignorable_for_topography, 'Invalid context: ignored for topography but not curved'
         self.angle: Final = float(angle) if angle is not None else None
         self.clockwise: Final = clockwise
         self.ou: Final = ou

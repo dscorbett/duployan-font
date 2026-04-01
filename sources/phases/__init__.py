@@ -843,10 +843,10 @@ class Lookup:
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
-        assert language is None or len(language) == 4, f"Language tag must be 4 characters long: '{language}'"
-        assert feature is None or len(feature) == 4, f"Feature tag must be 4 characters long: '{feature}'"
+        assert language is None or len(language) == 4, f'Language tag must be 4 characters long: {language!r}'
+        assert feature is None or len(feature) == 4, f'Feature tag must be 4 characters long: {feature!r}'
         assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
-        assert feature is None or feature in KNOWN_FEATURES
+        assert feature is None or feature in KNOWN_FEATURES, f'Unknown feature: {feature!r}'
         self.feature: Final = feature
         self.language: Final = language
         self.flags: Final = flags

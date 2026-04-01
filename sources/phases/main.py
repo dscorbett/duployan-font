@@ -1361,7 +1361,6 @@ def ignore_first_orienting_glyph_in_initial_sequence(
                     **({} if isinstance(schema.path, Curve) else {'role': CircleRole.DEPENDENT}),  # type: ignore[arg-type]
                 )
                 if isinstance(schema.path, Ou):
-                    assert not callable(circle_op)
                     path = schema.path.clone(instructions=[circle_op._replace(shape=path)])
                 classes['o'].append(schema.clone(
                     cmap=None,
@@ -2025,8 +2024,6 @@ def create_diagonal_fractions(
         if schema.cmap is not None and chr(schema.cmap) in string.digits:
             classes['digit'].append(schema)
             classes['digit_or_slash'].append(schema)
-            assert schema.y_max is not None
-            assert schema.y_min is not None
             dnom = schema.clone(cmap=None, y_max=SMALL_DIGIT_FACTOR * CAP_HEIGHT)
             numr = schema.clone(cmap=None, y_min=(1 - SMALL_DIGIT_FACTOR) * CAP_HEIGHT)
             classes['dnom'].append(dnom)
@@ -2059,7 +2056,6 @@ def create_superscripts_and_subscripts(
     for schema in new_schemas:
         if schema.cmap is not None and chr(schema.cmap) in string.digits:
             classes['i'].append(schema)
-            assert schema.y_max is not None
             classes['o_sups'].append(schema.clone(
                 cmap=None,
                 y_min=SUPERSCRIPT_HEIGHT - SMALL_DIGIT_FACTOR * CAP_HEIGHT,
