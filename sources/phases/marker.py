@@ -808,23 +808,23 @@ def sum_width_markers(
             AnchorWidthDigit,
         ) for i in range(len(canonical_anchors))]],
     )]:
-        for augend_schema in original_augend_schemas:
-            augend_is_new = augend_schema in new_schemas
-            assert isinstance(augend_schema.path, Digit.__value__)
-            place = augend_schema.path.place
-            augend = augend_schema.path.digit
-            for (
-                continuing_overlap_is_relevant,
-                augend_skip_backtrack,
-                addend_skip_backtrack,
-                addend_letter,
-                original_addend_schemas,
-                addend_schemas,
-                addend_path,
-            ) in inner_iterable:
-                for carry_in_schema in carry_schemas:
-                    carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
-                    carry_in_is_new = carry_in_schema in new_schemas
+        for carry_in_schema in reversed(carry_schemas):
+            carry_in = 0 if carry_in_schema is carry_0_placeholder else 1
+            carry_in_is_new = carry_in_schema in new_schemas
+            for augend_schema in original_augend_schemas:
+                augend_is_new = augend_schema in new_schemas
+                assert isinstance(augend_schema.path, Digit.__value__)
+                place = augend_schema.path.place
+                augend = augend_schema.path.digit
+                for (
+                    continuing_overlap_is_relevant,
+                    augend_skip_backtrack,
+                    addend_skip_backtrack,
+                    addend_letter,
+                    original_addend_schemas,
+                    addend_schemas,
+                    addend_path,
+                ) in inner_iterable:
                     for addend_schema in original_addend_schemas:
                         assert isinstance(addend_schema.path, Digit.__value__)
                         if place != addend_schema.path.place:
