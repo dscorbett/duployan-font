@@ -1017,8 +1017,8 @@ def disjoin_grammalogues(
         if not child.can_be_child():
             continue
         zwnj_tail = (zwnj,) if child.max_tree_width == 0 else ()
-        add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, *zwnj_tail]))
-        add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, *zwnj_tail]))
+        add_rule(lookup, Rule([continuing_overlap, root_parent_edge], [child], [], [child, *zwnj_tail]))  # type: ignore[misc]
+        add_rule(lookup, Rule([root_parent_edge], [child], [], [zwnj, child, *zwnj_tail]))  # type: ignore[misc]
         if zwnj_tail:
             add_rule(lookup, Rule([child], [child, *zwnj_tail]))
     return [lookup]
@@ -1099,7 +1099,7 @@ def separate_subantiparallel_lines(
         elif schema.joining_type == Type.ORIENTING:
             match schema.path:
                 case Circle():
-                    clockwise = schema.path.clockwise
+                    clockwise: bool = schema.path.clockwise
                     loop = False
                 case Curve():
                     clockwise = schema.path.clockwise
@@ -1246,7 +1246,7 @@ def join_with_previous(
         return [lookup_1, lookup_2]
     contexts_in: OrderedSet[Schema] = OrderedSet()
 
-    @functools.cache
+    @functools.cache  # type: ignore[misc]
     def get_context_marker(context: Context) -> Schema:
         return Schema(None, ContextMarker(context, is_context_in=False), 0)
 
@@ -1920,15 +1920,17 @@ def avoid_cochiral_overlaps(
                 elif schema.path.smooth_2 and schema not in original_schemas:
                     classes['c2'].append(schema)
             elif schema in original_schemas:
-                maximum_unsmoothable_size = max(
-                    maximum_unsmoothable_size,
-                    schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1),  # type: ignore[union-attr]
+                unsmoothable_size: float = (
+                    schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1)  # type: ignore[misc, union-attr]
                 )
+                maximum_unsmoothable_size = max(maximum_unsmoothable_size, unsmoothable_size)
     contexts_1: OrderedSet[str] = OrderedSet()
     contexts_2: OrderedSet[str] = OrderedSet()
     inputs: OrderedSet[tuple[Schema, str, str, str]] = OrderedSet()
     for schema in probably_smoothable_schemas:
-        if maximum_unsmoothable_size >= schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1):  # type: ignore[union-attr]
+        if maximum_unsmoothable_size >= (
+            schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1)  # type: ignore[misc, union-attr]
+        ):
             continue
         assert isinstance(schema.path, (ComplexCurve, Curve))
         context_1 = f'c1_{schema.path.angle_out}_{schema.path.clockwise}'

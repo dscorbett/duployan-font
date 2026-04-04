@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright 2021 Google LLC
-# Copyright 2023-2025 David Corbett
+# Copyright 2023-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -183,4 +183,8 @@ if __name__ == '__main__':
     parser.add_argument('source', help='the font to copy from')
     parser.add_argument('others', nargs='*', help='more fonts to consider when determining the most extreme vertical metrics')
     args = parser.parse_args()
+    assert isinstance(args.source, str)  # type: ignore[misc]
+    assert isinstance(args.others, list)  # type: ignore[misc]
+    assert isinstance(args.target, str)  # type: ignore[misc]
+    assert isinstance(args.text, str | None)  # type: ignore[misc]
     copy_metrics(args.source, args.others, args.target, args.text)

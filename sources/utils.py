@@ -356,7 +356,7 @@ SUBSET_FEATURES: AbstractSet[str] = (frozenset(fontTools.subset.Options().layout
 )
 
 
-@functools.cache
+@functools.cache  # type: ignore[misc]
 def cps_to_scripts(cps: Sequence[int]) -> set[str]:
     """Converts a code point sequence to its set of script tags.
 

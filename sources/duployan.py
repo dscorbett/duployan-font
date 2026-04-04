@@ -288,7 +288,7 @@ class Builder:
                             glyph.clear()
                             self._draw_glyph(glyph, schema, cmapped_anchors, desired_to_actual_ratio)
                         else:
-                            glyph.transform(fontTools.misc.transform.Offset(0, -y_min)
+                            glyph.transform(fontTools.misc.transform.Offset(0, -y_min)  # type: ignore[misc]
                                 .scale(desired_height / actual_height)
                                 ,
                             )
@@ -399,7 +399,7 @@ class Builder:
             should_have_anchor &= schema.ignorability != Ignorability.DEFAULT_YES and (not self.unjoined or anchor_class_name in anchors.ALL_MKMK)
             if (has_anchor := anchor_class_name in anchor_class_names) != should_have_anchor:
                 if has_anchor:
-                    glyph.anchorPoints = [*filter(lambda a: a[0] != anchor_class_name, glyph.anchorPoints)]
+                    glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchor_class_name]
                 elif anchor_class_name == anchors.MIDDLE:
                     glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_center)
                 elif anchor_class_name == anchors.ABOVE:

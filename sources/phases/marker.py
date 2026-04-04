@@ -31,7 +31,6 @@ from shapes import AnchorWidthDigit
 from shapes import Carry
 from shapes import Circle
 from shapes import ContinuingOverlap
-from shapes import Digit
 from shapes import DigitStatus
 from shapes import Dummy
 from shapes import End
@@ -74,6 +73,7 @@ if TYPE_CHECKING:
     from . import AddRule
     from . import FreezableList
     from duployan import Builder
+    from shapes import Digit
     from utils import PrefixView
 
 
@@ -164,7 +164,7 @@ def add_shims_for_pseudo_cursive(
                         case 'entry' if looks_like_valid_entry:
                             entry_schemas.append((schema, x, y))
 
-    @functools.cache
+    @functools.cache  # type: ignore[misc]
     def get_shim(width: float, height: float) -> Schema:
         return Schema(
             None,
@@ -195,14 +195,14 @@ def add_shims_for_pseudo_cursive(
         exit_classes_containing_pseudo_cursive_schemas: set[str] = set()
         exit_classes_containing_true_cursive_schemas: set[str] = set()
         entry_classes: MutableMapping[str, Schema] = {}
-        for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, get_distance_to_edge in [
-            ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, lambda bounds, x: bounds[1] - x),
-            ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, lambda bounds, x: x - bounds[0]),
+        for prefix, e_schemas, e_classes, pseudo_cursive_x_bound, get_distance_to_edge in [  # type: ignore[misc]
+            ('exit', exit_schemas, exit_classes, pseudo_cursive_left_bound, lambda bounds, x: bounds[1] - x),  # type: ignore[misc]
+            ('entry', entry_schemas, entry_classes, pseudo_cursive_right_bound, lambda bounds, x: x - bounds[0]),  # type: ignore[misc]
         ]:
             for e_schema, x, y in e_schemas:
                 assert e_schema.glyph is not None
                 bounds = e_schema.glyph.foreground.xBoundsAtY(y + pseudo_cursive_bottom_bound, y + pseudo_cursive_top_bound)
-                distance_to_edge = 0 if bounds is None else get_distance_to_edge(bounds, x)  # type: ignore[no-untyped-call]
+                distance_to_edge: float = 0 if bounds is None else get_distance_to_edge(bounds, x)  # type: ignore[misc, no-untyped-call]
                 shim_width = distance_to_edge + DEFAULT_SIDE_BEARING + pseudo_cursive_x_bound
                 if (pseudo_cursive_is_space
                     and e_schemas is exit_schemas
@@ -428,7 +428,7 @@ def add_width_markers(
                 # Not a schema created in `add_shims_for_pseudo_cursive`
                 continue
         if schema.might_need_width_markers and (
-            schema.glyph_class != GlyphClass.MARK or any(a[0] in anchors.ALL_MARK for a in schema.glyph.anchorPoints)  # type: ignore[union-attr]
+            schema.glyph_class != GlyphClass.MARK or any(a[0] in anchors.ALL_MARK for a in schema.glyph.anchorPoints)  # type: ignore[misc, union-attr]
         ):
             entry_xs: dict[str, float] = {}
             exit_xs: dict[str, float] = {}
@@ -521,9 +521,9 @@ def add_width_markers(
                 ) for anchor in anchors.ALL_CURSIVE
             ],
         ]:
-            assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+            assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2  # type: ignore[misc]
                 if width >= 0
-                else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2
+                else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2  # type: ignore[misc]
                 ), f'Glyph {schema} is too wide: {width} units'
             widths.append(get_width_number(digit_path, width))
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
@@ -531,11 +531,11 @@ def add_width_markers(
             widths,
             (lambda widths,  # type: ignore[misc]
                     lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, start=start, schema=schema:
-                add_rule(lookup, Rule([schema], [
+                add_rule(lookup, Rule([schema], [  # type: ignore[misc]
                     start,
                     glyph_class_selector,
                     *mark_anchor_selector,
-                    *hubs[schema.hub_priority],
+                    *hubs[schema.hub_priority],  # type: ignore[misc]
                     schema,
                     *widths,
                     end,
@@ -813,7 +813,7 @@ def sum_width_markers(
             carry_in_is_new = carry_in_schema in new_schemas
             for augend_schema in original_augend_schemas:
                 augend_is_new = augend_schema in new_schemas
-                assert isinstance(augend_schema.path, Digit.__value__)
+                assert isinstance(augend_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
                 place = augend_schema.path.place
                 augend = augend_schema.path.digit
                 for (
@@ -826,7 +826,7 @@ def sum_width_markers(
                     addend_path,
                 ) in inner_iterable:
                     for addend_schema in original_addend_schemas:
-                        assert isinstance(addend_schema.path, Digit.__value__)
+                        assert isinstance(addend_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
                         if place != addend_schema.path.place:
                             continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
@@ -850,7 +850,7 @@ def sum_width_markers(
                                 addend_schemas[sum_index] = sum_digit_schema
                                 classes[f'{addend_letter}dx_{sum_digit_path.place}'].append(sum_digit_schema)
                                 classes['all'].append(sum_digit_schema)
-                            assert isinstance(sum_digit_schema.path, Digit.__value__)
+                            assert isinstance(sum_digit_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
                             outputs = ([sum_digit_schema]
                                 if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                 else [sum_digit_schema, carry_out_schema])
@@ -960,8 +960,8 @@ def calculate_bound_extrema(
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
-                    assert isinstance(schema_i.path, Digit.__value__)
-                    assert isinstance(schema_j.path, Digit.__value__)
+                    assert isinstance(schema_i.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                    assert isinstance(schema_j.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
                     place_j = schema_j.path.place
                     add_rule(lookup, Rule(
                         [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
@@ -1242,7 +1242,7 @@ def dist(
                     digit += 1
             if place == WIDTH_MARKER_PLACES - 1 and digit >= WIDTH_MARKER_RADIX / 2:
                 digit -= WIDTH_MARKER_RADIX
-            x_advance = digit * WIDTH_MARKER_RADIX ** place
+            x_advance: float = digit * WIDTH_MARKER_RADIX ** place  # type: ignore[misc]
             if isinstance(schema.path, AnchorWidthDigit):
                 x_advance = -x_advance
             elif place == 0:

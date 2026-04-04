@@ -153,7 +153,7 @@ def _sift_groups_in_rule_part(
     for s in target_part:
         if isinstance(s, str):
             cls = classes[s]
-            cls_set = dict.fromkeys(cls)
+            cls_set: dict[Schema, None] = dict.fromkeys(cls)
             intersection_sort_key = {schema: i for i, schema in enumerate(cls_set)}.__getitem__
             if target_part is rule.inputs and rule.outputs is not None:
                 substitutions: dict[str, dict[Schema, Schema]] = {}
@@ -198,7 +198,7 @@ def _sift_groups_in_rule_part(
                                         new_group *= 0
                             for new_group in new_groups.values():
                                 if len(new_group) > 1:
-                                    grouper.add([*dict.fromkeys(new_group)])
+                                    grouper.add([*dict.fromkeys(new_group)])  # type: ignore[misc]
                     elif rule.lookups is not None:
                         for lookup in rule.lookups:
                             if lookup is not None:

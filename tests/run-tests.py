@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import enum
+from io import IOBase
 import json
 import os
 from pathlib import Path
@@ -30,18 +31,20 @@ import re
 import subprocess
 import sys
 from typing import TYPE_CHECKING
+from typing import TypedDict
 from typing import assert_never
 import unicodedata
 
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from collections.abc import Set as AbstractSet
 
 
 CI = os.getenv('CI') == 'true'
 
 
-DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ = {
+DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ: AbstractSet[int] = {
     0x00AD, 0x034F, 0x061C, 0x17B4, 0x17B5, *range(0x180B, 0x180F + 1), *range(0x200B, 0x200F + 1), *range(0x202A, 0x202E + 1), *range(0x2060, 0x206F + 1),
     *range(0xFE00, 0xFE0F + 1), 0xFEFF, *range(0xFFF0, 0xFFF8 + 1), *range(0x1D173, 0x1D17A + 1), *range(0xE0000, 0xE0FFF + 1),
 }
@@ -84,6 +87,7 @@ def parse_color(color: Color) -> bool:
     """
     match color:
         case Color.AUTO:
+            assert isinstance(sys.stdout, IOBase)
             return CI or sys.stdout.isatty()
         case Color.NO:
             return False
@@ -91,6 +95,26 @@ def parse_color(color: Color) -> bool:
             return True
         case _:
             assert_never(color)
+
+
+class Glyph(TypedDict):
+    """A glyph JSON object from hb-shape.
+
+    Attributes:
+        g: The glyph name.
+        cl: The cluster value.
+        dx: The x offset.
+        dy: The y offset.
+        ax: The x advance.
+        ay: The y advance.
+    """
+
+    g: str
+    cl: int
+    dx: int
+    dy: int
+    ax: int
+    ay: int
 
 
 def parse_json(s: str) -> Generator[str]:
@@ -103,7 +127,8 @@ def parse_json(s: str) -> Generator[str]:
     """
     x = 0
     y = 0
-    for glyph in json.loads(s):
+    glyph: Glyph
+    for glyph in json.loads(s):  # type: ignore[misc]
         if not (name := glyph['g']).startswith('_'):
             yield f'''{
                 DISAMBIGUATION_SUFFIX_PATTERN.sub('', name)
@@ -314,10 +339,13 @@ if __name__ == '__main__':
     parser.add_argument('font', help='The path to a font.')
     parser.add_argument('tests', nargs='*', type=Path, help='The paths to test files.')
     args = parser.parse_args()
-    color = parse_color(args.color.lower())
+    assert isinstance(args.color, Color)  # type: ignore[misc]
+    color = parse_color(args.color)
     passed_all = True
+    assert isinstance(args.font, str)  # type: ignore[misc]
     failed_dir = Path(sys.argv[0]).parent / 'failed' / Path(args.font).name
     failed_dir.mkdir(parents=True, exist_ok=True)
+    assert isinstance(args.tests, list)  # type: ignore[misc]
     for fn in args.tests:
         assert isinstance(fn, Path)
         result_lines = []
@@ -326,6 +354,8 @@ if __name__ == '__main__':
             for line_number, line in enumerate(f, start=1):
                 line = line.rstrip()
                 if line and line[0] != '#':
+                    assert isinstance(args.incomplete, bool)  # type: ignore[misc]
+                    assert isinstance(args.view, bool)  # type: ignore[misc]
                     passed_line, result_line = run_test(
                         args.font,
                         line,

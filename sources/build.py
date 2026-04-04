@@ -387,11 +387,20 @@ def _make_font(options: argparse.Namespace) -> None:
     """
     font = fontforge.font()
     font.encoding = 'UnicodeFull'
+    assert isinstance(options.bold, bool)  # type: ignore[misc]
+    assert isinstance(options.charset, charsets.Charset)  # type: ignore[misc]
+    assert isinstance(options.unjoined, bool)  # type: ignore[misc]
     builder = duployan.Builder(font, options.bold, options.charset, options.unjoined)
     builder.build()
     dirty = _is_dirty()
     _prepare_environment_variables(dirty)
+    assert isinstance(options.output, str)  # type: ignore[misc]
     _save_font(builder.font, options.output)
+    assert isinstance(options.name, str)  # type: ignore[misc]
+    assert isinstance(options.noto, bool)  # type: ignore[misc]
+    assert isinstance(options.version, float)  # type: ignore[misc]
+    assert isinstance(options.release, bool)  # type: ignore[misc]
+    assert isinstance(options.fea, str)  # type: ignore[misc]
     tweak_font(options.output, builder, options.name, options.noto, options.bold, options.version, options.release, dirty, options.fea)
 
 

@@ -25,6 +25,7 @@ import re
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
+from typing import get_args
 from typing import override
 import unicodedata
 
@@ -329,7 +330,7 @@ class Schema:
     #: joined by ``"__"``.
     _SEQUENCE_NAME_RAW_SUBSTITUTIONS: Final[Sequence[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         (r'__zwj__', '___'),
-        (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),
+        (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),  # type: ignore[misc]
     ]
 
     #: `_SEQUENCE_NAME_RAW_SUBSTITUTIONS` with all the search strings
@@ -477,9 +478,9 @@ class Schema:
         helps optimize range-based coverage tables to single ranges.
         """
         shape = type(self.path)
-        digit_shapes = [AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit]
+        digit_shapes: tuple[type[Digit], ...] = get_args(Digit.__value__)  # type: ignore[misc]
         if shape in digit_shapes:
-            assert isinstance(self.path, Digit.__value__)
+            assert isinstance(self.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
             status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value
             place = self.path.place
             digit_shape_index = digit_shapes.index(shape)
@@ -773,7 +774,7 @@ class Schema:
         return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
 
     @classmethod
-    @functools.cache
+    @functools.cache  # type: ignore[misc]
     def _readable_name(cls, cp: int) -> str:
         """Returns a human-readable glyph name for a code point.
 
@@ -974,7 +975,7 @@ class Schema:
         *become* part of a diphthong ligature, so the return value for
         such a schema is ``False``.
         """
-        return not (self.diphthong_1
+        return not (self.diphthong_1  # type: ignore[misc]
             or self.diphthong_2
             or (self.glyph_class != GlyphClass.JOINER and not self.ignored_for_topography)
             or self.joining_type != Type.ORIENTING
@@ -985,7 +986,7 @@ class Schema:
                 and (self.path.hook or not issubclass(self.original_shape, Curve))
             )
             # TODO: Remove the following restriction.
-            or self.path.stretch  # type: ignore[attr-defined]
+            or self.path.stretch  # type: ignore[attr-defined, misc]
         )
 
     def can_be_ignored_for_topography(self) -> bool:

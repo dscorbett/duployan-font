@@ -1117,7 +1117,7 @@ class Space(Shape):
             if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', (size + self.margins * (2 * DEFAULT_SIDE_BEARING + stroke_width)), 0)
             glyph.transform(
-                fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
+                fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),  # type: ignore[misc]
                 ('round',),
             )
         return None
@@ -1516,7 +1516,7 @@ class Dot(Shape):
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
-        scaled_stroke_width = stroke_width * self.SCALAR ** self.size_exponent
+        scaled_stroke_width: float = stroke_width * self.SCALAR ** self.size_exponent  # type: ignore[misc]
         pen.moveTo((0, 0))
         pen.lineTo((0, 0))
         glyph.stroke('circular', scaled_stroke_width, 'round')
@@ -1758,7 +1758,7 @@ class Line(Shape):
                 glyph.addAnchorPoint(anchors.RELATIVE_WIDE, 'base', length / 2, -(stroke_width + Dot.SCALAR * light_line) / 2)
             glyph.addAnchorPoint(anchors.MIDDLE, 'base', length / 2, 0)
         glyph.transform(
-            fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),
+            fontTools.misc.transform.Identity.rotate(math.radians(self.angle)),  # type: ignore[misc]
             ('round',),
         )
         glyph.stroke('circular', stroke_width, 'round')
@@ -1800,7 +1800,7 @@ class Line(Shape):
         return not self.dots
 
     @staticmethod
-    @functools.cache
+    @functools.cache  # type: ignore[misc]
     def get_context_instruction(angle: float) -> Callable[[Context], Context]:
         r"""Returns a function that takes a `Context` and returns a clone
         of it with its angle set.
@@ -2468,7 +2468,7 @@ class Curve(Shape):
                 theta = math.radians(stretch_axis_angle)
                 glyph.addAnchorPoint(inner_relative_anchor, 'base', *_rect(0, 0))
                 glyph.transform(
-                    fontTools.misc.transform.Identity
+                    fontTools.misc.transform.Identity  # type: ignore[misc]
                         .rotate(theta)
                         .scale(scale_x, scale_y)
                         .rotate(-theta),
@@ -2957,7 +2957,7 @@ class Circle(Shape):
         if self.stretch:
             theta = math.radians(stretch_axis_angle)
             glyph.transform(
-                fontTools.misc.transform.Identity
+                fontTools.misc.transform.Identity  # type: ignore[misc]
                     .rotate(theta)
                     .scale(scale_x, scale_y)
                     .rotate(-theta),
@@ -3268,7 +3268,7 @@ class Complex(Shape):
             return 'tick'
         if joining_type != Type.ORIENTING:
             return ''
-        non_callables = filter(lambda op: not callable(op), self.instructions)
+        non_callables = (op for op in self.instructions if not callable(op))
         op = next(non_callables)
         assert not callable(op)
         if isinstance(op.shape, Circle) or isinstance(op.shape, Curve) and op.shape.reversed_circle:
@@ -3278,8 +3278,8 @@ class Complex(Shape):
 
     @override
     def group(self) -> Hashable:
-        return (
-            *(op if callable(op) else (op.size, op.shape.group(), op[2:]) for op in self.instructions),
+        return (  # type: ignore[misc]
+            *(op if callable(op) else (op.size, op.shape.group(), op[2:]) for op in self.instructions),  # type: ignore[misc]
             self.rotation,
         )
 
@@ -3452,9 +3452,9 @@ class Complex(Shape):
             """
             if deferred_proxies is None or self._stroke_args is None:
                 self._stroke()
-                assert all(len(contour) == 0 or contour.closed for contour in self._layer), (
+                assert all(not contour or contour.closed for contour in self._layer), (
                     f'''A proxy contains an open contour: {
-                        [(point.x, point.y) for point in next(filter(lambda contour: len(contour) and not contour.closed, self._layer))]
+                        [(point.x, point.y) for point in next(contour for contour in self._layer if contour and not contour.closed)]
                     }''')
                 self._layer.draw(pen)
             elif (deferred_proxy := deferred_proxies.get(self._stroke_args)) is not None:
@@ -3720,7 +3720,7 @@ class Complex(Shape):
                         0 if (singular_anchor == anchors.PARENT_EDGE or anchor_type == 'entry') and self.enter_on_first_path() else -1
                     ])
         glyph.transform(
-            fontTools.misc.transform.Identity.rotate(math.radians(self.rotation)),
+            fontTools.misc.transform.Identity.rotate(math.radians(self.rotation)),  # type: ignore[misc]
             ('round',),
         )
         x_min, y_min, x_max, y_max = glyph.boundingBox()
@@ -3855,7 +3855,7 @@ class ComplexCurve(Complex):
         assert len(instructions) >= 2, f'Not enough instructions: {len(instructions)}'
         assert all(
             not callable(op) and isinstance(op.shape, Curve) and not op.shape.reversed_circle
-            and op.shape.clockwise is self.instructions[0].shape.clockwise  # type: ignore[union-attr]
+            and op.shape.clockwise is self.instructions[0].shape.clockwise  # type: ignore[misc, union-attr]
             for op in self.instructions
         ), f'Invalid instructions for `ComplexCurve`: {instructions}'
         self._first_curve: Curve = self.instructions[0].shape  # type: ignore[assignment, union-attr]
@@ -3930,9 +3930,9 @@ class ComplexCurve(Complex):
                 shape’s first curve.
         """
         return self.clone(instructions=[
-            self.instructions[0]._replace(shape=self._first_curve.clone(smooth_2=smooth_2)),  # type: ignore[union-attr]
+            self.instructions[0]._replace(shape=self._first_curve.clone(smooth_2=smooth_2)),  # type: ignore[misc, union-attr]
             *self.instructions[1:-1],
-            self.instructions[-1]._replace(shape=self._last_curve.clone(smooth_1=smooth_1)),  # type: ignore[union-attr]
+            self.instructions[-1]._replace(shape=self._last_curve.clone(smooth_1=smooth_1)),  # type: ignore[misc, union-attr]
         ])
 
 
@@ -4467,7 +4467,7 @@ class Ou(Complex):
         whose outer circle looks the same.
         """
         return self.clone(
-            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined]
+            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined, misc]
         )
 
 
@@ -4787,7 +4787,7 @@ class Wa(Complex):
         opposite direction.
         """
         return self.clone(
-            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined]
+            instructions=[op if callable(op) else op._replace(shape=op.shape.as_reversed()) for op in self.instructions],  # type: ignore[attr-defined, misc]
         )
 
 
@@ -4900,7 +4900,7 @@ class Wi(Complex):
                                 clockwise=not op.shape.clockwise,
                             ) if isinstance(op.shape, (Circle, Curve))
                             else op.shape,
-                        *op[2:],
+                        *op[2:],  # type: ignore[misc]
                     ) for op in self.instructions
             ],
         )
@@ -4968,17 +4968,17 @@ class TangentHook(Complex):
                     angle_in=self.instructions[1][1].angle_in,
                     angle_out=(self.instructions[1][1].angle_out + 180) % 360,
                     clockwise=not self.instructions[1][1].clockwise,
-                ), *self.instructions[1][2:]),
+                ), *self.instructions[1][2:]),  # type: ignore[misc]
                 self.instructions[2],
                 (self.instructions[3][0], self.instructions[3][1].clone(
                     angle_in=self.instructions[3][1].angle_out,
                     angle_out=(self.instructions[3][1].angle_out + 180) % 360,
                     clockwise=not self.instructions[3][1].clockwise,
-                ), *self.instructions[3][2:]),
+                ), *self.instructions[3][2:]),  # type: ignore[misc]
             ], _initial=True)
         else:
             shape = super()
-        return shape.contextualize(context_in, context_out)  # type: ignore[union-attr]
+        return shape.contextualize(context_in, context_out)  # type: ignore[misc, union-attr]
 
 
 class XShape(Complex):
