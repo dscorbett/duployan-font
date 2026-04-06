@@ -30,6 +30,7 @@ from typing import Literal
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
+from typing import get_args
 from typing import override
 
 import fontTools.misc.transform
@@ -51,6 +52,7 @@ from utils import mkmk
 
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from collections.abc import Hashable
     from collections.abc import Mapping
     from collections.abc import MutableMapping
@@ -815,35 +817,114 @@ class AnchorWidthDigit(Shape):
 type Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
 
 
-class WidthNumber[D: Digit](Shape):
-    """An encoded x distance between two of a glyph’s anchor points.
+class CompressedSequence(Shape):
+    """A token for a schema sequence created by digram encoding.
 
     Attributes:
-        digit_path: The class to instantiate to get each digit of the
-            number.
-        width: The x distance.
+        digram: The schema digram this shape directly expands to.
+        expansion: The full expansion of this shape’s schemas. It is
+            based on `digram` with every schema whose shape is
+            `CompressedSequence` expanded recursively.
+        depth: The maximum number of expansions needed to create
+            `expansion`. The minimum is 1.
     """
 
-    @override
     def __init__(
         self,
-        digit_path: type[D],
-        width: int,
+        digram: tuple[Schema, Schema],
     ) -> None:
-        """Initializes this `WidthNumber`.
+        """Initializes this `CompressedSequence`.
 
         Args:
-            digit_path: The ``digit_path`` attribute.
-            width: The ``width`` attribute.
+            digram: The ``digram`` attribute.
         """
-        self.digit_path: Final = digit_path
-        self.width: Final = width
+        self.digram: Final = digram
+        self.expansion: Final[Sequence[Schema]] = [
+            expanded
+            for s in digram
+            for expanded in (s.path.expansion if isinstance(s.path, CompressedSequence) else [s])
+        ]
+        self.depth: Final[int] = 1 + max(
+            (s.path.depth if isinstance(s.path, CompressedSequence) else 0)
+            for s in digram
+        )
+
+    @override
+    def clone(
+        self,
+        *,
+        digram: CloneDefault | tuple[Schema, Schema] = CLONE_DEFAULT,
+    ) -> Self:
+        return type(self)(
+            digram=self.digram if digram is CLONE_DEFAULT else digram,
+        )
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        return f'''{
-                'ilra'[[EntryWidthDigit, LeftBoundDigit, RightBoundDigit, AnchorWidthDigit].index(self.digit_path)]
-            }dx.{self.width}'''.replace('-', 'n')
+        name_pieces = []
+        previous_digit_path: type[Digit] | None = None
+        previous_place = None
+        previous_was_digit = False
+        previous_number_path: type[Digit] | None = None
+        i = 0
+        while i < len(self.expansion):
+            s = self.expansion[i]
+            if (i + WIDTH_MARKER_PLACES <= len(self.expansion)
+                and isinstance(s.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                and s.path.place == 0
+            ):
+                number = self.expansion[i:i + WIDTH_MARKER_PLACES]
+                if (all(isinstance(s.path, type(number[0].path)) for s in number)
+                    and all(s.path.place == j for j, s in enumerate(number))  # type: ignore[attr-defined, misc]
+                ):
+                    width = sum(s.path.digit * WIDTH_MARKER_RADIX ** s.path.place for s in number)  # type: ignore[attr-defined, misc]
+                    cardinality: float = WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES
+                    if width >= cardinality / 2:
+                        width -= cardinality
+                    assert isinstance(number[0].path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                    number_path: type[Digit] = type(number[0].path)
+                    if number_path is previous_number_path:
+                        prefix = ''
+                    else:
+                        prefix = f'{
+                                'ailr'[get_args(Digit.__value__).index(number_path)]  # type: ignore[misc]
+                            }{
+                                '' if previous_was_digit else 'dx'
+                            }'
+                    width_str = str(width).replace('-', 'n')
+                    name_pieces.append(f'{prefix}.{width_str}' if prefix else width_str)
+                    previous_digit_path = None
+                    previous_place = None
+                    previous_was_digit = True
+                    previous_number_path = number_path
+                    i += WIDTH_MARKER_PLACES
+                    continue
+            name_piece = str(s).removeprefix('_.')
+            if isinstance(s.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit)):
+                digit_path = type(s.path)
+                place = s.path.place
+                assert isinstance(place, int)
+                if digit_path is previous_digit_path:
+                    if previous_place is not None and place == previous_place + 1:
+                        name_piece = str(s.path.digit)
+                    else:
+                        name_piece = name_piece.split('.', 1)[1]
+                elif previous_was_digit:
+                    name_piece = name_piece.replace('dx', '')
+                previous_digit_path = digit_path
+                previous_place = place
+                previous_was_digit = True
+                previous_number_path = None
+            else:
+                previous_digit_path = None
+                previous_place = None
+                previous_was_digit = False
+                previous_number_path = None
+            name_pieces.append(name_piece)
+            i += 1
+        if len(name_pieces) != 1 or len(self.expansion) != WIDTH_MARKER_PLACES:
+            name_pieces.insert(0, f'{len(self.expansion)}')
+        return '.'.join(name_pieces)
 
     @staticmethod
     @override
@@ -858,28 +939,27 @@ class WidthNumber[D: Digit](Shape):
     def guaranteed_glyph_class(self) -> GlyphClass | None:
         return GlyphClass.MARK
 
-    def to_digits(
-        self,
-        register_width_marker: Callable[[type[D], int, int], Schema],
-    ) -> Sequence[Schema]:
-        """Converts this number to a sequence of digits.
+    def expand_for_output(self, direct_cs_schemas: Collection[Schema]) -> Sequence[Schema]:
+        """Returns the schemas in this shape’s decompression rule’s
+        output.
+
+        This differs from the fully recursive expansion of `expansion`:
+        schemas in `direct_cs_schemas` are kept as is for their own
+        decompression rules to handle.
 
         Args:
-            register_width_marker: A callback that takes a digit
-                initializer, a positional index, and a digit value as
-                arguments, initializes a digit marker accordingly,
-                possibly does something with it as a side effect, and
-                returns it.
-
-        Returns:
-            The number as a sequence of digit markers.
+            direct_cs_schemas: The set of schemas whose shapes are
+                `CompressedSequence` that appear in the outputs of other
+                rules (excluding rules whose outputs come from
+                `expand_for_output`).
         """
-        digits = []
-        quotient = self.width
-        for i in range(WIDTH_MARKER_PLACES):
-            quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
-            digits.append(register_width_marker(self.digit_path, i, remainder))
-        return digits
+        outputs: list[Schema] = []
+        for s in self.digram:
+            if isinstance(s.path, CompressedSequence) and s not in direct_cs_schemas:
+                outputs.extend(s.path.expand_for_output(direct_cs_schemas))
+            else:
+                outputs.append(s)
+        return outputs
 
 
 class MarkAnchorSelector(Shape):

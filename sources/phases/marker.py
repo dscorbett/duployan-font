@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import collections
 import functools
+from heapq import heappop
+from heapq import heappush
 import math
 from typing import TYPE_CHECKING
 
@@ -30,6 +32,7 @@ from schema import Schema
 from shapes import AnchorWidthDigit
 from shapes import Carry
 from shapes import Circle
+from shapes import CompressedSequence
 from shapes import ContinuingOverlap
 from shapes import DigitStatus
 from shapes import Dummy
@@ -47,11 +50,9 @@ from shapes import RightBoundDigit
 from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
-from shapes import WidthNumber
 import sifting
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
-from utils import MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
@@ -316,7 +317,6 @@ def add_width_markers(
         Lookup('dist', 'dflt')
         for _ in range(lookups_per_position)
     ]
-    digit_expansion_lookup = Lookup('dist', 'dflt')
     entry_width_markers: MutableMapping[tuple[int, int], Schema] = {}
     left_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
     right_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
@@ -387,33 +387,15 @@ def add_width_markers(
             width_markers[args] = width_marker
         return width_markers[args]
 
-    width_number_schemas: MutableMapping[WidthNumber[Digit], Schema] = {}
-
-    def get_width_number_schema(width_number: WidthNumber[Digit]) -> Schema:
-        if width_number in width_number_schemas:
-            return width_number_schemas[width_number]
-        return width_number_schemas.setdefault(width_number, Schema(None, width_number, 0))
-
-    width_number_counter: collections.Counter[WidthNumber[Digit]] = collections.Counter()
-    width_numbers: MutableMapping[tuple[type[Digit], int], WidthNumber[Digit]] = {}
-
-    def get_width_number(digit_path: type[Digit], width: float) -> WidthNumber[Digit]:
-        width = round(width)
-        if (digit_path, width) in width_numbers:
-            width_number = width_numbers[digit_path, width]
-        else:
-            width_number = WidthNumber(digit_path, width)
-            width_numbers[digit_path, width] = width_number
-        width_number_counter[width_number] += 1
-        if width_number_counter[width_number] == MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT:
-            add_rule(digit_expansion_lookup, Rule(
-                [get_width_number_schema(width_number)],
-                width_number.to_digits(functools.partial(register_width_marker, path_to_markers[digit_path])),
-            ))
-        return width_number
+    def get_width_digits(digit_path: type[Digit], width: float) -> Sequence[Schema]:
+        digits = []
+        quotient = round(width)
+        for i in range(WIDTH_MARKER_PLACES):
+            quotient, remainder = divmod(quotient, WIDTH_MARKER_RADIX)
+            digits.append(register_width_marker(path_to_markers[digit_path], digit_path, i, remainder))
+        return digits
 
     schemas_needing_width_markers = []
-    rules_to_add: MutableSequence[tuple[MutableSequence[WidthNumber[Digit]], Callable[[Sequence[Schema]], None]]] = []
     anchor_grouper = sifting.Grouper([[*anchors.ALL_MARK]])
     for schema in new_schemas:
         if schema not in original_schemas:
@@ -493,6 +475,7 @@ def add_width_markers(
             classes[f'global..canonical_anchor_{anchor}']
     else:
         canonical_mark_anchors = [a for a in anchors.ALL_MARK if f'global..canonical_anchor_{a}' in classes]
+    final_rules: list[tuple[list[Schema], Lookup, Schema]] = []
     for rule_count, (schema, entry_xs, exit_xs, start_x) in enumerate(schemas_needing_width_markers):
         if schema.glyph is None or schema.width_effect.value < WidthEffect.WIDE.value:
             x_min = x_max = 0.0
@@ -503,8 +486,7 @@ def add_width_markers(
             x_max = exit_xs[anchors.CURSIVE]
         mark_anchor_selector = get_mark_anchor_selector(schema)
         glyph_class_selector = get_glyph_class_selector(schema)
-        widths: MutableSequence[WidthNumber[Digit]] = []
-        for width, digit_path in [
+        widths: MutableSequence[tuple[float, type[Digit]]] = [
             (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], EntryWidthDigit),
             (x_min - start_x, LeftBoundDigit),
             (x_max - start_x, RightBoundDigit),
@@ -520,42 +502,115 @@ def add_width_markers(
                     AnchorWidthDigit,
                 ) for anchor in anchors.ALL_CURSIVE
             ],
-        ]:
+        ]
+        for width, _ in widths:
             assert (width < WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2  # type: ignore[misc]
                 if width >= 0
                 else width >= -WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES / 2  # type: ignore[misc]
                 ), f'Glyph {schema} is too wide: {width} units'
-            widths.append(get_width_number(digit_path, width))
+        outputs: list[Schema] = [
+            start,
+            glyph_class_selector,
+            *mark_anchor_selector,
+            *hubs[schema.hub_priority],
+            schema,
+            *[digit for width, digit_path in widths for digit in get_width_digits(digit_path, width)],
+            end,
+        ]
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
-        rules_to_add.append((
-            widths,
-            (lambda widths,  # type: ignore[misc]
-                    lookup=lookup, glyph_class_selector=glyph_class_selector, mark_anchor_selector=mark_anchor_selector, start=start, schema=schema:
-                add_rule(lookup, Rule([schema], [  # type: ignore[misc]
-                    start,
-                    glyph_class_selector,
-                    *mark_anchor_selector,
-                    *hubs[schema.hub_priority],  # type: ignore[misc]
-                    schema,
-                    *widths,
-                    end,
-                ]))
-            ),
+        final_rules.append((outputs, lookup, schema))
+    compressed_sequences: dict[tuple[Schema, Schema], Schema] = {}
+    digram_counts: collections.Counter[tuple[Schema, Schema]] = collections.Counter()
+    schema_to_rules: collections.defaultdict[Schema, list[list[Schema]]] = collections.defaultdict(list)
+    for outputs, _, _ in final_rules:
+        for i in range(len(outputs) - 1):
+            digram_counts[outputs[i], outputs[i + 1]] += 1
+        for output in outputs:
+            schema_to_rules[output].append(outputs)
+
+    def calculate_digram_savings(digram: tuple[Schema, Schema]) -> float:
+        count = digram_counts[digram]
+        if count <= 1:
+            return 0
+        # Every digram replaces 2 glyph IDs with 1 glyph ID, saving 2 bytes per
+        # occurrence.
+        savings = count * 2
+        if digram not in compressed_sequences:
+            # Each new glyph empirically costs approximately 35 bytes on average for new
+            # entries in 'CFF ', GSUB, and 'hmtx'.
+            savings -= 35
+        return savings
+
+    heap: list[tuple[float, int, tuple[Schema, Schema]]] = []
+    heap_generation = 0
+
+    def heap_push(digram: tuple[Schema, Schema]) -> None:
+        nonlocal heap_generation
+        savings = calculate_digram_savings(digram)
+        if savings > 0:
+            heappush(heap, (-savings, heap_generation, digram))
+            heap_generation += 1
+
+    for digram in digram_counts:
+        heap_push(digram)
+    while heap:
+        cached_cost, _, best_digram = heappop(heap)
+        actual_savings = calculate_digram_savings(best_digram)
+        if actual_savings <= 0:
+            continue
+        if actual_savings != -cached_cost:
+            heap_push(best_digram)
+            continue
+        if best_digram not in compressed_sequences:
+            compressed_sequences[best_digram] = Schema(None, CompressedSequence(best_digram), 0)
+        replacement = compressed_sequences[best_digram]
+        del digram_counts[best_digram]
+        new_digrams: OrderedSet[tuple[Schema, Schema]] = OrderedSet()
+        for outputs in schema_to_rules[best_digram[0]]:
+            i = 0
+            while i < len(outputs) - 1:
+                if outputs[i] is best_digram[0] and outputs[i + 1] is best_digram[1]:
+                    if i > 0:
+                        previous_output = outputs[i - 1]
+                        digram_counts[previous_output, best_digram[0]] -= 1
+                        digram_counts[previous_output, replacement] += 1
+                        new_digrams.add((previous_output, replacement))
+                    if i + 2 < len(outputs):
+                        next_output = outputs[i + 2]
+                        digram_counts[best_digram[1], next_output] -= 1
+                        digram_counts[replacement, next_output] += 1
+                        new_digrams.add((replacement, next_output))
+                    outputs[i] = replacement
+                    del outputs[i + 1]
+                    schema_to_rules[replacement].append(outputs)
+                i += 1
+        for digram in new_digrams:
+            heap_push(digram)
+    direct_cs_schemas: OrderedSet[Schema] = OrderedSet()
+    for outputs, lookup, schema in final_rules:
+        add_rule(lookup, Rule([schema], outputs))
+        for s in outputs:
+            if isinstance(s.path, CompressedSequence):
+                direct_cs_schemas.add(s)
+    cs_schemas: OrderedSet[Schema] = OrderedSet(direct_cs_schemas)
+    for direct_cs_schema in direct_cs_schemas:
+        assert isinstance(direct_cs_schema.path, CompressedSequence)
+        for expanded_schema in direct_cs_schema.path.expand_for_output(direct_cs_schemas):
+            if isinstance(expanded_schema.path, CompressedSequence):
+                cs_schemas.add(expanded_schema)
+    decompression_lookups = [
+        Lookup('dist', 'dflt')
+        for _ in range(max(  # type: ignore[misc]
+            max((s.path.depth for s in schemas if isinstance(s.path, CompressedSequence)), default=0),
+            max((cs_schema.path.depth for cs_schema in cs_schemas), default=0),  # type: ignore[attr-defined, misc]
         ))
-    for widths, rule_to_add in rules_to_add:
-        final_widths = []
-        for width_number in widths:
-            if width_number_counter[width_number] >= MINIMUM_OPTIMIZABLE_WIDTH_NUMBER_COUNT:
-                final_widths.append(get_width_number_schema(width_number))
-            else:
-                final_widths.extend(width_number.to_digits(functools.partial(
-                    register_width_marker,
-                    path_to_markers[width_number.digit_path],
-                )))
-        rule_to_add(final_widths)
+    ]
+    for cs_schema in cs_schemas:
+        assert isinstance(cs_schema.path, CompressedSequence)
+        add_rule(decompression_lookups[-cs_schema.path.depth], Rule([cs_schema], cs_schema.path.expand_for_output(direct_cs_schemas)))
     return [
         *lookups,
-        digit_expansion_lookup,
+        *decompression_lookups,
     ]
 
 
