@@ -134,14 +134,20 @@ For example, a right bound width marker (`rdx`) for 1035 (100023<sub>4</sub>)
 would be encoded as the glyph sequence `_.rdx.3e0 _.rdx.2e1 _.rdx.0e2 _.rdx.0e3
 _.rdx.0e4 _.rdx.1e5 _.rdx.0e6`.
 
-Certain common widths get markers for the entire number.
-Their glyph name format is
-<code>\_.<var>type</var>.<var>number\_in\_base\_10</var></code>.
-These are subsequently expanded into the canonical format of one digit per
-glyph.
-This is just an optimization: if enough glyphs share the same width, it saves
-space for each glyph’s substitution rule to output a single glyph rather than
-seven, at the cost of one additional rule in another lookup.
+Certain common sequences of width system markers are represented by single
+marker glyphs.
+These are subsequently expanded into the canonical format.
+For example, `_.4.idx.2e4.3.3.l.1e0` represents the sequence `_.idx.2e4
+_.idx.3e5 _.idx.3e6 _.ldx.1e0`, and `_.3.START.gc.MARK.anchor.blw` represents
+`_.START _.gc.MARK _.anchor.blw`.
+This is just an optimization: if enough glyphs share the same common
+subsequences of markers, it saves space for each glyph’s substitution rule to
+output fewer glyphs, at the cost of additional rules in subsequent lookups.
+The sequences for which it is worth creating compressed representations are
+determined by digram coding applied to all the candidate rules.
+The threshold for what counts as enough common usage to be worth the cost of
+extra rules is a hard-coded constant heuristic because the true costs and
+benefits in 'CFF ', GSUB, and 'hmtx' are too hard to predict.
 
 ## The algorithm (simplified)
 
