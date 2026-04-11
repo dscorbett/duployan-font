@@ -94,6 +94,7 @@
 1BC02 1BCA0 003D::[u1BC02.p@167,0|equal@0,-193|_@740,0]
 1BC02 1BCA1 003D::[u1BC02.p@167,0|equal@0,-193|_@740,0]
 1BC0B 003D 1BC0B::[u1BC0B.r@0,0|uni200C.zwnj@1240,0|equal@1240,0|uni200C.zwnj@1980,0|u1BC0B.r@1980,0|_@3220,0]
+1BC02 1BCA0 003D 1BCA0 1BC02 1BC47::[u1BC02.p@200,0|equal_.sub@33,-193|u1BC02.p.sub@366,-166|u1BC46.i.270n90@0,-100|_@440,0]
 
 # <U+003E, overlap, U+003C> is a valid tree, but similar trees are
 # invalid.

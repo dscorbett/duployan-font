@@ -999,6 +999,8 @@ def disjoin_grammalogues(
             case Schema(path=ParentEdge(lineage=[])):
                 root_parent_edge = schema
                 classes['all'].append(root_parent_edge)
+            case Schema(path=ChildEdge(lineage=[_, _, *_])):
+                classes['all'].append(schema)
     if root_parent_edge is None:
         return []
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
