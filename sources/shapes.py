@@ -30,6 +30,7 @@ from typing import Literal
 from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
+from typing import final
 from typing import get_args
 from typing import override
 
@@ -297,7 +298,30 @@ class Shape:
         return None
 
 
-class ContextMarker(Shape):
+class InvisibleMark(Shape):
+    """An invisible combining mark.
+    """
+
+    @override
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return ''
+
+    @override
+    def group(self) -> Hashable:
+        return ()
+
+    @final
+    @override
+    def invisible(self) -> bool:
+        return True
+
+    @final
+    @override
+    def guaranteed_glyph_class(self) -> GlyphClass:
+        return GlyphClass.MARK
+
+
+class ContextMarker(InvisibleMark):
     """The reification of a `Context` as a glyph.
 
     Attributes:
@@ -350,16 +374,8 @@ class ContextMarker(Shape):
     def group(self) -> Hashable:
         return self.get_name(0, Type.ORIENTING)
 
-    @override
-    def invisible(self) -> bool:
-        return True
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class Dummy(Shape):
+class Dummy(InvisibleMark):
     """A marker representing nothing.
 
     Sometimes a substitution needs to delete a glyph. ``Dummy`` can
@@ -370,25 +386,13 @@ class Dummy(Shape):
     # Consider deleting glyphs instead of using `Dummy`. `Dummy` might
     # still be more efficient in some cases.
 
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return ''
-
     @staticmethod
     @override
     def name_implies_type() -> bool:
         return True
 
-    @override
-    def invisible(self) -> bool:
-        return True
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class Start(Shape):
+class Start(InvisibleMark):
     """The start of a cursively joined sequence.
     """
 
@@ -399,10 +403,6 @@ class Start(Shape):
     @staticmethod
     @override
     def name_implies_type() -> bool:
-        return True
-
-    @override
-    def invisible(self) -> bool:
         return True
 
     @override
@@ -422,10 +422,6 @@ class Start(Shape):
     ) -> tuple[float, float, float, float] | None:
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
         return None
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 @functools.total_ordering
@@ -460,7 +456,7 @@ class HubPriority(enum.Enum):
         return self.value < other.value
 
 
-class Hub(Shape):
+class Hub(InvisibleMark):
     """A candidate for which letter to place on the baseline.
 
     A hub precedes each candidate for which letter to place on the
@@ -518,10 +514,6 @@ class Hub(Shape):
         return True
 
     @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -543,10 +535,6 @@ class Hub(Shape):
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
         return None
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 class End(Shape):
@@ -571,7 +559,7 @@ class End(Shape):
         return GlyphClass.BLOCKER
 
 
-class Carry(Shape):
+class Carry(InvisibleMark):
     """A marker for the carry digit 1 when adding width digits.
     """
 
@@ -583,14 +571,6 @@ class Carry(Shape):
     @override
     def name_implies_type() -> bool:
         return True
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 class DigitStatus(enum.Enum):
@@ -610,7 +590,7 @@ class DigitStatus(enum.Enum):
     DONE = enum.auto()
 
 
-class EntryWidthDigit(Shape):
+class EntryWidthDigit(InvisibleMark):
     """A digit of an encoded x distance from a glyph’s overlap entry
     point to its normal cursive entry point.
 
@@ -641,14 +621,6 @@ class EntryWidthDigit(Shape):
     @override
     def name_implies_type() -> bool:
         return True
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 class LeftBoundDigit(Shape):
@@ -817,7 +789,7 @@ class AnchorWidthDigit(Shape):
 type Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
 
 
-class CompressedSequence(Shape):
+class CompressedSequence(InvisibleMark):
     """A token for a schema sequence created by digram encoding.
 
     Attributes:
@@ -931,14 +903,6 @@ class CompressedSequence(Shape):
     def name_implies_type() -> bool:
         return True
 
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
     def expand_for_output(self, direct_cs_schemas: Collection[Schema]) -> Sequence[Schema]:
         """Returns the schemas in this shape’s decompression rule’s
         output.
@@ -962,7 +926,7 @@ class CompressedSequence(Shape):
         return outputs
 
 
-class MarkAnchorSelector(Shape):
+class MarkAnchorSelector(InvisibleMark):
     """A marker for which anchor in `anchors.ALL_MARK` a mark glyph
     attaches to. Not every anchor in `anchors.ALL_MARK` gets a
     ``MarkAnchorSelector``.
@@ -989,16 +953,8 @@ class MarkAnchorSelector(Shape):
     def name_implies_type() -> bool:
         return True
 
-    @override
-    def invisible(self) -> bool:
-        return True
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class GlyphClassSelector(Shape):
+class GlyphClassSelector(InvisibleMark):
     """The reification of a `GlyphClass` as a glyph.
 
     Attributes:
@@ -1023,16 +979,8 @@ class GlyphClassSelector(Shape):
     def name_implies_type() -> bool:
         return True
 
-    @override
-    def invisible(self) -> bool:
-        return True
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class InitialSecantMarker(Shape):
+class InitialSecantMarker(InvisibleMark):
     """A marker inserted after an initial secant.
     """
 
@@ -1044,18 +992,6 @@ class InitialSecantMarker(Shape):
     @override
     def name_implies_type() -> bool:
         return True
-
-    @override
-    def group(self) -> Hashable:
-        return ()
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 class Notdef(Shape):
@@ -1215,27 +1151,6 @@ class Space(Shape):
         return NO_CONTEXT
 
 
-class InvisibleMark(Shape):
-    """An invisible combining mark.
-    """
-
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return ''
-
-    @override
-    def group(self) -> Hashable:
-        return ()
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass:
-        return GlyphClass.MARK
-
-
 class Bound(Shape):
     """The shape of a special glyph used in tests to indicate the
     precise left and right bounds of a test string’s rendered form.
@@ -1284,7 +1199,7 @@ class Bound(Shape):
         return GlyphClass.BLOCKER
 
 
-class ValidDTLS(Shape):
+class ValidDTLS(InvisibleMark):
     """A marker for a valid instance of U+1BC9D DUPLOYAN THICK LETTER
     SELECTOR.
 
@@ -1292,29 +1207,13 @@ class ValidDTLS(Shape):
     follows a character) and the preceding character supports shading.
     """
 
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return ''
-
     @staticmethod
     @override
     def name_implies_type() -> bool:
         return True
 
-    @override
-    def group(self) -> Hashable:
-        return ()
 
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class ChildEdge(Shape):
+class ChildEdge(InvisibleMark):
     """A marker for a non-continuing edge pointing from a glyph to its
     child in an overlap tree.
 
@@ -1365,10 +1264,6 @@ class ChildEdge(Shape):
         return self.get_name(0, Type.ORIENTING)
 
     @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1389,12 +1284,8 @@ class ChildEdge(Shape):
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
         return None
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
-
-class ContinuingOverlap(Shape):
+class ContinuingOverlap(InvisibleMark):
     """A marker for a continuing edge pointing from a glyph to its child
     in an overlap tree.
 
@@ -1408,24 +1299,8 @@ class ContinuingOverlap(Shape):
     def clone(self) -> Self:
         return type(self)()
 
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return ''
 
-    @override
-    def group(self) -> Hashable:
-        return ()
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
-
-
-class ParentEdge(Shape):
+class ParentEdge(InvisibleMark):
     """A marker for an edge pointing from a glyph to its parent in an
     overlap tree.
 
@@ -1472,10 +1347,6 @@ class ParentEdge(Shape):
         return self.get_name(0, Type.ORIENTING)
 
     @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
     def draw(
         self,
         glyph: fontforge.glyph,
@@ -1497,12 +1368,8 @@ class ParentEdge(Shape):
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
         return None
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
-
-class RootOnlyParentEdge(Shape):
+class RootOnlyParentEdge(InvisibleMark):
     """A marker for a character that can only be the root of an overlap
     tree, not a child.
     """
@@ -1515,18 +1382,6 @@ class RootOnlyParentEdge(Shape):
     @override
     def name_implies_type() -> bool:
         return True
-
-    @override
-    def group(self) -> Hashable:
-        return ()
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.MARK
 
 
 class Dot(Shape):
