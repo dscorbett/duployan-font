@@ -1,5 +1,5 @@
 # Copyright 2020-2021 Google LLC
-# Copyright 2023 David Corbett
+# Copyright 2023, 2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 1BC70 1BC1A 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,207|u1BC1A.n@407,0|u1BC70.left_horizontal_secant.0@0,-153|_@1240,0]
 1BC70 1BC1B 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,-73|u1BC1B.j@487,0|u1BC70.left_horizontal_secant.0@360,-73|_@1600,0]
 1BC70 1BC1C 1BC70::[uni200C.zwnj@0,0|u1BC70.left_horizontal_secant@0,-293|u1BC1C.s@487,0|u1BC70.left_horizontal_secant.0@360,-293|_@1600,0]
-1BC06 1BC46 1BC70::[u1BC06.l@212,0|u1BC46.i.45p225@571,500|u1BC70.left_horizontal_secant.0@0,334|_@1240,0]
+1BC06 1BC46 1BC70::[u1BC06.l@0,0|u1BC46.i.45n225@500,359|u1BC70.left_horizontal_secant.0@0,122|_@1240,0]
 
 # U+1BC71 DUPLOYAN AFFIX MID HORIZONTAL SECANT
 1BC71 1BC02 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,333|u1BC02.p@500,0|u1BC71.mid_horizontal_secant.0@0,167|_@1240,0]
@@ -35,7 +35,7 @@
 1BC71 1BC1A 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,540|u1BC1A.n@240,0|u1BC71.mid_horizontal_secant.0@0,180|_@1240,0]
 1BC71 1BC1B 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,260|u1BC1B.j@320,0|u1BC71.mid_horizontal_secant.0@360,260|_@1600,0]
 1BC71 1BC1C 1BC71::[uni200C.zwnj@0,0|u1BC71.mid_horizontal_secant@0,40|u1BC1C.s@320,0|u1BC71.mid_horizontal_secant.0@360,40|_@1600,0]
-1BC06 1BC46 1BC71::[u1BC06.l@45,0|u1BC46.i.45p225@404,500|u1BC71.mid_horizontal_secant.0@0,667|_@1240,0]
+1BC06 1BC46 1BC71::[u1BC06.l@0,0|u1BC46.i.45n225@500,359|u1BC71.mid_horizontal_secant.0@167,455|_@1407,0]
 
 # U+1BC72 DUPLOYAN AFFIX RIGHT HORIZONTAL SECANT
 1BC72 1BC02 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,666|u1BC02.p@333,0|u1BC72.right_horizontal_secant.0@0,500|_@1240,0]
@@ -47,7 +47,7 @@
 1BC72 1BC1A 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,873|u1BC1A.n@73,0|u1BC72.right_horizontal_secant.0@0,513|_@1240,0]
 1BC72 1BC1B 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,593|u1BC1B.j@153,0|u1BC72.right_horizontal_secant.0@360,593|_@1600,0]
 1BC72 1BC1C 1BC72::[uni200C.zwnj@0,0|u1BC72.right_horizontal_secant@0,373|u1BC1C.s@153,0|u1BC72.right_horizontal_secant.0@360,373|_@1600,0]
-1BC06 1BC46 1BC72::[u1BC06.l@0,0|u1BC46.i.45p225@359,500|u1BC72.right_horizontal_secant.0@122,1000|_@1362,0]
+1BC06 1BC46 1BC72::[u1BC06.l@0,0|u1BC46.i.45n225@500,359|u1BC72.right_horizontal_secant.0@334,788|_@1574,0]
 
 # U+1BC73 DUPLOYAN AFFIX LOW HORIZONTAL SECANT
 1BC73 1BC02 1BC73::[uni200C.zwnj@0,0|u1BC73.low_vertical_secant.60@0,-244|u1BC02.p@333,0|u1BC73_.low_vertical_secant.60@0,-410|_@740,0]
@@ -107,4 +107,4 @@
 1BC77 1BC1A 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.350@14,496|u1BC1A.n@0,0|u1BC77.left_to_right_secant.310@99,-11|_@746,0]
 1BC77 1BC1B 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant@19,69|u1BC1B.j@0,0|u1BC77_.left_to_right_secant.280@497,14|_@960,0]
 1BC77 1BC1C 1BC77::[uni200C.zwnj@0,0|u1BC77.left_to_right_secant.280@137,-206|u1BC1C.s@0,0|u1BC77.left_to_right_secant.310@379,-151|_@960,0]
-1BC06 1BC46 1BC77::[u1BC06.l@0,0|u1BC46.i.45p225@359,500|u1BC77.left_to_right_secant.310@294,476|_@855,0]
+1BC06 1BC46 1BC77::[u1BC06.l@0,0|u1BC46.i.45n225@500,359|u1BC77.left_to_right_secant.310@506,264|_@1067,0]

@@ -2626,9 +2626,9 @@ class Curve(Shape):
     @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if self.hook and context_in != NO_CONTEXT != context_out:
-            rv = self.as_reversed().clone(hook=False).contextualize(context_out.as_reversed(), context_in.as_reversed())
+            rv = self.as_reversed().clone(hook=False, secondary=not self.secondary).contextualize(context_out.as_reversed(), context_in.as_reversed())
             assert isinstance(rv, type(self))
-            rv = rv.clone(hook=True).as_reversed()
+            rv = rv.clone(hook=True, secondary=self.secondary).as_reversed()
             if rv.context_in().angle == context_in.angle:
                 if rv.entry_position == 1:
                     rv = Complex([
@@ -2669,19 +2669,17 @@ class Curve(Shape):
             candidate_angle_in = (candidate_angle_in + 180) % 360
         candidate_angle_out = (candidate_angle_in + da) % 360
         candidate_clockwise = self.clockwise
-        if candidate_clockwise != (context_in == NO_CONTEXT):
-            flip()
-        clockwise_from_adjacent_curve = (
-            context_in.clockwise
-                if context_in != NO_CONTEXT
-                else context_out.clockwise
-        )
-        if self.secondary != (clockwise_from_adjacent_curve not in {None, candidate_clockwise}):
+        if context_in == NO_CONTEXT:
+            ideal_primary_clockwise = not 0 < candidate_angle_out <= 180
+            adjacent_context = context_out
+        else:
+            ideal_primary_clockwise = 0 < candidate_angle_in <= 180
+            adjacent_context = context_in
+        if (context_in.ignorable_for_topography or context_out.ignorable_for_topography) and adjacent_context.clockwise not in {None, ideal_primary_clockwise}:
+            ideal_primary_clockwise = not ideal_primary_clockwise
+        if candidate_clockwise != ideal_primary_clockwise ^ self.secondary:
             flip()
         if context_in != NO_CONTEXT != context_out:
-            if self.hook:
-                candidate_angle_in, candidate_angle_out = candidate_angle_out, candidate_angle_in
-                candidate_clockwise = not candidate_clockwise
             context_clockwises = (context_in.clockwise, context_out.clockwise)
             curve_offset = 0 if context_clockwises in {(None, None), (True, False), (False, True)} else CURVE_OFFSET
             if False in context_clockwises:
@@ -2715,9 +2713,6 @@ class Curve(Shape):
             ):
                 flip()
                 flips += 1
-            if self.hook:
-                candidate_angle_in, candidate_angle_out = candidate_angle_out, candidate_angle_in
-                candidate_clockwise = not candidate_clockwise
         if context_in.diphthong_start or context_out.diphthong_end:
             candidate_angle_in = (candidate_angle_in - 180) % 360
             candidate_angle_out = (candidate_angle_out - 180) % 360
@@ -4964,13 +4959,9 @@ class Wi(Complex):
         """Returns a `Wi` that is drawn in the opposite direction but
         whose outer circle looks the same.
         """
-        first_callable = True
         return self.clone(
             instructions=[
-                ((lambda c, op=op: (c0 := op(c)).clone(clockwise=not c0.clockwise))  # type: ignore[misc]
-                        if (first_callable and not (first_callable := False))
-                        else op
-                    )
+                op
                     if callable(op)
                     else (
                         op.size,
@@ -4978,6 +4969,7 @@ class Wi(Complex):
                                 angle_in=(op.shape.angle_in + 180) % 360,
                                 angle_out=(op.shape.angle_out + 180) % 360,
                                 clockwise=not op.shape.clockwise,
+                                **({'secondary': not op.shape.secondary} if isinstance(op.shape, Curve) else {}),  # type: ignore[arg-type]
                             ) if isinstance(op.shape, (Circle, Curve))
                             else op.shape,
                         *op[2:],  # type: ignore[misc]

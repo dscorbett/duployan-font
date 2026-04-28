@@ -16,21 +16,21 @@
 # Overlong sequences of semicircles
 1BC46 0307 1BC46::[u1BC46.i@0,0|uni0307.dot_above@36,305|uni25CC.dotted_circle@340,0|u1BC46.i@1026,0|_@1366,0]
 1BC47 0323 1BC46::[u1BC47.e@0,0|uni0323.dot_below@86,-134|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
-1BC02 1BC47 0323 1BC46::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni0323.dot_below@86,-234|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
-1BC46 0307 1BC47 1BC02::[u1BC46.i@0,0|uni0307.dot_above@36,305|uni25CC.dotted_circle@340,0|u1BC46.i.90p270@1026,500|u1BC02.p@1026,0|_@1466,0]
-1BC02 1BC47 1BC46 1BC47::[u1BC02.p@200,0|u1BC46.i.270n90@0,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|u1BC46.i.0n180@1226,-200|_@1566,0]
-1BC47 1BC46 1BC47 1BC02::[u1BC47.e@0,0|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|uni25CC.dotted_circle@1466,0|u1BC46.i.90p270@2152,500|u1BC02.p@2152,0|_@2592,0]
+1BC02 1BC47 0323 1BC46::[u1BC02.p@200,0|u1BC47.e.270n90@0,-100|uni0323.dot_below@86,-234|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|_@1466,0]
+1BC46 0307 1BC47 1BC02::[u1BC46.i@0,0|uni0307.dot_above@36,305|uni25CC.dotted_circle@340,0|u1BC47.e.90p270@1026,500|u1BC02.p@1026,0|_@1466,0]
+1BC02 1BC47 1BC46 1BC47::[u1BC02.p@200,0|u1BC47.e.270n90@0,-100|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|u1BC47.e.0n180@1226,-200|_@1566,0]
+1BC47 1BC46 1BC47 1BC02::[u1BC47.e@0,0|uni25CC.dotted_circle@440,0|u1BC46.i@1126,0|uni25CC.dotted_circle@1466,0|u1BC47.e.90p270@2152,500|u1BC02.p@2152,0|_@2592,0]
 
 # Overlong sequences of medium quarter-circles
-1BC51 1BC51 1BC51 1BC51::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC51.u.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
+1BC51 1BC51 1BC51 1BC51::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC52.eu.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
 1BC52 1BC51 1BC51 1BC51::[u1BC52.eu@300,0|u1BC51.u.180n90@0,0|u1BC51.u.90n0@0,300|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
-1BC02 1BC52 1BC51 1BC51 1BC51::[u1BC02.p@600,0|u1BC51.u.270n180@300,-300|u1BC51.u.180n90@0,-300|u1BC51.u.90n0@0,0|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
-1BC51 1BC51 1BC51 1BC52 1BC02::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC51.u.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC51.u.180p270@1526,0|u1BC02.p@1526,-500|_@2066,0]
+1BC02 1BC52 1BC51 1BC51 1BC51::[u1BC02.p@600,0|u1BC52.eu.270n180@300,-300|u1BC51.u.180n90@0,-300|u1BC51.u.90n0@0,0|uni25CC.dotted_circle@840,0|u1BC51.u@1526,0|_@2066,0]
+1BC51 1BC51 1BC51 1BC52 1BC02::[u1BC51.u@0,0|u1BC51.u.0p90@300,0|u1BC52.eu.90p180@300,300|uni25CC.dotted_circle@840,0|u1BC52.eu.180p270@1526,0|u1BC02.p@1526,-500|_@2066,0]
 
 # Overlong sequences of small quarter-circles
 1BC64 1BC64 1BC64 1BC64::[u1BC64.nasal_a@0,0|u1BC62.nasal_o.0n270@160,0|u1BC62.nasal_o.270n180@160,-160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
 1BC62 1BC64 1BC64 1BC64::[u1BC62.nasal_o@160,0|u1BC62.nasal_o.90p180@160,160|u1BC62.nasal_o.180p270@0,160|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
-1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@320,0|u1BC62.nasal_o.270n180@160,-160|u1BC62.nasal_o.180n90@0,-160|u1BC62.nasal_o.90n0@0,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
+1BC02 1BC62 1BC64 1BC64 1BC64::[u1BC02.p@320,0|u1BC62.nasal_o.270n180@160,-160|u1BC64.nasal_a.180n90@0,-160|u1BC64.nasal_a.90n0@0,0|uni25CC.dotted_circle@560,0|u1BC64.nasal_a@1246,0|_@1646,0]
 1BC64 1BC64 1BC64 1BC62 1BC02::[u1BC64.nasal_a@0,0|u1BC62.nasal_o.0n270@160,0|u1BC62.nasal_o.270n180@160,-160|uni25CC.dotted_circle@560,0|u1BC62.nasal_o.180p270@1246,500|u1BC02.p@1246,0|_@1646,0]
 
 # Adjacent curves that would otherwise be an overlong sequence are not overlong
@@ -43,5 +43,5 @@
 # instead of dotted circles. Some orienting sequences might also need flipping,
 # but nothing happens for them.
 1BC03 1BC46 0307 1BC19::[u1BC03.t@0,620|u1BC46.i.0p180.ee@500,620|uni0307.dot_above@536,925|u1BC19.m@300,0|_@840,0]
-1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC46.i.270n90.ee@0,-100|uni0323.dot_below@86,-234|u1BC03.t@100,-100|_@840,0]
-1BC02 1BC47 1BC47 1BC03::[u1BC02.p@400,0|u1BC46.i.270n90@200,-100|u1BC46.i.90p270@0,0|u1BC03.t@0,0|_@740,0]
+1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC47.e.270n90.ee@0,-100|uni0323.dot_below@86,-234|u1BC03.t@100,-100|_@840,0]
+1BC02 1BC47 1BC47 1BC03::[u1BC02.p@400,0|u1BC47.e.270n90@200,-100|u1BC47.e.90p270@0,0|u1BC03.t@0,0|_@740,0]
