@@ -169,6 +169,11 @@ REGULAR_LIGHT_LINE: Final[float] = 70
 BOLD_LIGHT_LINE: Final[float] = 101
 
 
+#: How much to increase a modulated stroke width by as a proportion of
+#: the light line’s thickness.
+MODULATION_FACTOR: Final[float] = 0.5
+
+
 #: The factor by which to scale the light line’s thickness to get the
 #: shaded line’s thickness.
 SHADING_FACTOR: Final[float] = 12 / 7

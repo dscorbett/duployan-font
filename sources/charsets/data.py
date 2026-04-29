@@ -63,6 +63,7 @@ from utils import CROSS_HEIGHT
 from utils import Context
 from utils import DEFAULT_SIDE_BEARING
 from utils import MAX_TREE_WIDTH
+from utils import MODULATION_FACTOR
 from utils import PICTOGRAPH_DEPTH
 from utils import PICTOGRAPH_HEIGHT
 from utils import SMALL_DIGIT_FACTOR
@@ -345,7 +346,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     j_n = ComplexCurve([(1, s_k), (1, n)])
     j_n_s = ComplexCurve([(3, s_k), (4, n_s)])
     o = Circle(90, 90, clockwise=False)
-    o_reverse = o.as_reversed()
+    o_reverse = o.as_reversed().clone(modulation=MODULATION_FACTOR)
     ie = Curve(180, 0, clockwise=False, may_reposition_cursive_endpoints=True)
     short_i = Curve(0, 180, clockwise=True)
     ui = Curve(90, 270, clockwise=True)

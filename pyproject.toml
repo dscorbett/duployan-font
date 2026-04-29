@@ -171,6 +171,7 @@ extend-ignore-names = [
     "glyphPen",
     "removeOverlap",
     # `fontforge.glyphPen` methods
+    "closePath",
     "curveTo",
     "endPath",
     "lineTo",

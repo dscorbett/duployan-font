@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023-2024 David Corbett
+# Copyright 2023-2024, 2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Isolated wa
+1BC5C 034F 034F 034F::[u1BC5C_uni034F034F034F_.wa__cgj__cgj__cgj.0n0@0,0|_@657,0]
+
+# Isolated wow
+1BC60 034F 034F 034F::[u1BC5D_uni034F034F034F_.wo__cgj__cgj__cgj.0n0@0,0|dupl_.Dot.0.rel1@200,275|_@657,0]
 
 # Initial wa
 1BC5C EC02::[u1BC5C.wa.180p90@0,-300|uniEC02.reversed_p@300,0|_@640,0]

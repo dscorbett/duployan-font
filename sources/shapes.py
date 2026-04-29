@@ -2645,6 +2645,9 @@ class Circle(Shape):
         reversed_circle: Whether this represents a reversed circle
             character. The only reversed circle character in Unicode is
             U+1BC42 DUPLOYAN LETTER SLOAN OW.
+        modulation: How much to increase the stroke width of this
+            circle’s downstroke by, as a proportion of the light line
+            width. Modulation only applies to isolated circles.
         pinned: Whether to force this circle to stay a `Circle` when
             contextualized, even if a `Curve` would normally be
             considered more appropriate.
@@ -2666,6 +2669,7 @@ class Circle(Shape):
         *,
         clockwise: bool,
         reversed_circle: bool = False,
+        modulation: float = 0,
         pinned: bool = False,
         stretch: float = 0,
         long: bool = False,
@@ -2678,6 +2682,7 @@ class Circle(Shape):
             angle_out: The ``angle_out`` attribute.
             clockwise: The ``clockwise`` attribute.
             reversed_circle: The ``reversed_circle`` attribute.
+            modulation: The ``modulation`` attribute.
             pinned: The ``pinned`` attribute.
             stretch: The ``stretch`` attribute.
             long: The ``long`` attribute.
@@ -2688,6 +2693,7 @@ class Circle(Shape):
         self.angle_out: Final = angle_out
         self.clockwise: Final = clockwise
         self.reversed_circle: Final = reversed_circle
+        self.modulation: Final = modulation
         self.pinned: Final = pinned
         self.stretch: Final = stretch
         self.long: Final = long
@@ -2701,6 +2707,7 @@ class Circle(Shape):
         angle_out: CloneDefault | float = CLONE_DEFAULT,
         clockwise: CloneDefault | bool = CLONE_DEFAULT,
         reversed_circle: CloneDefault | bool = CLONE_DEFAULT,
+        modulation: CloneDefault | float = CLONE_DEFAULT,
         pinned: CloneDefault | bool = CLONE_DEFAULT,
         stretch: CloneDefault | float = CLONE_DEFAULT,
         long: CloneDefault | bool = CLONE_DEFAULT,
@@ -2711,6 +2718,7 @@ class Circle(Shape):
             self.angle_out if angle_out is CLONE_DEFAULT else angle_out,
             clockwise=self.clockwise if clockwise is CLONE_DEFAULT else clockwise,
             reversed_circle=self.reversed_circle if reversed_circle is CLONE_DEFAULT else reversed_circle,
+            modulation=self.modulation if modulation is CLONE_DEFAULT else modulation,
             pinned=self.pinned if pinned is CLONE_DEFAULT else pinned,
             stretch=self.stretch if stretch is CLONE_DEFAULT else stretch,
             long=self.long if long is CLONE_DEFAULT else long,
@@ -2744,12 +2752,17 @@ class Circle(Shape):
     def group(self) -> Hashable:
         angle_in = self.angle_in
         angle_out = self.angle_out
-        if self.clockwise:
+        clockwise = self.clockwise
+        modulation = self.role == CircleRole.INDEPENDENT and self.modulation
+        if clockwise and not modulation:
             angle_in = (angle_in + 180) % 360
             angle_out = (angle_out + 180) % 360
+            clockwise = False
         return (
             angle_in,
             angle_out,
+            clockwise,
+            modulation,
             self.stretch,
             self.long,
         )
@@ -2839,7 +2852,11 @@ class Circle(Shape):
                     diphthong_2,
                 )
         pre_stretch_angle_in, pre_stretch_angle_out, stretch_axis_angle, scale_x, scale_y = self._pre_stretch_values
-        pen = glyph.glyphPen()
+        layers = [fontforge.layer()]
+        modulation = initial_circle and final_circle and not (diphthong_1 or diphthong_2) and self.role == CircleRole.INDEPENDENT and self.modulation
+        if modulation:
+            layers.append(fontforge.layer())
+        contour = fontforge.contour()
         if diphthong_1:
             pre_stretch_angle_out = (pre_stretch_angle_out + 90 * (1 if self.clockwise else -1)) % 360
         if diphthong_2:
@@ -2854,24 +2871,33 @@ class Circle(Shape):
         cp = r * (4 / 3) * math.tan(math.pi / 8)
         entry = _rect(r, math.radians(a1))
         if diphthong_2:
-            pen.moveTo(entry)
+            contour.moveTo(*entry)
             entry_delta = _rect(r, math.radians((a1 + 90 * (1 if self.clockwise else -1)) % 360))
             entry = (entry[0] + entry_delta[0], entry[1] + entry_delta[1])
-            pen.lineTo(entry)
-            pen.endPath()
-        pen.moveTo((0, r))
-        pen.curveTo((cp, r), (r, cp), (r, 0))
-        pen.curveTo((r, -cp), (cp, -r), (0, -r))
-        pen.curveTo((-cp, -r), (-r, -cp), (-r, 0))
-        pen.curveTo((-r, cp), (-cp, r), (0, r))
-        pen.endPath()
+            contour.lineTo(*entry)
+            layers[0] += contour
+            contour = fontforge.contour()
+        contour.moveTo(0, r)
+        contour.cubicTo((cp, r), (r, cp), (r, 0))
+        contour.cubicTo((r, -cp), (cp, -r), (0, -r))
+        if len(layers) > 1:
+            layers[-1] += contour
+            contour = fontforge.contour()
+            contour.moveTo(0, -r)
+        contour.cubicTo((-cp, -r), (-r, -cp), (-r, 0))
+        contour.cubicTo((-r, cp), (-cp, r), (0, r))
+        if len(layers) == 1:
+            contour.closed = True
+        layers[0] += contour
         exit = _rect(r, math.radians(a2))
         if diphthong_1:
-            pen.moveTo(exit)
+            contour = fontforge.contour()
+            contour.moveTo(*exit)
             exit_delta = _rect(r, math.radians((a2 - 90 * (1 if self.clockwise else -1)) % 360))
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
-            pen.lineTo(exit)
-            pen.endPath()
+            contour.lineTo(*exit)
+            layers[0] += contour
+        layers[0].draw(glyph.glyphPen())
         if joining_type != Type.NON_JOINING:
             glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', 0, 0)
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', 0, 0)
@@ -2886,12 +2912,15 @@ class Circle(Shape):
         glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', *_rect(0, 0))
         if self.stretch:
             theta = math.radians(stretch_axis_angle)
-            glyph.transform(
+            matrix: fontTools.misc.transform.Transform = (
                 fontTools.misc.transform.Identity  # type: ignore[misc]
                     .rotate(theta)
                     .scale(scale_x, scale_y)
-                    .rotate(-theta),
+                    .rotate(-theta)
             )
+            glyph.transform(matrix)
+            for layer in layers[1:]:
+                layer.transform(matrix)
             glyph.addAnchorPoint(
                 anchors.RELATIVE_WIDE,
                 'base',
@@ -2900,7 +2929,10 @@ class Circle(Shape):
         else:
             glyph.addAnchorPoint(anchors.RELATIVE_WIDE, 'base', *_rect(r + stroke_width / 2 + stroke_gap + Dot.SCALAR * light_line / 2, math.radians((a1 + a2) / 2)))
         glyph.stroke('circular', stroke_width, 'round')
-        if diphthong_1 or diphthong_2:
+        for layer in layers[1:]:
+            layer.stroke('eliptical', stroke_width * (1 + modulation), stroke_width, 0, 'round')
+            layer.draw(glyph.glyphPen(replace=False))
+        if len(glyph.foreground) > 1:
             glyph.removeOverlap()
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         x_center = (x_max + x_min) / 2
@@ -2983,6 +3015,7 @@ class Circle(Shape):
                 angle_in=angle_in,
                 angle_out=angle_out,
                 clockwise=clockwise,
+                modulation=0,
             )
         da = abs(angle_out - angle_in)
         clockwise_ignoring_curvature = (da >= 180) != (angle_out > angle_in)
@@ -3002,6 +3035,7 @@ class Circle(Shape):
                 angle_in=angle_in,
                 angle_out=angle_out,
                 clockwise=clockwise,
+                modulation=0,
             )
         if (self.role != CircleRole.INDEPENDENT and (self.pinned or not is_reversed)
             and (clockwise is not context_in.has_clockwise_loop_to(context_out)
@@ -3012,6 +3046,7 @@ class Circle(Shape):
                 angle_in=angle_in,
                 angle_out=angle_in if self.role == CircleRole.LEADER else angle_out,
                 clockwise=clockwise,
+                modulation=0,
             )
         elif clockwise_ignoring_reversal == clockwise_ignoring_curvature:
             if is_reversed:
@@ -3029,6 +3064,7 @@ class Circle(Shape):
                         angle_in=angle_in,
                         angle_out=(angle_out + 180) % 360,
                         clockwise=clockwise,
+                        modulation=0,
                     )
             else:
                 return Curve(
@@ -3054,6 +3090,7 @@ class Circle(Shape):
                         angle_in=angle_in,
                         angle_out=(angle_out + 180) % 360,
                         clockwise=clockwise,
+                        modulation=0,
                     )
             else:
                 if da != 180 and not forms_loop_next_to_curve:
@@ -3061,6 +3098,7 @@ class Circle(Shape):
                         angle_in=angle_in,
                         angle_out=angle_out,
                         clockwise=clockwise,
+                        modulation=0,
                     )
                 else:
                     return Curve(
@@ -3266,6 +3304,7 @@ class Complex(Shape):
         method.
 
         Attributes:
+            foreground: The layer to draw to.
             anchor_points: The component shapes’ collected anchor
                 points. The keys are tuples of anchor name and anchor
                 type (as defined for `fontforge.glyph.addAnchorPoint`).
@@ -3275,11 +3314,10 @@ class Complex(Shape):
         def __init__(self) -> None:
             """Initializes this `Proxy`.
             """
+            self.foreground = fontforge.layer()
+            self.foreground += fontforge.contour()
             self.anchor_points: Final[collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]]] = collections.defaultdict(list)
             self._stroke_args: tuple[tuple[object, ...], tuple[tuple[str, object], ...]] | None = None
-            layer = fontforge.layer()
-            layer += fontforge.contour()
-            self._layer = layer
 
         def addAnchorPoint(
             self,
@@ -3298,12 +3336,17 @@ class Complex(Shape):
             """
             self.anchor_points[anchor_class_name, anchor_type].append((x, y))
 
-        def glyphPen(self) -> Self:
+        def glyphPen(self, replace: bool = True) -> Self:
             """Simulates `fontforge.glyph.glyphPen`.
+
+            Args:
+                replace: The ``replace`` argument.
 
             Returns:
                 This proxy.
             """
+            if not replace:
+                self._stroke()
             return self
 
         def stroke(
@@ -3325,13 +3368,13 @@ class Complex(Shape):
             If `_stroke_args` is ``None``, the layer is not modified.
 
             Args:
-                copy: Whether to stroke a copy of `_layer` instead of
-                    modifying `_layer`.
+                copy: Whether to stroke a copy of `foreground` instead
+                    of modifying `foreground`.
 
             Returns:
                 The stroked layer.
             """
-            layer = self._layer
+            layer = self.foreground
             if self._stroke_args is not None:
                 if copy:
                     layer = layer.dup()
@@ -3382,20 +3425,20 @@ class Complex(Shape):
             """
             if deferred_proxies is None or self._stroke_args is None:
                 self._stroke()
-                assert all(not contour or contour.closed for contour in self._layer), (
+                assert all(not contour or contour.closed for contour in self.foreground), (
                     f'''A proxy contains an open contour: {
-                        [(point.x, point.y) for point in next(contour for contour in self._layer if contour and not contour.closed)]
+                        [(point.x, point.y) for point in next(contour for contour in self.foreground if contour and not contour.closed)]
                     }''')
-                self._layer.draw(pen)
+                self.foreground.draw(pen)
             elif (deferred_proxy := deferred_proxies.get(self._stroke_args)) is not None:
                 if (
-                    deferred_proxy._layer and self._layer
-                    and (deferred_contour := deferred_proxy._layer[-1]) and (contour := self._layer[0])
+                    deferred_proxy.foreground and self.foreground
+                    and (deferred_contour := deferred_proxy.foreground[-1]) and (contour := self.foreground[0])
                     and deferred_contour[-1] == contour[0]
                 ):
                     deferred_contour += contour
                 else:
-                    deferred_proxy._layer += self._layer
+                    deferred_proxy.foreground += self.foreground
             else:
                 deferred_proxies[self._stroke_args] = self
 
@@ -3410,7 +3453,7 @@ class Complex(Shape):
                 for i, x_y in enumerate(points):
                     new_point = fontforge.point(*x_y).transform(matrix)
                     self.anchor_points[anchor][i] = (new_point.x, new_point.y)
-            self._layer.transform(matrix)
+            self.foreground.transform(matrix)
 
         def moveTo(self, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.moveTo`.
@@ -3418,8 +3461,9 @@ class Complex(Shape):
             Args:
                 x_y: The ``(x, y)`` argument.
             """
-            for contour in self._layer:
-                contour.moveTo(*x_y)
+            if self.foreground[-1]:
+                self.foreground += fontforge.contour()
+            self.foreground[-1].moveTo(*x_y)
 
         def lineTo(self, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.lineTo`.
@@ -3427,8 +3471,7 @@ class Complex(Shape):
             Args:
                 x_y: The ``(x, y)`` argument.
             """
-            for contour in self._layer:
-                contour.lineTo(x_y)
+            self.foreground[-1].lineTo(x_y)
 
         def curveTo(self, cp1: _Point, cp2: _Point, x_y: _Point) -> None:
             """Simulates `fontforge.glyphPen.curveTo`.
@@ -3438,8 +3481,12 @@ class Complex(Shape):
                 cp2: The ``(cp2.x, cp2.y)`` argument.
                 x_y: The ``(x, y)`` argument.
             """
-            for contour in self._layer:
-                contour.cubicTo(cp1, cp2, x_y)
+            self.foreground[-1].cubicTo(cp1, cp2, x_y)
+
+        def closePath(self) -> None:
+            """Simulates `fontforge.glyphPen.closePath`.
+            """
+            self.foreground[-1].closed = True
 
         def endPath(self) -> None:
             """Ignores `fontforge.glyphPen.endPath`.
@@ -3573,10 +3620,6 @@ class Complex(Shape):
         Args:
             glyph: The FontForge glyph to remove contours from.
         """
-        if not hasattr(glyph, 'foreground'):
-            # This `Complex` is nested within another `Complex`. The outermost one
-            # will remove all the bad contours.
-            return
         bad_indices = []
         foreground = glyph.foreground
         for contour_index, contour in enumerate(foreground):
@@ -4539,32 +4582,53 @@ class Wa(Complex):
     `instructions` must not contain any callables. The first and last
     components must be `Circle`\ s or `Curve`\ s, at least one of which
     must be a `Circle`.
+
+    Attributes:
+        modulation: How much to increase the stroke width of the
+            circles’ downstrokes by, as a proportion of the light line
+            width. Modulation only applies to isolated `Wa`\ s.
     """
 
     @override
     def __init__(
         self,
         instructions: Instructions,
+        modulation: float = 0,
         _initial: bool = False,
+        _isolated: bool = True,
     ) -> None:
         """Initializes this `Wa`.
 
         Args:
             instructions: The ``instructions`` attribute.
+            modulation: The ``modulation`` attribute.
         """
         super().__init__(instructions)
+        self.modulation: Final = modulation
         self._initial = _initial
+        self._isolated = _isolated
 
     @override
     def clone(
         self,
         *,
         instructions: CloneDefault | Instructions = CLONE_DEFAULT,
+        modulation: CloneDefault | float = CLONE_DEFAULT,
         _initial: CloneDefault | bool = CLONE_DEFAULT,
+        _isolated: CloneDefault | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
+            self.modulation if modulation is CLONE_DEFAULT else modulation,
             self._initial if _initial is CLONE_DEFAULT else _initial,
+            self._isolated if _isolated is CLONE_DEFAULT else _isolated,
+        )
+
+    @override
+    def group(self) -> Hashable:
+        return (
+            super().group(),
+            self._isolated and self.modulation,
         )
 
     @override
@@ -4585,6 +4649,10 @@ class Wa(Complex):
         for op in self.instructions:
             assert not callable(op)
             scalar, component, skip_drawing, tick = op
+            modulate = self._isolated and bool(self.modulation) and isinstance(component, Circle)
+            if modulate:
+                assert isinstance(component, Circle)
+                component = component.clone(modulation=self.modulation)
             proxy = Complex.Proxy()
             component.draw(
                 proxy,  # type: ignore[arg-type]
@@ -4594,8 +4662,8 @@ class Wa(Complex):
                 scalar * (1 if tick else size),
                 None,
                 Type.JOINING,
-                initial_circle=False,
-                final_circle=False,
+                initial_circle=modulate,
+                final_circle=modulate,
                 diphthong_1=False,
                 diphthong_2=False,
             )
@@ -4649,7 +4717,7 @@ class Wa(Complex):
                     ],
                     inner_circle_op._replace(shape=Curve((context_out.angle - minimum_da) % 360, context_out.angle, clockwise=inner_circle.clockwise)),
                 ]
-            return self.clone(instructions=instructions, _initial=True)
+            return self.clone(instructions=instructions, _initial=True, _isolated=False)
         if context_in != NO_CONTEXT != context_out:
             if context_in.angle != context_out.angle and any(isinstance(op.shape, Circle) and op.shape.reversed_circle for op in original_instructions):
                 assert context_out.angle is not None
@@ -4707,10 +4775,13 @@ class Wa(Complex):
                 ],
                 original_instructions[-1]._replace(shape=inner_circle),
             ])
-        return self.clone(instructions=[
-            op._replace(shape=op.shape.contextualize(context_in, context_out))
-            for op in original_instructions
-        ])
+        return self.clone(
+            instructions=[
+                op._replace(shape=op.shape.contextualize(context_in, context_out))
+                for op in original_instructions
+            ],
+            _isolated=False,
+        )
 
     def as_reversed(self) -> Self:
         """Returns a `Wa` that looks the same but is drawn in the

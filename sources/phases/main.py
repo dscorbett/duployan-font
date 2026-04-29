@@ -60,6 +60,7 @@ from utils import EPSILON
 from utils import GlyphClass
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
+from utils import MODULATION_FACTOR
 from utils import NO_CONTEXT
 from utils import OrderedSet
 from utils import SMALL_DIGIT_FACTOR
@@ -126,7 +127,10 @@ def reversed_circle_kludge(
                             angle_out=(2 * schema.path.angle_in - schema.path.angle_out) % 360,
                             clockwise=not schema.path.clockwise,
                             secondary=None,
-                        ) if isinstance(schema.path, Curve) else schema.path.as_reversed(),
+                        ) if isinstance(schema.path, Curve)
+                        else schema.path.as_reversed().clone(modulation=MODULATION_FACTOR)
+                        if isinstance(schema.path, (Circle, Wa))
+                        else schema.path.as_reversed(),
                 )],
             ))
     return [lookup]
