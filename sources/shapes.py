@@ -2881,14 +2881,16 @@ class Circle(Shape):
         contour.cubicTo((cp, r), (r, cp), (r, 0))
         contour.cubicTo((r, -cp), (cp, -r), (0, -r))
         if len(layers) > 1:
-            layers[-1] += contour
+            layers[-1 if self.clockwise else 0] += contour
             contour = fontforge.contour()
             contour.moveTo(0, -r)
         contour.cubicTo((-cp, -r), (-r, -cp), (-r, 0))
         contour.cubicTo((-r, cp), (-cp, r), (0, r))
         if len(layers) == 1:
             contour.closed = True
-        layers[0] += contour
+            layers[0] += contour
+        else:
+            layers[0 if self.clockwise else -1] += contour
         exit = _rect(r, math.radians(a2))
         if diphthong_1:
             contour = fontforge.contour()
@@ -4626,9 +4628,15 @@ class Wa(Complex):
 
     @override
     def group(self) -> Hashable:
+        modulated = self._isolated and self.modulation
         return (
             super().group(),
-            self._isolated and self.modulation,
+            modulated,
+            tuple(
+                op.shape.clockwise
+                for op in self.instructions
+                if not callable(op) and isinstance(op.shape, Circle)
+            ) if modulated else None,
         )
 
     @override
