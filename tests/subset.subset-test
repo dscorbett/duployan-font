@@ -29,10 +29,10 @@
 1BC46 1BC46::[u1BC46.i@0,0|u1BC46.i@340,0|_@680,0]
 
 # Diacritics
-1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E_.double.90@250,-112|uni0300.grave@163,245|_@740,0]
-0021 20DD::[exclam@398,0|uni20DD_.enclosing_circle.wl@758,0|_@1064,0]
-1BC02 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.double__double__double.0@-112,137|_@240,0]
-1BC02 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.double__double__double.0@-112,137|dupl_.Line.0.dotted@240,0|u1BC9E_.double.90.wl@615,-112|_@1230,0]
+1BC03 1BC9E 0300::[u1BC03.t@0,0|u1BC9E_.double.90@250,-112|u0300.grave@163,245|_@740,0]
+0021 20DD::[exclam@398,0|u20DD_.enclosing_circle.wl@758,0|_@1064,0]
+1BC02 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.3double.0@-112,137|_@240,0]
+1BC02 1BC9E 1BC9E 1BC9E 1BC9E::[u1BC02.p@0,0|u1BC9E_u1BC9E_u1BC9E_.3double.0@-112,137|dupl_.Line.0.dotted@240,0|u1BC9E_.double.90.wl@615,-112|_@1230,0]
 
 # Shading
 1BC02 1BC9D::[u1BC02_u1BC9D.P@0,0|_@290,0]
@@ -41,6 +41,6 @@
 1BC08 1BCA0 1BCA1 1BC02 1BC02::[u1BC08.d@0,0|u1BCA0.letter_overlap@1240,0|u1BCA1.continuing_overlap@2368,0|u1BC02.p@3496,0|u1BC02.p@3736,0|_@3976,0]
 
 # Numbers
-0031 2044 0032::[one.numr@0,0|uni2044_.fraction_slash.frac@337,0|two.dnom@501,0|_@952,0]
-0032:--features sups:[uni00B2.superscript_two@0,0|_@451,0]
-0033:--features subs:[uni2083.subscript_three@0,0|_@462,0]
+0031 2044 0032::[one.numr@0,0|u2044_.fraction_slash.frac@337,0|two.dnom@501,0|_@952,0]
+0032:--features sups:[u00B2.superscript_two@0,0|_@451,0]
+0033:--features subs:[u2083.subscript_three@0,0|_@462,0]

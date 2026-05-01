@@ -2745,7 +2745,7 @@ class Circle(Shape):
             }{
                 'r' if self.reversed_circle and self.angle_in != self.angle_out else ''
             }{
-                '.circle' if self.role != CircleRole.INDEPENDENT and self.angle_in != self.angle_out else ''
+                '.C' if self.role != CircleRole.INDEPENDENT and self.angle_in != self.angle_out else ''
             }'''
 
     @override

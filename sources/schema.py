@@ -233,11 +233,10 @@ class Schema:
     #: be a disambiguatory suffix but isn’t.
     _RESERVED_GLYPH_NAME_PATTERN: re.Pattern[str] = re.compile(r'\._[1-9A-F][0-9A-F]*(\.|$)')
 
-    #: A pattern matching a ``uni`` glyph name component that follows
-    #: and can be collapsed into a preceding ``uni`` glyph name
-    #: component. For example, ``uni1234_uniABCD`` can be collapsed into
-    #: ``uni1234ABCD``.
-    _COLLAPSIBLE_UNI_NAME: Final[re.Pattern[str]] = re.compile(r'(?<=(^|(?<=_))uni[0-9A-F]{4})_uni(?=[0-9A-F]{4}(_|$))')
+    #: A pattern matching a sequence of multiple ``u`` glyph name
+    #: components for BMP code points. For example, ``u1234_uABCD`` can
+    #: be collapsed into ``uni1234ABCD``.
+    _COLLAPSIBLE_U_NAME: Final[re.Pattern[str]] = re.compile(r'(?:^|(?<=_))u[0-9A-F]{4}(?:_u[0-9A-F]{4})+(?=_|$)')
 
     #: A pattern matching the first component of a glyph name.
     _FIRST_COMPONENT_PATTERN: Final[re.Pattern[str]] = re.compile(r'^[^.]*')
@@ -253,38 +252,38 @@ class Schema:
     #: Specification.
     _CHARACTER_NAME_RAW_SUBSTITUTIONS: Final[Iterable[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         # Custom PUA names
-        (r'^uniE000$', 'BOUND'),
-        (r'^uniE001$', 'LATIN CROSS POMMEE'),
-        (r'^uniE003$', 'HEART WITH CROSS'),
-        (r'^uniE010$', 'TWO LINES JOINED CONVERGING LEFT'),
-        (r'^uniE011$', 'LEFT PARENTHESIS WITH STROKE'),
-        (r'^uniE012$', 'RIGHT PARENTHESIS WITH STROKE'),
-        (r'^uniE013$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),
-        (r'^uniE014$', 'RIGHT PARENTHESIS WITH DOUBLE STROKE'),
-        (r'^uniE015$', 'STENOGRAPHIC SEMICOLON'),
-        (r'^uniE016$', 'STENOGRAPHIC QUESTION MARK'),
-        (r'^uniE017$', 'STENOGRAPHIC EXCLAMATION MARK'),
-        (r'^uniE018$', 'STENOGRAPHIC INVERTED EXCLAMATION MARK'),
-        (r'^uniE019$', 'WIGGLY DASH'),
-        (r'^uniE01A$', 'LONG WIGGLY DASH'),
-        (r'^uniE01B$', 'WIGGLY RISING DIAGONAL'),
-        (r'^uniE01C$', 'WIGGLY FALLING DIAGONAL'),
-        (r'^uniE021$', 'COMBINING DIGIT ONE ABOVE'),
-        (r'^uniE02A$', 'COMBINING RING-AND-DOT ABOVE'),
-        (r'^uniE031$', 'COMBINING DIGIT ONE BELOW'),
-        (r'^uniE033$', 'COMBINING DIGIT THREE BELOW'),
-        (r'^uniE035$', 'COMBINING DIGIT FIVE BELOW'),
-        (r'^uniE037$', 'COMBINING DIGIT SEVEN BELOW'),
-        (r'^uniEC02$', 'DUPLOYAN LETTER REVERSED P'),
-        (r'^uniEC03$', 'DUPLOYAN LETTER REVERSED T'),
-        (r'^uniEC04$', 'DUPLOYAN LETTER REVERSED F'),
-        (r'^uniEC05$', 'DUPLOYAN LETTER REVERSED K'),
-        (r'^uniEC06$', 'DUPLOYAN LETTER REVERSED L'),
-        (r'^uniEC19$', 'DUPLOYAN LETTER REVERSED M'),
-        (r'^uniEC1A$', 'DUPLOYAN LETTER REVERSED N'),
-        (r'^uniEC1B$', 'DUPLOYAN LETTER REVERSED J'),
-        (r'^uniEC1C$', 'DUPLOYAN LETTER REVERSED S'),
-        (r'^uniEC9A$', 'DUPLOYAN PUNCTUATION CHINOOK FULL STOP WITH DOUBLE STROKE'),
+        (r'^uE000$', 'BOUND'),
+        (r'^uE001$', 'LATIN CROSS POMMEE'),
+        (r'^uE003$', 'HEART WITH CROSS'),
+        (r'^uE010$', 'TWO LINES JOINED CONVERGING LEFT'),
+        (r'^uE011$', 'LEFT PARENTHESIS WITH STROKE'),
+        (r'^uE012$', 'RIGHT PARENTHESIS WITH STROKE'),
+        (r'^uE013$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),
+        (r'^uE014$', 'RIGHT PARENTHESIS WITH DOUBLE STROKE'),
+        (r'^uE015$', 'STENOGRAPHIC SEMICOLON'),
+        (r'^uE016$', 'STENOGRAPHIC QUESTION MARK'),
+        (r'^uE017$', 'STENOGRAPHIC EXCLAMATION MARK'),
+        (r'^uE018$', 'STENOGRAPHIC INVERTED EXCLAMATION MARK'),
+        (r'^uE019$', 'WIGGLY DASH'),
+        (r'^uE01A$', 'LONG WIGGLY DASH'),
+        (r'^uE01B$', 'WIGGLY RISING DIAGONAL'),
+        (r'^uE01C$', 'WIGGLY FALLING DIAGONAL'),
+        (r'^uE021$', 'COMBINING DIGIT ONE ABOVE'),
+        (r'^uE02A$', 'COMBINING RING-AND-DOT ABOVE'),
+        (r'^uE031$', 'COMBINING DIGIT ONE BELOW'),
+        (r'^uE033$', 'COMBINING DIGIT THREE BELOW'),
+        (r'^uE035$', 'COMBINING DIGIT FIVE BELOW'),
+        (r'^uE037$', 'COMBINING DIGIT SEVEN BELOW'),
+        (r'^uEC02$', 'DUPLOYAN LETTER REVERSED P'),
+        (r'^uEC03$', 'DUPLOYAN LETTER REVERSED T'),
+        (r'^uEC04$', 'DUPLOYAN LETTER REVERSED F'),
+        (r'^uEC05$', 'DUPLOYAN LETTER REVERSED K'),
+        (r'^uEC06$', 'DUPLOYAN LETTER REVERSED L'),
+        (r'^uEC19$', 'DUPLOYAN LETTER REVERSED M'),
+        (r'^uEC1A$', 'DUPLOYAN LETTER REVERSED N'),
+        (r'^uEC1B$', 'DUPLOYAN LETTER REVERSED J'),
+        (r'^uEC1C$', 'DUPLOYAN LETTER REVERSED S'),
+        (r'^uEC9A$', 'DUPLOYAN PUNCTUATION CHINOOK FULL STOP WITH DOUBLE STROKE'),
         # Unicode name aliases
         (r'^COMBINING GRAPHEME JOINER$', 'CGJ'),
         (r'^ZERO WIDTH SPACE$', 'ZWSP'),
@@ -331,6 +330,7 @@ class Schema:
     _SEQUENCE_NAME_RAW_SUBSTITUTIONS: Final[Sequence[tuple[str, str | Callable[[re.Match[str]], str]]]] = [
         (r'__zwj__', '___'),
         (r'((?:[a-z]+_)+)_dtls(?=__|$)', lambda m: m.group(1)[:-1].upper()),  # type: ignore[misc]
+        (r'(__|^)([A-Za-z](?:_?[A-Za-z])*)((?:__\2)+)(?=__|$)', lambda m: f'{m.group(1)}{1 + m.group(3).count('__')}{m.group(2)}'),  # type: ignore[misc]
     ]
 
     #: `_SEQUENCE_NAME_RAW_SUBSTITUTIONS` with all the search strings
@@ -766,12 +766,12 @@ class Schema:
     @staticmethod
     def _u_name(cp: int) -> str:
         """Returns the Adobe Glyph List name of a code point with the
-        ``uni`` or ``u`` prefix.
+        ``u`` prefix.
 
         Args:
             cp: A code point.
         """
-        return '{}{:04X}'.format('uni' if cp <= 0xFFFF else 'u', cp)
+        return f'u{cp:04X}'
 
     @classmethod
     @functools.cache  # type: ignore[misc]
@@ -809,7 +809,7 @@ class Schema:
                 name = '_'.join(map(self._agl_name, cps))
             except (KeyError, ValueError):
                 name = '_'.join(map(self._u_name, cps))
-                name = self._COLLAPSIBLE_UNI_NAME.sub('', name)
+                name = self._COLLAPSIBLE_U_NAME.sub(lambda m: 'uni' + m.group(0)[1:].replace('_u', ''), name)  # type: ignore[misc]
                 readable_name = '__'.join(map(self._readable_name, cps))
                 for regex, repl in self._SEQUENCE_NAME_SUBSTITUTIONS:
                     readable_name = regex.sub(repl, readable_name)
@@ -842,7 +842,7 @@ class Schema:
         if not cps and self.anchor:
             name += f'.{self.anchor}'
         if self.diphthong_1 or self.diphthong_2:
-            name += '.diph'
+            name += '.d'
             if self.diphthong_1:
                 name += '1'
             if self.diphthong_2:

@@ -63,10 +63,10 @@
 1BC94 1BC94 1BC02::[u1BC94.low_dot@0,535|u1BC94.low_dot@168,535|u1BC02.p@431,0|_@671,0]
 
 # With diacritics
-1BC88 0324 030C::[u1BC88.high_vertical@85,0|uni0324.diaeresis_below@0,-3|uni030C.caron@5,625|_@410,0]
-1BC88 0324 030C 1BC04::[u1BC88.high_vertical@85,535|uni0324.diaeresis_below@0,532|uni030C.caron@5,1160|u1BC04.f@190,0|_@718,0]
-1BC0B 1BC88 0324 030C::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|uni0324.diaeresis_below@1020,1032|uni030C.caron@1025,1660|_@1430,0]
-1BC0B 1BC88 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|uni0324.diaeresis_below@1020,1032|uni030C.caron@1025,1660|u1BC04.f@1210,500|_@1738,0]
+1BC88 0324 030C::[u1BC88.high_vertical@85,0|u0324.diaeresis_below@0,-3|u030C.caron@5,625|_@410,0]
+1BC88 0324 030C 1BC04::[u1BC88.high_vertical@85,535|u0324.diaeresis_below@0,532|u030C.caron@5,1160|u1BC04.f@190,0|_@718,0]
+1BC0B 1BC88 0324 030C::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|u0324.diaeresis_below@1020,1032|u030C.caron@1025,1660|_@1430,0]
+1BC0B 1BC88 0324 030C 1BC04::[u1BC0B.r@0,0|u1BC88.high_vertical@1105,1035|u0324.diaeresis_below@1020,1032|u030C.caron@1025,1660|u1BC04.f@1210,500|_@1738,0]
 
 # Even if the base letter has room for the affix to nestle within, the affix
 # should stay somewhat separate, to maintain the general left-to-right reading

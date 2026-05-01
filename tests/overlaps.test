@@ -79,7 +79,7 @@
 1BC08 1BCA0 1BCA0 1BC28 1BCA0 1BC03 1BC08 1BCA0 1BC02 1BCA0 1BC03::[u1BC08.d@0,0|u1BCA0.letter_overlap@1240,0|u1BCA0.letter_overlap@2368,0|u1BC28.n_s@3496,0|u1BC03.t.sub@3675,360|u1BC08.d@3496,0|u1BC02.p@4246,-333|u1BC03.t@4079,-166|_@4819,0]
 
 # Marks do not block trees.
-1BC25 0302 1BCA1 1BC04::[u1BC1C.s@0,0|dupl_.Dot.1.rel1@346,286|uni0302.circumflex@269,405|u1BC04.f@444,-293|_@972,0]
+1BC25 0302 1BCA1 1BC04::[u1BC1C.s@0,0|dupl_.Dot.1.rel1@346,286|u0302.circumflex@269,405|u1BC04.f@444,-293|_@972,0]
 
 # Trees do not interfere with marks.
 1BC37 1BCA0 1BC1F 1BC33::[u1BC37.t_r_s@0,0|u1BC1B.j.sub@340,40|u1BC9E_.double.90@700,228|u1BC33.s_t_r@600,-600|_@1440,0]
@@ -87,35 +87,35 @@
 
 # U+003D EQUALS SIGN is a valid root and a valid child, but does not connect
 # cursively.
-003D 1BCA0 1BC02::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
-003D 1BCA1 1BC02::[uni200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
-003D 1BCA0 1BC09 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|uni200C.zwnj@1006,0|u1BC41.a@1006,0|_@1446,0]
-003D 1BCA1 1BC09 1BC41::[uni200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|u1BC41.a.120n120@753,-439|_@1193,0]
+003D 1BCA0 1BC02::[u200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
+003D 1BCA1 1BC02::[u200C.zwnj@0,0|equal@0,0|u1BC02.p@333,27|_@740,0]
+003D 1BCA0 1BC09 1BC41::[u200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|u200C.zwnj@1006,0|u1BC41.a@1006,0|_@1446,0]
+003D 1BCA1 1BC09 1BC41::[u200C.zwnj@0,0|equal@0,0|u1BC09.v@189,-389|u1BC41.a.120n120@753,-439|_@1193,0]
 1BC02 1BCA0 003D::[u1BC02.p@167,0|equal@0,-193|_@740,0]
 1BC02 1BCA1 003D::[u1BC02.p@167,0|equal@0,-193|_@740,0]
-1BC0B 003D 1BC0B::[u1BC0B.r@0,0|uni200C.zwnj@1240,0|equal@1240,0|uni200C.zwnj@1980,0|u1BC0B.r@1980,0|_@3220,0]
+1BC0B 003D 1BC0B::[u1BC0B.r@0,0|u200C.zwnj@1240,0|equal@1240,0|u200C.zwnj@1980,0|u1BC0B.r@1980,0|_@3220,0]
 1BC02 1BCA0 003D 1BCA0 1BC02 1BC47::[u1BC02.p@200,0|equal_.sub@33,-193|u1BC02.p.sub@366,-166|u1BC47.e.270n90@0,-100|_@440,0]
 
 # <U+003E, overlap, U+003C> is a valid tree, but similar trees are
 # invalid.
-003E 1BCA0 003C::[uni200C.zwnj@0,0|greater@0,0|less@143,0|uni200C.zwnj@1274,0|_@1274,0]
-003E 1BCA1 003C::[uni200C.zwnj@0,0|greater@0,0|less@143,0|uni200C.zwnj@1274,0|_@1274,0]
-003E 1BCA1 003E::[uni200C.zwnj@0,0|greater@0,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|greater@2259,0|_@3390,0]
-003C 1BCA1 003E::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|greater@2259,0|_@3390,0]
-003C 1BCA1 003C::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|uni200C.zwnj@2259,0|less@2259,0|uni200C.zwnj@3390,0|_@3390,0]
-003E 1BCA0 1BCA1 003C 003C::[uni200C.zwnj@0,0|greater@0,0|u1BCA0.letter_overlap@1131,0|u1BCA1.continuing_overlap@2259,0|uni200C.zwnj@3387,0|less@3387,0|uni200C.zwnj@4518,0|uni200C.zwnj@4518,0|less@4518,0|uni200C.zwnj@5649,0|_@5649,0]
-003C 003C::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|uni200C.zwnj@1131,0|less@1131,0|uni200C.zwnj@2262,0|_@2262,0]
-003C 1BC41::[uni200C.zwnj@0,0|less@0,0|uni200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
-003E 1BC41::[uni200C.zwnj@0,0|greater@0,0|uni200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
-1BC41 003C::[u1BC41.a@0,0|uni200C.zwnj@440,0|less@440,0|uni200C.zwnj@1571,0|_@1571,0]
-1BC41 003E::[u1BC41.a@0,0|uni200C.zwnj@440,0|greater@440,0|_@1571,0]
-003E 1BCA0 1BC02 1BC02::[uni200C.zwnj@0,0|greater@0,0|u1BC02.p@392,121|uni200C.zwnj@1131,0|u1BC02.p@1131,0|_@1371,0]
+003E 1BCA0 003C::[u200C.zwnj@0,0|greater@0,0|less@143,0|u200C.zwnj@1274,0|_@1274,0]
+003E 1BCA1 003C::[u200C.zwnj@0,0|greater@0,0|less@143,0|u200C.zwnj@1274,0|_@1274,0]
+003E 1BCA1 003E::[u200C.zwnj@0,0|greater@0,0|u1BCA1.continuing_overlap@1131,0|u200C.zwnj@2259,0|greater@2259,0|_@3390,0]
+003C 1BCA1 003E::[u200C.zwnj@0,0|less@0,0|u200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|u200C.zwnj@2259,0|greater@2259,0|_@3390,0]
+003C 1BCA1 003C::[u200C.zwnj@0,0|less@0,0|u200C.zwnj@1131,0|u1BCA1.continuing_overlap@1131,0|u200C.zwnj@2259,0|less@2259,0|u200C.zwnj@3390,0|_@3390,0]
+003E 1BCA0 1BCA1 003C 003C::[u200C.zwnj@0,0|greater@0,0|u1BCA0.letter_overlap@1131,0|u1BCA1.continuing_overlap@2259,0|u200C.zwnj@3387,0|less@3387,0|u200C.zwnj@4518,0|u200C.zwnj@4518,0|less@4518,0|u200C.zwnj@5649,0|_@5649,0]
+003C 003C::[u200C.zwnj@0,0|less@0,0|u200C.zwnj@1131,0|u200C.zwnj@1131,0|less@1131,0|u200C.zwnj@2262,0|_@2262,0]
+003C 1BC41::[u200C.zwnj@0,0|less@0,0|u200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
+003E 1BC41::[u200C.zwnj@0,0|greater@0,0|u200C.zwnj@1131,0|u1BC41.a@1131,0|_@1571,0]
+1BC41 003C::[u1BC41.a@0,0|u200C.zwnj@440,0|less@440,0|u200C.zwnj@1571,0|_@1571,0]
+1BC41 003E::[u1BC41.a@0,0|u200C.zwnj@440,0|greater@440,0|_@1571,0]
+003E 1BCA0 1BC02 1BC02::[u200C.zwnj@0,0|greater@0,0|u1BC02.p@392,121|u200C.zwnj@1131,0|u1BC02.p@1131,0|_@1371,0]
 
 # U+00D7 MULTIPLICATION SIGN is a valid child but not a valid root.
-00D7 1BCA0 1BC08::[uni200C.zwnj@0,0|uni00D7.multiplication@0,0|uni200C.zwnj@594,0|u1BCA0.letter_overlap@594,0|u1BC08.d@1722,0|_@2962,0]
-1BC08 1BCA1 00D7::[u1BC08.d@0,0|uni00D7.multiplication@573,-177|uni200C.zwnj@1240,0|_@1240,0]
-1BC08 1BCA0 00D7 1BC51::[u1BC08.d@0,0|uni00D7.multiplication@573,-177|uni200C.zwnj@1240,0|u1BC51.u@1240,0|_@1780,0]
-1BC08 1BCA1 00D7 1BC04::[u1BC08.d@0,0|uni00D7.multiplication@573,-177|uni200C.zwnj@1240,0|u1BC04.f@1240,0|_@1768,0]
+00D7 1BCA0 1BC08::[u200C.zwnj@0,0|u00D7.multiplication@0,0|u200C.zwnj@594,0|u1BCA0.letter_overlap@594,0|u1BC08.d@1722,0|_@2962,0]
+1BC08 1BCA1 00D7::[u1BC08.d@0,0|u00D7.multiplication@573,-177|u200C.zwnj@1240,0|_@1240,0]
+1BC08 1BCA0 00D7 1BC51::[u1BC08.d@0,0|u00D7.multiplication@573,-177|u200C.zwnj@1240,0|u1BC51.u@1240,0|_@1780,0]
+1BC08 1BCA1 00D7 1BC04::[u1BC08.d@0,0|u00D7.multiplication@573,-177|u200C.zwnj@1240,0|u1BC04.f@1240,0|_@1768,0]
 
 # U+1BC5B DUPLOYAN LETTER OU is a valid child but not a valid root.
 1BC5B 1BCA0 1BC08::[u1BC5B.ou@0,0|u1BCA0.letter_overlap@540,0|u1BC08.d@1668,0|_@2908,0]
@@ -145,7 +145,7 @@
 # More invalid roots
 1BC9C 1BCA0 1BC06::[u1BC9C.o_cross@0,0|u1BCA0.letter_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
 1BC9C 1BCA1 1BC06::[u1BC9C.o_cross@0,0|u1BCA1.continuing_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
-1BC9E 1BCA0 1BC06::[uni25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA0.letter_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
-1BC9E 1BCA1 1BC06::[uni25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA1.continuing_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
+1BC9E 1BCA0 1BC06::[u25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA0.letter_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
+1BC9E 1BCA1 1BC06::[u25CC.dotted_circle@0,0|dupl_.Line.0.dotted@686,0|u1BC9E_.double.90.wl@1061,-112|u1BCA1.continuing_overlap@1676,0|u1BC06.l@2804,0|_@3544,0]
 1BC9F 1BCA0 1BC06::[u1BC9F.chinook_period@0,0|u1BCA0.letter_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
 1BC9F 1BCA1 1BC06::[u1BC9F.chinook_period@0,0|u1BCA1.continuing_overlap@740,0|u1BC06.l@1868,0|_@2608,0]
