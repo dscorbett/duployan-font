@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import difflib
 import enum
 from io import IOBase
@@ -39,6 +40,7 @@ import unicodedata
 if TYPE_CHECKING:
     from collections.abc import Generator
     from collections.abc import Set as AbstractSet
+    from concurrent.futures import Future
 
 
 CI = os.getenv('CI') == 'true'
@@ -235,10 +237,9 @@ def run_test(
     font: str,
     line: str,
     png_path_prefix: Path,
-    color: bool,
     incomplete: bool,
     view_all: bool,
-) -> tuple[bool, str]:
+) -> tuple[bool, str, tuple[str, str, str, str] | None]:
     """Runs one test from a test file.
 
     Args:
@@ -247,7 +248,6 @@ def run_test(
         png_path_prefix: The path of the generated PNG file, to which
             are appended a hyphen-separated code point sequence and
             ``'.png'``. By default, only failed tests get PNGs.
-        color: Whether to print the diff in color if the test fails.
         incomplete: Whether the font uses a subset of the available
             glyphs such that glyph names cannot be tested and must be
             ignored, and whether some test failures are acceptable.
@@ -255,13 +255,15 @@ def run_test(
             result.
 
     Returns:
-        A tuple of two elements.
+        A tuple of three elements.
 
         1. Whether the test passed.
         2. A test line corresponding to the actual output. If the test
            passed, this is equivalent to the expected output. Otherwise,
            it is suitable as a replacement for the expected output in
            the test file if the actual output is correct.
+        3. A tuple of the first four arguments to pass to `print_diff`,
+           or ``None`` if there is no diff to print.
     """
     code_points, options, expected_output = line.split(':')
     p = subprocess.Popen(
@@ -286,9 +288,10 @@ def run_test(
     passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
         or incomplete and may_fail(code_points, actual_output)
     )
+    diff: tuple[str, str, str, str] | None = None
     if not passed or view_all:
         if not passed:
-            print_diff(code_points, options, actual_output, expected_output, color)
+            diff = (code_points, options, actual_output, expected_output)
         if not CI:
             png_path_prefix.parent.mkdir(parents=True, exist_ok=True)
             p = subprocess.Popen(
@@ -316,7 +319,7 @@ def run_test(
             p.wait()
             assert p.stderr is not None
             print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
-    return (passed, f'{code_points}:{options}:{actual_output}')
+    return passed, f'{code_points}:{options}:{actual_output}', diff
 
 
 if __name__ == '__main__':
@@ -346,28 +349,39 @@ if __name__ == '__main__':
     failed_dir = Path(sys.argv[0]).parent / 'failed' / Path(args.font).name
     failed_dir.mkdir(parents=True, exist_ok=True)
     assert isinstance(args.tests, list)  # type: ignore[misc]
+    assert isinstance(args.incomplete, bool)  # type: ignore[misc]
+    assert isinstance(args.view, bool)  # type: ignore[misc]
     for fn in args.tests:
         assert isinstance(fn, Path)
-        result_lines = []
-        passed_file = True
+        lines: list[tuple[int, str]] = []
         with fn.open(encoding='utf-8') as f:
             for line_number, line in enumerate(f, start=1):
-                line = line.rstrip()
+                lines.append((line_number, line.rstrip()))
+        futures: list[Future[tuple[bool, str, tuple[str, str, str, str] | None]] | None] = []
+        with ThreadPoolExecutor() as executor:
+            for line_number, line in lines:
                 if line and line[0] != '#':
-                    assert isinstance(args.incomplete, bool)  # type: ignore[misc]
-                    assert isinstance(args.view, bool)  # type: ignore[misc]
-                    passed_line, result_line = run_test(
+                    futures.append(executor.submit(
+                        run_test,
                         args.font,
                         line,
                         failed_dir / 'png' / fn.name / f'{line_number:03}',
-                        color,
                         args.incomplete,
                         args.view,
-                    )
-                    passed_file = passed_file and passed_line
-                    result_lines.append(result_line + '\n')
+                    ))
                 else:
-                    result_lines.append(line + '\n')
+                    futures.append(None)
+        result_lines = []
+        passed_file = True
+        for (_, line), future in zip(lines, futures, strict=True):
+            if future is not None:
+                passed_line, result_line, diff = future.result()
+                if diff is not None:
+                    print_diff(*diff, color)
+                passed_file = passed_file and passed_line
+                result_lines.append(result_line + '\n')
+            else:
+                result_lines.append(line + '\n')
         if not passed_file:
             with (failed_dir / fn.name).open('w', encoding='utf-8') as f:
                 f.writelines(result_lines)
