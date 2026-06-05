@@ -211,6 +211,9 @@ max-line-length = 169
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.uv]
+exclude-newer = "P7D"
+
 [tool.uv.pip]
 universal = true
 upgrade = true

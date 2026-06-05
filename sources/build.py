@@ -182,24 +182,27 @@ def _set_version(
         if release:
             release_suffix = ''
         else:
-            try:
-                if dirty:
-                    date = _get_date()
-                else:
-                    date = subprocess.check_output(
+            if dirty:
+                metadata = _get_date()
+            else:
+                try:
+                    metadata = subprocess.check_output(
                             ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
                             encoding='utf-8',
                         ).rstrip()
+                except (FileNotFoundError, subprocess.CalledProcessError):
+                    metadata = _get_date()
+            try:
                 git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
-                metadata = f'{date}.{git_hash}'
-                if dirty:
-                    git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
-                    try:
-                        metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
-                    except AttributeError:
-                        metadata += '.dirty'
+                metadata += f'.{git_hash}'
             except (FileNotFoundError, subprocess.CalledProcessError):
-                metadata = _get_date()
+                pass
+            if dirty:
+                try:
+                    git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
+                    metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
+                except (AttributeError, FileNotFoundError, subprocess.CalledProcessError):
+                    metadata += '.dirty'
             release_suffix = f'-alpha+{metadata}'
     name_table = tt_font['name']
     assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
