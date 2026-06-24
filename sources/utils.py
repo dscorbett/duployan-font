@@ -759,7 +759,7 @@ class PrefixView[T](MutableMapping[str, T]):
 
     def __init__(
         self,
-        source: function,  # noqa: F821
+        source: function,  # ruff: ignore[undefined-name]
         delegate: MutableMapping[str, T],
     ) -> None:
         """Initializes this `PrefixView`.

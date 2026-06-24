@@ -45,7 +45,7 @@ enable_error_code = [
     "unimported-reveal",
     "unused-awaitable",
 ]
-allow_redefinition_new = true
+allow_redefinition = true
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
@@ -58,9 +58,7 @@ disallow_untyped_decorators = true
 disallow_untyped_defs = true
 exclude_gitignore = true
 extra_checks = true
-local_partial_types = true
 no_implicit_reexport = true
-strict_bytes = true
 strict_equality = true
 strict_equality_for_none = true
 warn_redundant_casts = true

@@ -17,6 +17,6 @@
 -r requirements.in
 coverage ~= 7.6
 fontbakery[notofonts] >= 0.13, < 1.1.1
-mypy ~= 1.16
-ruff >= 0.14.11, != 0.15.3, < 0.15.17
+mypy == 2.*
+ruff >= 0.15.17, < 0.15.20
 uv >= 0.9.17, < 2

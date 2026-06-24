@@ -147,7 +147,7 @@ def _include_in_noto(schema: Schema) -> bool:
         # Digits can take combining marks. This is not technically
         # Duployan-specific behavior but most other fonts don’t support this.
         return True
-    if (schema.cmap not in gfsubsets.CodepointsInSubset('duployan', unique_glyphs=True)  # noqa: SIM103
+    if (schema.cmap not in gfsubsets.CodepointsInSubset('duployan', unique_glyphs=True)  # ruff: ignore[needless-bool]
         and gc[0] != 'M'
         and schema.joining_type == Type.NON_JOINING
         and not schema.encirclable

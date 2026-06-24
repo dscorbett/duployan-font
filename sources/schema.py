@@ -584,13 +584,13 @@ class Schema:
 
     @functools.cached_property
     def diacritic_angles(self) -> Mapping[str, float]:
-        """Returns the path’s diacritic angles.
+        """The path’s diacritic angles.
         """
         return self.path.calculate_diacritic_angles()
 
     @functools.cached_property
     def without_marks(self) -> Self:
-        """Returns this schema without its marks.
+        """This schema without its marks.
 
         If this schema has no marks, the return value is ``self``.
 
@@ -611,7 +611,7 @@ class Schema:
 
     @functools.cached_property
     def glyph_class(self) -> GlyphClass:
-        """Returns the glyph class of the glyph this schema represents.
+        """The glyph class of the glyph this schema represents.
         """
         guaranteed_glyph_class = self.path.guaranteed_glyph_class()
         return (guaranteed_glyph_class
@@ -625,7 +625,7 @@ class Schema:
 
     @functools.cached_property
     def ignorability(self) -> Ignorability:
-        """Returns the ignorability of this schema’s `cmap`.
+        """The ignorability of this schema’s `cmap`.
 
         If `cmap` is ``None``, it falls back to
         `Ignorability.DEFAULT_NO`.
@@ -639,7 +639,7 @@ class Schema:
 
     @functools.cached_property
     def might_need_width_markers(self) -> bool:
-        """Returns whether this schema might need width markers.
+        """Whether this schema might need width markers.
 
         Whether a schema really needs width markers also depends on
         details of the glyph which are not known till the glyph has
@@ -651,7 +651,7 @@ class Schema:
 
     @functools.cached_property
     def group(self) -> Hashable:
-        """Returns the schema’s group.
+        """The schema’s group.
 
         A group is like a hash, but instead of being an uninterpretable
         number, it may be any hashable value. Two schemas with equal
@@ -925,9 +925,8 @@ class Schema:
 
     @functools.cached_property
     def max_double_marks(self) -> int:
-        """Returns the maximum number of consecutive instances of
-        U+1BC9E DUPLOYAN DOUBLE MARK supported after this schema’s
-        glyph.
+        """The maximum number of consecutive instances of U+1BC9E
+        DUPLOYAN DOUBLE MARK supported after this schema’s glyph.
         """
         return (0
             if self.glyph_class != GlyphClass.JOINER and not (isinstance(self.path, Line) and self.path.dots)
@@ -935,13 +934,13 @@ class Schema:
 
     @functools.cached_property
     def pseudo_cursive(self) -> bool:
-        """Returns whether this schema joins pseudo-cursively.
+        """Whether this schema joins pseudo-cursively.
         """
         return self.glyph_class == GlyphClass.JOINER and bool(self.cps) and self.path.is_pseudo_cursive(self.size)
 
     @functools.cached_property
     def is_primary(self) -> bool:
-        """Returns whether this schema’s path is primary.
+        """Whether this schema’s path is primary.
 
         Raises:
             ValueError: If `path` does not support the notion of being
@@ -968,8 +967,8 @@ class Schema:
 
     @functools.cached_property
     def can_become_part_of_diphthong(self) -> bool:
-        """Returns whether this schema can give rise to a schema that is
-        part of a diphthong ligature.
+        """Whether this schema can give rise to a schema that is part of
+        a diphthong ligature.
 
         A schema that already is part of a diphthong ligature cannot
         *become* part of a diphthong ligature, so the return value for

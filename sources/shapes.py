@@ -2777,8 +2777,8 @@ class Circle(Shape):
 
     @functools.cached_property
     def _pre_stretch_values(self) -> tuple[float, float, float, float, float]:
-        """Returns various values related to drawing this circle before
-        it is stretched.
+        """Various values related to drawing this circle before it is
+        stretched.
 
         Stretching a glyph changes its angles. To make the final glyph
         use the specified `angle_in` and `angle_out`, it needs to start
@@ -3255,7 +3255,7 @@ class Complex(Shape):
 
     @functools.cached_property
     def base_index(self) -> int | None:
-        """Returns the index of this shape’s main component.
+        """The index of this shape’s main component.
 
         A complex shape may have multiple component shapes, but if only
         one is the main one that determines how phases should treat it,
@@ -3275,7 +3275,7 @@ class Complex(Shape):
 
     @functools.cached_property
     def _base_shape(self) -> Shape | None:
-        """Returns the shape of this shape’s main component.
+        """The shape of this shape’s main component.
 
         Returns:
             The shape of the component at the index indicated by

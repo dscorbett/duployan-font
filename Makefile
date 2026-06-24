@@ -37,7 +37,7 @@ endif
 unexport CHARSET
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
-HB_VERSION = 12.3.2
+HB_VERSION = 14.2.1
 NEXT_VERSION = $$(python -c 'v = "$(VERSION)".split("."); print(f"{v[0]}.{int(v[1]) + 1}")')
 
 CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
