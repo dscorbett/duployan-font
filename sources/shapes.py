@@ -4962,6 +4962,10 @@ class TangentHook(Complex):
         )
 
     @override
+    def can_be_child(self, size: float) -> bool:
+        return True
+
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         if context_in == NO_CONTEXT != context_out and not self._initial:
             assert not callable(self.instructions[1])
