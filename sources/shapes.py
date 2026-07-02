@@ -1665,10 +1665,10 @@ class Line(Shape):
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)
                 child_interval = length / (max_tree_width + 2)
-                for child in [0, 1]:
+                for child_layer in anchors.CHILD_EDGES:
                     for child_index in range(max_tree_width):
                         glyph.addAnchorPoint(
-                            anchors.CHILD_EDGES[child][child_index],
+                            child_layer[child_index],
                             'base',
                             child_interval * (child_index + 2),
                             0,
@@ -2355,18 +2355,18 @@ class Curve(Shape):
             max_tree_width = self.max_tree_width(size)
             child_interval = da / (max_tree_width + 2)
             if self.overlap_angle is None:
-                for child in [0, 1]:
+                for child_layer in anchors.CHILD_EDGES:
                     for child_index in range(max_tree_width):
                         glyph.addAnchorPoint(
-                            anchors.CHILD_EDGES[child][child_index],
+                            child_layer[child_index],
                             'base',
                             *_rect(r, math.radians(a1 + child_interval * (child_index + 2))),
                         )
             else:
                 overlap_exit_angle = self._get_angle_to_overlap_point(a1, a2, is_entry=False)
-                for child in [0, 1]:
+                for child_layer in anchors.CHILD_EDGES:
                     glyph.addAnchorPoint(
-                        anchors.CHILD_EDGES[child][0],
+                        child_layer[0],
                         'base',
                         *_rect(r, math.radians(overlap_exit_angle)),
                     )
@@ -2901,17 +2901,23 @@ class Circle(Shape):
             layers[0] += contour
         layers[0].draw(glyph.glyphPen())
         if joining_type != Type.NON_JOINING:
-            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', 0, 0)
-            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', 0, 0)
+            overlap_position = (0, 0) if size < 3 else _rect(r / 2, math.radians(330))
+            if not anchor:
+                for child_layer in anchors.CHILD_EDGES:
+                    for child_index in range(self.max_tree_width(size)):
+                        glyph.addAnchorPoint(child_layer[child_index], 'base', *overlap_position)
+            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *overlap_position)
+            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *overlap_position)
+            glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *overlap_position)
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
             glyph.addAnchorPoint(anchors.CURSIVE, 'exit', *exit)
-            glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', 0, 0)
+            glyph.addAnchorPoint(anchors.POST_HUB_CONTINUING_OVERLAP, 'entry', *overlap_position)
             if self.hub_priority(size) != HubPriority.NEVER:
                 glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', *entry)
             if self.hub_priority(size) != HubPriority.NORMAL:
                 glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'exit', *exit)
-            glyph.addAnchorPoint(anchors.SECANT, 'base', 0, 0)
-        glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', *_rect(0, 0))
+            glyph.addAnchorPoint(anchors.SECANT, 'base', *overlap_position)
+        glyph.addAnchorPoint(anchors.RELATIVE_NARROW, 'base', 0, 0)
         if self.stretch:
             theta = math.radians(stretch_axis_angle)
             matrix: fontTools.misc.transform.Transform = (
@@ -2956,7 +2962,7 @@ class Circle(Shape):
 
     @override
     def max_tree_width(self, size: float) -> int:
-        return 0
+        return 1
 
     @override
     def is_shadable(self) -> bool:
@@ -4372,6 +4378,14 @@ class Ou(Complex):
         for key in [*singular_anchor_points]:
             if key[0] not in {anchors.PRE_HUB_CURSIVE, anchors.POST_HUB_CURSIVE, anchors.CURSIVE} and max_size_i < len(singular_anchor_points[key]) >= 2:
                 singular_anchor_points[key] = [singular_anchor_points[key][max_size_i]]
+        center_key: tuple[str, _AnchorType] = (anchors.RELATIVE_NARROW, 'base')
+        off_center_key: tuple[str, _AnchorType] = (anchors.SECANT, 'base')
+        if center_key in singular_anchor_points and off_center_key in singular_anchor_points:
+            center_point = singular_anchor_points[center_key]
+            off_center_point = singular_anchor_points[off_center_key]
+            for key in [*singular_anchor_points]:
+                if singular_anchor_points[key] == off_center_point:
+                    singular_anchor_points[key] = center_point
         return effective_bounding_box, singular_anchor_points
 
     @override
