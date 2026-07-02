@@ -4711,6 +4711,10 @@ class Wa(Complex):
         return False
 
     @override
+    def max_tree_width(self, size: float) -> int:
+        return 0
+
+    @override
     def contextualize(self, context_in: Context, context_out: Context) -> Shape:
         context_in = context_in.clone(ignorable_for_topography=False)
         context_out = context_out.clone(ignorable_for_topography=False)
@@ -4823,6 +4827,10 @@ class Wi(Complex):
     """
 
     _CURVE_BIAS: Final[float] = 50
+
+    @override
+    def max_tree_width(self, size: float) -> int:
+        return 0
 
     @functools.cached_property
     def _has_only_one_curve(self) -> bool:
@@ -5049,6 +5057,10 @@ class XShape(Complex):
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', x_avg, y_avg)
         glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'entry', x_avg, y_avg)
         return effective_bounding_box
+
+    @override
+    def max_tree_width(self, size: float) -> int:
+        return 0
 
     @override
     def is_pseudo_cursive(self, size: float) -> bool:
