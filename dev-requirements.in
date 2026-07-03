@@ -18,5 +18,5 @@
 coverage ~= 7.6
 fontbakery[notofonts] >= 0.13, < 1.1.1
 mypy == 2.*
-ruff >= 0.15.17, < 0.15.20
+ruff >= 0.15.20, < 0.15.21
 uv >= 0.9.17, < 2

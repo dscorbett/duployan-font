@@ -93,44 +93,51 @@ exclude = [
 future-annotations = true
 ignore = [
     # Not appropriate for this project
-    "B011",
-    "D200",
-    "DOC502",
-    "EM",
-    "FBT002",
-    "FIX002",
-    "FURB154",
-    "FURB189",
-    "PLR5501",
-    "PT015",
-    "RET505",
-    "RUF002",
-    "RUF003",
-    "RUF021",
-    "RUF067",
-    "S101",
-    "S404",
-    "S603",
-    "S607",
-    "SIM105",
-    "SIM108",
-    "SIM300",
-    "TD001",
-    "TD002",
-    "TD003",
+    "ambiguous-unicode-character-comment",
+    "ambiguous-unicode-character-docstring",
+    "assert",
+    "assert-false",
+    "boolean-default-value-positional-argument",
+    "collapsible-else-if",
+    "docstring-extraneous-exception",
+    "f-string-in-exception",
+    "if-else-block-instead-of-if-exp",
+    "line-contains-todo",
+    "missing-todo-author",
+    "missing-todo-link",
+    "non-empty-init-module",
+    "parenthesize-chained-operators",
+    "pytest-assert-always-false",
+    "raw-string-in-exception",
+    "repeated-global",
+    "start-process-with-partial-path",
+    "subclass-builtin",
+    "subprocess-without-shell-equals-true",
+    "superfluous-else-return",
+    "suppressible-exception",
+    "suspicious-subprocess-import",
+    "unnecessary-multiline-docstring",
+    "yoda-conditions",
     # Too many false positives
-    "D205",
-    "PLR2004",  # https://github.com/astral-sh/ruff/issues/10009
-    "PLW2901",  # https://github.com/astral-sh/ruff/issues/17951
-    "SLF001",  # https://github.com/astral-sh/ruff/issues/9022
-    "TRY003",  # https://github.com/astral-sh/ruff/issues/14398
+    "magic-value-comparison",  # https://github.com/astral-sh/ruff/issues/10009
+    "missing-blank-line-after-summary",
+    "private-member-access",
+    "raise-vanilla-args",  # https://github.com/astral-sh/ruff/issues/14398
+    "redefined-loop-name",  # https://github.com/astral-sh/ruff/issues/17951
     # Too many true positives
-    "C901",
-    "D100",
-    "D102",
-    "FBT001",
-    "PLR09",
-    "PLR1702",
+    "boolean-type-hint-positional-argument",
+    "complex-structure",
+    "too-many-arguments",
+    "too-many-boolean-expressions",
+    "too-many-branches",
+    "too-many-locals",
+    "too-many-nested-blocks",
+    "too-many-positional-arguments",
+    "too-many-public-methods",
+    "too-many-return-statements",
+    "too-many-statements",
+    "undocumented-public-method",
+    "undocumented-public-module",
 ]
 preview = true
 select = ["ALL"]
@@ -179,28 +186,41 @@ extend-ignore-names = [
 [tool.ruff.lint.per-file-ignores]
 "sources/charsets/data.py" = [
     # Shape definitions are more maintainable one per line.
-    "E501",
+    "line-too-long",
 ]
 "sources/phases/**" = [
     # Phases must all have the same signature.
-    "ARG001",
+    "unused-function-argument",
     # Too many true positives
-    "D103",
+    "undocumented-public-function",
 ]
 "sources/shapes.py" = [
     # Shape classes are designed for inheritance. Even if a certain
     # method doesn’t use a certain argument, an override of it might.
-    "ARG002",
-    "PLR6301",
+    "no-self-use",
+    "unused-method-argument",
 ]
 "tests/run-tests.py" = [
     # Test results must be output.
-    "T20",
+    "print",
 ]
 "**.pyi" = [
     # Third-party names cannot be changed.
-    "A",
-    "N",
+    "builtin-argument-shadowing",
+    "builtin-attribute-shadowing",
+    "builtin-import-shadowing",
+    "builtin-variable-shadowing",
+    "dunder-function-name",
+    "error-suffix-on-exception-name",
+    "invalid-argument-name",
+    "invalid-class-name",
+    "invalid-first-argument-name-for-class-method",
+    "invalid-first-argument-name-for-method",
+    "invalid-function-name",
+    "invalid-module-name",
+    "mixed-case-variable-in-class-scope",
+    "mixed-case-variable-in-global-scope",
+    "stdlib-module-shadowing",
 ]
 
 [tool.ruff.lint.pycodestyle]

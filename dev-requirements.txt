@@ -53,7 +53,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via tqdm
 commandlines==0.4.1
     # via ufolint
-coverage==7.14.1
+coverage==7.14.3
     # via -r dev-requirements.in
 defcon==0.12.2
     # via
@@ -193,13 +193,13 @@ rstr==3.2.2
     # via
     #   -c dev-constraints.txt
     #   stringbrewer
-ruff==0.15.17
+ruff==0.15.20
     # via -r dev-requirements.in
 setuptools==82.0.1
     # via
     #   -c dev-constraints.txt
     #   glyphsets
-shaperglot==1.2.0
+shaperglot==1.2.1
     # via fontbakery
 skia-pathops==0.9.2
     # via
@@ -260,7 +260,7 @@ urllib3==2.7.0
     # via
     #   -c dev-constraints.txt
     #   requests
-uv==0.11.21
+uv==0.11.24
     # via -r dev-requirements.in
 vharfbuzz==0.3.1
     # via fontbakery
