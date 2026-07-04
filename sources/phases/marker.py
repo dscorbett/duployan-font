@@ -42,6 +42,7 @@ from shapes import GlyphClassSelector
 from shapes import Hub
 from shapes import HubPriority
 from shapes import InitialSecantMarker
+from shapes import LINE_FACTOR
 from shapes import LeftBoundDigit
 from shapes import Line
 from shapes import MarkAnchorSelector
@@ -51,11 +52,16 @@ from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
 import sifting
+from utils import CAP_HEIGHT
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
+from utils import MAX_DENOMINATOR_LENGTH
+from utils import MAX_NUMERATOR_LENGTH
 from utils import MINIMUM_STROKE_GAP
 from utils import NO_CONTEXT
 from utils import OrderedSet
+from utils import SMALL_DIGIT_FACTOR
+from utils import Type
 from utils import WIDTH_MARKER_PLACES
 from utils import WIDTH_MARKER_RADIX
 from utils import WidthEffect
@@ -87,18 +93,13 @@ def add_shims_for_pseudo_cursive(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    marker_lookup = Lookup(
-        'dist',
-        'dflt',
-    )
+    marker_lookup = Lookup('dist')
     deduplicate_marker_lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='root_parent_edge',
     )
     space_lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -242,13 +243,11 @@ def shrink_wrap_enclosing_circle(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='all',
         reverse=True,
     )
     dist_lookup = Lookup(
         'abvm',
-        'dflt',
         mark_filtering_set='all',
     )
     if len(original_schemas) != len(schemas):
@@ -303,6 +302,138 @@ def shrink_wrap_enclosing_circle(
     return [lookup, dist_lookup]
 
 
+def create_vertical_fractions(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup_rom = Lookup('rclt', 'ROM ')
+    lookup_dflt = Lookup('afrc', 'dflt')
+    dist_lookup = Lookup('dist')
+    if len(original_schemas) != len(schemas):
+        return [lookup_rom, lookup_dflt, dist_lookup]
+    dnom = []
+    numr = []
+    for schema in schemas:
+        match schema.feature_suffix:
+            case '.dnom':
+                classes['dnom'].append(schema)
+                dnom.append(schema)
+            case '.frac':
+                fraction_slash = schema
+            case '.numr':
+                classes['numr'].append(schema)
+                numr.append(schema)
+    full_side_bearing = dnom[0].side_bearing
+    external_side_bearing = full_side_bearing * (1 - SMALL_DIGIT_FACTOR)
+    max_width: float = max(schema.glyph.width - 2 * external_side_bearing for schema in dnom + numr)  # type: ignore[misc, union-attr]
+    named_lookups['afrc'] = Lookup()
+    for digits in [dnom, numr]:
+        for schema in digits:
+            if digits is numr:
+                y_min = CAP_HEIGHT / 2 + builder.light_line / 2 + builder.stroke_gap
+                y_max = y_min + SMALL_DIGIT_FACTOR * CAP_HEIGHT
+            else:
+                y_max = CAP_HEIGHT / 2 - builder.light_line / 2 - builder.stroke_gap
+                y_min = y_max - SMALL_DIGIT_FACTOR * CAP_HEIGHT
+            afrc_schema = schema.clone(
+                side_bearing=schema.side_bearing * SMALL_DIGIT_FACTOR
+                    + (max_width - (schema.glyph.width - 2 * external_side_bearing)) / 2,  # type: ignore[misc, union-attr]
+                y_min=y_min,
+                y_max=y_max,
+            )
+            classes['afrc'].append(afrc_schema)
+            classes['afrc_all'].append(afrc_schema)
+            classes[f'afrc_{'dnom' if digits is dnom else 'numr'}'].append(afrc_schema)
+            add_rule(named_lookups['afrc'], Rule([schema], [afrc_schema]))
+    dummy = Schema(None, Dummy(), 0)
+    classes['afrc_all'].append(dummy)
+    vinculums: dict[str, Schema] = {}
+    for lookup in [lookup_rom, lookup_dflt]:
+        vinculum_side_bearing = external_side_bearing if lookup is lookup_rom else full_side_bearing
+        add_rule(lookup, Rule('numr', 'numr', [], lookups=[None]))
+        for numr_length in range(MAX_NUMERATOR_LENGTH, 0, -1):
+            add_rule(lookup, Rule([], ['numr'] * numr_length, [fraction_slash, *['dnom'] * (MAX_DENOMINATOR_LENGTH + 1)], lookups=[None] * numr_length))
+            for dnom_length in range(MAX_DENOMINATOR_LENGTH, 0, -1):
+                if lookup is lookup_rom:
+                    vinculum_lookup_name = 'no_vinculum'
+                    vinculum = dummy
+                else:
+                    vinculum_width = max(numr_length, dnom_length)
+                    vinculum_lookup_name = f'vinculum_{vinculum_width}_{numr_length}'
+                    if vinculum_lookup_name in vinculums:
+                        vinculum = vinculums[vinculum_lookup_name]
+                    else:
+                        vinculum = vinculums[vinculum_lookup_name] = Schema(
+                            None,
+                            Line(0),
+                            (vinculum_width * max_width - builder.light_line) / LINE_FACTOR,
+                            Type.NON_JOINING,
+                            side_bearing=-max_width * (vinculum_width + numr_length) / 2,
+                            y_min=CAP_HEIGHT / 2 - builder.light_line / 2,
+                            cps=fraction_slash.cps,
+                        )
+                        classes['afrc_all'].append(vinculum)
+                if vinculum_lookup_name not in named_lookups:
+                    named_lookups[vinculum_lookup_name] = Lookup()
+                    add_rule(named_lookups[vinculum_lookup_name], Rule([fraction_slash], [vinculum]))
+                add_rule(lookup, Rule(
+                    [],
+                    [*['numr'] * numr_length, fraction_slash, *['dnom'] * dnom_length],
+                    [],
+                    lookups=[*['afrc'] * numr_length, vinculum_lookup_name, *['afrc'] * dnom_length],
+                ))
+                left_numr_offset = int(vinculum_side_bearing + max(0, dnom_length - numr_length) * max_width / 2)
+                add_rule(dist_lookup, Rule('afrc', 'afrc', 'afrc_all', x_placements=[None]))
+                add_rule(dist_lookup, Rule(
+                    [],
+                    'afrc_numr',
+                    [
+                        *['afrc_numr'] * (numr_length - 1),
+                        *([vinculum, *(['afrc_dnom'] * dnom_length if lookup is lookup_rom and numr_length < MAX_DENOMINATOR_LENGTH else [])]  # type: ignore[list-item]
+                            if lookup is lookup_rom or numr_length < MAX_NUMERATOR_LENGTH <= MAX_DENOMINATOR_LENGTH
+                            else []
+                        ),
+                    ],
+                    x_placements=[left_numr_offset],
+                    x_advances=[left_numr_offset],
+                ))
+                left_dnom_offset = -int(max_width * (numr_length + dnom_length) / 2)
+                right_dnom_offset = int(vinculum_side_bearing + max(0, numr_length - dnom_length) * max_width / 2)
+                if dnom_length == 1:
+                    add_rule(dist_lookup, Rule(
+                        [*(['afrc_numr'] * numr_length if lookup is lookup_rom and dnom_length < MAX_NUMERATOR_LENGTH else []), vinculum],
+                        ['afrc_dnom'],
+                        [],
+                        x_placements=[left_dnom_offset],
+                        x_advances=[left_dnom_offset + right_dnom_offset],
+                    ))
+                else:
+                    add_rule(dist_lookup, Rule(
+                        [*(['afrc_numr'] * numr_length if lookup is lookup_rom else []), vinculum],
+                        ['afrc_dnom'],
+                        ['afrc_dnom'] * (dnom_length - 1),
+                        x_placements=[left_dnom_offset],
+                        x_advances=[left_dnom_offset],
+                    ))
+                    add_rule(dist_lookup, Rule(
+                        [
+                            *([*(['afrc_numr'] * numr_length if lookup is lookup_rom and dnom_length < MAX_NUMERATOR_LENGTH else []), vinculum]
+                                if lookup is lookup_rom or dnom_length < MAX_DENOMINATOR_LENGTH <= MAX_NUMERATOR_LENGTH  # type: ignore[list-item]
+                                else []),
+                            *['afrc_dnom'] * (dnom_length - 1),
+                        ],
+                        'afrc_dnom',
+                        [],
+                        x_advances=[right_dnom_offset],
+                    ))
+    return [lookup_rom, lookup_dflt, dist_lookup]
+
+
 def add_width_markers(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -314,7 +445,7 @@ def add_width_markers(
 ) -> Sequence[Lookup]:
     lookups_per_position = 6
     lookups = [
-        Lookup('dist', 'dflt')
+        Lookup('dist')
         for _ in range(lookups_per_position)
     ]
     entry_width_markers: MutableMapping[tuple[int, int], Schema] = {}
@@ -599,7 +730,7 @@ def add_width_markers(
             if isinstance(expanded_schema.path, CompressedSequence):
                 cs_schemas.add(expanded_schema)
     decompression_lookups = [
-        Lookup('dist', 'dflt')
+        Lookup('dist')
         for _ in range(max(  # type: ignore[misc]
             max((s.path.depth for s in schemas if isinstance(s.path, CompressedSequence)), default=0),
             max((cs_schema.path.depth for cs_schema in cs_schemas), default=0),  # type: ignore[attr-defined, misc]
@@ -623,7 +754,7 @@ def add_end_markers_for_marks(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('dist', 'dflt')
+    lookup = Lookup('dist')
     end = next((s for s in new_schemas if isinstance(s.path, End)), None)
     if end is None:
         return []
@@ -649,15 +780,14 @@ def remove_false_end_markers(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES + fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
     if len(original_schemas) != len(schemas):
         return [lookup]
-    dummy = Schema(None, Dummy(), 0)
+    dummy = next((s for s in new_schemas if isinstance(s.path, Dummy)), None)
     end = next((s for s in new_schemas if isinstance(s.path, End)), None)
-    if end is None:
+    if dummy is None or end is None:
         return []
     add_rule(lookup, Rule([], [end], [end], [dummy]))
     return [lookup]
@@ -674,7 +804,6 @@ def clear_entry_width_markers(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
@@ -725,7 +854,6 @@ def sum_width_markers(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='all',
     )
     carry_schema = None
@@ -967,7 +1095,6 @@ def calculate_bound_extrema(
 ) -> Sequence[Lookup]:
     left_lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='ldx',
     )
@@ -978,7 +1105,6 @@ def calculate_bound_extrema(
     left_digit_schemas = {}
     right_lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='rdx',
     )
@@ -1042,7 +1168,6 @@ def remove_false_start_markers(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
         reverse=True,
@@ -1067,7 +1192,6 @@ def mark_hubs_after_initial_secants(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='all',
         reverse=True,
     )
@@ -1103,13 +1227,11 @@ def find_real_hub(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
     remove_steps_lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
         reverse=True,
@@ -1155,7 +1277,7 @@ def expand_start_markers(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('dist', 'dflt')
+    lookup = Lookup('dist')
     start = next((s for s in new_schemas if isinstance(s.path, Start)), None)
     if start is None:
         return []
@@ -1177,19 +1299,16 @@ def mark_maximum_bounds(
 ) -> Sequence[Lookup]:
     left_lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='ldx',
         reverse=True,
     )
     right_lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='rdx',
         reverse=True,
     )
     anchor_lookup = Lookup(
         'dist',
-        'dflt',
         mark_filtering_set='adx',
         reverse=True,
     )
@@ -1239,7 +1358,6 @@ def copy_maximum_left_bound_to_start(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'dist',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='almost_done',
     )
@@ -1285,7 +1403,7 @@ def dist(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('dist', 'dflt')
+    lookup = Lookup('dist')
     for schema in new_schemas:
         if (isinstance(schema.path, (LeftBoundDigit, RightBoundDigit, AnchorWidthDigit))
                 and schema.path.status == DigitStatus.DONE):
@@ -1310,6 +1428,7 @@ def dist(
 PHASE_LIST = [
     add_shims_for_pseudo_cursive,
     shrink_wrap_enclosing_circle,
+    create_vertical_fractions,
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,

@@ -41,9 +41,11 @@ from shapes import Line
 from shapes import Notdef
 import sifting
 from utils import BOLD_LIGHT_LINE
+from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
 from utils import DEFAULT_SIDE_BEARING
 from utils import GlyphClass
+from utils import KNOWN_LANGUAGES
 from utils import KNOWN_SCRIPTS
 from utils import MAX_TREE_DEPTH
 from utils import MAX_TREE_WIDTH
@@ -52,6 +54,7 @@ from utils import NO_CONTEXT
 from utils import PrefixView
 from utils import REGULAR_LIGHT_LINE
 from utils import SHADING_FACTOR
+from utils import SMALL_DIGIT_FACTOR
 from utils import Type
 from utils import mkmk
 
@@ -149,8 +152,9 @@ class Builder:
         feature = fontTools.feaLib.ast.FeatureBlock(feature_tag)
         for script in KNOWN_SCRIPTS:
             feature.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
-            feature.statements.append(fontTools.feaLib.ast.LanguageStatement('dflt'))
-            feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
+            for language in KNOWN_LANGUAGES:
+                feature.statements.append(fontTools.feaLib.ast.LanguageStatement(language))
+                feature.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup))
         self._fea.statements.append(feature)
 
     def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
@@ -403,7 +407,16 @@ class Builder:
                 elif anchor_class_name == anchors.MIDDLE:
                     glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_center)
                 elif anchor_class_name == anchors.ABOVE:
-                    glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_max + stroke_width / 2 + self.stroke_gap + self.light_line / 2)
+                    glyph.addAnchorPoint(
+                        anchor_class_name,
+                        'base',
+                        x_center,
+                        (CAP_HEIGHT / 2 + self.light_line / 2 + self.stroke_gap + SMALL_DIGIT_FACTOR * CAP_HEIGHT
+                                if schema.feature_suffix == '.dnom.afrc'
+                                else BRACKET_HEIGHT if schema.feature_suffix == '.dnom'
+                                else y_max + stroke_width / 2
+                            ) + self.stroke_gap + self.light_line / 2,
+                    )
                 elif anchor_class_name == anchors.BELOW:
                     glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_min - (stroke_width / 2 + self.stroke_gap + self.light_line / 2))
                 else:
@@ -431,10 +444,16 @@ class Builder:
             glyph.width = glyph.width
         return glyph
 
-    def _create_marker(self, schema: Schema) -> None:
+    def _create_marker(
+        self,
+        schema: Schema,
+        cmapped_anchors: AbstractSet[str],
+    ) -> None:
         assert schema.cmap is None, f'A marker has the code point U+{schema.cmap:04X}'
-        glyph = self._create_glyph(schema, set(), drawing=True)
-        glyph.width = 0
+        feature_suffix = schema.feature_suffix
+        glyph = self._create_glyph(schema, cmapped_anchors if feature_suffix == '.dnom.afrc' else set(), drawing=True)
+        if not feature_suffix or schema.cps == (0x2044,):
+            glyph.width = 0
 
     def _complete_gpos(self) -> None:
         mark_positions: collections.defaultdict[str, collections.defaultdict[tuple[float, float], fontTools.feaLib.ast.GlyphClass]] = (
@@ -660,7 +679,7 @@ class Builder:
         classes |= more_classes
         for schema in schemas.sorted(key=Schema.glyph_id_sort_key):
             if schema.glyph is None:
-                self._create_marker(schema)
+                self._create_marker(schema, cmapped_anchors)
         self._convert_classes(more_classes, class_asts)
         named_lookup_asts |= self._convert_named_lookups(more_named_lookups_with_phases, class_asts)
         features_to_scripts: collections.defaultdict[str, set[str]] = collections.defaultdict(set)

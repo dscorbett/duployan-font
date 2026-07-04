@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2023-2024 David Corbett
+# Copyright 2023-2024, 2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,10 +42,7 @@ def merge_lookalikes(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup(
-        'rlig',
-        'dflt',
-    )
+    lookup = Lookup('rlig')
     grouper = sifting.group_schemas(new_schemas)
     for group in grouper.groups():
         group.sort(key=Schema.sort_key)

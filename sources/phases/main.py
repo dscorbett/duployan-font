@@ -93,8 +93,8 @@ def dont_ignore_default_ignorables(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup_1 = Lookup('abvm', 'dflt')
-    lookup_2 = Lookup('abvm', 'dflt')
+    lookup_1 = Lookup('abvm')
+    lookup_2 = Lookup('abvm')
     for schema in schemas:
         if schema.ignorability == Ignorability.OVERRIDDEN_NO:
             add_rule(lookup_1, Rule([schema], [schema, schema]))
@@ -111,7 +111,7 @@ def reversed_circle_kludge(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('rlig', 'dflt')
+    lookup = Lookup('rlig')
     cgj = next((s for s in schemas if s.cmap == 0x034F), None)
     if cgj is None:
         return []
@@ -147,7 +147,6 @@ def validate_shading(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='independent_mark',
         reverse=True,
     )
@@ -175,7 +174,6 @@ def validate_double_marks(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='double_mark',
     )
     if len(original_schemas) != len(schemas):
@@ -204,7 +202,7 @@ def decompose(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('abvm', 'dflt')
+    lookup = Lookup('abvm')
     for schema in schemas:
         if schema.marks and schema in new_schemas:
             add_rule(lookup, Rule([schema], [schema.without_marks, *schema.marks]))
@@ -222,7 +220,6 @@ def expand_secants(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     if len(original_schemas) != len(schemas):
@@ -264,7 +261,6 @@ def validate_overlap_controls(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='overlap',
     )
     if len(original_schemas) != len(schemas):
@@ -322,7 +318,7 @@ def add_parent_edges(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('blwm', 'dflt')
+    lookup = Lookup('blwm')
     root_parent_edge = Schema(None, ParentEdge([]), 0, Type.NON_JOINING, side_bearing=0)
     root_only_parent_edge = Schema(None, RootOnlyParentEdge(), 0, Type.NON_JOINING, side_bearing=0)
     for child_index in range(MAX_TREE_WIDTH):
@@ -386,7 +382,6 @@ def invalidate_overlap_controls(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
         reverse=True,
@@ -461,7 +456,7 @@ def add_secant_guidelines(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('abvs', 'dflt')
+    lookup = Lookup('abvs')
     if len(original_schemas) != len(schemas):
         return [lookup]
     invalid_continuing_overlap = next(s for s in schemas if isinstance(s.path, InvalidOverlap) and s.path.continuing)
@@ -505,7 +500,6 @@ def add_placeholders_for_missing_children(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'blwm',
-        'dflt',
         mark_filtering_set='valid_final_overlap',
     )
     root_parent_edge = next((s for s in schemas if isinstance(s.path, ParentEdge)), None)
@@ -557,7 +551,6 @@ def categorize_edges(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'blwm',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
@@ -643,7 +636,7 @@ def promote_final_letter_overlap_to_continuing_overlap(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('rclt', 'dflt')
+    lookup = Lookup('rclt')
     continuing_overlap = None
     for schema in new_schemas:
         match schema:
@@ -710,7 +703,6 @@ def reposition_chinook_jargon_overlap_points(
     # Jargon abbreviations and a few similar patterns.
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='all',
         reverse=True,
     )
@@ -799,7 +791,7 @@ def make_mark_variants_of_children(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup('blwm', 'dflt')
+    lookup = Lookup('blwm')
     old_child_count = len(classes['child'])
     for schema in new_schemas:
         if isinstance(schema.path, ParentEdge) and schema.path.lineage:
@@ -829,7 +821,6 @@ def interrupt_overlong_primary_curve_sequences(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     dotted_circle = next(s for s in schemas if s.cmap == 0x25CC)
@@ -954,10 +945,7 @@ def reposition_stenographic_period(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup(
-        'rclt',
-        'dflt',
-    )
+    lookup = Lookup('rclt')
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
@@ -984,7 +972,6 @@ def disjoin_grammalogues(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='all',
     )
     if len(original_schemas) != len(schemas):
@@ -1041,7 +1028,6 @@ def join_with_next_step(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -1086,7 +1072,6 @@ def separate_subantiparallel_lines(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     lines_by_angle = collections.defaultdict(list)
@@ -1181,7 +1166,6 @@ def prepare_for_secondary_diphthong_ligature(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -1213,7 +1197,6 @@ def replace_medial_romanian_u(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -1238,13 +1221,9 @@ def join_with_previous(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup_1 = Lookup(
-        'rclt',
-        'dflt',
-    )
+    lookup_1 = Lookup('rclt')
     lookup_2 = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='all',
         reverse=True,
     )
@@ -1291,7 +1270,6 @@ def unignore_last_orienting_glyph_in_initial_sequence(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='i',
     )
     for schema in new_schemas:
@@ -1334,7 +1312,6 @@ def ignore_first_orienting_glyph_in_initial_sequence(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -1391,7 +1368,6 @@ def tag_main_glyph_in_orienting_sequence(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='dependent',
     )
     if len(original_schemas) != len(schemas):
@@ -1423,19 +1399,16 @@ def join_with_next(
 ) -> Sequence[Lookup]:
     pre_lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
         reverse=True,
     )
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set=phases.CONTINUING_OVERLAP_CLASS,
         reverse=True,
     )
     post_lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='continuing_overlap_after_secant',
         reverse=True,
     )
@@ -1500,7 +1473,6 @@ def join_circle_with_adjacent_nonorienting_glyph(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='ignored_for_topography',
         reverse=True,
     )
@@ -1539,7 +1511,6 @@ def ligate_diphthongs(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='ignored_for_topography',
         reverse=True,
     )
@@ -1603,7 +1574,6 @@ def dont_exit_early_in_orienting_sequence(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='all',
         reverse=True,
     )
@@ -1634,7 +1604,6 @@ def unignore_noninitial_orienting_sequences(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='i',
     )
     contexts_in: OrderedSet[Context] = OrderedSet()
@@ -1688,7 +1657,6 @@ def unignore_initial_orienting_sequences(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         mark_filtering_set='i',
         reverse=True,
     )
@@ -1743,7 +1711,6 @@ def join_double_marks(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='all',
     )
     for schema in new_schemas:
@@ -1774,7 +1741,6 @@ def rotate_diacritics(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='all',
     )
     new_base_anchors_and_contexts: OrderedSet[tuple[str, Context]] = OrderedSet()
@@ -1813,7 +1779,6 @@ def avoid_abrupt_inflections(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
     )
     if len(original_schemas) != len(schemas):
@@ -1906,7 +1871,6 @@ def avoid_cochiral_overlaps(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        'dflt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )
@@ -1992,7 +1956,6 @@ def shade(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='independent_mark',
     )
     dtls = next(s for s in schemas if isinstance(s.path, ValidDTLS))
@@ -2023,9 +1986,9 @@ def create_diagonal_fractions(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup_numr = Lookup('numr', 'dflt')
-    lookup_dnom = Lookup('dnom', 'dflt')
-    lookup_rlig = Lookup('rlig', 'dflt')
+    lookup_numr = Lookup('numr')
+    lookup_dnom = Lookup('dnom')
+    lookup_rlig = Lookup('rlig')
     if len(original_schemas) != len(schemas):
         return [lookup_numr, lookup_dnom, lookup_rlig]
     for schema in new_schemas:
@@ -2059,8 +2022,8 @@ def create_superscripts_and_subscripts(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup_sups = Lookup('sups', 'dflt')
-    lookup_subs = Lookup('subs', 'dflt')
+    lookup_sups = Lookup('sups')
+    lookup_subs = Lookup('subs')
     for schema in new_schemas:
         if schema.cmap is not None and chr(schema.cmap) in string.digits:
             classes['i'].append(schema)
@@ -2090,7 +2053,6 @@ def make_widthless_variants_of_marks(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rlig',
-        'dflt',
         mark_filtering_set='visible_mark',
     )
     first_iteration = 'i' not in classes

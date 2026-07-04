@@ -141,6 +141,16 @@ DEFAULT_SIDE_BEARING: Final[float] = 85
 EPSILON: Final[float] = 1e-5
 
 
+#: The maximum number of digits supported in the denominator of a
+#: vertical fraction.
+MAX_DENOMINATOR_LENGTH: Final[int] = 3
+
+
+#: The maximum number of digits supported in the numerator of a vertical
+#: fraction.
+MAX_NUMERATOR_LENGTH: Final[int] = 3
+
+
 #: The maximum depth of a shorthand overlap sequence, i.e. the maximum
 #: number of overlap controls connecting a child letter to the root of
 #: the tree, plus one for the root itself. The maximum known attested
@@ -330,6 +340,13 @@ if __debug__:
 #: The list of script tags that can appear in the generated font.
 KNOWN_SCRIPTS: Final[Iterable[str]] = sorted(KNOWN_SHAPE_PLANS)
 
+
+#: The list of language system tags that can appear in the generated
+#: font, plus ``'dflt'`` as the final element.
+KNOWN_LANGUAGES: Final[Sequence[str]] = (
+    'ROM ',
+    'dflt',
+)
 
 #: The set of features that should be included in the subsetted font.
 SUBSET_FEATURES: AbstractSet[str] = (frozenset(fontTools.subset.Options().layout_features)

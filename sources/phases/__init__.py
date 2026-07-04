@@ -99,6 +99,7 @@ import fontTools.otlLib.builder
 import schema
 from utils import GlyphClass
 from utils import KNOWN_FEATURES
+from utils import KNOWN_LANGUAGES
 from utils import KNOWN_SCRIPTS
 from utils import KNOWN_SHAPE_PLANS
 from utils import MAX_TREE_DEPTH
@@ -532,7 +533,7 @@ class Rule:
         def _l(glyphs: str | Sequence[schema.Schema | str] | None) -> Sequence[schema.Schema | str] | None:
             return [glyphs] if isinstance(glyphs, str) else glyphs
 
-        if a4 is None and lookups is None and x_advances is None:
+        if a4 is None and lookups is None and x_placements is None and x_advances is None:
             assert a3 is None, 'Rule takes 2 or 4 inputs, given 3'
             a4 = a2
             a2 = a1
@@ -766,13 +767,14 @@ class Rule:
 class Lookup:
     """An OpenType Layout lookup.
 
-    If `feature` and `language` are ``None``, this is a named lookup.
+    If `feature` and `languages` are ``None``, this is a named lookup.
     Otherwise, it is an anonymous lookup directly associated with a
     feature.
 
     Attributes:
         feature: This lookup’s feature tag, if anonymous.
-        language: This lookup’s language system tag, if anonymous.
+        languages: This lookup’s language system tags (and/or
+            ``'dflt'``), if anonymous.
         flags: The lookup flags.
         mark_filtering_set: The name of the glyph class used for the
             mark filtering set, if any.
@@ -799,7 +801,7 @@ class Lookup:
     def __init__(
             self,
             feature: str,
-            language: str,
+            languages: Sequence[str] | None = ...,
             *,
             flags: int = ...,
             mark_filtering_set: str | None = ...,
@@ -811,7 +813,7 @@ class Lookup:
     def __init__(
             self,
             feature: None = ...,
-            language: None = ...,
+            languages: None = ...,
             *,
             flags: int = ...,
             mark_filtering_set: str | None = ...,
@@ -822,7 +824,7 @@ class Lookup:
     def __init__(
             self,
             feature: str | None = None,
-            language: str | None = None,
+            languages: Sequence[str] | None = None,
             *,
             flags: int = 0,
             mark_filtering_set: str | None = None,
@@ -832,7 +834,11 @@ class Lookup:
 
         Args:
             feature: The ``feature`` attribute.
-            language: The ``language`` attribute.
+            languages: The ``languages`` attribute, or a ``str`` to set
+                ``languages`` to a singleton sequence containing it, or
+                ``None``. If ``feature`` is not ``None`` and this
+                argument is ``None``, the attribute is set to
+                `KNOWN_LANGUAGES`.
             flags: The ``flags`` attribute, except that the
                 ``UseMarkFilteringSet`` flag must not be set, even if
                 there is a mark filtering set.
@@ -843,12 +849,19 @@ class Lookup:
         assert mark_filtering_set is None or flags & fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS == 0, 'UseMarkFilteringSet is not useful with IgnoreMarks'
         if mark_filtering_set:
             flags |= fontTools.otlLib.builder.LOOKUP_FLAG_USE_MARK_FILTERING_SET
-        assert language is None or len(language) == 4, f'Language tag must be 4 characters long: {language!r}'
+        if languages is None:
+            if feature is not None:
+                languages = KNOWN_LANGUAGES
+        else:
+            if isinstance(languages, str):
+                languages = (languages,)
+            for language in languages:
+                assert len(language) == 4, f'Language system tag must be 4 characters long: {language!r}'
+                assert language in KNOWN_LANGUAGES, f'Unknown language system tag: {language!r}'
         assert feature is None or len(feature) == 4, f'Feature tag must be 4 characters long: {feature!r}'
-        assert (feature is None) == (language is None), 'Not clear whether this is a named or a normal lookup'
         assert feature is None or feature in KNOWN_FEATURES, f'Unknown feature: {feature!r}'
         self.feature: Final = feature
-        self.language: Final = language
+        self.languages: Final = languages
         self.flags: Final = flags
         self.mark_filtering_set: Final = mark_filtering_set
         self.required: Final = feature in REQUIRED_FEATURES
@@ -959,14 +972,15 @@ class Lookup:
             lookup_block = fontTools.feaLib.ast.LookupBlock(name)
             asts: fontTools.feaLib.ast.LookupBlock | tuple[fontTools.feaLib.ast.LookupBlock, fontTools.feaLib.ast.FeatureBlock] = lookup_block
         else:
-            assert self.language is not None
+            assert self.languages is not None
             lookup_block = fontTools.feaLib.ast.LookupBlock(f'lookup_{name}')
             feature_block = fontTools.feaLib.ast.FeatureBlock(self.feature)
             assert features_to_scripts is not None
             for script in self._get_sorted_scripts(features_to_scripts):
                 feature_block.statements.append(fontTools.feaLib.ast.ScriptStatement(script))
-                feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(self.language))
-                feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
+                for language in self.languages:
+                    feature_block.statements.append(fontTools.feaLib.ast.LanguageStatement(language))
+                    feature_block.statements.append(fontTools.feaLib.ast.LookupReferenceStatement(lookup_block))
             asts = (lookup_block, feature_block)
         lookup_block.statements.append(fontTools.feaLib.ast.LookupFlagStatement(
             self.flags,
@@ -1024,7 +1038,7 @@ class Lookup:
             ValueError: If the list of rules is frozen.
         """
         assert self.feature == other.feature, f"Incompatible features: '{self.feature}' != '{other.feature}'"
-        assert self.language == other.language, f"Incompatible languages: '{self.language}' != '{other.language}'"
+        assert self.languages == other.languages, f"Incompatible languages: '{self.languages}' != '{other.languages}'"
         assert self.required == other.required, f'Incompatible required values: {self.required} != {other.required}'
         assert self.reverse == other.reverse, f'Incompatible reverse values: {self.reverse} != {other.reverse}'
         for rule in other.rules:
