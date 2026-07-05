@@ -29,7 +29,7 @@ gfsubsets==2025.11.4
     # via -r requirements.in
 importlib-resources==7.1.0
     # via
-    #   -c dev-constraints.txt
+    #   -c constraints.txt
     #   gfsubsets
 librt==0.11.0 ; platform_python_implementation != 'PyPy'
     # via mypy

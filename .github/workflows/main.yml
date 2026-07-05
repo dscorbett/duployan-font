@@ -42,12 +42,12 @@ jobs:
             charset: testing
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
-          - build-venv: dev
+          - build-venv: build
             requirements: oldest
             charset: testing
             fontspector-version: 1.5.2
             harfbuzz-version: 8.1.0
-          - build-venv: dev
+          - build-venv: build
             requirements: newest
             charset: testing
             fontspector-version: *fontspector_version
@@ -225,7 +225,7 @@ jobs:
       - name: Install dev requirements
         run: |
           . dev-venv/bin/activate
-          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -c dev-constraints.txt pip
+          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -c dev-requirements.txt pip
           pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Test updating the requirements files
         if: matrix.coverage == ''
@@ -260,13 +260,13 @@ jobs:
           . dev-venv/bin/activate
           make -j 'CHARSET=${{ matrix.charset }}' COVERAGE=1 ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' check-coverage
       - name: Upload build artifacts
-        if: matrix.build-venv == 'build'
+        if: matrix.build-venv == 'build' && matrix.requirements == ''
         uses: actions/upload-artifact@v7
         with:
           name: fonts-${{ matrix.charset }}${{ matrix.unjoined && '-unjoined' || '' }}
           path: fonts
       - name: Cache the fonts for the next job
-        if: matrix.build-venv == 'build' || matrix.optimize != ''
+        if: matrix.build-venv == 'build' && matrix.requirements == '' || matrix.optimize != ''
         uses: actions/cache/save@v5
         with:
           key: ${{ github.run_id }}-${{ github.run_number }}-${{ matrix.optimize }}-${{ matrix.charset }}-${{ matrix.unjoined }}

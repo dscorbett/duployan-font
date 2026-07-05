@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
--c dev-constraints.txt
 -r requirements.in
 coverage ~= 7.6
 mypy == 2.*
