@@ -1986,31 +1986,23 @@ def create_diagonal_fractions(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup_numr = Lookup('numr')
     lookup_dnom = Lookup('dnom')
-    lookup_rlig = Lookup('rlig')
+    lookup_frac = Lookup('frac')
     if len(original_schemas) != len(schemas):
-        return [lookup_numr, lookup_dnom, lookup_rlig]
+        return [lookup_dnom, lookup_frac]
     for schema in new_schemas:
-        if schema.cmap is not None and chr(schema.cmap) in string.digits:
-            classes['digit'].append(schema)
-            classes['digit_or_slash'].append(schema)
-            dnom = schema.clone(cmap=None, y_max=SMALL_DIGIT_FACTOR * CAP_HEIGHT)
-            numr = schema.clone(cmap=None, y_min=(1 - SMALL_DIGIT_FACTOR) * CAP_HEIGHT)
-            classes['dnom'].append(dnom)
-            classes['numr'].append(numr)
-            classes['dnom_or_slash'].append(dnom)
-        elif schema.cmap == 0x2044:
-            slash = schema
-            classes['digit_or_slash'].append(schema)
-    valid_slash = slash.clone(cmap=None, side_bearing=-250)
-    classes['dnom_or_slash'].append(valid_slash)
-    add_rule(lookup_numr, Rule('digit', 'numr'))
-    add_rule(lookup_dnom, Rule('digit', 'dnom'))
-    add_rule(lookup_rlig, Rule('numr', [slash], [], [valid_slash]))
-    add_rule(lookup_rlig, Rule('dnom_or_slash', 'numr', [], 'dnom'))
-    add_rule(lookup_rlig, Rule('digit_or_slash', 'dnom', [], 'digit'))
-    return [lookup_numr, lookup_dnom, lookup_rlig]
+        match schema.cmap:
+            case 0x2044:
+                classes['frac_i'].append(schema)
+                classes['frac_o'].append(schema.clone(cmap=None, side_bearing=-250))
+            case int(cmap) if chr(cmap) in string.digits:
+                classes['dnom_i'].append(schema)
+                classes['dnom_o'].append(schema.clone(cmap=None, y_max=SMALL_DIGIT_FACTOR * CAP_HEIGHT))
+                classes['frac_i'].append(schema)
+                classes['frac_o'].append(schema.clone(cmap=None, y_min=(1 - SMALL_DIGIT_FACTOR) * CAP_HEIGHT))
+    add_rule(lookup_dnom, Rule('dnom_i', 'dnom_o'))
+    add_rule(lookup_frac, Rule('frac_i', 'frac_o'))
+    return [lookup_dnom, lookup_frac]
 
 
 def create_superscripts_and_subscripts(

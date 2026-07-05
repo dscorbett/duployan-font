@@ -58,6 +58,7 @@ from shapes import XShape
 from utils import BRACKET_DEPTH
 from utils import BRACKET_HEIGHT
 from utils import CAP_HEIGHT
+from utils import CLONE_DEFAULT
 from utils import CROSS_DEPTH
 from utils import CROSS_HEIGHT
 from utils import Context
@@ -146,6 +147,10 @@ def _include_in_noto(schema: Schema) -> bool:
     if char in f'{string.digits}\u2044':
         # Digits can take combining marks. This is not technically
         # Duployan-specific behavior but most other fonts don’t support this.
+        return True
+    if unicodedata.decomposition(char).startswith('<fraction>'):
+        # Fractions have a distinct appearance in Romanian and can take
+        # combining marks.
         return True
     if (schema.cmap not in gfsubsets.CodepointsInSubset('duployan', unique_glyphs=True)  # ruff: ignore[needless-bool]
         and gc[0] != 'M'
@@ -731,6 +736,34 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
             y_min=SUPERSCRIPT_HEIGHT - SMALL_DIGIT_FACTOR * CAP_HEIGHT if is_superscript else SUBSCRIPT_DEPTH,
             y_max=SUPERSCRIPT_HEIGHT if is_superscript else SUBSCRIPT_DEPTH + SMALL_DIGIT_FACTOR * CAP_HEIGHT,
             anchor=None if not is_mark else anchors.ABOVE if small_digit_cp % 16 ** 2 // 16 == 2 else anchors.BELOW,
+            cps=None,
+        ))
+    for fraction_cp in [
+        0x00BC, 0x00BD, 0x00BE, 0x2150, 0x2151, 0x2152, 0x2153, 0x2154, 0x2155, 0x2156, 0x2157, 0x2158, 0x2159, 0x215A, 0x215B, 0x215C, 0x215D, 0x215E, 0x2189,
+    ]:
+        decomposition_schemas = [
+            next((s for s in schemas if s.cmap == int(decomposition_cp, 16)), None)
+            for decomposition_cp in unicodedata.decomposition(chr(fraction_cp)).split()[1:]
+        ]
+        if None in decomposition_schemas:
+            continue
+        seen_fraction_slash = False
+        for i, decomposition_schema in enumerate(decomposition_schemas):
+            assert decomposition_schema is not None
+            if decomposition_schema.cmap == 0x2044:
+                seen_fraction_slash = True
+                decomposition_schemas[i] = decomposition_schema.clone(cmap=None, side_bearing=-250, cps=None)
+            else:
+                decomposition_schemas[i] = decomposition_schema.clone(
+                    cmap=None,
+                    y_min=CLONE_DEFAULT if seen_fraction_slash else (1 - SMALL_DIGIT_FACTOR) * CAP_HEIGHT,
+                    y_max=SMALL_DIGIT_FACTOR * CAP_HEIGHT if seen_fraction_slash else CLONE_DEFAULT,
+                    cps=None,
+                )
+        assert decomposition_schemas[0] is not None
+        schemas.append(decomposition_schemas[0].clone(
+            cmap=fraction_cp,
+            marks=decomposition_schemas[1:],  # type: ignore[arg-type]
             cps=None,
         ))
     match charset:

@@ -311,6 +311,7 @@ class Schema:
         (r' (MARK|SIGN)$', ''),
         (r'[- ]POINTING\b', ''),
         (r'^SHORTHAND FORMAT ', ''),
+        (r'\bVULGAR FRACTION ', ''),
         # Final munging
         (r'.+', lambda m: m.group(0).lower()),
         (r'[ -]+', '_'),
@@ -458,6 +459,7 @@ class Schema:
         """
         cmap_string = '' if self.cmap is None else chr(self.cmap)
         return (
+            not self.cps and not self.path.name_implies_type(),
             bool(self.cps) and any(unicodedata.category(chr(cp)) == 'Co' for cp in self.cps),
             self.phase_index,
             self.cmap is None,

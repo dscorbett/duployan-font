@@ -272,6 +272,7 @@ _COMMON_REQUIRED_FEATURES: Final[AbstractSet[str]] = {
 DISCRETIONARY_FEATURES: Final[AbstractSet[str]] = {
     *_COMMON_DISCRETIONARY_FEATURES,
     'dnom',
+    'frac',
     'numr',
 }
 

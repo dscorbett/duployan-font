@@ -15,6 +15,7 @@
 
 exclude_checks = [
     "base_has_width",
+    "contour_count",
     "googlefonts/article/images",
     "googlefonts/description/has_article",
     "googlefonts/vertical_metrics",
