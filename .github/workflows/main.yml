@@ -28,6 +28,7 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
+  FONTSPECTOR_VERSION: &fontspector_version 1.7.2
   HARFBUZZ_VERSION: &harfbuzz_version 14.2.1
   PYTHON_VERSION: 3.12
 jobs:
@@ -39,62 +40,77 @@ jobs:
           - build-venv: dev
             optimize: -O
             charset: testing
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             requirements: oldest
             charset: testing
+            fontspector-version: 1.5.2
             harfbuzz-version: 8.1.0
           - build-venv: dev
             requirements: newest
             charset: testing
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: standard
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: noto
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: testing
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: standard
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             optimize: -O
             charset: noto
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: testing
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: standard
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: noto
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: testing
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: standard
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: build
             charset: noto
             unjoined: unjoined
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
             charset: testing
             coverage: coverage
+            fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
     steps:
       - uses: actions/checkout@v6
@@ -161,6 +177,14 @@ jobs:
           sudo ninja install
       - name: Add site-packages to default search path
         run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
+      - name: Install Fontspector
+        if: matrix.coverage == ''
+        run: |
+          mkdir .fontspector
+          cd .fontspector
+          curl -L https://github.com/fonttools/fontspector/releases/download/fontspector-v${{ matrix.fontspector-version }}/fontspector-v${{ matrix.fontspector-version }}-x86_64-unknown-linux-gnu.tar.gz \
+          | tar -xz --strip-components 1
+          echo "$PWD" >>"$GITHUB_PATH"
       - name: Cache HarfBuzz
         if: matrix.coverage == ''
         id: cache-harfbuzz

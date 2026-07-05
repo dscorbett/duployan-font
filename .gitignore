@@ -18,6 +18,7 @@
 /setup-python-cache-key.txt
 /sync-[12].txt
 /tests/failed/
+/tests/fontspector-config.i.toml
 /*venv*/
 htmlcov/
 .DS_Store

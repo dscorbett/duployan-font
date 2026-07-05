@@ -1,6 +1,6 @@
 <!--
 Copyright 2022 Google LLC
-Copyright 2022-2024 David Corbett
+Copyright 2022-2024, 2026 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -48,8 +48,9 @@ correctly is a challenge.
 
 ## Testing
 
-The additional prerequisite for testing is:
+The additional prerequisites for testing are:
 
+* Fontspector 1.5.2 or later
 * HarfBuzz 8.1.0 or later
 
 To test the fonts, run:

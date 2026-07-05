@@ -69,7 +69,7 @@ endif
 BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py \
     --charset $(CHARSET) --name '$(FONT_FAMILY_NAME)' $(NOTO) $(RELEASE) $(UNJOINED) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
-UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t
+UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t -x 2
 
 .PHONY: all
 all: $(FONTS)
@@ -168,12 +168,15 @@ check-subset: $(addprefix check-subset-,$(FONTS))
 
 endif
 
-.PHONY: $(addprefix fontbakery-,$(SUFFIXES))
-$(addprefix fontbakery-,$(SUFFIXES)): fontbakery-%: %
-	fontbakery check-notofonts --configuration <($(UNIFDEF) tests/fontbakery-config.toml) --full-lists --skip-network $(filter %.$*,$(FONTS))
+tests/fontspector-config.i.toml: tests/fontspector-config.toml
+	$(UNIFDEF) -o $@ $<
 
-.PHONY: fontbakery
-fontbakery: $(addprefix fontbakery-,$(SUFFIXES))
+.PHONY: $(addprefix fontspector-,$(SUFFIXES))
+$(addprefix fontspector-,$(SUFFIXES)): fontspector-%: % tests/fontspector-config.i.toml
+	fontspector -p googlefonts --configuration $(word 2,$^) --full-lists --skip-network $(filter %.$*,$(FONTS))
+
+.PHONY: fontspector
+fontspector: $(addprefix fontspector-,$(SUFFIXES))
 
 .PHONY: mypy
 mypy:
@@ -184,7 +187,7 @@ ruff:
 	ruff check pyproject.toml sources tests typings
 
 .PHONY: check-fonts
-check-fonts: $(if $(UNJOINED),check-unjoined,check-shaping check-subset) fontbakery
+check-fonts: $(if $(UNJOINED),check-unjoined,check-shaping check-subset) fontspector
 
 .PHONY: check-sources
 check-sources: mypy ruff

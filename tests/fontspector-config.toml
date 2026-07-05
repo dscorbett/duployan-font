@@ -1,5 +1,5 @@
 # Copyright 2021 Google LLC
-# Copyright 2022-2026 David Corbett
+# Copyright 2022, 2024-2026 David Corbett
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,31 +16,28 @@
 exclude_checks = [
     "base_has_width",
     "contour_count",
-    "googlefonts/article/images",
-    "googlefonts/description/has_article",
-    "googlefonts/vertical_metrics",
-    "hinting_impact",
-    "math_signs_width",
-    "notofonts/hmtx/comma_period",
-    "notofonts/hmtx/encoded_latin_digits",
-    "notofonts/hmtx/whitespace_advances",
-    "opentype/gpos_kerning_info",
-    "ttx_roundtrip",
-#ifndef NOTO
+    "googlefonts/gasp",
+    "googlefonts/glyph_coverage",
     "googlefonts/metadata/unreachable_subsetting",
+    "googlefonts/render_own_name",
+    "googlefonts/repo/dirname_matches_nameid_1",
+    "googlefonts/vertical_metrics",
+    "ligature_carets",
+    "math_signs_width",
+    "gpos_kerning_info",
+    "rupee",
+#ifndef NOTO
     "googlefonts/name/line_breaks",
     "googlefonts/vendor_id",
-    "notofonts/name/designer",
-    "notofonts/name/manufacturer",
-    "notofonts/name/trademark",
-    "notofonts/vendor",
 #endif
 ]
 
-[overrides.valid_glyphnames]
-legacy-long-names = "PASS"
+[[overrides]]
+code = "legacy-long-names"
+status = "PASS"
+reason = "Long glyph names are fine in practice"
 
-#ifndef NOTO
-[overrides."notofonts/cmap/alien_codepoints"]
-pua-encoded = "PASS"
-#endif
+[[overrides]]
+code = "no-glyphset-supported"
+status = "SKIP"
+reason = "If no glyphset was found, there is nothing to check"
