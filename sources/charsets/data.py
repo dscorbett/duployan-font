@@ -213,6 +213,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     asterisk = Complex([(0.467, Line(270), True), (0.467, Line(90)), (0.467, Line(198)), (0.467, Line(18), True), (0.467, Line(126)), (0.467, Line(306), True), (0.467, Line(54)), (0.467, Line(234), True), (0.467, Line(342)), (0.467, Line(162), True)])
     asterism = Complex([*asterisk.instructions, (1.2, Line(60), True), *asterisk.instructions, (1.2, Line(300), True), *asterisk.instructions])
     plus = Complex([(0.414 * 2, Line(90)), (0.414, Line(270), True), (0.414, Line(180), True), (0.414 * 2, Line(0))])
+    short_left_tack = Complex([*plus.instructions[:-1], plus.instructions[-1]._replace(size=plus.instructions[-1].size / 2)])  # type: ignore[misc, union-attr]
+    short_right_tack = Complex([*short_left_tack.instructions[0:2], short_left_tack.instructions[3]])
     comma = Complex([(0.5, Circle(281, 281, clockwise=True)), (3, Curve(281, 221, clockwise=True), False, True)])
     turned_comma = Complex([(3, Curve(221, 281, clockwise=False)), (0.5, Circle(281, 281, clockwise=False))])
     slash = Line(60)
@@ -522,6 +524,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
         Schema(0x2197, northeast_arrow, 2.88, Type.NON_JOINING),
         Schema(0x2212, t, plus.instructions[0].size, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),  # type: ignore[misc, union-attr]
+        Schema(0x22A6, short_right_tack, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2309, right_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x230A, left_floor, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
@@ -532,6 +535,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=CROSS_HEIGHT),
         Schema(0x271D, cross, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x2ADE, short_left_tack, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E29, right_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E3C, x_mark, 0.5, Type.NON_JOINING),
