@@ -225,8 +225,9 @@ jobs:
       - name: Install dev requirements
         run: |
           . dev-venv/bin/activate
-          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -c dev-requirements.txt pip
-          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
+          if [ ${{ matrix.requirements }} = newest ]; then pip install pip==26.1; fi
+          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '--uploaded-prior-to P7D' }} --upgrade --upgrade-strategy eager -c dev-requirements.txt pip
+          pip install ${{ matrix.requirements != 'newest' && '--no-deps' || '--uploaded-prior-to P7D' }} --upgrade --upgrade-strategy eager -r dev-requirements.txt
       - name: Test updating the requirements files
         if: matrix.coverage == ''
         run: |
