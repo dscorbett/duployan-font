@@ -319,6 +319,7 @@ def tweak_font(
         os2_table.ySuperscriptYSize = os2_table.ySuperscriptXSize
         os2_table.ySuperscriptXOffset = 0
         os2_table.ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
+        os2_table.fsSelection |= 1 << 8
         os2_table.usDefaultChar = 0
         if bold:
             os2_table.usWeightClass = 700
