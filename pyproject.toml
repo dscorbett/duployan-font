@@ -28,7 +28,7 @@ exclude_also = [
     "^[\t\f ]*if TYPE_CHECKING:",
     "^[\t\f ]*raise NotImplementedError\\b",
 ]
-fail_under = 91
+fail_under = 96
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/typings"
