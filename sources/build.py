@@ -142,7 +142,7 @@ def _set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, v
                 version = name.string.removeprefix(VERSION_PREFIX)
             case 6:
                 postscript_name = name.string
-    name_table.setName(f'{version};{vendor};{postscript_name}', 3, name.platformID, name.platEncID, name.langID)
+    name_table.setName(f'{version};{vendor.rstrip()};{postscript_name}', 3, name.platformID, name.platEncID, name.langID)
 
 
 def _get_date() -> str:
