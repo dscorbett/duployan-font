@@ -127,7 +127,8 @@ $(addprefix $(INTERMEDIATE_PREFIX)fonts/$(FONT_FILE_NAME)/unhinted/ttf/$(FONT_FI
 
 .PHONY: clean
 clean: clean-coverage
-	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed coverage.json coverage.lcov coverage.xml htmlcov $(shell find . -name '*,cover')
+	$(RM) -r fonts $(INTERMEDIATE_PREFIX)fonts $(SUBSET_PREFIX)fonts tests/failed tests/fontspector-config.i.toml
+	$(RM) -r coverage.json coverage.lcov coverage.xml htmlcov $(shell find . -name '*,cover')
 	$(RM) -r sync-1-venv sync-2-venv sync-1.txt sync-2.txt
 
 .PHONY: clean-coverage
