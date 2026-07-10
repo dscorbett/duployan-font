@@ -52,6 +52,7 @@
 
 # A continuing overlap blocks contextualization.
 1BC03 1BCA1 1BC56::[u1BC03.t@0,0|u1BCA1.continuing_overlap@740,0|u1BC56_.romanian_u.180p0@1868,0|dupl_.Dot.0.rel1@2018,150|_@2333,0]
+1BC1A 1BCA1 1BC1B::[u1BC1A.n@0,0|u1BC1B.j@80,-80|_@1040,0]
 
 # Some letters can be parents but not children.
 1BC30 1BCA0 1BC03::[u1BC30.j_n@0,0|u1BC03.t@393,180|_@1133,0]

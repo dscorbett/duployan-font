@@ -1929,29 +1929,31 @@ def avoid_cochiral_overlaps(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
+        mark_filtering_set='overlap',
         reverse=True,
     )
     probably_smoothable_schemas: OrderedSet[Schema] = OrderedSet()
     maximum_unsmoothable_size = float('-inf')
     for schema in schemas:
-        if (schema.glyph_class == GlyphClass.JOINER
-            and isinstance(schema.path, (ComplexCurve, Curve))
-            and schema.path.angle_in % 90 == 0 and schema.path.angle_out % 90 == 0
-            and abs(schema.path.get_da()) % 360 > 90
-            and not schema.path.reversed_circle
-            and schema.path.entry_position == 1 and schema.path.exit_position == 1
-        ):
-            if schema.joining_type == Type.JOINING and schema in new_schemas:
-                if not (schema.path.smooth_1 or schema.path.smooth_2):
-                    probably_smoothable_schemas.add(schema)
-                elif schema.path.smooth_2 and schema not in original_schemas:
-                    classes['c2'].append(schema)
-            elif schema in original_schemas:
-                unsmoothable_size: float = (
-                    schema.size * (schema.path.instructions[0].size if isinstance(schema.path, ComplexCurve) else 1)  # type: ignore[misc, union-attr]
-                )
-                maximum_unsmoothable_size = max(maximum_unsmoothable_size, unsmoothable_size)
+        match schema:
+            case Schema(path=ComplexCurve() | Curve() as path, glyph_class=GlyphClass.JOINER) if (
+                path.angle_in % 90 == 0 and path.angle_out % 90 == 0
+                and abs(path.get_da()) % 360 > 90
+                and not path.reversed_circle
+                and path.entry_position == 1 and path.exit_position == 1
+            ):
+                if schema.joining_type == Type.JOINING and schema in new_schemas:
+                    if not (path.smooth_1 or path.smooth_2):
+                        probably_smoothable_schemas.add(schema)
+                    elif path.smooth_2 and schema not in original_schemas:
+                        classes['c2'].append(schema)
+                elif schema in original_schemas:
+                    unsmoothable_size: float = (
+                        schema.size * (path.instructions[0].size if isinstance(path, ComplexCurve) else 1)  # type: ignore[misc, union-attr]
+                    )
+                    maximum_unsmoothable_size = max(maximum_unsmoothable_size, unsmoothable_size)
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
+                classes['overlap'].append(schema)
     contexts_1: OrderedSet[str] = OrderedSet()
     contexts_2: OrderedSet[str] = OrderedSet()
     inputs: OrderedSet[tuple[Schema, str, str, str]] = OrderedSet()
