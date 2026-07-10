@@ -371,6 +371,64 @@ def _make_trees[E, N](
     return trees
 
 
+def invalidate_overlap_controls_for_restricted_classes(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup(
+        'rclt',
+        mark_filtering_set='all',
+        reverse=True,
+    )
+    valid_letter_overlap = None
+    restricted_classes: dict[str, int] = {}
+    for schema in new_schemas:
+        match schema:
+            case Schema(path=ChildEdge()):
+                valid_letter_overlap = schema
+                classes['all'].append(schema)
+                classes['valid'].append(valid_letter_overlap)
+            case Schema(path=ContinuingOverlap(), cps=[_, *_]):
+                valid_continuing_overlap = schema
+                classes['all'].append(schema)
+                classes['valid'].append(valid_continuing_overlap)
+            case Schema(path=InvalidOverlap(continuing=True)):
+                invalid_continuing_overlap = schema
+                classes['invalid'].append(invalid_continuing_overlap)
+            case Schema(path=InvalidOverlap()):
+                invalid_letter_overlap = schema
+                classes['invalid'].append(invalid_letter_overlap)
+            case Schema(glyph_class=GlyphClass.JOINER, max_tree_width=restricted_class_width) if restricted_class_width or schema.can_be_child():
+                classes['node'].append(schema)
+                restricted_class = None
+                match schema:
+                    case Schema(path=Circle() | Curve() | Ou() | RomanianU() | Wa() | Wi(), joining_type=Type.ORIENTING):
+                        restricted_class = 'circle'
+                    case Schema(path=Line(angle=angle, secant=None)):
+                        restricted_class = f'line_{angle % 180}'
+                if restricted_class is not None:
+                    classes[restricted_class].append(schema)
+                    restricted_classes[restricted_class] = max(restricted_class_width, restricted_classes.get(restricted_class, 0))
+    if valid_letter_overlap is None:
+        return []
+    for restricted_class, restricted_class_max_width in restricted_classes.items():
+        for older_sibling_count in range(restricted_class_max_width - 1, -1, -1):
+            for subtrees in _make_trees('node', 'valid', MAX_TREE_DEPTH, top_widths=[older_sibling_count]):
+                for younger_sibling_count in range(restricted_class_max_width - older_sibling_count - 1, -1, -1):
+                    add_rule(lookup, Rule(
+                        [restricted_class, *[valid_letter_overlap] * older_sibling_count],
+                        [valid_letter_overlap] if younger_sibling_count else 'valid',
+                        [*([*[valid_letter_overlap] * (younger_sibling_count - 1), 'valid'] if younger_sibling_count else []), *subtrees, restricted_class],  # type: ignore[list-item]
+                        'invalid',
+                    ))
+    return [lookup]
+
+
 def invalidate_overlap_controls(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -2094,6 +2152,7 @@ PHASE_LIST = [
     expand_secants,
     validate_overlap_controls,
     add_parent_edges,
+    invalidate_overlap_controls_for_restricted_classes,
     invalidate_overlap_controls,
     add_secant_guidelines,
     add_placeholders_for_missing_children,
