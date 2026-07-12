@@ -96,6 +96,8 @@ _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     0x031C, 0x0339, 0x0351, 0x0357,
     # Lockett’s Shorthand is not fully supported in Unicode.
     0x0325, 0x032E, 0x033D,
+    # Brandt’s Danish adaptation is not fully supported in Unicode.
+    0x0326, 0x1AB7,
     # U+034F COMBINING GRAPHEME JOINER creates reversed circle letters not
     # supported by Unicode. It is effectively a private use character.
     0x034F,
@@ -487,6 +489,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x0323, h, 0, anchor=anchors.BELOW),
         Schema(0x0324, diaeresis, 1, anchor=anchors.BELOW),
         Schema(0x0325, o, 1.33, anchor=anchors.BELOW),
+        Schema(0x0326, comma, 1, anchor=anchors.BELOW),
         Schema(0x0329, vertical_line, 0.2, anchor=anchors.BELOW),
         Schema(0x032E, breve, 1, anchor=anchors.BELOW),
         Schema(0x032F, inverted_breve, 1, anchor=anchors.BELOW),
@@ -496,6 +499,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x034F, cgj, 0, Type.NON_JOINING),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
+        Schema(0x1AB7, s_t, 1.9, anchor=anchors.BELOW),
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),

@@ -3240,10 +3240,10 @@ class Complex(Shape):
 
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        if any(not callable(op) and op.tick for op in self.instructions):
-            return 'tick'
         if joining_type != Type.ORIENTING:
             return ''
+        if any(not callable(op) and op.tick for op in self.instructions):
+            return 'tick'
         non_callables = (op for op in self.instructions if not callable(op))
         op = next(non_callables)
         assert not callable(op)
