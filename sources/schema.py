@@ -255,7 +255,6 @@ class Schema:
         (r'^uE000$', 'BOUND'),
         (r'^uE001$', 'LATIN CROSS POMMEE'),
         (r'^uE003$', 'HEART WITH CROSS'),
-        (r'^uE010$', 'TWO LINES JOINED CONVERGING LEFT'),
         (r'^uE011$', 'LEFT PARENTHESIS WITH STROKE'),
         (r'^uE012$', 'RIGHT PARENTHESIS WITH STROKE'),
         (r'^uE013$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),

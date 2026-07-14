@@ -301,7 +301,6 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     cross_knob_op = (0, Dot(3.64))
     cross_pommy = Complex([cross_knob_op, (3 + 2 * cross_knob_line_factor, Line(270)), cross_knob_op, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), cross_knob_op, (2 + 2 * cross_knob_line_factor, Line(0)), cross_knob_op])
     cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
-    converging_lines = Complex([(2.72, Line(9 + 180)), (2.72, Line(360 - 9))])
     sacred_heart = Complex([(10.584, Curve(38.184, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 321.816, clockwise=True, stretch=0.346, long=True)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].as_reversed(), True), *cross.instructions])  # type: ignore[index, misc, union-attr]
     parenthesis_stroke_size = 8
     parenthesis_stroke: Instructions = [(parenthesis_stroke_size / 2, Line(180), True), (parenthesis_stroke_size, Line(0)), (parenthesis_stroke_size / 2, Line(180), True)]
@@ -548,7 +547,6 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
         Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
-        Schema(0xE010, converging_lines, 1, Type.NON_JOINING),
         Schema(0xE011, left_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE012, right_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE013, left_parenthesis_with_double_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
