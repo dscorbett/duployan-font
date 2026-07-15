@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
     from collections.abc import Set as AbstractSet
     from concurrent.futures import Future
+    from typing import IO
 
 
 CI = os.getenv('CI') == 'true'
@@ -315,10 +316,12 @@ def run_test(
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 env={**os.environ, 'HB_SHAPER_LIST': ''},
+                encoding='utf-8',
             )
             p.wait()
-            assert p.stderr is not None
-            print(p.stderr.read().decode('utf-8'), end='', file=sys.stderr)
+            stderr: IO[str] | None = p.stderr
+            assert stderr is not None
+            print(stderr.read(), end='', file=sys.stderr)
     return passed, f'{code_points}:{options}:{actual_output}', diff
 
 
