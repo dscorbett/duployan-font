@@ -2248,6 +2248,11 @@ class Curve(Shape):
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         final_abs_da = abs(self.get_da())
+        unsmoothed_offset_1 = 90 if diphthong_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
+        unsmoothed_offset_2 = 90 if diphthong_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
+        unsmoothed_offset_angle_in = (self.angle_in - unsmoothed_offset_2 * (1 if self.clockwise else -1)) % 360
+        unsmoothed_offset_angle_out = (self.angle_out + unsmoothed_offset_1 * (1 if self.clockwise else -1)) % 360
+        relative_mark_angle = sum(self.get_normalized_angles(*self._pre_stretch(unsmoothed_offset_angle_in, unsmoothed_offset_angle_out)[0])) / 2
         smooth_delta = 45
         offset_1 = 90 if diphthong_1 else smooth_delta if self.smooth_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
         offset_2 = 90 if diphthong_2 else smooth_delta if self.smooth_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
@@ -2350,7 +2355,6 @@ class Curve(Shape):
             exit = (exit[0] + exit_delta[0], exit[1] + exit_delta[1])
             pen.lineTo(exit)
         pen.endPath()
-        relative_mark_angle = (a1 + a2) / 2
         if not anchor and joining_type != Type.NON_JOINING:
             max_tree_width = self.max_tree_width(size)
             child_interval = da / (max_tree_width + 2)
