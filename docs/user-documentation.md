@@ -106,6 +106,9 @@ join it to adjacent characters with a non-breaking space (U+202F NARROW NO-BREAK
 SPACE) or step (U+1BCA2 SHORTHAND FORMAT DOWN STEP or U+1BCA3 SHORTHAND FORMAT
 UP STEP).
 
+Cursive joining is disabled in Rawnd Musmus Duployan Uncow for compatibility
+with software in which the main fonts do not work.
+
 ### Overlapping characters
 
 Overlap trees are supported up to a width of 2, a depth of 2, and a breadth of

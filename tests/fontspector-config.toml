@@ -27,6 +27,7 @@ exclude_checks = [
     "gpos_kerning_info",
     "rupee",
 #ifndef NOTO
+    "googlefonts/font_names",
     "googlefonts/name/line_breaks",
     "googlefonts/vendor_id",
 #endif

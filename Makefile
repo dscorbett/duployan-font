@@ -21,18 +21,21 @@ WEIGHTS = $(VALID_WEIGHTS)
 ifdef RELEASE
     override RELEASE = --release
 endif
-ifdef UNJOINED
-    override UNJOINED = --unjoined
-endif
 ifdef NOTO
-    FONT_FAMILY_NAME = Noto Sans Duployan$(if $(UNJOINED), Unjoined)
+    TYPOGRAPHIC_FAMILY_NAME = Noto Sans Duployan
     CHARSET = noto
     VERSION = 3.003
     override NOTO = --noto
+ifdef UNJOINED
+	override UNJOINED = Unjoined
+endif
 else
-    FONT_FAMILY_NAME = $(if $(filter standard,$(CHARSET)),Rawnd Musmus,Ilo Snas) Duployan$(if $(UNJOINED), Uncow)
+    TYPOGRAPHIC_FAMILY_NAME = $(if $(filter standard,$(CHARSET)),Rawnd Musmus,Ilo Snas) Duployan
     CHARSET = standard
     VERSION = 2.0
+ifdef UNJOINED
+	override UNJOINED = Uncow
+endif
 endif
 unexport CHARSET
 SUFFIXES = $(VALID_SUFFIXES)
@@ -41,7 +44,7 @@ HB_VERSION = 14.2.1
 NEXT_VERSION = $$(python -c 'v = "$(VERSION)".split("."); print(f"{v[0]}.{int(v[1]) + 1}")')
 
 CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
-FONT_FILE_NAME = $(subst $(eval ) ,,$(FONT_FAMILY_NAME))
+FONT_FILE_NAME = $(subst $(eval ) ,,$(TYPOGRAPHIC_FAMILY_NAME)$(UNJOINED))
 FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FILE_NAME)/unhinted/$(suffix)/$(FONT_FILE_NAME)-,$(addsuffix .$(suffix),$(WEIGHTS))))
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
@@ -67,7 +70,7 @@ ifdef COVERAGE
     override COVERAGE = coverage run
 endif
 BUILD = PYTHONPATH="sources:$(PYTHONPATH)" $(COVERAGE) sources/build.py \
-    --charset $(CHARSET) --name '$(FONT_FAMILY_NAME)' $(NOTO) $(RELEASE) $(UNJOINED) --version $(VERSION)
+    --charset $(CHARSET) --name '$(TYPOGRAPHIC_FAMILY_NAME)' $(NOTO) $(RELEASE) $(if $(UNJOINED),--unjoined $(UNJOINED)) --version $(VERSION)
 RUN_TESTS = PYTHONPATH="sources:$(PYTHONPATH)" tests/run-tests.py
 UNIFDEF = unifdef -$(if $(NOTO),D,U)NOTO -t -x 2
 
@@ -226,11 +229,11 @@ release: RELEASE=1
 release:
 	test -z "$$(git status --porcelain --untracked-files=no)"
 	grep "^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*$(VERSION)[[:space:]]*$$" $(lastword $(MAKEFILE_LIST))
-	git tag --annotate --message='$(FONT_FAMILY_NAME) $(VERSION).0' $(FONT_FILE_NAME)-v$(VERSION).0
+	git tag --annotate --message='$(TYPOGRAPHIC_FAMILY_NAME) $(VERSION).0' $(FONT_FILE_NAME)-v$(VERSION).0
 	sed -i.bak "/^[[:space:]]*VERSION[[:space:]]*=[[:space:]]*$(VERSION)[[:space:]]*$$/s/=.*/= $(NEXT_VERSION)/" $(lastword $(MAKEFILE_LIST))
 	$(RM) $(lastword $(MAKEFILE_LIST)).bak
 	git add $(lastword $(MAKEFILE_LIST))
-	git commit --message "Prepare for $(FONT_FAMILY_NAME) $(NEXT_VERSION).0"
+	git commit --message "Prepare for $(TYPOGRAPHIC_FAMILY_NAME) $(NEXT_VERSION).0"
 
 .PHONY: sync-noto
 sync-noto:

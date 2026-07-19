@@ -100,7 +100,7 @@ These targets are affected by various variables:
   valid variants are `otf` and `ttf`. The default is both.
 * `NOTO`: If defined, build a Noto font.
 * `UNJOINED`: If defined, build an Unjoined font.
-* `FONT_FAMILY_NAME`: The name of the font.
+* `TYPOGRAPHIC_FAMILY_NAME`: The name of the font.
 * `VERSION`: The base version number. It is automatically augmented with various
   affixes.
 * `RELEASE`: If defined, this is a release build. This only affects the version

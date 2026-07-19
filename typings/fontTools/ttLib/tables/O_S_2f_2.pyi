@@ -1,7 +1,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
-# Copyright (c) 2025 David Corbett
+# Copyright (c) 2025-2026 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ from fontTools.ttLib.ttFont import TTFont
 
 class table_O_S_2f_2(DefaultTable):
     usWeightClass: int
+    usWidthClass: int
     ySubscriptXSize: int
     ySubscriptYSize: int
     ySubscriptXOffset: int

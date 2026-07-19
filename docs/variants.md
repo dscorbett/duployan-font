@@ -1,5 +1,5 @@
 <!--
-Copyright 2024 David Corbett
+Copyright 2024, 2026 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ Noto Sans Duployan is available from [the Noto Duployan repository](
 https://github.com/notofonts/duployan/releases) or from [Google Fonts](
 https://fonts.google.com/noto/specimen/Noto+Sans+Duployan). Noto Sans Duployan
 Unjoined is not an official Noto font.
+
+The non-Noto variants include the custom design axis CURS (“Cursive Joining”) in
+the STAT table. The Uncow variant has the axis value 0 and the Regular variant
+has the value 1.
 
 Ilo Snas Duployan adds some private use characters to make testing more
 convenient. They are only appropriate for testing the fonts during development.

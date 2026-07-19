@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING
 import cffsubr
 import fontTools.cffLib
 import fontTools.misc.timeTools
+import fontTools.otlLib.builder
 import fontTools.ttLib.tables.C_F_F_
 import fontTools.ttLib.tables.O_S_2f_2
 import fontTools.ttLib.tables._h_e_a_d
@@ -105,23 +106,92 @@ def _save_font(
     font.generate(output_path, flags=('no-hints', 'omit-instructions', 'opentype'))
 
 
-def _set_family_names(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, family_name: str, bold: bool) -> None:
-    """Sets names in a 'name' table that are related to a font name.
+def _set_style_attributes(
+        tt_font: fontTools.ttLib.ttFont.TTFont,
+        noto: bool,
+        unjoined: str | None,
+        bold: bool,
+    ) -> None:
+    """Sets style attributes in the OS/2, STAT, and 'head' tables.
+
+    Args:
+        tt_font: A font.
+        noto: Whether to use suppress the CURS axis in the STAT table.
+            (Noto does not include the unjoined variant.)
+        unjoined: The name of the CURS axis value if cursive joining is
+            disabled in this font, or else ``None``.
+        bold: Whether the font is bold.
+    """
+    os2_table = tt_font['OS/2']
+    assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
+    head_table = tt_font['head']
+    assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+    os2_table.usWeightClass = 700 if bold else 400
+    os2_table.usWidthClass = 5
+    os2_table.fsSelection &= ~(1 << 0 | 1 << (6 if bold else 5) | 1 << 9)
+    os2_table.fsSelection |= 1 << (5 if bold else 6)
+    if bold:
+        head_table.macStyle |= 1 << 0
+    else:
+        head_table.macStyle &= ~(1 << 0)
+    axes = [
+        {
+            'tag': 'wght',
+            'name': 'Weight',
+            'values': [{'value': os2_table.usWeightClass, 'name': 2, 'flags': 0x0 if bold else 0x2}],
+        },
+    ]
+    if not bold:
+        axes[0]['values'][0]['linkedValue'] = 700  # type: ignore[index]
+    if not noto:
+        axes.insert(0, {
+            'tag': 'CURS',
+            'name': 'Cursive Joining',
+            'values': [{'value': 1 if unjoined is None else 0, 'name': 'Regular' if unjoined is None else unjoined, 'flags': 0x2 if unjoined is None else 0x0}],
+        })
+    fontTools.otlLib.builder.buildStatTable(tt_font, axes, macNames=False)
+
+
+def _set_family_names(
+        name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e,
+        os2_table: fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2,
+        typographic_family_name: str,
+        noto: bool,
+        unjoined: str | None,
+        bold: bool,
+    ) -> None:
+    """Sets values in 'name' and OS/2 that are related to a font name.
 
     Args:
         name_table: A 'name' table.
-        family_name: The name of the font family (name ID 1).
+        os2_table: An OS/2 table.
+        typographic_family_name: The name of the font family (name ID 16).
+        noto: Whether to suppress name IDs 16 and 17. (They are only
+            necessary for the unjoined variants, which Noto does not
+            include.)
+        unjoined: The name of the CURS axis value if cursive joining is
+            disabled in this font, or else ``None``.
         bold: Whether a bold font is being built.
     """
     name_0 = name_table.names[0]
     platform_id = name_0.platformID
     encoding_id = name_0.platEncID
     language_id = name_0.langID
-    name_table.setName(family_name, 1, platform_id, encoding_id, language_id)
-    subfamily_name = 'Bold' if bold else 'Regular'
-    name_table.setName(subfamily_name, 2, platform_id, encoding_id, language_id)
-    name_table.setName(f'{family_name} {subfamily_name}', 4, platform_id, encoding_id, language_id)
-    name_table.setName(re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', f'{family_name}-{subfamily_name}'), 6, platform_id, encoding_id, language_id)
+    font_family_name = f'{typographic_family_name}{'' if unjoined is None else f' {unjoined}'}'
+    font_subfamily_name = 'Bold' if bold else 'Regular'
+    name_table.setName(font_family_name, 1, platform_id, encoding_id, language_id)
+    name_table.setName(font_subfamily_name, 2, platform_id, encoding_id, language_id)
+    name_table.setName(f'{font_family_name} {font_subfamily_name}', 4, platform_id, encoding_id, language_id)
+    name_table.setName(re.sub(r"[^!-$&-'*-.0-;=?-Z\\^-z|~]", '', f'{font_family_name}-{font_subfamily_name}'), 6, platform_id, encoding_id, language_id)
+    if unjoined is None:
+        os2_table.fsSelection |= 1 << 8
+    else:
+        if not noto:
+            name_table.setName(typographic_family_name, 16, platform_id, encoding_id, language_id)
+            name_table.setName(f'{unjoined} {font_subfamily_name}', 17, platform_id, encoding_id, language_id)
+            name_table.setName(font_family_name, 21, platform_id, encoding_id, language_id)
+            name_table.setName(font_subfamily_name, 22, platform_id, encoding_id, language_id)
+        os2_table.fsSelection &= ~(1 << 8)
 
 
 def _set_unique_id(name_table: fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e, vendor: str) -> None:
@@ -258,8 +328,9 @@ def _add_meta(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
 def tweak_font(
     font_path: str,
     builder: duployan.Builder,
-    family_name: str,
+    typographic_family_name: str,
     noto: bool,
+    unjoined: str | None,
     bold: bool,
     version: float,
     release: bool,
@@ -271,8 +342,11 @@ def tweak_font(
     Args:
         font_path: The file to load the font from and save it back to.
         builder: The font’s `Builder`.
-        family_name: The name of the font family.
+        typographic_family_name: The name of the font family (name ID
+            16).
         noto: Whether the font is a Noto font.
+        unjoined: The name of the CURS axis value if cursive joining is
+            disabled in this font, or else ``None``.
         bold: Whether the font is bold.
         version: The first two components of the font’s version number.
         release: Whether this is a release build.
@@ -319,16 +393,7 @@ def tweak_font(
         os2_table.ySuperscriptYSize = os2_table.ySuperscriptXSize
         os2_table.ySuperscriptXOffset = 0
         os2_table.ySuperscriptYOffset = round(utils.SUPERSCRIPT_HEIGHT - utils.SMALL_DIGIT_FACTOR * utils.CAP_HEIGHT)
-        os2_table.fsSelection |= 1 << 8
         os2_table.usDefaultChar = 0
-        if bold:
-            os2_table.usWeightClass = 700
-            os2_table.fsSelection |= 1 << 5
-            os2_table.fsSelection &= ~(1 << 0 | 1 << 6)
-            head_table.macStyle |= 1 << 0
-        else:
-            os2_table.fsSelection |= 1 << 6
-            os2_table.fsSelection &= ~(1 << 0 | 1 << 5)
 
         name_table = tt_font['name']
         assert isinstance(name_table, fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e)
@@ -348,7 +413,7 @@ def tweak_font(
         hhea_table = tt_font['hhea']
         assert isinstance(hhea_table, fontTools.ttLib.tables._h_h_e_a.table__h_h_e_a)
         hhea_table.lineGap = os2_table.sTypoLineGap
-        _set_family_names(name_table, family_name, bold)
+        _set_family_names(name_table, os2_table, typographic_family_name, noto, unjoined, bold)
         _set_version(tt_font, noto, version, release, dirty)
         _set_unique_id(name_table, os2_table.achVendID)
         if 'CFF ' in tt_font:
@@ -358,6 +423,8 @@ def tweak_font(
             max(os2_table.usWinAscent, head_table.yMax),
             max(os2_table.usWinDescent, -head_table.yMin),
         )
+
+        _set_style_attributes(tt_font, noto, unjoined, bold)
 
         _add_meta(tt_font)
 
@@ -393,8 +460,8 @@ def _make_font(options: argparse.Namespace) -> None:
     font.encoding = 'UnicodeFull'
     assert isinstance(options.bold, bool)  # type: ignore[misc]
     assert isinstance(options.charset, charsets.Charset)  # type: ignore[misc]
-    assert isinstance(options.unjoined, bool)  # type: ignore[misc]
-    builder = duployan.Builder(font, options.bold, options.charset, options.unjoined)
+    assert options.unjoined is None or isinstance(options.unjoined, str)  # type: ignore[misc]
+    builder = duployan.Builder(font, options.bold, options.charset, options.unjoined is not None)
     builder.build()
     dirty = _is_dirty()
     _prepare_environment_variables(dirty)
@@ -405,7 +472,7 @@ def _make_font(options: argparse.Namespace) -> None:
     assert isinstance(options.version, float)  # type: ignore[misc]
     assert isinstance(options.release, bool)  # type: ignore[misc]
     assert isinstance(options.fea, str)  # type: ignore[misc]
-    tweak_font(options.output, builder, options.name, options.noto, options.bold, options.version, options.release, dirty, options.fea)
+    tweak_font(options.output, builder, options.name, options.noto, options.unjoined, options.bold, options.version, options.release, dirty, options.fea)
 
 
 if __name__ == '__main__':
@@ -416,11 +483,11 @@ if __name__ == '__main__':
         help=f'The character set, one of {{{", ".join(c.value for c in charsets.Charset)}}} (default: %(default)s).',
     )
     parser.add_argument('--fea', metavar='FILE', required=True, help='feature file to add')
-    parser.add_argument('--name', required=True, help='The name of the font family (name ID 1).')
+    parser.add_argument('--name', required=True, help='The name of the font family (name ID 16).')
     parser.add_argument('--noto', action='store_true', help="Use Noto conventions in the 'name' table.")
     parser.add_argument('--output', metavar='FILE', required=True, help='output font')
     parser.add_argument('--release', action='store_true', help='Set the version number as appropriate for a stable release, as opposed to an alpha.')
-    parser.add_argument('--unjoined', action='store_true', help='Disable cursive joining.')
+    parser.add_argument('--unjoined', default=None, help='If set, the name of the axis value for disabled cursive joining. If not set, cursive joining is enabled.')
     parser.add_argument('--version', type=float, required=True, help='The base version number.')
     args = parser.parse_args()
     _make_font(args)
