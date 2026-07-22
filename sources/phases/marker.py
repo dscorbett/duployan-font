@@ -631,7 +631,7 @@ def add_width_markers(
                 (
                     exit_xs[anchor] - start_x if schema.glyph_class == GlyphClass.JOINER else 0,
                     AnchorWidthDigit,
-                ) for anchor in anchors.ALL_CURSIVE
+                ) for anchor in anchors.ALL_CURS
             ],
         ]
         for width, _ in widths:

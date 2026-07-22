@@ -3614,7 +3614,7 @@ class Complex(Shape):
                     last_y - this_y,
                 ))
             for anchor_and_type, points in proxy.anchor_points.items():
-                if len(points) == 1 and not (effective_bounding_box and anchor_and_type[0] != anchors.CURSIVE):
+                if len(points) == 1 and not (effective_bounding_box and anchor_and_type[0] not in anchors.ALL_CURSIVE):
                     singular_anchor_points[anchor_and_type].append(points[0])
             if not skip_drawing:
                 proxy.draw(pen, deferred_proxies)
@@ -4269,7 +4269,7 @@ class Ou(Complex):
                 (  # type: ignore[misc]
                     {anchors.PRE_HUB_CURSIVE: anchors.POST_HUB_CURSIVE, anchors.POST_HUB_CURSIVE: anchors.PRE_HUB_CURSIVE}.get(anchor_class_name, anchor_class_name),
                     anchor_type
-                        if anchor_class_name not in {anchors.PRE_HUB_CURSIVE, anchors.POST_HUB_CURSIVE, anchors.CURSIVE}
+                        if anchor_class_name not in anchors.ALL_CURSIVE
                         else {'entry': 'exit', 'exit': 'entry'}.get(anchor_type, anchor_type),
                     *anchor_details,
                 )
@@ -4380,7 +4380,7 @@ class Ou(Complex):
                 max_size_i = i
                 max_size = op.size
         for key in [*singular_anchor_points]:
-            if key[0] not in {anchors.PRE_HUB_CURSIVE, anchors.POST_HUB_CURSIVE, anchors.CURSIVE} and max_size_i < len(singular_anchor_points[key]) >= 2:
+            if key[0] not in anchors.ALL_CURSIVE and max_size_i < len(singular_anchor_points[key]) >= 2:
                 singular_anchor_points[key] = [singular_anchor_points[key][max_size_i]]
         center_key: tuple[str, _AnchorType] = (anchors.RELATIVE_NARROW, 'base')
         off_center_key: tuple[str, _AnchorType] = (anchors.SECANT, 'base')

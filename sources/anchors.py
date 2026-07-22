@@ -71,19 +71,19 @@ BELOW: Final[str] = 'blw'
 SECANT: Final[str] = 'sec'
 
 
-ALL_MKMK: Final[list[str]] = [
+ALL_MKMK: Final[Collection[str]] = (
     RELATIVE_NARROW,
     RELATIVE_WIDE,
     MIDDLE,
     ABOVE,
     BELOW,
-]
+)
 
 
-ALL_MARK: Final[list[str]] = [
+ALL_MARK: Final[Collection[str]] = (
     *ALL_MKMK,
     SECANT,
-]
+)
 
 
 PRE_HUB_CONTINUING_OVERLAP: Final[str] = 'hub1cont'
@@ -104,13 +104,20 @@ POST_HUB_CURSIVE: Final[str] = 'hub2cursive'
 CURSIVE: Final[str] = 'cursive'
 
 
-ALL_CURSIVE: Final[list[str]] = [
+ALL_CURSIVE: Final[Collection[str]] = (
+    PRE_HUB_CURSIVE,
+    POST_HUB_CURSIVE,
+    CURSIVE,
+)
+
+
+ALL_CURS: Final[Collection[str]] = (
     # The hub cursive anchors are intentionally skipped here: they are
     # duplicates of the standard cursive anchors used only to finagle the
     # baseline glyph into the root of the cursive attachment tree.
     CONTINUING_OVERLAP,
     CURSIVE,
-]
+)
 
 
-ALL: Final[Collection[str]] = ALL_MARK + ALL_CURSIVE
+ALL: Final[Collection[str]] = (*ALL_MARK, *ALL_CURS)

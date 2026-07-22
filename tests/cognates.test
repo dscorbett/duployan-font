@@ -30,6 +30,7 @@ EC06 EC06::[uEC06.reversed_l.tick@429,0|uEC06.reversed_l@0,-571|_@1169,0]
 1BC0A 1BC05::[u1BC0A.g.tick@201,0|u1BC05.k@0,-550|_@1018,0]
 1BC0B 1BC06::[u1BC0B.r.tick@0,0|u1BC06.l@1071,929|_@1811,0]
 1BC11 1BC11::[u1BC03.t.tick@0,0|dupl_.Dot.1.rel1@236,70|u1BC03.t@500,-100|dupl_.Dot.1.rel1@736,-30|_@1240,0]
+1BC4F 1BC05::[u1BC4F.long_i.tick@201,550|u1BC05.k@0,0|_@585,0]
 
 # No tick
 1BC03 1BC1A::[u1BC03.t@0,720|u1BC1A.n@500,0|_@1040,0]
