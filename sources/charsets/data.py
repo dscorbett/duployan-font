@@ -311,6 +311,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     parenthesis_double_stroke = [(parenthesis_stroke_gap / 2, Line(90), True), *parenthesis_stroke, (parenthesis_stroke_gap, Line(270), True), *parenthesis_stroke, (parenthesis_stroke_gap / 2, Line(90), True)]
     left_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(180 + parenthesis_angle, 270, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(270, 360 - parenthesis_angle, clockwise=False))])
     right_parenthesis_with_double_stroke = Complex([(parenthesis_with_stroke_size, Curve(parenthesis_angle, 90, clockwise=False)), *parenthesis_double_stroke, (parenthesis_with_stroke_size, Curve(90, 180 - parenthesis_angle, clockwise=False))])
+    up_harpoon_right_barb = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR, Line(90)), (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR * 0.25, Line(315))])
+    down_harpoon_left_barb = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR, Line(270)), (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR * 0.25, Line(135))])
     vertical_line_with_stroke = Complex([(parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270)), *parenthesis_stroke, (parenthesis_with_stroke_size * RADIUS / LINE_FACTOR / 2, Line(270))])
     stenographic_semicolon = Complex([*semicolon.instructions[:-1], *[op if callable(op) else (0.5 * op[0], *op[1:]) for op in multiplication.instructions]])  # type: ignore[misc]
     stenographic_question = Complex([*[op if callable(op) else op._replace(size=0.5 * op.size) for op in multiplication.instructions], (0.2, Line(90), True), *question.instructions[1:]])
@@ -526,6 +528,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20DD, circle, 10, anchor=anchors.MIDDLE),
         Schema(0x2197, northeast_arrow, 2.88, Type.NON_JOINING),
+        Schema(0x21BE, up_harpoon_right_barb, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x21C3, down_harpoon_left_barb, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2212, t, plus.instructions[0].size, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),  # type: ignore[misc, union-attr]
         Schema(0x22A6, short_right_tack, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x2308, left_ceiling, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
