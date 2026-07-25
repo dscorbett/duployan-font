@@ -1900,6 +1900,10 @@ class Curve(Shape):
             create a more gradual inflection with the preceding shape.
     """
 
+    #: The angle by which to change a curve’s angles during contextual
+    #: smoothing.
+    SMOOTH_DELTA: Final = 45
+
     @override
     def __init__(
         self,
@@ -2253,9 +2257,8 @@ class Curve(Shape):
         unsmoothed_offset_angle_in = (self.angle_in - unsmoothed_offset_2 * (1 if self.clockwise else -1)) % 360
         unsmoothed_offset_angle_out = (self.angle_out + unsmoothed_offset_1 * (1 if self.clockwise else -1)) % 360
         relative_mark_angle = sum(self.get_normalized_angles(*self._pre_stretch(unsmoothed_offset_angle_in, unsmoothed_offset_angle_out)[0])) / 2
-        smooth_delta = 45
-        offset_1 = 90 if diphthong_1 else smooth_delta if self.smooth_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
-        offset_2 = 90 if diphthong_2 else smooth_delta if self.smooth_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
+        offset_1 = 90 if diphthong_1 else self.SMOOTH_DELTA if self.smooth_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
+        offset_2 = 90 if diphthong_2 else self.SMOOTH_DELTA if self.smooth_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
         offset_angle_in = (self.angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
         offset_angle_out = (self.angle_out + offset_1 * (1 if self.clockwise else -1)) % 360
         (
@@ -2490,7 +2493,7 @@ class Curve(Shape):
             rv = rv.clone(hook=True, secondary=self.secondary).as_reversed()
             if rv.context_in().angle == context_in.angle:
                 if rv.entry_position == 1:
-                    rv = Complex([
+                    rv = ComplexCurve([
                         (0.5, Curve((rv.angle_in + 90 * (1 if rv.clockwise else -1)) % 360, rv.angle_in, clockwise=rv.clockwise)),
                         (1, rv),
                     ])

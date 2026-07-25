@@ -1934,6 +1934,7 @@ def avoid_cochiral_overlaps(
     )
     probably_smoothable_schemas: OrderedSet[Schema] = OrderedSet()
     maximum_unsmoothable_size = float('-inf')
+    vowel_schemas = []
     for schema in schemas:
         match schema:
             case Schema(path=ComplexCurve() | Curve() as path, glyph_class=GlyphClass.JOINER) if (
@@ -1947,11 +1948,17 @@ def avoid_cochiral_overlaps(
                         probably_smoothable_schemas.add(schema)
                     elif path.smooth_2 and schema not in original_schemas:
                         classes['c2'].append(schema)
-                elif schema in original_schemas:
-                    unsmoothable_size: float = (
-                        schema.size * (path.instructions[0].size if isinstance(path, ComplexCurve) else 1)  # type: ignore[misc, union-attr]
-                    )
-                    maximum_unsmoothable_size = max(maximum_unsmoothable_size, unsmoothable_size)
+                elif (schema in original_schemas
+                    and isinstance(path, Curve)
+                    and issubclass(schema.original_shape, Curve)
+                    and not (schema.diphthong_1 or schema.diphthong_2)
+                    and not (path.smooth_1 or path.smooth_2)
+                    and schema.context_in.angle is not None and schema.context_out.angle is not None
+                ):
+                    if schema in new_schemas:
+                        classes['v'].append(schema)
+                        vowel_schemas.append(schema)
+                    maximum_unsmoothable_size = max(maximum_unsmoothable_size, schema.size)
             case Schema(path=ContinuingOverlap(), cps=[_, *_]):
                 classes['overlap'].append(schema)
     contexts_1: OrderedSet[str] = OrderedSet()
@@ -1972,36 +1979,58 @@ def avoid_cochiral_overlaps(
         offset_context_1 = f'c2_{(schema.path.angle_out - 90 * (1 if schema.path.clockwise else -1)) % 360}_{schema.path.clockwise}'
         offset_context_2 = f'c1_{(schema.path.angle_in + 90 * (1 if schema.path.clockwise else -1)) % 360}_{schema.path.clockwise}'
         inputs.add((schema, context_2, offset_context_1, offset_context_2))
-    for iteration in range(3):
+    for vowel_schema in vowel_schemas:
+        assert vowel_schema.context_in.angle is not None
+        assert vowel_schema.context_out.angle is not None
+        context_in = vowel_schema.context_in.clone(angle=(vowel_schema.context_in.angle + Curve.SMOOTH_DELTA * (1 if vowel_schema.context_in.clockwise else -1)) % 360)
+        context_out = vowel_schema.context_out.clone(
+            angle=(vowel_schema.context_out.angle - Curve.SMOOTH_DELTA * (1 if vowel_schema.context_out.clockwise else -1)) % 360,
+        )
+        new_vowel_schema = vowel_schema.contextualize(context_in, context_out)
+        assert isinstance(new_vowel_schema.path, (ComplexCurve, Curve))
+        assert isinstance(vowel_schema.path, Curve)
+        if new_vowel_schema.path.clockwise is not vowel_schema.path.clockwise:
+            new_vowel_schema = vowel_schema.clone(path=vowel_schema.path.clone(secondary=not vowel_schema.path.secondary)).contextualize(context_in, context_out)
+            assert isinstance(new_vowel_schema.path, (ComplexCurve, Curve))
+            assert new_vowel_schema.path.clockwise is vowel_schema.path.clockwise, (
+                f'Cannot make {vowel_schema} be {'clockwise' if vowel_schema.path.clockwise else 'counterclockwise'}; contextualization produces {new_vowel_schema}'
+            )
+        classes['v'].append(new_vowel_schema)
+        classes['vi'].append(vowel_schema)
+        classes['vo'].append(new_vowel_schema)
+    add_rule(lookup, Rule([], 'vi', 'c2', 'vo'))
+    for iteration in ('classify', 'medial', 'non-medial'):
         for schema, context_2, offset_context_1, offset_context_2 in inputs:
             assert isinstance(schema.path, (ComplexCurve, Curve))
-            if iteration != 2 and offset_context_1 in contexts_2 and offset_context_2 in contexts_1:
+            if iteration != 'non-medial' and offset_context_1 in contexts_2 and offset_context_2 in contexts_1:
                 input_class = f'i12_{context_2}'
-                if iteration == 0:
-                    classes[input_class].append(schema)
                 output_class = f'o12_{context_2}'
-                if iteration == 0:
+                if iteration == 'classify':
+                    classes[input_class].append(schema)
                     classes[output_class].append(schema.clone(cmap=None, path=schema.path.smooth(smooth_1=True, smooth_2=True)))
                 else:
                     add_rule(lookup, Rule(offset_context_2, input_class, 'c2', output_class))
-            if iteration != 1 and offset_context_1 in contexts_2:
+                    add_rule(lookup, Rule(offset_context_2, input_class, ['v', 'c2'], output_class))
+                    add_rule(lookup, Rule([offset_context_2, 'v'], input_class, 'c2', output_class))
+                    add_rule(lookup, Rule([offset_context_2, 'v'], input_class, ['v', 'c2'], output_class))
+            if iteration != 'medial' and offset_context_1 in contexts_2:
                 input_class = 'i1'
-                if iteration == 0:
-                    classes[input_class].append(schema)
                 output_class = 'o1'
-                if iteration == 0:
+                if iteration == 'classify':
+                    classes[input_class].append(schema)
                     classes[output_class].append(schema.clone(cmap=None, path=schema.path.smooth(smooth_1=True)))
                 else:
                     add_rule(lookup, Rule([], input_class, 'c2', output_class))
-            if iteration != 1 and offset_context_2 in contexts_1:
+                    add_rule(lookup, Rule([], input_class, ['v', 'c2'], output_class))
+            if iteration != 'medial' and offset_context_2 in contexts_1:
                 input_class = f'i2_{context_2}'
-                if iteration == 0:
-                    classes[input_class].append(schema)
                 output_class = f'o2_{context_2}'
-                if iteration == 0:
+                if iteration == 'classify':
+                    classes[input_class].append(schema)
                     classes[output_class].append(schema.clone(cmap=None, path=schema.path.smooth(smooth_2=True)))
                 else:
                     add_rule(lookup, Rule(offset_context_2, input_class, [], output_class))
+                    add_rule(lookup, Rule([offset_context_2, 'v'], input_class, [], output_class))
     return [lookup]
 
 
