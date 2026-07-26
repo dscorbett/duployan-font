@@ -98,11 +98,11 @@ It is usually negative,
 since the cursive entry point generally appears within the bounding box.
 U+1BC08 DUPLOYAN LETTER D’s left bound width is −35.
 
-A glyph’s entry width (`idx`) is measured from its overlap entry point to its
+A glyph’s ingress width (`idx`) is measured from its overlap entry point to its
 cursive entry point.
 It is negative for a left-to-right glyph and positive for a right-to-left glyph.
-U+1BC08 DUPLOYAN LETTER D’s entry width is −250 because its overlap entry point
-is one quarter along the stroke.
+U+1BC08 DUPLOYAN LETTER D’s ingress width is −250 because its overlap entry
+point is one quarter along the stroke.
 Overlaps are a non-default form of cursive connection controlled by U+1BCA0
 SHORTHAND FORMAT LETTER OVERLAP and U+1BCA1 SHORTHAND FORMAT CONTINUING OVERLAP.
 They have no analogue in other scripts.
@@ -152,8 +152,8 @@ benefits in 'CFF ', GSUB, and 'hmtx' are too hard to predict.
 ## The algorithm (simplified)
 
 Every cursive glyph is replaced by itself preceded by a `_.START` glyph and
-followed by its entry, left bound, right bound, and multiple anchor widths, and
-an `_.END` glyph.
+followed by its ingress, left bound, right bound, and multiple anchor widths,
+and an `_.END` glyph.
 The order of the anchor widths is arbitrary but consistent between glyphs.
 The values of the widths are calculated at build time:
 there is no way to get this information at runtime.
@@ -197,7 +197,7 @@ The left bound width markers are slightly different:
 These are then copied, with fully capitalized glyph names,
 over the placeholder left bound width markers that precede `_.START`.
 
-Entry width markers do not get capitalized glyphs.
+Ingress width markers do not get capitalized glyphs.
 They are only used to calculate anchor widths
 and by this point have fulfilled their purpose.
 

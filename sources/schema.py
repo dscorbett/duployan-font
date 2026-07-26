@@ -25,7 +25,6 @@ import re
 from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
-from typing import get_args
 from typing import override
 import unicodedata
 
@@ -39,12 +38,10 @@ from shapes import CircleRole
 from shapes import Complex
 from shapes import Component
 from shapes import Curve
-from shapes import Digit
-from shapes import DigitStatus
-from shapes import EntryWidthDigit
 from shapes import GlyphClassSelector
 from shapes import Hub
 from shapes import HubPriority
+from shapes import IngressWidthDigit
 from shapes import InvalidStep
 from shapes import LeftBoundDigit
 from shapes import Line
@@ -479,10 +476,10 @@ class Schema:
         helps optimize range-based coverage tables to single ranges.
         """
         shape = type(self.path)
-        digit_shapes: tuple[type[Digit], ...] = get_args(Digit.__value__)  # type: ignore[misc]
+        digit_shapes = (AnchorWidthDigit, IngressWidthDigit, LeftBoundDigit, RightBoundDigit)
         if shape in digit_shapes:
-            assert isinstance(self.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
-            status = (DigitStatus.NORMAL if isinstance(self.path, EntryWidthDigit) else self.path.status).value
+            assert isinstance(self.path, digit_shapes)
+            status = self.path.status.value
             place = self.path.place
             digit_shape_index = digit_shapes.index(shape)
             digit = self.path.digit

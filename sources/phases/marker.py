@@ -34,13 +34,14 @@ from shapes import Carry
 from shapes import Circle
 from shapes import CompressedSequence
 from shapes import ContinuingOverlap
+from shapes import Digit
 from shapes import DigitStatus
 from shapes import Dummy
 from shapes import End
-from shapes import EntryWidthDigit
 from shapes import GlyphClassSelector
 from shapes import Hub
 from shapes import HubPriority
+from shapes import IngressWidthDigit
 from shapes import InitialSecantMarker
 from shapes import LINE_FACTOR
 from shapes import LeftBoundDigit
@@ -80,7 +81,6 @@ if TYPE_CHECKING:
     from . import AddRule
     from . import FreezableList
     from duployan import Builder
-    from shapes import Digit
     from utils import PrefixView
 
 
@@ -448,12 +448,12 @@ def add_width_markers(
         Lookup('dist')
         for _ in range(lookups_per_position)
     ]
-    entry_width_markers: MutableMapping[tuple[int, int], Schema] = {}
+    ingress_width_markers: MutableMapping[tuple[int, int], Schema] = {}
     left_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
     right_bound_markers: MutableMapping[tuple[int, int], Schema] = {}
     anchor_width_markers: MutableMapping[tuple[int, int], Schema] = {}
     path_to_markers = {
-        EntryWidthDigit: entry_width_markers,
+        IngressWidthDigit: ingress_width_markers,
         AnchorWidthDigit: anchor_width_markers,
         LeftBoundDigit: left_bound_markers,
         RightBoundDigit: right_bound_markers,
@@ -618,7 +618,7 @@ def add_width_markers(
         mark_anchor_selector = get_mark_anchor_selector(schema)
         glyph_class_selector = get_glyph_class_selector(schema)
         widths: MutableSequence[tuple[float, type[Digit]]] = [
-            (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], EntryWidthDigit),
+            (entry_xs[anchors.CURSIVE] - entry_xs[anchors.CONTINUING_OVERLAP], IngressWidthDigit),
             (x_min - start_x, LeftBoundDigit),
             (x_max - start_x, RightBoundDigit),
             *[
@@ -793,7 +793,7 @@ def remove_false_end_markers(
     return [lookup]
 
 
-def clear_entry_width_markers(
+def clear_ingress_width_markers(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
@@ -813,7 +813,7 @@ def clear_entry_width_markers(
     continuing_overlap = None
     for schema in schemas:
         match schema:
-            case Schema(path=EntryWidthDigit() as path):
+            case Schema(path=IngressWidthDigit() as path):
                 classes['all'].append(schema)
                 classes['idx'].append(schema)
                 if path.digit == 0:
@@ -824,7 +824,7 @@ def clear_entry_width_markers(
     if continuing_overlap is None:
         return []
     for schema in new_schemas:
-        if isinstance(schema.path, EntryWidthDigit) and schema.path.digit != 0:
+        if isinstance(schema.path, IngressWidthDigit) and schema.path.digit != 0:
             zero = zeros[schema.path.place]
             assert zero is not None
             add_rule(named_lookups['zero'], Rule([schema], [zero]))
@@ -859,8 +859,8 @@ def sum_width_markers(
     carry_schema = None
     carry_0_placeholder = object()
     carry_schemas = [carry_0_placeholder]
-    entry_digit_schemas = {}
-    original_entry_digit_schemas = []
+    ingress_digit_schemas = {}
+    original_ingress_digit_schemas = []
     left_digit_schemas = {}
     original_left_digit_schemas = []
     right_digit_schemas = {}
@@ -903,9 +903,9 @@ def sum_width_markers(
                 continuing_overlap = schema
             case Schema(path=Carry()):
                 carry_schema = schema
-            case Schema(path=EntryWidthDigit() as path):
-                entry_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
-                original_entry_digit_schemas.append(schema)
+            case Schema(path=IngressWidthDigit() as path):
+                ingress_digit_schemas[path.place * WIDTH_MARKER_RADIX + path.digit] = schema
+                original_ingress_digit_schemas.append(schema)
                 if schema in new_schemas:
                     classes['all'].append(schema)
                     classes[f'idx_{path.place}'].append(schema)
@@ -938,12 +938,12 @@ def sum_width_markers(
         classes['all'].append(carry_schema)
     carry_schemas.append(carry_schema)
     inner_iterable: Iterable[tuple[bool, int, int, str, Iterable[Schema], MutableMapping[int, Schema], type[Digit]]]
-    for (  # type: ignore[assignment]
+    for (
         original_augend_schemas,
         augend_letter,
         inner_iterable,
     ) in [(
-        original_entry_digit_schemas,
+        original_ingress_digit_schemas,
         'i',
         [*[(
             False,
@@ -978,9 +978,9 @@ def sum_width_markers(
             i,
             0,
             'i',
-            original_entry_digit_schemas,
-            entry_digit_schemas,
-            EntryWidthDigit,
+            original_ingress_digit_schemas,
+            ingress_digit_schemas,
+            IngressWidthDigit,
         ) for i in range(len(canonical_anchors) - 1, -1, -1)], *[(
             False,
             i,
@@ -996,7 +996,7 @@ def sum_width_markers(
             carry_in_is_new = carry_in_schema in new_schemas
             for augend_schema in original_augend_schemas:
                 augend_is_new = augend_schema in new_schemas
-                assert isinstance(augend_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                assert isinstance(augend_schema.path, Digit)
                 place = augend_schema.path.place
                 augend = augend_schema.path.digit
                 for (
@@ -1009,7 +1009,7 @@ def sum_width_markers(
                     addend_path,
                 ) in inner_iterable:
                     for addend_schema in original_addend_schemas:
-                        assert isinstance(addend_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                        assert isinstance(addend_schema.path, Digit)
                         if place != addend_schema.path.place:
                             continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
@@ -1033,7 +1033,7 @@ def sum_width_markers(
                                 addend_schemas[sum_index] = sum_digit_schema
                                 classes[f'{addend_letter}dx_{sum_digit_path.place}'].append(sum_digit_schema)
                                 classes['all'].append(sum_digit_schema)
-                            assert isinstance(sum_digit_schema.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                            assert isinstance(sum_digit_schema.path, Digit)
                             outputs = ([sum_digit_schema]
                                 if carry_out == 0 or place == WIDTH_MARKER_PLACES - 1
                                 else [sum_digit_schema, carry_out_schema])
@@ -1141,8 +1141,8 @@ def calculate_bound_extrema(
                     schema_j = digit_schemas.get(place * WIDTH_MARKER_RADIX + j)
                     if schema_j is None:
                         continue
-                    assert isinstance(schema_i.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
-                    assert isinstance(schema_j.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                    assert isinstance(schema_i.path, Digit)
+                    assert isinstance(schema_j.path, Digit)
                     place_j = schema_j.path.place
                     add_rule(lookup, Rule(
                         [schema_i, *[marker_class] * (WIDTH_MARKER_PLACES - schema_i.path.place - 1)],
@@ -1432,7 +1432,7 @@ PHASE_LIST = [
     add_width_markers,
     add_end_markers_for_marks,
     remove_false_end_markers,
-    clear_entry_width_markers,
+    clear_ingress_width_markers,
     sum_width_markers,
     calculate_bound_extrema,
     remove_false_start_markers,

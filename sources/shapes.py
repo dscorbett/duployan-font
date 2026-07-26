@@ -31,7 +31,6 @@ from typing import NamedTuple
 from typing import Self
 from typing import TYPE_CHECKING
 from typing import final
-from typing import get_args
 from typing import override
 
 import fontTools.misc.transform
@@ -590,45 +589,8 @@ class DigitStatus(enum.Enum):
     DONE = enum.auto()
 
 
-class EntryWidthDigit(InvisibleMark):
-    """A digit of an encoded x distance from a glyph’s overlap entry
-    point to its normal cursive entry point.
-
-    This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
-    the full encoded x distance.
-
-    Attributes:
-        place: The digit’s positional index.
-        digit: The digit’s value.
-    """
-
-    @override
-    def __init__(self, place: int, digit: int) -> None:
-        """Initializes this `EntryWidthDigit`.
-
-        Args:
-            place: The ``place`` attribute.
-            digit: The ``digit`` attribute.
-        """
-        self.place: Final = place
-        self.digit: Final = digit
-
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return f'idx.{self.digit}e{self.place}'
-
-    @staticmethod
-    @override
-    def name_implies_type() -> bool:
-        return True
-
-
-class LeftBoundDigit(Shape):
-    """A digit of an encoded x distance from a glyph’s normal cursive
-    entry point to the left edge of its bounding box.
-
-    This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
-    the full encoded x distance.
+class Digit(Shape):
+    """A digit of an encoded x distance.
 
     Attributes:
         place: The digit’s positional index.
@@ -638,7 +600,7 @@ class LeftBoundDigit(Shape):
 
     @override
     def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
-        """Initializes this `LeftBoundDigit`.
+        """Initializes this `Digit`.
 
         Args:
             place: The ``place`` attribute.
@@ -649,13 +611,19 @@ class LeftBoundDigit(Shape):
         self.digit: Final = digit
         self.status: Final = status
 
+    @classmethod
+    def get_name_prefix(cls) -> str:
+        """Returns the first component of this shape’s names, ignoring
+        attribute-based modifications.
+        """
+        return f'{cls.__name__[0]}dx'.lower()
+
     @override
     def get_name(self, size: float, joining_type: Type) -> str:
-        return f'''{
-                "LDX" if self.status == DigitStatus.DONE else "ldx"
-            }.{self.digit}{
-                "e" if self.status == DigitStatus.NORMAL else "E"
-            }{self.place}'''
+        name_prefix = self.get_name_prefix()
+        if self.status == DigitStatus.DONE:
+            name_prefix = name_prefix.upper()
+        return f'{name_prefix}.{self.digit}{'e' if self.status == DigitStatus.NORMAL else 'E'}{self.place}'
 
     @staticmethod
     @override
@@ -671,48 +639,31 @@ class LeftBoundDigit(Shape):
         return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
 
-class RightBoundDigit(Shape):
+class IngressWidthDigit(Digit):
+    """A digit of an encoded x distance from a glyph’s overlap entry
+    point to its normal cursive entry point.
+
+    This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
+    the full encoded x distance.
+    """
+
+
+class LeftBoundDigit(Digit):
+    """A digit of an encoded x distance from a glyph’s normal cursive
+    entry point to the left edge of its bounding box.
+
+    This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
+    the full encoded x distance.
+    """
+
+
+class RightBoundDigit(Digit):
     """A digit of an encoded x distance from a glyph’s normal cursive
     entry point to the right edge of its bounding box.
 
     This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
     the full encoded x distance.
-
-    Attributes:
-        place: The digit’s positional index.
-        digit: The digit’s value.
-        status: What stage of calculating the width a digit is in.
     """
-
-    @override
-    def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
-        """Initializes this `RightBoundDigit`.
-
-        Args:
-            place: The ``place`` attribute.
-            digit: The ``digit`` attribute.
-            status: The ``status`` attribute.
-        """
-        self.place: Final = place
-        self.digit: Final = digit
-        self.status: Final = status
-
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return f'''{
-                "RDX" if self.status == DigitStatus.DONE else "rdx"
-            }.{self.digit}{
-                "e" if self.status == DigitStatus.NORMAL else "E"
-            }{self.place}'''
-
-    @staticmethod
-    @override
-    def name_implies_type() -> bool:
-        return True
-
-    @override
-    def invisible(self) -> bool:
-        return True
 
     @override
     def draw(
@@ -733,60 +684,14 @@ class RightBoundDigit(Shape):
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
         return None
 
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
 
-
-class AnchorWidthDigit(Shape):
+class AnchorWidthDigit(Digit):
     """A digit of an encoded x distance from a glyph’s normal cursive
     entry point to another anchor point.
 
     This digit contributes ``digit * WIDTH_MARKER_RADIX ** place`` to
     the full encoded x distance.
-
-    Attributes:
-        place: The digit’s positional index.
-        digit: The digit’s value.
-        status: What stage of calculating the width a digit is in.
     """
-
-    @override
-    def __init__(self, place: int, digit: int, status: DigitStatus = DigitStatus.NORMAL) -> None:
-        """Initializes this `AnchorWidthDigit`.
-
-        Args:
-            place: The ``place`` attribute.
-            digit: The ``digit`` attribute.
-            status: The ``status`` attribute.
-        """
-        self.place: Final = place
-        self.digit: Final = digit
-        self.status: Final = status
-
-    @override
-    def get_name(self, size: float, joining_type: Type) -> str:
-        return f'''{
-                "ADX" if self.status == DigitStatus.DONE else "adx"
-            }.{self.digit}{
-                "e" if self.status == DigitStatus.NORMAL else "E"
-            }{self.place}'''
-
-    @staticmethod
-    @override
-    def name_implies_type() -> bool:
-        return True
-
-    @override
-    def invisible(self) -> bool:
-        return True
-
-    @override
-    def guaranteed_glyph_class(self) -> GlyphClass | None:
-        return GlyphClass.BLOCKER if self.status == DigitStatus.DONE else GlyphClass.MARK
-
-
-type Digit = AnchorWidthDigit | EntryWidthDigit | LeftBoundDigit | RightBoundDigit
 
 
 class CompressedSequence(InvisibleMark):
@@ -842,7 +747,7 @@ class CompressedSequence(InvisibleMark):
         while i < len(self.expansion):
             s = self.expansion[i]
             if (i + WIDTH_MARKER_PLACES <= len(self.expansion)
-                and isinstance(s.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                and isinstance(s.path, (AnchorWidthDigit, IngressWidthDigit, LeftBoundDigit, RightBoundDigit))
                 and s.path.place == 0
             ):
                 number = self.expansion[i:i + WIDTH_MARKER_PLACES]
@@ -853,16 +758,14 @@ class CompressedSequence(InvisibleMark):
                     cardinality: float = WIDTH_MARKER_RADIX ** WIDTH_MARKER_PLACES
                     if width >= cardinality / 2:
                         width -= cardinality
-                    assert isinstance(number[0].path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit))
+                    assert isinstance(number[0].path, (AnchorWidthDigit, IngressWidthDigit, LeftBoundDigit, RightBoundDigit))
                     number_path: type[Digit] = type(number[0].path)
                     if number_path is previous_number_path:
                         prefix = ''
                     else:
-                        prefix = f'{
-                                'ailr'[get_args(Digit.__value__).index(number_path)]  # type: ignore[misc]
-                            }{
-                                '' if previous_was_digit else 'dx'
-                            }'
+                        prefix = number_path.get_name_prefix()
+                        if previous_was_digit:
+                            prefix = prefix[0]
                     width_str = str(width).replace('-', 'n')
                     name_pieces.append(f'{prefix}.{width_str}' if prefix else width_str)
                     previous_digit_path = None
@@ -872,7 +775,7 @@ class CompressedSequence(InvisibleMark):
                     i += WIDTH_MARKER_PLACES
                     continue
             name_piece = str(s).removeprefix('_.')
-            if isinstance(s.path, (AnchorWidthDigit, EntryWidthDigit, LeftBoundDigit, RightBoundDigit)):
+            if isinstance(s.path, (AnchorWidthDigit, IngressWidthDigit, LeftBoundDigit, RightBoundDigit)):
                 digit_path = type(s.path)
                 place = s.path.place
                 assert isinstance(place, int)
