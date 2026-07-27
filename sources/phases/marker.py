@@ -350,7 +350,7 @@ def create_vertical_fractions(
             classes['afrc_all'].append(afrc_schema)
             classes[f'afrc_{'dnom' if digits is dnom else 'numr'}'].append(afrc_schema)
             add_rule(named_lookups['afrc'], Rule([schema], [afrc_schema]))
-    dummy = Schema(None, Dummy(), 0)
+    dummy = next((s for s in new_schemas if isinstance(s.path, Dummy)), Schema(None, Dummy(), 0))
     classes['afrc_all'].append(dummy)
     vinculums: dict[str, Schema] = {}
     for lookup in [lookup_rom, lookup_dflt]:

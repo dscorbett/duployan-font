@@ -1,5 +1,5 @@
 # Copyright (C) 2007-2012 by George Williams
-# Copyright (C) 2025 David Corbett
+# Copyright (C) 2025-2026 David Corbett
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -26,6 +26,7 @@
 
 from collections.abc import Iterable
 from collections.abc import Iterator
+from collections.abc import Sequence
 from typing import Literal
 from typing import Self
 from typing import overload
@@ -201,13 +202,24 @@ class glyph:
     def altuni(self, /) -> tuple[tuple[int, int, int], ...] | None: ...
 
     @altuni.setter
-    def altuni(self, altuni: tuple[int | tuple[int] | tuple[int, int] | tuple[int, int, int], ...] | None) -> None: ...
+    def altuni(self, altuni: tuple[int | tuple[int] | tuple[int, int] | tuple[int, int, int], ...] | None, /) -> None: ...
 
-    anchorPoints: list[
+    @property
+    def anchorPoints(self, /) -> tuple[
         tuple[str, Literal['mark', 'base', 'basemark', 'entry', 'exit'], float, float]
-        | tuple[str, Literal['ligature', 'baselig'], float, float, int]
-        ,
-    ]
+            | tuple[str, Literal['ligature', 'baselig'], float, float, int],
+        ...,
+    ]: ...
+
+    @anchorPoints.setter
+    def anchorPoints(self, anchorPoints: Sequence[
+            tuple[str, Literal['mark', 'base', 'basemark', 'entry', 'exit'], float, float]
+            | tuple[str, Literal['ligature', 'baselig'], float, float, int]
+            ,
+        ],
+        /,
+    ) -> None: ...
+
     foreground: layer
     glyphclass: Literal['automatic', 'noclass', 'baseglyph', 'baseligature', 'mark', 'component']
     glyphname: str

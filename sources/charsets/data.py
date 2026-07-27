@@ -46,6 +46,7 @@ from shapes import LINE_FACTOR
 from shapes import Line
 from shapes import Notdef
 from shapes import Ou
+from shapes import Punctuation
 from shapes import RADIUS
 from shapes import RomanianU
 from shapes import SeparateAffix
@@ -202,7 +203,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     notdef = Notdef()
     space = Space(0, margins=True)
     h = Dot()
-    exclamation = Complex([(0, h), (188, Space(90)), (1.109, Line(90))])
+    exclamation = Punctuation([(0, h), (188, Space(90)), (1.109, Line(90))])
     inverted_exclamation = Complex([exclamation.instructions[0], (exclamation.instructions[1][0], exclamation.instructions[1][1].clone(angle=(exclamation.instructions[1][1].angle + 180) % 360)), (exclamation.instructions[2][0], exclamation.instructions[2][1].as_reversed())])  # type: ignore[call-arg, index, misc, union-attr]
     number_sign = Complex([(1.018, Line(79.293)), (0.303, Line(0), True), (1.018, Line(79.293 + 180)), (0.346, Line(79.293), True), (0.254, Line(0), True), (0.254 * 2 + 0.303, Line(180)), (1.018 - 2 * 0.346, Line(79.293), True), (0.254 * 2 + 0.303, Line(0))])
     livre_tournois = Complex([(1.018, Line(79.293)), (CAP_HEIGHT / X_HEIGHT * 0.303, Line(0), True), (1.018, Line(79.293 + 180)), (1.018 / 2, Line(79.293), True), (CAP_HEIGHT / X_HEIGHT * 0.254, Line(0), True), (CAP_HEIGHT / X_HEIGHT * (0.254 * 2 + 0.303), Line(180))])
@@ -232,7 +233,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     nine = Complex([(3.5, Circle(270, 270, clockwise=True)), (35.1, Curve(270, 255.658, clockwise=True, stretch=0.45)), (4, Curve(255.658, 175, clockwise=True))])
     colon = Complex([(0, h), (X_HEIGHT - light_line * Dot.SCALAR ** h.size_exponent, Space(90)), (0, h)])  # type: ignore[misc]
     semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, misc, union-attr]
-    question = Complex([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
+    question = Punctuation([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, misc, union-attr]
     less_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(0), True), (math.cos(math.radians(27)) * 0.84, Line(180), True), (1, Line(153 + 180), True), (1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
     equal = Grammalogue([(395, Space(90)), (1, Line(0), True), (1, Line(180), True), (90, Space(270)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
@@ -276,7 +277,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
-    x_mark = Complex(instructions=multiplication.instructions[1:])
+    x_mark = Punctuation(instructions=multiplication.instructions[1:])
     cgj = InvisibleMark()
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
     right_quote = Complex([*comma.instructions, (160, Space(0)), (3, Curve(41, 101, clockwise=False)), (0.5, Circle(101, 180, clockwise=False))])

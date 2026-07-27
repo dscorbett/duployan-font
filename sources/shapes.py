@@ -3895,6 +3895,82 @@ class Grammalogue(Complex):
         return NO_CONTEXT
 
 
+class Punctuation(Complex):
+    """A symbol that can only join pseudo-cursively.
+
+    Punctuation marks that don’t join at all, like U+1BC9F DUPLOYAN
+    PUNCTUATION CHINOOK FULL STOP, should not use use this class.
+    """
+
+    @override
+    def can_take_secant(self) -> bool:
+        return False
+
+    @override
+    def draw(
+        self,
+        glyph: fontforge.glyph,
+        stroke_width: float,
+        light_line: float,
+        stroke_gap: float,
+        size: float,
+        anchor: str | None,
+        joining_type: Type,
+        initial_circle: bool,
+        final_circle: bool,
+        diphthong_1: bool,
+        diphthong_2: bool,
+    ) -> tuple[float, float, float, float] | None:
+        effective_bounding_box = super().draw(
+            glyph,
+            stroke_width,
+            light_line,
+            stroke_gap,
+            size,
+            anchor,
+            joining_type,
+            initial_circle,
+            final_circle,
+            diphthong_1,
+            diphthong_2,
+        )
+        entry_point = None
+        exit_point = None
+        for anchor_class_name, anchor_type, anchor_x, anchor_y, *_ in glyph.anchorPoints:
+            if anchor_class_name == anchors.CURSIVE:
+                match anchor_type:
+                    case 'entry':
+                        entry_point = [anchor_x, anchor_y]
+                    case 'exit':
+                        exit_point = [anchor_x, anchor_y]
+        if entry_point is not None is not exit_point:
+            entry_point[0], exit_point[0] = sorted((entry_point[0], exit_point[0]))
+            exit_point[1] = entry_point[1]
+            glyph.anchorPoints = [
+                (  # type: ignore[misc]
+                    anchor_class_name,
+                    anchor_type,
+                    anchor_x if anchor_class_name != anchors.CURSIVE else entry_point[0] if anchor_type == 'entry' else exit_point[0],
+                    anchor_y if anchor_class_name != anchors.CURSIVE else entry_point[1] if anchor_type == 'entry' else exit_point[1],
+                    *anchor_details,
+                )
+                for anchor_class_name, anchor_type, anchor_x, anchor_y, *anchor_details in glyph.anchorPoints
+            ]
+        return effective_bounding_box
+
+    @override
+    def is_pseudo_cursive(self, size: float) -> bool:
+        return True
+
+    @override
+    def context_in(self) -> Context:
+        return NO_CONTEXT
+
+    @override
+    def context_out(self) -> Context:
+        return NO_CONTEXT
+
+
 class InvalidDTLS(Complex):
     """An invalid instance of U+1BC9D DUPLOYAN THICK LETTER SELECTOR.
     """

@@ -38,6 +38,7 @@ from shapes import ComplexCurve
 from shapes import ContextMarker
 from shapes import ContinuingOverlap
 from shapes import Curve
+from shapes import Dummy
 from shapes import Grammalogue
 from shapes import InitialSecantMarker
 from shapes import InvalidDTLS
@@ -994,7 +995,7 @@ def interrupt_overlong_primary_curve_sequences(
     return [lookup]
 
 
-def reposition_stenographic_period(
+def reposition_punctuation(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
     schemas: OrderedSet[Schema],
@@ -1007,15 +1008,22 @@ def reposition_stenographic_period(
     if len(original_schemas) != len(schemas):
         return [lookup]
     for schema in new_schemas:
-        if (isinstance(schema.path, InvalidStep)
-            or isinstance(schema.path, Space) and schema.joining_type == Type.JOINING
-        ) and schema.glyph_class != GlyphClass.MARK:
-            classes['c'].append(schema)
-        elif schema.cmap == 0x2E3C:
-            period = schema
+        match schema:
+            case Schema(glyph_class=GlyphClass.MARK):
+                pass
+            case Schema(path=InvalidStep()):
+                classes['c'].append(schema)
+            case Schema(path=Space(), joining_type=Type.JOINING):
+                classes['nbsp'].append(schema)
+            case _ if schema.cmap in {0x0021, 0x003F, 0x2E3C}:
+                classes['i'].append(schema)
+                classes['o'].append(schema.clone(cmap=None, joining_type=Type.JOINING, encirclable=False))
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
-    joining_period = period.clone(cmap=None, joining_type=Type.JOINING)
-    add_rule(lookup, Rule('c', [period], [], [joining_period, zwnj]))
+    if classes['nbsp']:
+        dummy = Schema(None, Dummy(), 0)
+        classes['c'].append(dummy)
+        add_rule(lookup, Rule([], 'nbsp', 'i', [dummy]))
+    add_rule(lookup, Rule('c', 'i', [], ['o', zwnj]))
     return [lookup]
 
 
@@ -2194,7 +2202,7 @@ PHASE_LIST = [
     reposition_chinook_jargon_overlap_points,
     make_mark_variants_of_children,
     interrupt_overlong_primary_curve_sequences,
-    reposition_stenographic_period,
+    reposition_punctuation,
     join_with_next_step,
     prepare_for_secondary_diphthong_ligature,
     replace_medial_romanian_u,
