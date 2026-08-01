@@ -160,28 +160,6 @@ class Builder:
     def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
         if not self.unjoined:
             self._add_lookup(
-                    'abvm',
-                    anchors.PARENT_EDGE,
-                    flags=0,
-                    mark_filtering_set=class_asts[phases.PARENT_EDGE_CLASS],
-                )
-            for layer_index in range(MAX_TREE_DEPTH):
-                if layer_index < 2:
-                    for child_index in range(MAX_TREE_WIDTH):
-                        self._add_lookup(
-                                'blwm',
-                                anchors.CHILD_EDGES[layer_index][child_index],
-                                flags=0,
-                                mark_filtering_set=class_asts[phases.CHILD_EDGE_CLASSES[child_index]],
-                            )
-                for child_index in range(MAX_TREE_WIDTH):
-                    self._add_lookup(
-                        'mkmk',
-                        anchors.INTER_EDGES[layer_index][child_index],
-                        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
-                        mark_filtering_set=class_asts[phases.INTER_EDGE_CLASSES[layer_index][child_index]],
-                    )
-            self._add_lookup(
                 'curs',
                 anchors.CONTINUING_OVERLAP,
                 flags=0,
@@ -217,6 +195,27 @@ class Builder:
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
             )
+            for layer_index in range(MAX_TREE_DEPTH - 1):
+                for child_index in range(MAX_TREE_WIDTH):
+                    self._add_lookup(
+                        'blwm',
+                        anchors.CHILD_EDGES[layer_index][child_index],
+                        flags=0,
+                        mark_filtering_set=class_asts[phases.CHILD_EDGE_CLASSES[child_index]],
+                    )
+                for child_index in range(MAX_TREE_WIDTH):
+                    self._add_lookup(
+                        'mkmk',
+                        anchors.INTER_EDGES[layer_index][child_index],
+                        flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
+                        mark_filtering_set=class_asts[phases.INTER_EDGE_CLASSES[layer_index][child_index]],
+                    )
+                self._add_lookup(
+                    'abvm',
+                    anchors.PARENT_EDGES[layer_index],
+                    flags=0,
+                    mark_filtering_set=class_asts[phases.PARENT_EDGE_CLASS],
+                )
         for anchor in anchors.ALL_MARK:
             self._add_lookup(
                 'mark',
@@ -372,7 +371,7 @@ class Builder:
             self._convert_base_to_basemark(glyph)
         if not schema.path.invisible():
             glyph.anchorPoints = [a for a in glyph.anchorPoints if (
-                a[0] not in {anchors.PARENT_EDGE, *anchors.CHILD_EDGES[1]}
+                a[0] not in {*anchors.PARENT_EDGES, *[child_edge for child_layer in anchors.CHILD_EDGES[1:] for child_edge in child_layer]}
                     if schema.anchor or schema.glyph_class != GlyphClass.MARK
                     else a[1] not in {'entry', 'exit'} and a[0] not in anchors.CHILD_EDGES[0]
             ) and (not self.unjoined or a[0] in anchors.ALL_MKMK)]

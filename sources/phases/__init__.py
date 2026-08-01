@@ -146,7 +146,7 @@ CHILD_EDGE_CLASSES: Final[Sequence[str]] = [f'global..ce{child_index + 1}' for c
 #: with parent edges while ignoring other marks.
 INTER_EDGE_CLASSES: Final[Sequence[Sequence[str]]] = [
     [f'global..edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
-    for layer_index in range(MAX_TREE_DEPTH)
+    for layer_index in range(MAX_TREE_DEPTH - 1)
 ]
 
 

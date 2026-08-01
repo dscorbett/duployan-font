@@ -1183,7 +1183,7 @@ class ChildEdge(InvisibleMark):
     ) -> tuple[float, float, float, float] | None:
         layer_index = len(self.lineage) - 1
         child_index = self.lineage[-1][0] - 1
-        glyph.addAnchorPoint(anchors.CHILD_EDGES[min(1, layer_index)][child_index], 'mark', 0, 0)
+        glyph.addAnchorPoint(anchors.CHILD_EDGES[layer_index][child_index], 'mark', 0, 0)
         glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'basemark', 0, 0)
         return None
 
@@ -1267,7 +1267,8 @@ class ParentEdge(InvisibleMark):
         if self.lineage:
             layer_index = len(self.lineage) - 1
             child_index = self.lineage[-1][0] - 1
-            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'basemark', 0, 0)
+            for parent_edge_anchor in anchors.PARENT_EDGES:
+                glyph.addAnchorPoint(parent_edge_anchor, 'basemark', 0, 0)
             glyph.addAnchorPoint(anchors.INTER_EDGES[layer_index][child_index], 'mark', 0, 0)
         return None
 
@@ -1576,7 +1577,8 @@ class Line(Shape):
                             child_interval * (child_index + 2),
                             0,
                         )
-                glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', child_interval, 0)
+                for parent_edge_anchor in anchors.PARENT_EDGES:
+                    glyph.addAnchorPoint(parent_edge_anchor, 'mark', child_interval, 0)
                 glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', child_interval, 0)
                 glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', child_interval * (max_tree_width + 1), 0)
                 glyph.addAnchorPoint(anchors.CURSIVE, 'entry', 0, 0)
@@ -2283,7 +2285,8 @@ class Curve(Shape):
             overlap_entry_angle = (a1 + child_interval
                 if self.overlap_angle is None
                 else self._get_angle_to_overlap_point(a1, a2, is_entry=True))
-            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
+            for parent_edge_anchor in anchors.PARENT_EDGES:
+                glyph.addAnchorPoint(parent_edge_anchor, 'mark', *_rect(r, math.radians(overlap_entry_angle)))
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *_rect(r, math.radians(overlap_entry_angle)))
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *_rect(r, math.radians(
                 a1 + child_interval * (max_tree_width + 1)
@@ -2816,7 +2819,8 @@ class Circle(Shape):
                 for child_layer in anchors.CHILD_EDGES:
                     for child_index in range(self.max_tree_width(size)):
                         glyph.addAnchorPoint(child_layer[child_index], 'base', *overlap_position)
-            glyph.addAnchorPoint(anchors.PARENT_EDGE, 'mark', *overlap_position)
+            for parent_edge_anchor in anchors.PARENT_EDGES:
+                glyph.addAnchorPoint(parent_edge_anchor, 'mark', *overlap_position)
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'entry', *overlap_position)
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', *overlap_position)
             glyph.addAnchorPoint(anchors.CURSIVE, 'entry', *entry)
@@ -3598,7 +3602,7 @@ class Complex(Shape):
                 ) or (
                     self.can_be_child(size)
                     and (
-                        singular_anchor == anchors.PARENT_EDGE
+                        singular_anchor in anchors.PARENT_EDGES
                         or singular_anchor in {anchors.CONTINUING_OVERLAP, anchors.POST_HUB_CONTINUING_OVERLAP} and anchor_type == 'entry'
                     )
                 ) or (
@@ -3608,7 +3612,7 @@ class Complex(Shape):
                     )
                 ):
                     glyph.addAnchorPoint(singular_anchor, anchor_type, *points[
-                        0 if (singular_anchor == anchors.PARENT_EDGE or anchor_type == 'entry') and self.enter_on_first_path() else -1
+                        0 if (singular_anchor in anchors.PARENT_EDGES or anchor_type == 'entry') and self.enter_on_first_path() else -1
                     ])
         glyph.transform(
             fontTools.misc.transform.Identity.rotate(math.radians(self.rotation)),  # type: ignore[misc]

@@ -27,19 +27,31 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-PARENT_EDGE: Final[str] = 'pe'
-
-
+#: The anchors for child edges. The anchor at index 𝑙 and subindex 𝑐 is
+#: for the edge between a parent on layer 𝑙 and its 𝑐th child. The
+#: anchor base is the parent and the attaching mark is the child edge
+#: marker (overlap control character).
 CHILD_EDGES: Final[Sequence[Sequence[str]]] = [
     [f'ce{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
-    for layer_index in range(min(2, MAX_TREE_DEPTH))
+    for layer_index in range(MAX_TREE_DEPTH - 1)
 ]
 
 
+#: The anchors for connecting child edges and parent edges. The anchor
+#: at index 𝑙 and subindex 𝑐 is for the edge between a parent on layer 𝑙
+#: and its 𝑐th child. The anchor base is the child edge marker (overlap
+#: control character) and the attaching mark is the parent edge marker.
 INTER_EDGES: Final[Sequence[Sequence[str]]] = [
     [f'edge{layer_index}_{child_index + 1}' for child_index in range(MAX_TREE_WIDTH)]
-    for layer_index in range(MAX_TREE_DEPTH)
+    for layer_index in range(MAX_TREE_DEPTH - 1)
 ]
+
+
+#: The anchors for parent edges. The anchor at index 𝑙 is for the edge
+#: going from a child on layer 𝑙 + 1 back towards its parent on layer 𝑙.
+#: The anchor base is the parent edge marker and the attaching mark is
+#: the child.
+PARENT_EDGES: Final[Sequence[str]] = [f'pe{layer_index}' for layer_index in range(MAX_TREE_DEPTH - 1)]
 
 
 #: The anchor for marks that are inherently part of their bases’

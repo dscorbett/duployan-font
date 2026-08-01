@@ -325,7 +325,7 @@ def add_parent_edges(
     for child_index in range(MAX_TREE_WIDTH):
         if root_parent_edge not in classes[phases.CHILD_EDGE_CLASSES[child_index]]:
             classes[phases.CHILD_EDGE_CLASSES[child_index]].append(root_parent_edge)
-        for layer_index in range(MAX_TREE_DEPTH):
+        for layer_index in range(MAX_TREE_DEPTH - 1):
             if root_parent_edge not in classes[phases.INTER_EDGE_CLASSES[layer_index][child_index]]:
                 classes[phases.INTER_EDGE_CLASSES[layer_index][child_index]].append(root_parent_edge)
     for schema in new_schemas:
