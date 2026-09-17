@@ -89,11 +89,13 @@ _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     # Some punctuation marks are marked as encirclable for consistency with
     # related characters without having direct attestations.
     0x00A1, 0x00BF, 0x2018, 0x2019,
+    # Manseau’s English adaptation is not fully supported in Unicode. It is
+    # not useful to include code points specific to unsupported modes.
+    0x030B, 0x030F, 0x1AE8, 0x1AEE, 0x1AEF,
     # It is not clear whether this is the right code point for the Chinese
     # aspiration mark.
     0x0312,
-    # Duployé-Flageul for Esperanto is not fully supported in Unicode. It is
-    # not useful to include code points specific to unsupported modes.
+    # Duployé-Flageul for Esperanto is not fully supported in Unicode.
     0x031C, 0x0339, 0x0351, 0x0357,
     # Lockett’s Shorthand is not fully supported in Unicode.
     0x0325, 0x032E, 0x033D,
@@ -272,11 +274,14 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     macron = Line(0)
     breve = Curve(270, 90, clockwise=False, stretch=0.2)
     diaeresis = Complex([(0, h), (Dot.SCALAR * 10 / 7 * light_line, Space(0)), (0, h)])
+    double_acute = Complex([(0.2, acute), (min((light_line / 2 + stroke_gap) / abs(math.sin(math.radians(acute.angle % 90))), 0.2 * LINE_FACTOR + light_line / 2 + stroke_gap), Space(0)), (0.2, acute.as_reversed())])
     caron = Complex([(1, Line(302)), (1, Line(58))])
     vertical_line = Line(90)
+    double_grave = Complex([(0.2, grave), (min((light_line + stroke_gap) / abs(math.sin(math.radians(grave.angle % 90))), 0.2 * LINE_FACTOR + light_line / 2 + stroke_gap), Space(0)), (0.2, grave.as_reversed())])
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
+    double_macron = Complex([(0.2, macron), (light_line / 2 + stroke_gap, Space(270)), (0.2, macron.as_reversed())])
     x_mark = Punctuation(instructions=multiplication.instructions[1:])
     cgj = InvisibleMark()
     left_quote = Complex([*turned_comma.instructions, (160, Space(0)), (0.5, Circle(101, 101, clockwise=True)), (3, Curve(101, 41, clockwise=True))])
@@ -483,8 +488,10 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x0307, h, 0, anchor=anchors.ABOVE),
         Schema(0x0308, diaeresis, 1, anchor=anchors.ABOVE),
         Schema(0x030A, o, 2.3, anchor=anchors.ABOVE),
+        Schema(0x030B, double_acute, 1, anchor=anchors.ABOVE),
         Schema(0x030C, caron, 0.3, Type.NON_JOINING, anchor=anchors.ABOVE),
         Schema(0x030D, vertical_line, 0.2, anchor=anchors.ABOVE),
+        Schema(0x030F, double_grave, 1, anchor=anchors.ABOVE),
         Schema(0x0312, turned_comma, 1, anchor=anchors.ABOVE),
         Schema(0x0316, grave, 0.2, anchor=anchors.BELOW),
         Schema(0x0317, acute, 0.2, anchor=anchors.BELOW),
@@ -503,6 +510,9 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x1AB7, s_t, 1.9, anchor=anchors.BELOW),
+        Schema(0x1AE8, double_macron, 1, anchor=anchors.ABOVE),
+        Schema(0x1AEE, double_grave, 1, anchor=anchors.BELOW),
+        Schema(0x1AEF, double_acute, 1, anchor=anchors.BELOW),
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
