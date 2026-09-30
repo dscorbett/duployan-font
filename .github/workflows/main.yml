@@ -28,8 +28,8 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  FONTSPECTOR_VERSION: &fontspector_version 1.7.3
-  HARFBUZZ_VERSION: &harfbuzz_version 14.3.0
+  FONTSPECTOR_VERSION: &fontspector_version 1.8.0
+  HARFBUZZ_VERSION: &harfbuzz_version 14.5.0
   PYTHON_VERSION: 3.12
 jobs:
   main:
@@ -46,6 +46,7 @@ jobs:
             requirements: oldest
             charset: testing
             fontspector-version: 1.5.2
+            fontspector-file-version: v1.5.2
             harfbuzz-version: 8.1.0
           - build-venv: build
             requirements: newest
@@ -110,8 +111,6 @@ jobs:
           - build-venv: dev
             charset: testing
             coverage: coverage
-            fontspector-version: *fontspector_version
-            harfbuzz-version: *harfbuzz_version
     steps:
       - uses: actions/checkout@v6
       - name: Select the setup-python cache
@@ -182,7 +181,7 @@ jobs:
         run: |
           mkdir .fontspector
           cd .fontspector
-          curl -L https://github.com/fonttools/fontspector/releases/download/fontspector-v${{ matrix.fontspector-version }}/fontspector-v${{ matrix.fontspector-version }}-x86_64-unknown-linux-gnu.tar.gz \
+          curl -L https://github.com/fonttools/fontspector/releases/download/fontspector-v${{ matrix.fontspector-version }}/fontspector-${{ matrix.fontspector-file-version || matrix.fontspector-version }}-x86_64-unknown-linux-gnu.tar.gz \
           | tar -xz --strip-components 1
           echo "$PWD" >>"$GITHUB_PATH"
       - name: Cache HarfBuzz

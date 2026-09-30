@@ -20,13 +20,13 @@ relative_files = true
 [tool.coverage.report]
 exclude_also = [
     "#[\t ]*type:[\t ]*ignore[\t\\v\f ]*\\[([^]#]*,)?\\s*unreachable\\s*(,[^]#]*)?\\]\\s*(#.*)?$",
-    "^[\t\f ]*(case _:(\r\n?|\n)[\t\f ]*((#.*)?(\r\n?|\n)[\t\f ]*)*)?assert_never\\(\\b",
-    "^[\t\f ]*(case _:(\r\n?|\n)[\t\f ]*((#.*)?(\r\n?|\n)[\t\f ]*)*)?raise ValueError\\b",
     "^[\t\f ]*@overload$",
     "^[\t\f ]*assert False(,|$)",
+    "^[\t\f ]*assert_never\\(",
     "^[\t\f ]*def __repr__\\(",
     "^[\t\f ]*if TYPE_CHECKING:",
     "^[\t\f ]*raise NotImplementedError\\b",
+    "^[\t\f ]*raise ValueError\\b",
 ]
 fail_under = 96
 
