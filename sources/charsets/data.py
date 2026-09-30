@@ -24,9 +24,9 @@ import string
 from typing import Final
 from typing import TYPE_CHECKING
 from typing import assert_never
-import unicodedata
 
 import gfsubsets
+import unicodedata2 as unicodedata
 
 from . import Charset
 import anchors

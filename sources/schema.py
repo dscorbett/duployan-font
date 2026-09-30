@@ -26,10 +26,10 @@ from typing import Final
 from typing import Self
 from typing import TYPE_CHECKING
 from typing import override
-import unicodedata
 
 import fontTools.agl
 import fontTools.merge.unicode
+import unicodedata2 as unicodedata
 
 import anchors
 from shapes import AnchorWidthDigit
@@ -292,6 +292,7 @@ class Schema:
         # Custom name aliases
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
         # Familiar vocabulary choices from AGLFN
+        (r'\bEQUALS SIGN\b', 'EQUAL'),
         (r'\bFULL STOP\b', 'PERIOD'),
         (r'\bQUOTATION MARK\b', 'QUOTE'),
         (r'\bSOLIDUS\b', 'SLASH'),
@@ -459,7 +460,7 @@ class Schema:
             bool(self.cps) and any(unicodedata.category(chr(cp)) == 'Co' for cp in self.cps),
             self.phase_index,
             self.cmap is None,
-            not unicodedata.is_normalized('NFD', cmap_string),
+            cmap_string != unicodedata.normalize('NFD', cmap_string),
             not self.cps,
             len(self.cps),
             not isinstance(self.path, self.original_shape),

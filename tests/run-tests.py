@@ -34,7 +34,8 @@ import sys
 from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import assert_never
-import unicodedata
+
+import unicodedata2 as unicodedata
 
 
 if TYPE_CHECKING:

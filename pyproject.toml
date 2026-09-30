@@ -154,6 +154,7 @@ multiline-quotes = "single"
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.cast".msg = "Use a type annotation or `# type: ignore` instead"
+unicodedata.msg = "Use `unicodedata2`"
 
 [tool.ruff.lint.flake8-type-checking]
 strict = true
