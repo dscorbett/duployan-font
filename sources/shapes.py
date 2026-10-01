@@ -713,9 +713,8 @@ class CompressedSequence(InvisibleMark):
         """
         self.digram: Final = digram
         self.expansion: Final[Sequence[Schema]] = [
-            expanded
+            *(s.path.expansion if isinstance(s.path, CompressedSequence) else [s])
             for s in digram
-            for expanded in (s.path.expansion if isinstance(s.path, CompressedSequence) else [s])
         ]
         self.depth: Final[int] = 1 + max(
             (s.path.depth if isinstance(s.path, CompressedSequence) else 0)

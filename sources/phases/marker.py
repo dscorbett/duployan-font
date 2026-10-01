@@ -643,7 +643,7 @@ def add_width_markers(
             *mark_anchor_selector,
             *hubs[schema.hub_priority],
             schema,
-            *[digit for width, digit_path in widths for digit in get_width_digits(digit_path, width)],
+            *[*get_width_digits(digit_path, width) for width, digit_path in widths],
             end,
         ]
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]
