@@ -34,6 +34,7 @@ from typing import overload
 class point:
     x: float
     y: float
+    on_curve: bool
 
     @overload
     def __init__(
@@ -74,6 +75,7 @@ class point:
 
 class contour:
     closed: bool
+    is_quadratic: bool
 
     def __iter__(self, /) -> Iterator[point]: ...
 
@@ -101,10 +103,20 @@ class contour:
     @overload
     def cubicTo(self, cp1x: float, cp1y: float, cp2x: float, cp2y: float, x: float, y: float, pos: int = ..., /) -> contour: ...
 
+    def isClockwise(self, /) -> Literal[-1, 0, 1]: ...
+
+    def reverseDirection(self, /) -> contour: ...
+
 class layer:
+    is_quadratic: bool
+
     def __iter__(self, /) -> Iterator[contour]: ...
 
     def dup(self, /) -> layer: ...
+
+    def round(self, factor: float = ..., /) -> layer: ...
+
+    def removeOverlap(self, /) -> layer: ...
 
     @overload
     def stroke(
