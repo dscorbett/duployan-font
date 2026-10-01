@@ -16,9 +16,6 @@
 """Schemas and related things.
 """
 
-
-from __future__ import annotations
-
 import enum
 import functools
 import re
@@ -832,7 +829,7 @@ class Schema:
             first_component_implies_type = False
             try:
                 name = '_'.join(map(self._agl_name, cps))
-            except (KeyError, ValueError):
+            except KeyError, ValueError:
                 name = '_'.join(map(self._u_name, cps))
                 name = self._COLLAPSIBLE_U_NAME.sub(lambda m: 'uni' + m.group(0)[1:].replace('_u', ''), name)  # type: ignore[misc]
                 readable_name = '__'.join(map(self._readable_name, cps))

@@ -84,13 +84,12 @@ ignore_errors = true
 
 [tool.ruff]
 src = [".", "sources"]
-target-version = "py312"
+target-version = "py315"
 
 [tool.ruff.lint]
 exclude = [
     "sources/otf2ttf.py",
 ]
-future-annotations = true
 ignore = [
     # Not appropriate for this project
     "ambiguous-unicode-character-comment",

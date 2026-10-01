@@ -16,9 +16,6 @@
 """Miscellaneous constants, functions, and classes.
 """
 
-
-from __future__ import annotations
-
 from collections.abc import MutableMapping
 import enum
 import functools

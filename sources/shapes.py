@@ -16,9 +16,6 @@
 """Shapes and related things.
 """
 
-
-from __future__ import annotations
-
 import collections
 from collections.abc import Callable
 from collections.abc import Sequence
