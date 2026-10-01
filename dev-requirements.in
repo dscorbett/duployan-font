@@ -15,7 +15,7 @@
 
 -r requirements.in
 coverage >= 7.16.1, < 8
-mypy == 2.*
+mypy >= 2.4, < 3
 ruff >= 0.15.20, < 0.16.10
 setuptools >= 66.1  # https://github.com/pypa/setuptools/pull/3685
 uv >= 0.9.17, < 2
