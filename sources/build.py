@@ -103,7 +103,9 @@ def _save_font(
     font.correctReferences()
     font.selection.none()
     Path(output_path).resolve().parent.mkdir(parents=True, exist_ok=True)
-    font.generate(output_path, flags=('no-hints', 'omit-instructions', 'opentype'))
+    # 'no-hints' makes FontForge 20251009 write no CFF table at all (FontForge
+    # issue #5678, fixed upstream in February 2026); the hints are irrelevant.
+    font.generate(output_path, flags=('omit-instructions', 'opentype'))
 
 
 def _set_style_attributes(
