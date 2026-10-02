@@ -156,6 +156,7 @@ jobs:
           cd fontforge
           curl -O https://patch-diff.githubusercontent.com/raw/fontforge/fontforge/pull/4232.patch
           patch -p1 <4232.patch
+          sed -i 's/Python3::Python/Python3::Module/' fontforge/CMakeLists.txt
           mkdir build
           cd build
           cmake -G Ninja \
