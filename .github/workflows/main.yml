@@ -173,6 +173,7 @@ jobs:
             -D ENABLE_PYTHON_EXTENSION=ON \
             -D ENABLE_NATIVE_SCRIPTING=OFF \
             -D ENABLE_WOFF2=OFF \
+            -D Python3_EXECUTABLE=/usr/bin/python${{ env.PYTHON_VERSION }} \
             .. \
           ;
           ninja
