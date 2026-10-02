@@ -137,6 +137,7 @@ jobs:
       - name: Install FontForge
         if: steps.cache-fontforge.outputs.cache-hit != 'true'
         run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt-get update
           sudo apt-get -qy --no-install-recommends install \
             build-essential \
