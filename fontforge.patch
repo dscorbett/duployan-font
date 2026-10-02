@@ -1,0 +1,150 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -119,7 +119,7 @@ set(Python3_FIND_REGISTRY LAST)
+ if(BUILD_SHARED_LIBS)
+   set(Python3_USE_STATIC_LIBS FALSE)
+ endif()
+-find_package_auto(ENABLE_PYTHON_SCRIPTING Python3 3.3 COMPONENTS Development Interpreter)
++find_package_auto(ENABLE_PYTHON_SCRIPTING Python3 3.3 COMPONENTS Development.Module Development.Embed Interpreter)
+ find_package_auto(ENABLE_LIBSPIRO         Libspiro)
+ find_package_auto(ENABLE_LIBUNINAMESLIST  Libuninameslist)
+ 
+--- a/fontforge/CMakeLists.txt
++++ b/fontforge/CMakeLists.txt
+@@ -253,7 +253,7 @@ if(ENABLE_LIBREADLINE_RESULT)
+   target_link_libraries(fontforge PUBLIC Readline::Readline)
+ endif()
+ if(ENABLE_PYTHON_SCRIPTING_RESULT)
+-  target_link_libraries(fontforge PUBLIC Python3::Python)
++  target_link_libraries(fontforge PUBLIC Python3::Module)
+ endif()
+ if(ENABLE_WOFF2_RESULT)
+   target_link_libraries(fontforge PRIVATE WOFF2::WOFF2)
+--- a/fontforge/python.c
++++ b/fontforge/python.c
+@@ -1363,7 +1363,7 @@ return;
+     PyTuple_SetItem(arglist,1,glyph);
+     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
+     PyTuple_SetItem(arglist,3,Py_BuildValue("i",toback));
+-    result = PyEval_CallObject(py_ie[ie_index].import, arglist);
++    result = PyObject_CallObject(py_ie[ie_index].import, arglist);
+     Py_DECREF(arglist);
+     Py_XDECREF(result);
+     if ( PyErr_Occurred()!=NULL )
+@@ -1386,7 +1386,7 @@ return;
+     PyTuple_SetItem(arglist,1,glyph);
+     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
+     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
+-    result = PyEval_CallObject(py_ie[ie_index].export, arglist);
++    result = PyObject_CallObject(py_ie[ie_index].export, arglist);
+     Py_DECREF(arglist);
+     Py_XDECREF(result);
+     if ( PyErr_Occurred()!=NULL )
+@@ -1486,7 +1486,7 @@ static void python_call_onClosingFunctions_fe( gpointer data, gpointer udata )
+     {
+ 	PyObject *arglist, *result;
+ 	arglist = PyTuple_New(0);
+-	result = PyEval_CallObject( func, arglist);
++	result = PyObject_CallObject( func, arglist);
+ 	if ( !result )
+ 	{ // error
+ 	}
+@@ -3444,7 +3444,7 @@ return;
+ 	Py_DECREF(func);
+ return;
+     }
+-    result = PyEval_CallObject(func, args_tuple);
++    result = PyObject_CallObject(func, args_tuple);
+     Py_DECREF(args_tuple);
+     Py_XDECREF(result);
+     Py_DECREF(func);
+@@ -18360,7 +18360,7 @@ return( -1 );
+ 	PyTuple_SetItem(arglist,3,PyFF_GlyphSeparationArg);
+ 	Py_XINCREF(PyFF_GlyphSeparationArg);
+     }
+-    result = PyEval_CallObject(PyFF_GlyphSeparationHook, arglist);
++    result = PyObject_CallObject(PyFF_GlyphSeparationHook, arglist);
+     Py_DECREF(arglist);
+     if ( PyErr_Occurred()!=NULL ) {
+ 	PyErr_Print();
+@@ -18716,7 +18716,7 @@ char *PyFF_PickleMeToString(void *pydata) {
+     Py_XINCREF(pyobj);
+     PyTuple_SetItem(arglist,0,pyobj);
+     PyTuple_SetItem(arglist,1,Py_BuildValue("i",0));	/* ASCII protocol */
+-    result = PyEval_CallObject(pickler, arglist);
++    result = PyObject_CallObject(pickler, arglist);
+     Py_DECREF(arglist);
+     if ( result!=NULL )
+ 	ret = copy(PyBytes_AsString(result));
+@@ -18735,7 +18735,7 @@ void *PyFF_UnPickleMeToObjects(char *str) {
+     PyFF_PicklerInit();
+     arglist = PyTuple_New(1);
+     PyTuple_SetItem(arglist,0,Py_BuildValue(PY3OR2("y","s"),str)); /* Bytes/String object */
+-    result = PyEval_CallObject(unpickler, arglist);
++    result = PyObject_CallObject(unpickler, arglist);
+     Py_DECREF(arglist);
+     if ( PyErr_Occurred()!=NULL ) {
+ 	PyErr_Print();
+@@ -19488,7 +19488,7 @@ return;
+ 	PyTuple_SetItem(arglist,i,arg);
+     }
+     va_end(ap);
+-    result = PyEval_CallObject(func, arglist);
++    result = PyObject_CallObject(func, arglist);
+     Py_DECREF(arglist);
+     Py_XDECREF(result);
+     if ( PyErr_Occurred()!=NULL )
+--- a/fontforgeexe/CMakeLists.txt
++++ b/fontforgeexe/CMakeLists.txt
+@@ -105,6 +105,9 @@ else()
+ endif()
+ 
+ target_link_libraries(fontforgeexe PRIVATE fontforge Iconv::Iconv MathLib::MathLib)
++if(ENABLE_PYTHON_SCRIPTING_RESULT)
++  target_link_libraries(fontforgeexe PRIVATE Python3::Python)
++endif()
+ install(TARGETS fontforgeexe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+ 
+ if(UNIX)
+--- a/fontforgeexe/pythonui.c
++++ b/fontforgeexe/pythonui.c
+@@ -82,7 +82,7 @@ return;
+ 	Py_XINCREF(owner);
+ 	PyTuple_SetItem(arglist,0,menu_data[mi->mid].data);
+ 	PyTuple_SetItem(arglist,1,owner);
+-	result = PyEval_CallObject(menu_data[mi->mid].check_enabled, arglist);
++	result = PyObject_CallObject(menu_data[mi->mid].check_enabled, arglist);
+ 	Py_DECREF(arglist);
+ 	if ( result==NULL )
+ 	    /* Oh. An error. How fun. See below */;
+@@ -117,7 +117,7 @@ return;
+     Py_XINCREF(owner);
+     PyTuple_SetItem(arglist,0,menu_data[mi->mid].data);
+     PyTuple_SetItem(arglist,1,owner);
+-    result = PyEval_CallObject(menu_data[mi->mid].func, arglist);
++    result = PyObject_CallObject(menu_data[mi->mid].func, arglist);
+     Py_DECREF(arglist);
+     Py_XDECREF(result);
+     if ( PyErr_Occurred()!=NULL )
+--- a/po/CMakeLists.txt
++++ b/po/CMakeLists.txt
+@@ -6,7 +6,7 @@ foreach(_lang ${_langs})
+   set(_input "${CMAKE_CURRENT_SOURCE_DIR}/${_lang}.po")
+   set(_output "${CMAKE_CURRENT_BINARY_DIR}/${_lang}.mo")
+   add_custom_command(OUTPUT "${_output}"
+-    COMMAND "${GETTEXT_MSGFMT_EXECUTABLE}" --check -o "${_output}" "${_input}"
++    COMMAND "${GETTEXT_MSGFMT_EXECUTABLE}" -o "${_output}" "${_input}"
+     DEPENDS "${_input}"
+     VERBATIM
+   )
+--- a/pyhook/CMakeLists.txt
++++ b/pyhook/CMakeLists.txt
+@@ -19,7 +19,7 @@ target_link_libraries(psMat_pyhook PRIVATE Python3::Module)
+ # So do it ourselves, getting the prefix-relative path instead
+ if(NOT DEFINED PYHOOK_INSTALL_DIR)
+   execute_process(
+-    COMMAND "${Python3_EXECUTABLE}" -c "import distutils.sysconfig as sc; print(sc.get_python_lib(prefix='', plat_specific=True,standard_lib=False))"
++    COMMAND "${Python3_EXECUTABLE}" -c "import sysconfig; print(sysconfig.get_path('platlib', vars={'base': '', 'platbase': ''}).lstrip('/'))"
+     RESULT_VARIABLE _pyhook_install_dir_result
+     OUTPUT_VARIABLE PYHOOK_INSTALL_DIR
+     OUTPUT_STRIP_TRAILING_WHITESPACE)

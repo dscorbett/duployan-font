@@ -27,7 +27,7 @@ on:
 permissions:
   contents: read
 env:
-  FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
+  FONTFORGE_COMMIT: eaf4eb9203bbaeacf8e14b446f1f3d9b9451e53c
   FONTSPECTOR_VERSION: &fontspector_version 1.8.0
   HARFBUZZ_VERSION: &harfbuzz_version 14.5.0
   PYTHON_VERSION: 3.15
@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@v5
         with:
           key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
-          path: fontforge
+          path: fontforge-build
       - name: Install FontForge
         if: steps.cache-fontforge.outputs.cache-hit != 'true'
         run: |
@@ -152,11 +152,9 @@ jobs:
           pip install $(grep '^setuptools==' dev-requirements.txt)
           curl -Lo fontforge.zip https://github.com/fontforge/fontforge/archive/${{ env.FONTFORGE_COMMIT }}.zip
           unzip fontforge.zip
-          mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge
-          cd fontforge
-          curl -O https://patch-diff.githubusercontent.com/raw/fontforge/fontforge/pull/4232.patch
-          patch -p1 <4232.patch
-          sed -i 's/Python3::Python/Python3::Module/' fontforge/CMakeLists.txt
+          mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge-build
+          cd fontforge-build
+          patch -p1 <../fontforge.patch
           mkdir build
           cd build
           cmake -G Ninja \
@@ -180,7 +178,7 @@ jobs:
           ninja
           sudo ninja install
       - name: Add site-packages to default search path
-        run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
+        run: echo "PYTHONPATH=$PWD/fontforge-build/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Install Fontspector
         if: matrix.coverage == ''
         run: |
