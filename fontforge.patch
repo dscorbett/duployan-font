@@ -20,80 +20,6 @@
  endif()
  if(ENABLE_WOFF2_RESULT)
    target_link_libraries(fontforge PRIVATE WOFF2::WOFF2)
---- a/fontforge/python.c
-+++ b/fontforge/python.c
-@@ -1363,7 +1363,7 @@ return;
-     PyTuple_SetItem(arglist,1,glyph);
-     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
-     PyTuple_SetItem(arglist,3,Py_BuildValue("i",toback));
--    result = PyEval_CallObject(py_ie[ie_index].import, arglist);
-+    result = PyObject_CallObject(py_ie[ie_index].import, arglist);
-     Py_DECREF(arglist);
-     Py_XDECREF(result);
-     if ( PyErr_Occurred()!=NULL )
-@@ -1386,7 +1386,7 @@ return;
-     PyTuple_SetItem(arglist,1,glyph);
-     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
-     PyTuple_SetItem(arglist,2,DECODE_UTF8(filename,strlen(filename),NULL));
--    result = PyEval_CallObject(py_ie[ie_index].export, arglist);
-+    result = PyObject_CallObject(py_ie[ie_index].export, arglist);
-     Py_DECREF(arglist);
-     Py_XDECREF(result);
-     if ( PyErr_Occurred()!=NULL )
-@@ -1486,7 +1486,7 @@ static void python_call_onClosingFunctions_fe( gpointer data, gpointer udata )
-     {
- 	PyObject *arglist, *result;
- 	arglist = PyTuple_New(0);
--	result = PyEval_CallObject( func, arglist);
-+	result = PyObject_CallObject( func, arglist);
- 	if ( !result )
- 	{ // error
- 	}
-@@ -3444,7 +3444,7 @@ return;
- 	Py_DECREF(func);
- return;
-     }
--    result = PyEval_CallObject(func, args_tuple);
-+    result = PyObject_CallObject(func, args_tuple);
-     Py_DECREF(args_tuple);
-     Py_XDECREF(result);
-     Py_DECREF(func);
-@@ -18360,7 +18360,7 @@ return( -1 );
- 	PyTuple_SetItem(arglist,3,PyFF_GlyphSeparationArg);
- 	Py_XINCREF(PyFF_GlyphSeparationArg);
-     }
--    result = PyEval_CallObject(PyFF_GlyphSeparationHook, arglist);
-+    result = PyObject_CallObject(PyFF_GlyphSeparationHook, arglist);
-     Py_DECREF(arglist);
-     if ( PyErr_Occurred()!=NULL ) {
- 	PyErr_Print();
-@@ -18716,7 +18716,7 @@ char *PyFF_PickleMeToString(void *pydata) {
-     Py_XINCREF(pyobj);
-     PyTuple_SetItem(arglist,0,pyobj);
-     PyTuple_SetItem(arglist,1,Py_BuildValue("i",0));	/* ASCII protocol */
--    result = PyEval_CallObject(pickler, arglist);
-+    result = PyObject_CallObject(pickler, arglist);
-     Py_DECREF(arglist);
-     if ( result!=NULL )
- 	ret = copy(PyBytes_AsString(result));
-@@ -18735,7 +18735,7 @@ void *PyFF_UnPickleMeToObjects(char *str) {
-     PyFF_PicklerInit();
-     arglist = PyTuple_New(1);
-     PyTuple_SetItem(arglist,0,Py_BuildValue(PY3OR2("y","s"),str)); /* Bytes/String object */
--    result = PyEval_CallObject(unpickler, arglist);
-+    result = PyObject_CallObject(unpickler, arglist);
-     Py_DECREF(arglist);
-     if ( PyErr_Occurred()!=NULL ) {
- 	PyErr_Print();
-@@ -19488,7 +19488,7 @@ return;
- 	PyTuple_SetItem(arglist,i,arg);
-     }
-     va_end(ap);
--    result = PyEval_CallObject(func, arglist);
-+    result = PyObject_CallObject(func, arglist);
-     Py_DECREF(arglist);
-     Py_XDECREF(result);
-     if ( PyErr_Occurred()!=NULL )
 --- a/fontforgeexe/CMakeLists.txt
 +++ b/fontforgeexe/CMakeLists.txt
 @@ -105,6 +105,9 @@ else()
@@ -106,26 +32,6 @@
  install(TARGETS fontforgeexe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
  
  if(UNIX)
---- a/fontforgeexe/pythonui.c
-+++ b/fontforgeexe/pythonui.c
-@@ -82,7 +82,7 @@ return;
- 	Py_XINCREF(owner);
- 	PyTuple_SetItem(arglist,0,menu_data[mi->mid].data);
- 	PyTuple_SetItem(arglist,1,owner);
--	result = PyEval_CallObject(menu_data[mi->mid].check_enabled, arglist);
-+	result = PyObject_CallObject(menu_data[mi->mid].check_enabled, arglist);
- 	Py_DECREF(arglist);
- 	if ( result==NULL )
- 	    /* Oh. An error. How fun. See below */;
-@@ -117,7 +117,7 @@ return;
-     Py_XINCREF(owner);
-     PyTuple_SetItem(arglist,0,menu_data[mi->mid].data);
-     PyTuple_SetItem(arglist,1,owner);
--    result = PyEval_CallObject(menu_data[mi->mid].func, arglist);
-+    result = PyObject_CallObject(menu_data[mi->mid].func, arglist);
-     Py_DECREF(arglist);
-     Py_XDECREF(result);
-     if ( PyErr_Occurred()!=NULL )
 --- a/po/CMakeLists.txt
 +++ b/po/CMakeLists.txt
 @@ -6,7 +6,7 @@ foreach(_lang ${_langs})

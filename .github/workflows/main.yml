@@ -158,6 +158,7 @@ jobs:
           mkdir build
           cd build
           cmake -G Ninja \
+            -D CMAKE_C_FLAGS=-DPyEval_CallObject=PyObject_CallObject \
             -D CMAKE_INSTALL_PREFIX="$PWD/target" \
             -D ENABLE_DOCS=OFF \
             -D ENABLE_GUI=OFF \
