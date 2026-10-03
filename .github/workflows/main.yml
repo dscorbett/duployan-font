@@ -172,7 +172,7 @@ jobs:
             -D ENABLE_PYTHON_EXTENSION=ON \
             -D ENABLE_NATIVE_SCRIPTING=OFF \
             -D ENABLE_WOFF2=OFF \
-            -D PYHOOK_INSTALL_DIR=lib/python${{ env.PYTHON_VERSION }}/site-packages \
+            -D PYHOOK_INSTALL_DIR="$(/usr/bin/python${{ env.PYTHON_VERSION }} -c 'import sysconfig; print(sysconfig.get_path("platlib", vars={"platbase": "."}))')" \
             -D Python3_EXECUTABLE=/usr/bin/python${{ env.PYTHON_VERSION }} \
             .. \
           ;
