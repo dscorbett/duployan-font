@@ -1,14 +1,3 @@
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -119,7 +119,7 @@ set(Python3_FIND_REGISTRY LAST)
- if(BUILD_SHARED_LIBS)
-   set(Python3_USE_STATIC_LIBS FALSE)
- endif()
--find_package_auto(ENABLE_PYTHON_SCRIPTING Python3 3.3 COMPONENTS Development Interpreter)
-+find_package_auto(ENABLE_PYTHON_SCRIPTING Python3 3.3 COMPONENTS Development.Module Development.Embed Interpreter)
- find_package_auto(ENABLE_LIBSPIRO         Libspiro)
- find_package_auto(ENABLE_LIBUNINAMESLIST  Libuninameslist)
- 
 --- a/fontforge/CMakeLists.txt
 +++ b/fontforge/CMakeLists.txt
 @@ -253,7 +253,7 @@ if(ENABLE_LIBREADLINE_RESULT)
