@@ -27,7 +27,7 @@ on:
 permissions:
   contents: read
 env:
-  FONTFORGE_COMMIT: eaf4eb9203bbaeacf8e14b446f1f3d9b9451e53c
+  FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
   FONTSPECTOR_VERSION: &fontspector_version 1.8.0
   HARFBUZZ_VERSION: &harfbuzz_version 14.5.0
   PYTHON_VERSION: 3.15
@@ -153,6 +153,8 @@ jobs:
           curl -Lo fontforge.zip https://github.com/fontforge/fontforge/archive/${{ env.FONTFORGE_COMMIT }}.zip
           unzip fontforge.zip
           cd fontforge-${{ env.FONTFORGE_COMMIT }}
+          curl -O https://patch-diff.githubusercontent.com/raw/fontforge/fontforge/pull/4232.patch
+          patch -p1 <4232.patch
           sed -i 's/Python3::Python/Python3::Module/' fontforge/CMakeLists.txt
           find po -name '*.po' -print0 | xargs -0 -L 1 sed -i '/^$/q'
           mkdir build
