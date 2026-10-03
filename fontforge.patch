@@ -32,14 +32,3 @@
  install(TARGETS fontforgeexe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
  
  if(UNIX)
---- a/po/CMakeLists.txt
-+++ b/po/CMakeLists.txt
-@@ -6,7 +6,7 @@ foreach(_lang ${_langs})
-   set(_input "${CMAKE_CURRENT_SOURCE_DIR}/${_lang}.po")
-   set(_output "${CMAKE_CURRENT_BINARY_DIR}/${_lang}.mo")
-   add_custom_command(OUTPUT "${_output}"
--    COMMAND "${GETTEXT_MSGFMT_EXECUTABLE}" --check -o "${_output}" "${_input}"
-+    COMMAND "${GETTEXT_MSGFMT_EXECUTABLE}" -o "${_output}" "${_input}"
-     DEPENDS "${_input}"
-     VERBATIM
-   )

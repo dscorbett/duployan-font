@@ -155,6 +155,7 @@ jobs:
           mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge-build
           cd fontforge-build
           patch -p1 <../fontforge.patch
+          find po -name '*.po' -print0 | xargs -0 -L 1 sed -i '/^$/q'
           mkdir build
           cd build
           cmake -G Ninja \
