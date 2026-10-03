@@ -177,10 +177,9 @@ jobs:
             -D Python3_EXECUTABLE=/usr/bin/python${{ env.PYTHON_VERSION }} \
             .. \
           ;
-          ninja
-          sudo ninja install
+          ninja fontforge_pyhook
       - name: Add site-packages to default search path
-        run: echo "PYTHONPATH=$PWD/fontforge-build/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
+        run: echo "PYTHONPATH=$PWD/fontforge-build/build/lib:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Install Fontspector
         if: matrix.coverage == ''
         run: |
