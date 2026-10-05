@@ -201,6 +201,10 @@ extend-ignore-names = [
     "no-self-use",
     "unused-method-argument",
 ]
+"tests/compare-fonts.py" = [
+    # Comparison results must be output.
+    "print",
+]
 "tests/run-tests.py" = [
     # Test results must be output.
     "print",

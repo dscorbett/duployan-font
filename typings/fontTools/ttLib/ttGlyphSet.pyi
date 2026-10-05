@@ -1,0 +1,44 @@
+# MIT License
+#
+# Copyright (c) 2017 Just van Rossum
+# Copyright (c) 2025 David Corbett
+# Copyright (c) 2026 Chainguard, Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+from collections.abc import Iterator
+from collections.abc import Mapping
+from typing import override
+
+from fontTools.pens.basePen import AbstractPen
+
+class _TTGlyph:
+    width: float
+
+    def draw(self, pen: AbstractPen) -> None: ...
+
+class _TTGlyphSet(Mapping[str, _TTGlyph]):
+    @override
+    def __getitem__(self, glyph_name: str) -> _TTGlyph: ...
+
+    @override
+    def __iter__(self) -> Iterator[str]: ...
+
+    @override
+    def __len__(self) -> int: ...
