@@ -21,6 +21,7 @@
 
 import argparse
 import datetime
+import gc
 import hashlib
 import os
 from pathlib import Path
@@ -474,6 +475,7 @@ def _make_font(options: argparse.Namespace) -> None:
 
 
 if __name__ == '__main__':
+    gc.disable()
     parser = argparse.ArgumentParser(description='Makes a Duployan font.')
     parser.add_argument('--bold', action='store_true', help='Make a bold font.')
     parser.add_argument(
