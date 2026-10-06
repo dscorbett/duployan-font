@@ -92,7 +92,11 @@ class Grouper[T]:
         Args:
             group: The group to remove.
         """
-        self._groups.remove(group)
+        for i in range(len(self._groups) - 1, -1, -1):
+            group_i = self._groups[i]
+            if group_i is group or group_i == group:
+                self._groups.pop(i)
+                break
         for item in group:
             del self._inverted[item]
 
