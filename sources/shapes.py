@@ -3234,7 +3234,7 @@ class Complex(Shape):
             self.foreground = fontforge.layer()
             self.foreground += fontforge.contour()
             self.anchor_points: Final[collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]]] = collections.defaultdict(list)
-            self._stroke_args: tuple[tuple[object, ...], tuple[tuple[str, object], ...]] | None = None
+            self._stroke_width: float | None = None
 
         def addAnchorPoint(
             self,
@@ -3268,21 +3268,23 @@ class Complex(Shape):
 
         def stroke(
             self,
-            *args: object,
-            **kwargs: object,
+            nib: Literal['circular'],
+            width: float,
+            cap: Literal['round'],
         ) -> None:
-            """Simulates `fontforge.glyph.stroke`.
+            """Simulates a subset of `fontforge.glyph.stroke`.
 
             Args:
-                args: Positional arguments.
-                kwargs: Keyword arguments.
+                nib: The first positional argument.
+                width: The ``width`` argument.
+                cap: The ``cap`` argument.
             """
-            self._stroke_args = (args, tuple(kwargs.items()))
+            self._stroke_width = width
 
         def _stroke(self, *, copy: bool = False) -> fontforge.layer:
-            """Strokes a layer using the saved `_stroke_args`.
+            """Strokes a layer using the saved `_stroke_width`.
 
-            If `_stroke_args` is ``None``, the layer is not modified.
+            If `_stroke_width` is ``None``, the layer is not modified.
 
             Args:
                 copy: Whether to stroke a copy of `foreground` instead
@@ -3292,12 +3294,12 @@ class Complex(Shape):
                 The stroked layer.
             """
             layer = self.foreground
-            if self._stroke_args is not None:
+            if self._stroke_width is not None:
                 if copy:
                     layer = layer.dup()
-                layer.stroke(*self._stroke_args[0], **dict(self._stroke_args[1]))  # type: ignore[call-overload]
+                layer.stroke('circular', self._stroke_width, 'round')
                 if not copy:
-                    self._stroke_args = None
+                    self._stroke_width = None
             return layer
 
         def boundingBox(self) -> tuple[float, float, float, float]:
@@ -3307,14 +3309,16 @@ class Complex(Shape):
                 The bounding box of the proxied glyph, as a tuple of
                 minimum x, minimum y, maximum x, and maximum y.
             """
-            layer = self._stroke(copy=True)
-            bounding_box: tuple[float, float, float, float] = layer.boundingBox()
-            return bounding_box
+            x_min, y_min, x_max, y_max = self.foreground.boundingBox()
+            if self._stroke_width is not None:
+                half_stroke_width = self._stroke_width / 2
+                return (x_min - half_stroke_width, y_min - half_stroke_width, x_max + half_stroke_width, y_max + half_stroke_width)
+            return (x_min, y_min, x_max, y_max)
 
         def draw(
             self,
             pen: fontforge.glyphPen,
-            deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] | None = None,
+            deferred_proxies: MutableMapping[float, Complex.Proxy] | None = None,
         ) -> None:
             """Draws the collected data to a FontForge glyph.
 
@@ -3340,14 +3344,14 @@ class Complex(Shape):
                 deferred_proxies: An optional mapping to proxies whose
                     `draw` calls have been deferred.
             """
-            if deferred_proxies is None or self._stroke_args is None:
+            if deferred_proxies is None or self._stroke_width is None:
                 self._stroke()
                 assert all(not contour or contour.closed for contour in self.foreground), (
                     f'''A proxy contains an open contour: {
                         [(point.x, point.y) for point in next(contour for contour in self.foreground if contour and not contour.closed)]
                     }''')
                 self.foreground.draw(pen)
-            elif (deferred_proxy := deferred_proxies.get(self._stroke_args)) is not None:
+            elif (deferred_proxy := deferred_proxies.get(self._stroke_width)) is not None:
                 if (
                     deferred_proxy.foreground and self.foreground
                     and (deferred_contour := deferred_proxy.foreground[-1]) and (contour := self.foreground[0])
@@ -3357,7 +3361,7 @@ class Complex(Shape):
                 else:
                     deferred_proxy.foreground += self.foreground
             else:
-                deferred_proxies[self._stroke_args] = self
+                deferred_proxies[self._stroke_width] = self
 
         def transform(self, matrix: tuple[float, float, float, float, float, float], *args: Unused) -> None:
             """Simulates `fontforge.glyph.transform`.
@@ -3485,7 +3489,7 @@ class Complex(Shape):
         singular_anchor_points: collections.defaultdict[tuple[str, _AnchorType], list[_Point]] = collections.defaultdict(list)
         pen = glyph.glyphPen()
         effective_bounding_box = None
-        deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] = {}
+        deferred_proxies: MutableMapping[float, Complex.Proxy] = {}
         for op in self.instructions:
             if callable(op):
                 continue
@@ -4652,7 +4656,7 @@ class Wa(Complex):
         last_crossing_point: _Point | None = None
         singular_anchor_points = collections.defaultdict(list)
         pen = glyph.glyphPen()
-        deferred_proxies: MutableMapping[tuple[tuple[object, ...], tuple[tuple[str, object], ...]], Complex.Proxy] = {}
+        deferred_proxies: MutableMapping[float, Complex.Proxy] = {}
         for op in self.instructions:
             assert not callable(op)
             scalar, component, skip_drawing, tick = op
