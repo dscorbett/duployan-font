@@ -30,7 +30,7 @@ env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
   FONTSPECTOR_VERSION: &fontspector_version 1.8.0
   HARFBUZZ_VERSION: &harfbuzz_version 14.5.0
-  PYTHON_VERSION: 3.12
+  PYTHON_VERSION: 3.15
 jobs:
   main:
     runs-on: ubuntu-24.04
@@ -132,10 +132,11 @@ jobs:
         uses: actions/cache@v5
         with:
           key: ${{ runner.os }}-fontforge-${{ env.FONTFORGE_COMMIT }}-python-${{ env.PYTHON_VERSION }}
-          path: fontforge
+          path: fontforge-${{ env.FONTFORGE_COMMIT }}
       - name: Install FontForge
         if: steps.cache-fontforge.outputs.cache-hit != 'true'
         run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt-get update
           sudo apt-get -qy --no-install-recommends install \
             build-essential \
@@ -147,16 +148,16 @@ jobs:
             pkg-config \
             python${{ env.PYTHON_VERSION }}-dev \
           ;
-          pip install $(grep '^setuptools==' dev-requirements.txt)
           curl -Lo fontforge.zip https://github.com/fontforge/fontforge/archive/${{ env.FONTFORGE_COMMIT }}.zip
           unzip fontforge.zip
-          mv fontforge-${{ env.FONTFORGE_COMMIT }} fontforge
-          cd fontforge
+          cd fontforge-${{ env.FONTFORGE_COMMIT }}
           curl -O https://patch-diff.githubusercontent.com/raw/fontforge/fontforge/pull/4232.patch
           patch -p1 <4232.patch
+          sed -i 's/Python3::Python/Python3::Module/' fontforge/CMakeLists.txt
           mkdir build
           cd build
           cmake -G Ninja \
+            -D CMAKE_C_FLAGS=-DPyEval_CallObject=PyObject_CallObject \
             -D CMAKE_INSTALL_PREFIX="$PWD/target" \
             -D ENABLE_DOCS=OFF \
             -D ENABLE_GUI=OFF \
@@ -170,12 +171,13 @@ jobs:
             -D ENABLE_PYTHON_EXTENSION=ON \
             -D ENABLE_NATIVE_SCRIPTING=OFF \
             -D ENABLE_WOFF2=OFF \
+            -D PYHOOK_INSTALL_DIR="$(/usr/bin/python${{ env.PYTHON_VERSION }} -c 'import sysconfig; print(sysconfig.get_path("platlib", vars={"platbase": "."}))')" \
+            -D Python3_EXECUTABLE=/usr/bin/python${{ env.PYTHON_VERSION }} \
             .. \
           ;
-          ninja
-          sudo ninja install
+          ninja fontforge_pyhook
       - name: Add site-packages to default search path
-        run: echo "PYTHONPATH=$PWD/fontforge/build/target/lib/python${{ env.PYTHON_VERSION }}/site-packages:$PYTHONPATH" >>"$GITHUB_ENV"
+        run: echo "PYTHONPATH=$PWD/fontforge-${{ env.FONTFORGE_COMMIT }}/build/lib:$PYTHONPATH" >>"$GITHUB_ENV"
       - name: Install Fontspector
         if: matrix.coverage == ''
         run: |

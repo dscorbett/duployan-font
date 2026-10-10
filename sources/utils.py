@@ -16,9 +16,6 @@
 """Miscellaneous constants, functions, and classes.
 """
 
-
-from __future__ import annotations
-
 from collections.abc import MutableMapping
 import enum
 import functools
@@ -111,16 +108,9 @@ SUPERSCRIPT_HEIGHT: Final[float] = (1 + SCRIPT_Y_FACTOR) * CAP_HEIGHT
 X_HEIGHT: Final[float] = 507
 
 
-class CloneDefault(enum.Enum):
-    """The type of `CLONE_DEFAULT`.
-    """
-
-    _CLONE_DEFAULT = enum.auto()
-
-
 #: An object that various classes’ ``clone`` methods interpret as the
 #: value of the relevant attribute in the object being cloned.
-CLONE_DEFAULT: Final = CloneDefault._CLONE_DEFAULT
+CLONE_DEFAULT = sentinel('CLONE_DEFAULT')
 
 
 #: The non-negative angle by which to offset the angle at the endpoint
@@ -565,13 +555,13 @@ class Context:
     def clone(
         self,
         *,
-        angle: CloneDefault | float | None = CLONE_DEFAULT,
-        clockwise: CloneDefault | bool | None = CLONE_DEFAULT,
-        ou: CloneDefault | bool = CLONE_DEFAULT,
-        minor: CloneDefault | bool = CLONE_DEFAULT,
-        ignorable_for_topography: CloneDefault | bool = CLONE_DEFAULT,
-        diphthong_start: CloneDefault | bool = CLONE_DEFAULT,
-        diphthong_end: CloneDefault | bool = CLONE_DEFAULT,
+        angle: CLONE_DEFAULT | float | None = CLONE_DEFAULT,
+        clockwise: CLONE_DEFAULT | bool | None = CLONE_DEFAULT,
+        ou: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        minor: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        ignorable_for_topography: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        diphthong_start: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        diphthong_end: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,  # type: ignore[arg-type]

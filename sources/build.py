@@ -19,8 +19,6 @@
 """A CLI to make a Duployan font.
 """
 
-from __future__ import annotations
-
 import argparse
 import datetime
 import hashlib
@@ -83,7 +81,7 @@ def _prepare_environment_variables(dirty: bool) -> None:
                         ['git', 'rev-list', '-1', '--format=%ct', '--no-commit-header', 'HEAD'],
                         encoding='utf-8',
                     ).rstrip()
-        except (FileNotFoundError, subprocess.CalledProcessError):
+        except FileNotFoundError, subprocess.CalledProcessError:
             os.environ['SOURCE_DATE_EPOCH'] = '0'
     os.environ.pop('TMPDIR', None)
     os.environ['TZ'] = 'UTC'
@@ -260,18 +258,18 @@ def _set_version(
                             ['git', 'rev-list', '-1', f'--date=format-local:{TIMESTAMP_FORMAT}', '--format=%cd', '--no-commit-header', 'HEAD'],
                             encoding='utf-8',
                         ).rstrip()
-                except (FileNotFoundError, subprocess.CalledProcessError):
+                except FileNotFoundError, subprocess.CalledProcessError:
                     metadata = _get_date()
             try:
                 git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], encoding='utf-8').rstrip()
                 metadata += f'.{git_hash}'
-            except (FileNotFoundError, subprocess.CalledProcessError):
+            except FileNotFoundError, subprocess.CalledProcessError:
                 pass
             if dirty:
                 try:
                     git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
                     metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
-                except (AttributeError, FileNotFoundError, subprocess.CalledProcessError):
+                except FileNotFoundError, subprocess.CalledProcessError:
                     metadata += '.dirty'
             release_suffix = f'-alpha+{metadata}'
     name_table = tt_font['name']
@@ -446,7 +444,7 @@ def _is_dirty() -> bool:
     """
     try:
         return bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no']))
-    except (FileNotFoundError, subprocess.CalledProcessError):
+    except FileNotFoundError, subprocess.CalledProcessError:
         return False
 
 
