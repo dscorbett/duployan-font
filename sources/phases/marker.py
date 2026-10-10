@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 import collections
 import functools
 from heapq import heappop
@@ -645,7 +643,7 @@ def add_width_markers(
             *mark_anchor_selector,
             *hubs[schema.hub_priority],
             schema,
-            *[digit for width, digit_path in widths for digit in get_width_digits(digit_path, width)],
+            *[*get_width_digits(digit_path, width) for width, digit_path in widths],
             end,
         ]
         lookup = lookups[rule_count * lookups_per_position // len(schemas_needing_width_markers)]

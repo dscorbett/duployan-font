@@ -33,15 +33,13 @@ importlib-resources==7.1.0
     #   gfsubsets
 librt==0.15.0 ; platform_python_implementation != 'PyPy'
     # via mypy
-mypy==2.3.1
+mypy==2.4.0
     # via -r dev-requirements.in
 mypy-extensions==1.1.0
     # via mypy
 pathspec==1.1.1
     # via mypy
 ruff==0.16.8
-    # via -r dev-requirements.in
-setuptools==84.0.0
     # via -r dev-requirements.in
 typing-extensions==4.16.0
     # via mypy

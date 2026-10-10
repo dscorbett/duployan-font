@@ -83,8 +83,6 @@ modules in this package.
 """
 
 
-from __future__ import annotations
-
 import collections
 import functools
 import itertools

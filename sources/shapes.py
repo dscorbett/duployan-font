@@ -16,9 +16,6 @@
 """Shapes and related things.
 """
 
-
-from __future__ import annotations
-
 import collections
 from collections.abc import Callable
 from collections.abc import Sequence
@@ -61,7 +58,6 @@ if TYPE_CHECKING:
     from _typeshed import Unused
 
     from schema import Schema
-    from utils import CloneDefault
 
 
 LINE_FACTOR: Final[float] = 500
@@ -348,8 +344,8 @@ class ContextMarker(InvisibleMark):
     def clone(
         self,
         *,
-        context: CloneDefault | Context = CLONE_DEFAULT,
-        is_context_in: CloneDefault | bool = CLONE_DEFAULT,
+        context: CLONE_DEFAULT | Context = CLONE_DEFAULT,
+        is_context_in: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             context=self.context if context is CLONE_DEFAULT else context,
@@ -492,8 +488,8 @@ class Hub(InvisibleMark):
     def clone(
         self,
         *,
-        priority: CloneDefault | HubPriority = CLONE_DEFAULT,
-        initial_secant: CloneDefault | bool = CLONE_DEFAULT,
+        priority: CLONE_DEFAULT | HubPriority = CLONE_DEFAULT,
+        initial_secant: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             priority=self.priority if priority is CLONE_DEFAULT else priority,
@@ -717,9 +713,8 @@ class CompressedSequence(InvisibleMark):
         """
         self.digram: Final = digram
         self.expansion: Final[Sequence[Schema]] = [
-            expanded
+            *(s.path.expansion if isinstance(s.path, CompressedSequence) else [s])
             for s in digram
-            for expanded in (s.path.expansion if isinstance(s.path, CompressedSequence) else [s])
         ]
         self.depth: Final[int] = 1 + max(
             (s.path.depth if isinstance(s.path, CompressedSequence) else 0)
@@ -730,7 +725,7 @@ class CompressedSequence(InvisibleMark):
     def clone(
         self,
         *,
-        digram: CloneDefault | tuple[Schema, Schema] = CLONE_DEFAULT,
+        digram: CLONE_DEFAULT | tuple[Schema, Schema] = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             digram=self.digram if digram is CLONE_DEFAULT else digram,
@@ -980,8 +975,8 @@ class Space(Shape):
     def clone(
         self,
         *,
-        angle: CloneDefault | float = CLONE_DEFAULT,
-        margins: CloneDefault | bool = CLONE_DEFAULT,
+        angle: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        margins: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
@@ -1148,7 +1143,7 @@ class ChildEdge(InvisibleMark):
     def clone(
         self,
         *,
-        lineage: CloneDefault | Sequence[tuple[int, int]] = CLONE_DEFAULT,
+        lineage: CLONE_DEFAULT | Sequence[tuple[int, int]] = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
@@ -1226,7 +1221,7 @@ class ParentEdge(InvisibleMark):
     def clone(
         self,
         *,
-        lineage: CloneDefault | Sequence[tuple[int, int]] = CLONE_DEFAULT,
+        lineage: CLONE_DEFAULT | Sequence[tuple[int, int]] = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.lineage if lineage is CLONE_DEFAULT else lineage,
@@ -1319,7 +1314,7 @@ class Dot(Shape):
     def clone(
         self,
         *,
-        size_exponent: CloneDefault | bool = CLONE_DEFAULT,
+        size_exponent: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             size_exponent=self.size_exponent if size_exponent is CLONE_DEFAULT else size_exponent,
@@ -1454,13 +1449,13 @@ class Line(Shape):
     def clone(
         self,
         *,
-        angle: CloneDefault | float = CLONE_DEFAULT,
-        minor: CloneDefault | bool = CLONE_DEFAULT,
-        stretchy: CloneDefault | bool = CLONE_DEFAULT,
-        secant: CloneDefault | float | None = CLONE_DEFAULT,
-        secant_curvature_offset: CloneDefault | float = CLONE_DEFAULT,
-        dots: CloneDefault | int | None = CLONE_DEFAULT,
-        original_angle: CloneDefault | float | None = CLONE_DEFAULT,
+        angle: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        minor: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        stretchy: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        secant: CLONE_DEFAULT | float | None = CLONE_DEFAULT,
+        secant_curvature_offset: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        dots: CLONE_DEFAULT | int | None = CLONE_DEFAULT,
+        original_angle: CLONE_DEFAULT | float | None = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle if angle is CLONE_DEFAULT else angle,
@@ -1880,22 +1875,22 @@ class Curve(Shape):
     def clone(
         self,
         *,
-        angle_in: CloneDefault | float = CLONE_DEFAULT,
-        angle_out: CloneDefault | float = CLONE_DEFAULT,
-        clockwise: CloneDefault | bool = CLONE_DEFAULT,
-        stretch: CloneDefault | float = CLONE_DEFAULT,
-        long: CloneDefault | bool = CLONE_DEFAULT,
-        stretch_axis: CloneDefault | StretchAxis = CLONE_DEFAULT,
-        hook: CloneDefault | bool = CLONE_DEFAULT,
-        reversed_circle: CloneDefault | float = CLONE_DEFAULT,
-        overlap_angle: CloneDefault | float | None = CLONE_DEFAULT,
-        secondary: CloneDefault | bool | None = CLONE_DEFAULT,
-        swap_relative_anchors: CloneDefault | bool = CLONE_DEFAULT,
-        may_reposition_cursive_endpoints: CloneDefault | bool = CLONE_DEFAULT,
-        entry_position: CloneDefault | float = CLONE_DEFAULT,
-        exit_position: CloneDefault | float = CLONE_DEFAULT,
-        smooth_1: CloneDefault | bool = CLONE_DEFAULT,
-        smooth_2: CloneDefault | bool = CLONE_DEFAULT,
+        angle_in: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        angle_out: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        clockwise: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        stretch: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        long: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        stretch_axis: CLONE_DEFAULT | StretchAxis = CLONE_DEFAULT,
+        hook: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        reversed_circle: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        overlap_angle: CLONE_DEFAULT | float | None = CLONE_DEFAULT,
+        secondary: CLONE_DEFAULT | bool | None = CLONE_DEFAULT,
+        swap_relative_anchors: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        may_reposition_cursive_endpoints: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        entry_position: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        exit_position: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        smooth_1: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        smooth_2: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -1921,8 +1916,8 @@ class Curve(Shape):
     def smooth(
         self,
         *,
-        smooth_1: CloneDefault | bool = CLONE_DEFAULT,
-        smooth_2: CloneDefault | bool = CLONE_DEFAULT,
+        smooth_1: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        smooth_2: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         """Returns a copy of this shape with the ends smoothed.
 
@@ -2616,15 +2611,15 @@ class Circle(Shape):
     def clone(
         self,
         *,
-        angle_in: CloneDefault | float = CLONE_DEFAULT,
-        angle_out: CloneDefault | float = CLONE_DEFAULT,
-        clockwise: CloneDefault | bool = CLONE_DEFAULT,
-        reversed_circle: CloneDefault | bool = CLONE_DEFAULT,
-        modulation: CloneDefault | float = CLONE_DEFAULT,
-        pinned: CloneDefault | bool = CLONE_DEFAULT,
-        stretch: CloneDefault | float = CLONE_DEFAULT,
-        long: CloneDefault | bool = CLONE_DEFAULT,
-        role: CloneDefault | CircleRole = CLONE_DEFAULT,
+        angle_in: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        angle_out: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        clockwise: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        reversed_circle: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        modulation: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        pinned: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        stretch: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        long: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        role: CLONE_DEFAULT | CircleRole = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.angle_in if angle_in is CLONE_DEFAULT else angle_in,
@@ -3146,7 +3141,7 @@ class Complex(Shape):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -3813,8 +3808,8 @@ class ComplexCurve(Complex):
     def smooth(
         self,
         *,
-        smooth_1: CloneDefault | bool = CLONE_DEFAULT,
-        smooth_2: CloneDefault | bool = CLONE_DEFAULT,
+        smooth_1: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        smooth_2: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         """Returns a copy of this shape with the ends smoothed.
 
@@ -3854,8 +3849,8 @@ class RotatedComplex(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        rotation: CloneDefault | float = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        rotation: CLONE_DEFAULT | float = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -4012,8 +4007,8 @@ class InvalidOverlap(Complex):
     def clone(
         self,
         *,
-        continuing: CloneDefault | bool = CLONE_DEFAULT,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
+        continuing: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             continuing=self.continuing if continuing is CLONE_DEFAULT else continuing,
@@ -4053,8 +4048,8 @@ class InvalidStep(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        up: CloneDefault | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        up: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -4122,11 +4117,11 @@ class Ou(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        role: CloneDefault | CircleRole = CLONE_DEFAULT,
-        _initial: CloneDefault | bool = CLONE_DEFAULT,
-        _angled_against_next: CloneDefault | bool = CLONE_DEFAULT,
-        _isolated: CloneDefault | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        role: CLONE_DEFAULT | CircleRole = CLONE_DEFAULT,
+        _initial: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        _angled_against_next: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        _isolated: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -4484,9 +4479,9 @@ class SeparateAffix(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        low: CloneDefault | bool = CLONE_DEFAULT,
-        tight: CloneDefault | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        low: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        tight: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -4618,10 +4613,10 @@ class Wa(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        modulation: CloneDefault | float = CLONE_DEFAULT,
-        _initial: CloneDefault | bool = CLONE_DEFAULT,
-        _isolated: CloneDefault | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        modulation: CLONE_DEFAULT | float = CLONE_DEFAULT,
+        _initial: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        _isolated: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             self.instructions if instructions is CLONE_DEFAULT else instructions,
@@ -4965,8 +4960,8 @@ class TangentHook(Complex):
     def clone(
         self,
         *,
-        instructions: CloneDefault | Instructions = CLONE_DEFAULT,
-        _initial: CloneDefault | bool = CLONE_DEFAULT,
+        instructions: CLONE_DEFAULT | Instructions = CLONE_DEFAULT,
+        _initial: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             instructions=self.instructions if instructions is CLONE_DEFAULT else instructions,

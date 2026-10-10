@@ -84,13 +84,12 @@ ignore_errors = true
 
 [tool.ruff]
 src = [".", "sources"]
-target-version = "py312"
+target-version = "py315"
 
 [tool.ruff.lint]
 exclude = [
     "sources/otf2ttf.py",
 ]
-future-annotations = true
 ignore = [
     # Not appropriate for this project
     "ambiguous-unicode-character-comment",
@@ -121,7 +120,6 @@ ignore = [
     # Too many false positives
     "magic-value-comparison",  # https://github.com/astral-sh/ruff/issues/10009
     "missing-blank-line-after-summary",
-    "private-member-access",
     "raise-vanilla-args",  # https://github.com/astral-sh/ruff/issues/14398
     "redefined-loop-name",  # https://github.com/astral-sh/ruff/issues/17951
     # Too many true positives
@@ -146,6 +144,15 @@ select = ["ALL"]
 builtins-ignorelist = [
     "exit",
     "input",
+]
+
+[tool.ruff.lint.flake8-self]
+extend-ignore-names = [
+    "_h_e_a_d",
+    "_h_h_e_a",
+    "_m_e_t_a",
+    "_n_a_m_e",
+    "_p_o_s_t",
 ]
 
 [tool.ruff.lint.flake8-quotes]

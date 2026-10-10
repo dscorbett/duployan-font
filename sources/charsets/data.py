@@ -16,9 +16,6 @@
 """The contents of character sets.
 """
 
-
-from __future__ import annotations
-
 import math
 import string
 from typing import Final

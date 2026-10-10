@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 import collections
 import math
 from typing import Final
@@ -371,7 +369,7 @@ class Builder:
             self._convert_base_to_basemark(glyph)
         if not schema.path.invisible():
             glyph.anchorPoints = [a for a in glyph.anchorPoints if (
-                a[0] not in {*anchors.PARENT_EDGES, *[child_edge for child_layer in anchors.CHILD_EDGES[1:] for child_edge in child_layer]}
+                a[0] not in {*anchors.PARENT_EDGES, *[*child_layer for child_layer in anchors.CHILD_EDGES[1:]]}
                     if schema.anchor or schema.glyph_class != GlyphClass.MARK
                     else a[1] not in {'entry', 'exit'} and a[0] not in anchors.CHILD_EDGES[0]
             ) and (not self.unjoined or a[0] in anchors.ALL_MKMK)]
