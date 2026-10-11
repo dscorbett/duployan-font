@@ -1,5 +1,5 @@
 <!--
-Copyright 2024 David Corbett
+Copyright 2024, 2026 David Corbett
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ limitations under the License.
 An OpenType Unicode font for Duployan shorthand.
 
 Duployan is a shorthand used for French, English, Romanian, Chinook Jargon, and
-many other languages. Rawnd Musmus Duployan is a technical proof of concept for
-all of Duployan’s features that is also suitable for practical use.
+many other languages. Rawnd Musmus Duployan (𛰋𛱚𛰚𛰈 𛰙𛱛𛰜‌𛰙𛱛𛰜 𛰈𛱒𛰂𛰆𛱄𛱆𛱁𛰚) is a
+technical proof of concept for all of Duployan’s features that is also suitable
+for practical use.
 
 ## Installation
 
