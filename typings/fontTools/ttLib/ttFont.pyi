@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2017 Just van Rossum
 # Copyright (c) 2025 David Corbett
+# Copyright (c) 2026 Chainguard, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +32,7 @@ from _typeshed import FileDescriptorOrPath
 from fontTools.misc.configTools import AbstractConfig
 from fontTools.misc.configTools import Option
 from fontTools.ttLib.tables.DefaultTable import DefaultTable
+from fontTools.ttLib.ttGlyphSet import _TTGlyphSet
 
 class TTFont:
     def __init__(
@@ -66,6 +68,8 @@ class TTFont:
         file: str | IOBase,
         reorderTables: bool | None = ...,
     ) -> None: ...
+
+    def getGlyphSet(self) -> _TTGlyphSet: ...
 
     def __contains__(self, tag: str) -> bool: ...
 
