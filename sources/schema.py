@@ -247,6 +247,7 @@ class Schema:
         # Custom PUA names
         (r'^uE000$', 'BOUND'),
         (r'^uE001$', 'LATIN CROSS POMMEE'),
+        (r'^uE002$', 'WHITE CROSS PATTY'),
         (r'^uE003$', 'HEART WITH CROSS'),
         (r'^uE011$', 'LEFT PARENTHESIS WITH STROKE'),
         (r'^uE012$', 'RIGHT PARENTHESIS WITH STROKE'),

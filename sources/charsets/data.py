@@ -299,6 +299,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     black_star = FilledComplex([(1, Line(0)), (1, Line(216)), (1, Line(72)), (1, Line(288)), (1, Line(144))])
     skull_and_crossbones = Complex([(7, Circle(180, 180, clockwise=False, stretch=0.4, long=True)), (7 * 2 * 1.4 * RADIUS * 99 / 172, Space(270)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(120)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(0)), (0, Dot(1.3561)), (7 * 2 * 1.4 * RADIUS / math.sqrt(3) / 2.5, Space(240)), (7 * 2 * 1.4 * RADIUS * 59 / 215 - 42, Space(270)), (0, Dot(0)), (150, Space(160)), (0, Dot(0)), (150, Space(340)), (150, Space(20)), (0, Dot(0)), (150, Space(200)), (7 * 2 * 1.4 * RADIUS / 2 + 42, Space(270)), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (2.1, Curve(60, 90, clockwise=False), True), (2.1, Curve(270, 210, clockwise=True)), (2.1, Curve(30, 60, clockwise=False), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(330)), (2.1, Curve(60, 30, clockwise=True), True), (2.1, Curve(210, 270, clockwise=False)), (2.1, Curve(90, 60, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(150), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR / 2, Line(30), True), (2.1, Curve(120, 90, clockwise=True), True), (2.1, Curve(270, 330, clockwise=False)), (2.1, Curve(150, 120, clockwise=True), True), (7 * 2 * 1.4 * RADIUS / LINE_FACTOR, Line(210)), (2.1, Curve(120, 150, clockwise=False), True), (2.1, Curve(330, 270, clockwise=True)), (2.1, Curve(90, 120, clockwise=False), True)])
     earth = Complex([(2.72, Circle(180, 180, clockwise=False)), (0.476, Line(90)), (0.213, Line(270), True), (0.213, Line(180), True), (0.426, Line(0))])
+    cross_patty = FilledComplex([*((0.9, Curve((x - 75) % 360, (x - 15) % 360, clockwise=False, stretch=1.8, long=True)), (10, Curve((x + 180 - 10) % 360, (x + 180 + 10) % 360, clockwise=False)), (0.9, Curve((x + 15) % 360, (x + 75) % 360, clockwise=False, stretch=1.8, long=True, stretch_axis=StretchAxis.ANGLE_OUT))) for x in range(180, -180, -90)])
+    white_cross_patty = Complex(cross_patty.instructions)
     parenthesis_horizontal_space = (8.89, Space(0))
     left_double_parenthesis = Complex([*left_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(left_parenthesis.instructions)], parenthesis_horizontal_space, *left_parenthesis.instructions])  # type: ignore[attr-defined, misc]
     right_double_parenthesis = Complex([*right_parenthesis.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(right_parenthesis.instructions)], parenthesis_horizontal_space, *right_parenthesis.instructions])  # type: ignore[attr-defined, misc]
@@ -557,6 +559,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2620, skull_and_crossbones, 0.1, Type.NON_JOINING, y_min=PICTOGRAPH_DEPTH, y_max=PICTOGRAPH_HEIGHT),
         Schema(0x2641, earth, 1, Type.NON_JOINING, y_max=CROSS_HEIGHT),
         Schema(0x271D, cross, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
+        Schema(0x2720, cross_patty, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0x27CA, vertical_line_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2ADE, short_left_tack, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
@@ -567,6 +570,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
         Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
+        Schema(0xE002, white_cross_patty, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE011, left_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE012, right_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),

@@ -47,6 +47,7 @@ orientation.
 There are also some private use characters for non-joining characters:
 
 * U+E001 LATIN CROSS POMMEE
+* U+E002 WHITE CROSS PATTY
 * U+E003 HEART WITH CROSS
 * U+E011 LEFT PARENTHESIS WITH STROKE
 * U+E012 RIGHT PARENTHESIS WITH STROKE
