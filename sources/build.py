@@ -20,7 +20,7 @@
 """
 
 import argparse
-import datetime
+import datetime as dt
 import gc
 import hashlib
 import os
@@ -76,7 +76,7 @@ def _prepare_environment_variables(dirty: bool) -> None:
     if os.environ.get('SOURCE_DATE_EPOCH') is None:
         try:
             if dirty:
-                os.environ['SOURCE_DATE_EPOCH'] = f'{datetime.datetime.now(datetime.UTC).timestamp():.0f}'
+                os.environ['SOURCE_DATE_EPOCH'] = f'{dt.datetime.now(dt.UTC).timestamp():.0f}'
             else:
                 os.environ['SOURCE_DATE_EPOCH'] = subprocess.check_output(
                         ['git', 'rev-list', '-1', '--format=%ct', '--no-commit-header', 'HEAD'],
@@ -220,7 +220,7 @@ def _get_date() -> str:
     This is based on ``SOURCE_DATE_EPOCH``, so
     `_prepare_environment_variables` should already have been run.
     """
-    return datetime.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), datetime.UTC).strftime(TIMESTAMP_FORMAT)
+    return dt.datetime.fromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']), dt.UTC).strftime(TIMESTAMP_FORMAT)
 
 
 def _set_version(
