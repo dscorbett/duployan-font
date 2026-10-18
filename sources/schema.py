@@ -287,9 +287,10 @@ class Schema:
         (r'^ZERO WIDTH NO-BREAK SPACE$', 'ZWNBSP'),
         # Custom name aliases
         (r'^DUPLOYAN THICK LETTER SELECTOR$', 'DTLS'),
-        # Familiar vocabulary choices from AGLFN
+        # Familiar vocabulary choices from AGL
         (r'\bEQUALS SIGN\b', 'EQUAL'),
         (r'\bFULL STOP\b', 'PERIOD'),
+        (r'(?<=\bPARALLEL) TO\b', ''),
         (r'\bQUOTATION MARK\b', 'QUOTE'),
         (r'\bSOLIDUS\b', 'SLASH'),
         (r'(?<=ER|SS)[- ]THAN\b', ''),
