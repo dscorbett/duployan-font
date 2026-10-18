@@ -85,7 +85,7 @@ if TYPE_CHECKING:
 _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     # Some punctuation marks are marked as encirclable for consistency with
     # related characters without having direct attestations.
-    0x00A1, 0x00BF, 0x2018, 0x2019,
+    0x00A1, 0x00BF, 0x2018, 0x2019, 0x2E2E,
     # Manseau’s English adaptation is not fully supported in Unicode. It is
     # not useful to include code points specific to unsupported modes.
     0x030B, 0x030F, 0x1AE8, 0x1AEE, 0x1AEF,
@@ -234,6 +234,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     semicolon = Complex([*comma.instructions, *[op if callable(op) else (op.size, op.shape.as_reversed(), True) for op in reversed(comma.instructions)], (comma.instructions[0].size, Circle(comma.instructions[0].shape.as_reversed().angle_out, 180, clockwise=False), True), (-(comma.instructions[0].size * RADIUS * 2 + light_line / 2) + light_line * Dot.SCALAR ** h.size_exponent / 2 + colon.instructions[1].size, colon.instructions[1].shape), (0, h)])  # type: ignore[attr-defined, misc, union-attr]
     question = Punctuation([(0, h), (188, Space(90)), (4.162, Curve(90, 45, clockwise=True)), (0.16, Line(45)), (4.013, Curve(45, 210, clockwise=False))])
     inverted_question = Complex([question.instructions[0], (question.instructions[1][0], question.instructions[1][1].clone(angle=(question.instructions[1][1].angle + 180) % 360)), (question.instructions[2][0], question.instructions[2][1].clone(angle_in=(question.instructions[2][1].angle_in + 180) % 360, angle_out=(question.instructions[2][1].angle_out + 180) % 360)), (question.instructions[3][0], question.instructions[3][1].as_reversed()), (question.instructions[4][0], question.instructions[4][1].clone(angle_in=(question.instructions[4][1].angle_in + 180) % 360, angle_out=(question.instructions[4][1].angle_out + 180) % 360))])  # type: ignore[call-arg, index, misc, union-attr]
+    reversed_question = Complex([*question.instructions[0:2], question.instructions[2]._replace(shape=Curve(90, 135, clockwise=False)), question.instructions[3]._replace(shape=Line(135)), question.instructions[4]._replace(shape=Curve(135, 330, clockwise=True))])  # type: ignore[misc, union-attr]
     less_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(0), True), (math.cos(math.radians(27)) * 0.84, Line(180), True), (1, Line(153 + 180), True), (1, Line(153)), (1, Line(27)), (1, Line(27 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True)])
     equal = Grammalogue([(395, Space(90)), (1, Line(0), True), (1, Line(180), True), (90, Space(270)), (1, Line(0)), (180, Space(90)), (1, Line(180)), (90, Space(270)), (1, Line(0), True)])
     greater_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True), (1, Line(27 + 180), True), (1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
@@ -555,6 +556,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2ADE, short_left_tack, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x2E28, left_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E29, right_double_parenthesis, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x2E2E, reversed_question, 1, Type.NON_JOINING, y_max=CAP_HEIGHT, encirclable=True),
         Schema(0x2E3C, x_mark, 0.5, Type.NON_JOINING),
         Schema(0x2E3E, wiggly_vertical_line, 2, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
