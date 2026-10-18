@@ -3117,11 +3117,15 @@ class Complex(Shape):
             which would be the entry context for the following
             component, and returns the actual entry context that the
             following component should use.
+        filled: Whether to remove internal contours when stroking. It is
+            always ``False`` in ``Complex`` but may be overridden in
+            subclasses.
         rotation: The number of degrees to rotate the glyph
             counterclockwise as the final step of drawing. It is always
             0 in ``Complex`` but may be overridden in subclasses.
     """
 
+    filled: bool = False
     rotation: float = 0
 
     @override
@@ -3221,6 +3225,7 @@ class Complex(Shape):
         method.
 
         Attributes:
+            filled: Whether to remove internal contours when stroking.
             foreground: The layer to draw to.
             anchor_points: The component shapes’ collected anchor
                 points. The keys are tuples of anchor name and anchor
@@ -3228,9 +3233,13 @@ class Complex(Shape):
                 The values are sequences of anchor points.
         """
 
-        def __init__(self) -> None:
+        def __init__(self, *, filled: bool) -> None:
             """Initializes this `Proxy`.
+
+            Args:
+                filled: The ``filled`` attribute.
             """
+            self.filled: Final = filled
             self.foreground = fontforge.layer()
             self.foreground += fontforge.contour()
             self.anchor_points: Final[collections.defaultdict[tuple[str, _AnchorType], MutableSequence[_Point]]] = collections.defaultdict(list)
@@ -3281,25 +3290,20 @@ class Complex(Shape):
             """
             self._stroke_width = width
 
-        def _stroke(self, *, copy: bool = False) -> fontforge.layer:
+        def _stroke(self) -> fontforge.layer:
             """Strokes a layer using the saved `_stroke_width`.
 
             If `_stroke_width` is ``None``, the layer is not modified.
-
-            Args:
-                copy: Whether to stroke a copy of `foreground` instead
-                    of modifying `foreground`.
 
             Returns:
                 The stroked layer.
             """
             layer = self.foreground
             if self._stroke_width is not None:
-                if copy:
-                    layer = layer.dup()
-                layer.stroke('circular', self._stroke_width, 'round')
-                if not copy:
-                    self._stroke_width = None
+                if self.filled:
+                    self.closePath()
+                layer.stroke('circular', self._stroke_width, 'round', 'round', ('removeinternal',) if self.filled else ())
+                self._stroke_width = None
             return layer
 
         def boundingBox(self) -> tuple[float, float, float, float]:
@@ -3499,7 +3503,7 @@ class Complex(Shape):
                     deferred_proxy.draw(pen)
                 deferred_proxies.clear()
                 effective_bounding_box = glyph.boundingBox()
-            proxy = Complex.Proxy()
+            proxy = Complex.Proxy(filled=self.filled)
             component.draw(
                 proxy,  # type: ignore[arg-type]
                 light_line if tick else stroke_width,
@@ -3828,6 +3832,13 @@ class ComplexCurve(Complex):
             *self.instructions[1:-1],
             self.instructions[-1]._replace(shape=self._last_curve.clone(smooth_1=smooth_1)),  # type: ignore[misc, union-attr]
         ])
+
+
+class FilledComplex(Complex):
+    """A shape filled in with ink (what Unicode calls “BLACK”).
+    """
+
+    filled = True
 
 
 class RotatedComplex(Complex):
@@ -4664,7 +4675,7 @@ class Wa(Complex):
             if modulate:
                 assert isinstance(component, Circle)
                 component = component.clone(modulation=self.modulation)
-            proxy = Complex.Proxy()
+            proxy = Complex.Proxy(filled=self.filled)
             component.draw(
                 proxy,  # type: ignore[arg-type]
                 light_line if tick else stroke_width,
