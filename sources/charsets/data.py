@@ -86,7 +86,7 @@ if TYPE_CHECKING:
 _NOTO_EXCLUSIONS: Final[AbstractSet[int]] = {
     # Some punctuation marks are marked as encirclable for consistency with
     # related characters without having direct attestations.
-    0x00A1, 0x00BF, 0x2018, 0x2019, 0x2E2E,
+    0x00A1, 0x00BF, 0x0589, 0x2018, 0x2019, 0x2E2E,
     # Manseau’s English adaptation is not fully supported in Unicode. It is
     # not useful to include code points specific to unsupported modes.
     0x030B, 0x030F, 0x1AE8, 0x1AEE, 0x1AEF,
@@ -280,6 +280,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     left_half_ring = Curve(180, 0, clockwise=False, stretch=0.2)
     inverted_breve = Curve(90, 270, clockwise=False, stretch=0.2)
     right_half_ring = Curve(0, 180, clockwise=False, stretch=0.2)
+    armenian_comma = Line(315)
     double_macron = Complex([(0.2, macron), (light_line / 2 + stroke_gap, Space(270)), (0.2, macron.as_reversed())])
     x_mark = Punctuation(instructions=multiplication.instructions[1:])
     cgj = InvisibleMark()
@@ -512,6 +513,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x034F, cgj, 0, Type.NON_JOINING),
         Schema(0x0351, left_half_ring, 1, anchor=anchors.ABOVE),
         Schema(0x0357, right_half_ring, 1, anchor=anchors.ABOVE),
+        Schema(0x0589, colon, 1, Type.NON_JOINING, encirclable=True),
+        Schema(0x055D, armenian_comma, 0.5, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
         Schema(0x1AB7, s_t, 1.9, anchor=anchors.BELOW),
         Schema(0x1AE8, double_macron, 1, anchor=anchors.ABOVE),
         Schema(0x1AEE, double_grave, 1, anchor=anchors.BELOW),
@@ -528,6 +531,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x201C, left_quote, 1, Type.NON_JOINING, y_min=558, encirclable=True),
         Schema(0x201D, right_quote, 1, Type.NON_JOINING, y_min=677, encirclable=True),
         Schema(0x201E, right_quote, 1, Type.NON_JOINING, encirclable=True),
+        Schema(0x2024, h, 0, Type.NON_JOINING),
         Schema(0x2026, ellipsis, 1, Type.NON_JOINING, encirclable=True),
         Schema(0x202F, nnbsp, 200 - 2 * DEFAULT_SIDE_BEARING, side_bearing=200 - 2 * DEFAULT_SIDE_BEARING),
         Schema(0x2032, prime, 0.58, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
