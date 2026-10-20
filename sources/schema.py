@@ -249,6 +249,7 @@ class Schema:
         (r'^uE001$', 'LATIN CROSS POMMEE'),
         (r'^uE002$', 'WHITE CROSS PATTY'),
         (r'^uE003$', 'HEART WITH CROSS'),
+        (r'^uE004$', 'STRIPED DIAMOND'),
         (r'^uE011$', 'LEFT PARENTHESIS WITH STROKE'),
         (r'^uE012$', 'RIGHT PARENTHESIS WITH STROKE'),
         (r'^uE013$', 'LEFT PARENTHESIS WITH DOUBLE STROKE'),

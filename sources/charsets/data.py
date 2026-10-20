@@ -313,6 +313,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     cross_pommy = Complex([cross_knob_op, (3 + 2 * cross_knob_line_factor, Line(270)), cross_knob_op, (2 + cross_knob_line_factor, Line(90), True), (1 + cross_knob_line_factor, Line(180), True), cross_knob_op, (2 + 2 * cross_knob_line_factor, Line(0)), cross_knob_op])
     cross = Complex([(3, Line(270)), (2, Line(90), True), (1, Line(180), True), (2, Line(0))])
     sacred_heart = Complex([(10.584, Curve(38.184, 25, clockwise=True, stretch=0.346, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(25, 232, clockwise=True, stretch=0.036, long=True)), (2.712, Line(232)), (2.712, Line(128)), (10.584, Curve(128, 335, clockwise=True, stretch=0.036, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (10.584, Curve(335, 321.816, clockwise=True, stretch=0.346, long=True)), (2.5, Space(0)), (cross.instructions[0][0], cross.instructions[0][1].as_reversed(), True), *cross.instructions])  # type: ignore[index, misc, union-attr]
+    striped_diamond = Complex([(1.72, Line(0)), (1.72 / 2, Line(180), True, True), (1.72 / 6, Line(90), True), (1.72 / 3, Line(180), True), (1.72 * 2 / 3, Line(0)), (1.72 / 3, Line(180), True), (1.72 / 6, Line(90), True), (1.72 / 6, Line(180), True), (1.72 / 3, Line(0)), (1.72 / 6, Line(180), True), (1.72 / 2, Line(270), True), (1.72 / 3, Line(180), True), (1.72 * 2 / 3, Line(0)), (1.72 / 3, Line(180), True), (1.72 / 6, Line(270), True), (1.72 / 6, Line(180), True), (1.72 / 3, Line(0))])
     parenthesis_stroke_size = 8
     parenthesis_stroke: Instructions = [(parenthesis_stroke_size / 2, Line(180), True), (parenthesis_stroke_size, Line(0)), (parenthesis_stroke_size / 2, Line(180), True)]
     parenthesis_with_stroke_size = 431
@@ -576,6 +577,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE002, white_cross_patty, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE003, sacred_heart, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
+        Schema(0xE004, striped_diamond, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
         Schema(0xE011, left_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE012, right_parenthesis_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE013, left_parenthesis_with_double_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
