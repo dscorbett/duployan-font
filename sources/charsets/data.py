@@ -242,6 +242,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     greater_than = Grammalogue([(math.cos(math.radians(27)) * 0.84, Line(180), True), (math.cos(math.radians(27)) * 0.84, Line(0), True), (1, Line(27 + 180), True), (1, Line(27)), (1, Line(153)), (1, Line(153 + 180), True), (math.cos(math.radians(27)) * 0.84, Line(180), True)])
     left_bracket = Complex([(0.45, Line(180)), (2.059, Line(90)), (0.45, Line(0))])
     right_bracket = Complex([(0.45, Line(0)), (2.059, Line(90)), (0.45, Line(180))])
+    left_bracket_with_stroke = Complex([left_bracket.instructions[0], left_bracket.instructions[1]._replace(size=left_bracket.instructions[1].size / 2), (1.1 / 2 * left_bracket.instructions[0].size, Line(180), True), (1.1 * left_bracket.instructions[0].size, Line(0)), (1.1 / 2 * left_bracket.instructions[0].size, Line(180), True), left_bracket.instructions[1]._replace(size=left_bracket.instructions[1].size / 2), left_bracket.instructions[2]])  # type: ignore[misc, union-attr]
+    right_bracket_with_stroke = Complex([right_bracket.instructions[0], right_bracket.instructions[1]._replace(size=right_bracket.instructions[1].size / 2), (1.1 / 2 * right_bracket.instructions[0].size, Line(180), True), (1.1 * right_bracket.instructions[0].size, Line(0)), (1.1 / 2 * right_bracket.instructions[0].size, Line(180), True), right_bracket.instructions[1]._replace(size=right_bracket.instructions[1].size / 2), right_bracket.instructions[2]])  # type: ignore[misc, union-attr]
     left_ceiling = Complex([(2.059, Line(90)), (0.45, Line(0))])
     right_ceiling = Complex([(2.059, Line(90)), (0.45, Line(180))])
     left_floor = Complex([(0.45, Line(180)), (2.059, Line(90))])
@@ -576,6 +578,8 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2E3C, x_mark, 0.5, Type.NON_JOINING),
         Schema(0x2E3E, wiggly_vertical_line, 2, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x2E40, double_hyphen, 1, Type.NON_JOINING, y_min=270),
+        Schema(0x2E55, left_bracket_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
+        Schema(0x2E56, right_bracket_with_stroke, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0xE000, bound, 1, Type.NON_JOINING, side_bearing=0),
         Schema(0xE001, cross_pommy, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),
         Schema(0xE002, white_cross_patty, 1, Type.NON_JOINING, y_min=CROSS_DEPTH, y_max=CROSS_HEIGHT),

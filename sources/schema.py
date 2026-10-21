@@ -295,6 +295,7 @@ class Schema:
         (r'(?<=\bPARALLEL) TO\b', ''),
         (r'\bQUOTATION MARK\b', 'QUOTE'),
         (r'\bSOLIDUS\b', 'SLASH'),
+        (r'\bSQUARE (?=BRACKET\b)', ''),
         (r'(?<=ER|SS)[- ]THAN\b', ''),
         # Unnecessary words
         (r'\bDOTS INSIDE AND ABOVE\b', 'DOTS'),
