@@ -239,6 +239,7 @@ convention = "google"
 
 [tool.uv]
 exclude-newer = "P7D"
+exclude-newer-package = { uv = "2026-10-20T15:12:07Z" }
 
 [tool.uv.pip]
 universal = true
