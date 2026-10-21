@@ -32,6 +32,7 @@ from shapes import Bound
 from shapes import Circle
 from shapes import Complex
 from shapes import ComplexCurve
+from shapes import Component
 from shapes import Curve
 from shapes import Dot
 from shapes import FilledComplex
@@ -253,6 +254,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     right_brace = Complex([*upper_right_brace_section.instructions, *lower_right_brace_section.instructions])
     cent = Complex([(2.4, Curve(135, 225, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(225, 315, clockwise=False, stretch=0.771, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(315, 45, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (2.4, Curve(225, 175, clockwise=True, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE), True), (0, Space(0), True, True), (0.156, Line(270), True), (2 * 0.156 + 0.905, Line(90))])
     pound = Complex([(0.4, Curve(49, 180 - 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (1, Curve(180 - 10, 180 + 10, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), (1, Curve(180 + 10, 270 + 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (0.075, Line(270 + 10)), (0.07, Line(180), True), (0.18, Line(0)), (0.11, Line(180), True), (0.075, Line(270 + 10)), (2, Curve(270 + 10, 270 - 32, clockwise=True)), (0.4, Curve(270 - 32, 360 - 25, clockwise=True)), (0.15, Line(360 - 25)), (1, Curve(360 - 25, 41, clockwise=False))])
+    section = Complex((lambda x, y, r: [*x, *y, *[c._replace(shape=c.shape.as_reversed(), skip_drawing=True) for c in reversed(y)], *map(r, reversed(y)), *map(r, reversed(x))])([Component(0.5019, Curve(49, 180 - 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), Component(1, Curve(180 - 10, 180 + 10, clockwise=False, stretch=0.2, long=True, stretch_axis=StretchAxis.ABSOLUTE)), Component(1, Curve(180 + 10, 270 + 10, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), Component(1, Curve(270 + 10, 270 + 43, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT))], [Component(1, Curve(270 + 43, 270 + 65, clockwise=False, stretch=0.3, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), Component(1, Curve(270 + 65, 270 + 10, clockwise=True, stretch=0.55, long=True, stretch_axis=StretchAxis.ANGLE_IN)), Component(1, Curve(270 + 10, 180 + 20, clockwise=True, stretch=0.25, long=True, stretch_axis=StretchAxis.ANGLE_IN))], lambda c: c._replace(shape=c.shape.clone(angle_in=(c.shape.angle_in + 180) % 360, angle_out=(c.shape.angle_out + 180) % 360).as_reversed())))  # type: ignore[attr-defined, misc]  # ruff: ignore[unnecessary-direct-lambda-call]
     guillemet_y_min = 40
     guillemet_horizontal_space = (200, Space(0))
     left_guillemet = [(0.524, Line(129.89)), (0.524, Line(50.11))]
@@ -478,6 +480,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x00A1, inverted_exclamation, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT + BRACKET_DEPTH, encirclable=True),
         Schema(0x00A2, cent, 1, Type.NON_JOINING, y_max=X_HEIGHT),
         Schema(0x00A3, pound, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x00A7, section, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=CAP_HEIGHT),
         Schema(0x00AB, left_double_guillemet, 1, Type.NON_JOINING, y_min=guillemet_y_min),
         Schema(0x00B0, circle, 2.3, Type.NON_JOINING, y_min=None, y_max=CAP_HEIGHT),
         Schema(0x00B7, h, 0, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line * Dot.SCALAR ** h.size_exponent / 2),  # type: ignore[misc]
