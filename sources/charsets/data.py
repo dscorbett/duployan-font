@@ -295,6 +295,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
     prime = Line(240)
     double_prime = Complex([(1, prime), (274, Space(0)), (1, prime.as_reversed())])
     reversed_pilcrow = Complex([(8, Line(90)), (0.8, Line(270), True), (1.8, Line(180), True), (1.8, Line(0)), (16.5, Curve(0, 180, clockwise=True, stretch=1, long=True)), (1.8, Line(180))])
+    four_dot_mark = Complex([(0, h), (X_HEIGHT, Space(90)), (X_HEIGHT * 0.7, Space(180)), (0, h), (X_HEIGHT * 0.7 * 2, Space(0)), (0, h), (X_HEIGHT * 0.7, Space(180)), (X_HEIGHT, Space(90)), (0, h)])
     dotted_cross = Complex([*plus.instructions, (plus.instructions[1].size * (1 - 2 / 3), Line(180), True), (plus.instructions[1].size * 2 / 3, Line(90), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(180), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(270), True), (0, h), (plus.instructions[1].size * 2 * 2 / 3, Line(0), True), (0, h)])  # type: ignore[misc, union-attr]
     tricolon = Complex([(0, h), (322, Space(90)), (0, h), (322, Space(90)), (0, h)])
     numero = Complex([(6.9, Curve(320, 101, clockwise=False, stretch=2.048, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (2.384, Line(293)), (7.07, Curve(90, 63, clockwise=True, stretch=2.048, long=True)), (0, Space(0), False, True), (10, Curve(63, 345, clockwise=True, stretch=0.4, long=True, stretch_axis=StretchAxis.ANGLE_OUT)), (337, Space(180)), (240, Space(270)), (4.009, Circle(180, 180, clockwise=False, stretch=0.078125, long=True))])
@@ -548,6 +549,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2042, asterism, 1, Type.NON_JOINING, y_min=-148),
         Schema(0x2044, slash, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x204B, reversed_pilcrow, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
+        Schema(0x205B, four_dot_mark, 1, Type.NON_JOINING, y_min=BRACKET_DEPTH, y_max=BRACKET_HEIGHT),
         Schema(0x205C, dotted_cross, 1, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2 - plus.instructions[1].size * LINE_FACTOR),  # type: ignore[misc, union-attr]
         Schema(0x205D, tricolon, 1, Type.NON_JOINING, y_max=CAP_HEIGHT),
         Schema(0x20B6, livre_tournois, 1, Type.NON_JOINING, y_max=X_HEIGHT),
