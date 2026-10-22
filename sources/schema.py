@@ -864,7 +864,7 @@ class Schema:
         if self.child:
             name += '.sub'
         if self.width_effect == WidthEffect.IGNORED:
-            name += '.wl'
+            name += '.Z'
         if self.ignored_for_topography:
             name += '.X'
         if first_component_implies_type or self.cmap is None and self.path.invisible():
