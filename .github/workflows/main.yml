@@ -256,7 +256,7 @@ jobs:
         if: matrix.coverage == ''
         run: |
           . dev-venv/bin/activate
-          make -j 'CHARSET=${{ matrix.charset }}' ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' ${{ matrix.optimize == '' && 'check-fonts' || '' }} check-sources
+          make -j 'CHARSET=${{ matrix.charset }}' ${{ matrix.requirements == 'oldest' && 'FONTSPECTOR_FULL_LISTS=' || '' }} ${{ matrix.charset == 'noto' && 'NOTO=1' || '' }} 'UNJOINED=${{ matrix.unjoined }}' ${{ matrix.optimize == '' && 'check-fonts' || '' }} check-sources
       - name: Check coverage
         if: matrix.coverage != ''
         run: |

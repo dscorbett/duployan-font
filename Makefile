@@ -49,6 +49,7 @@ FONTS = $(foreach suffix,$(SUFFIXES),$(addprefix fonts/$(FONT_FILE_NAME)/unhinte
 INTERMEDIATE_PREFIX = tmp-
 INTERMEDIATE_FONTS = $(addprefix $(INTERMEDIATE_PREFIX),$(FONTS))
 SUBSET_PREFIX = subset-
+FONTSPECTOR_FULL_LISTS = --full-lists
 HB_PROGRAMS = hb-shape hb-view
 
 VALID_CHARSETS = $(shell PYTHONPATH="sources:$$PYTHONPATH" python3 -c 'import charsets; print(" ".join(charsets.Charset))')
@@ -177,7 +178,7 @@ tests/fontspector-config.i.toml: tests/fontspector-config.toml
 
 .PHONY: $(addprefix fontspector-,$(SUFFIXES))
 $(addprefix fontspector-,$(SUFFIXES)): fontspector-%: % tests/fontspector-config.i.toml
-	fontspector -p googlefonts --configuration $(word 2,$^) --full-lists --skip-network $(filter %.$*,$(FONTS))
+	fontspector -p googlefonts --configuration $(word 2,$^) $(FONTSPECTOR_FULL_LISTS) --skip-network $(filter %.$*,$(FONTS))
 
 .PHONY: fontspector
 fontspector: $(addprefix fontspector-,$(SUFFIXES))
