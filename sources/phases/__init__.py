@@ -1377,7 +1377,7 @@ def run_phases(
         all_input_schemas = all_output_schemas
         all_schemas |= all_input_schemas
         all_lookups_with_phases.extend((lookup, phase) for lookup in lookups)
-        all_named_lookups_with_phases |= ((name, (lookup, phase)) for name, lookup in named_lookups.items())
+        PrefixView(phase, all_named_lookups_with_phases).update((name, (lookup, phase)) for name, lookup in named_lookups.items())
     return (
         all_schemas,
         all_input_schemas,

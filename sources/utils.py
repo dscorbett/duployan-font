@@ -32,10 +32,8 @@ import uharfbuzz
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from collections.abc import ItemsView
     from collections.abc import Iterable
     from collections.abc import Iterator
-    from collections.abc import KeysView
     from collections.abc import Mapping
     from collections.abc import Sequence
     from collections.abc import Set as AbstractSet
@@ -825,25 +823,26 @@ class PrefixView[T](MutableMapping[str, T]):
 
     @override
     def __contains__(self, item: object, /) -> bool:
-        """Returns whether a prefixed key is mapped to a value.
+        """Returns whether a key is mapped to a value.
 
         Args:
-            item: The possible key to which to prepend the prefix.
+            item: The possible key.
         """
-        return isinstance(item, str) and self._prefixed(item) in self._delegate
+        if not isinstance(item, str):
+            return False
+        is_global = item.startswith('global..')
+        if len(item.split('..')) != 1 + is_global:
+            return False
+        return (item if is_global else self._prefix + item) in self._delegate
 
     @override
     def __iter__(self, /) -> Iterator[str]:
-        return iter(self._delegate)
+        for key in self._delegate:
+            if key.startswith(self._prefix):
+                yield key.removeprefix(self._prefix)
+            elif key.startswith('global..'):
+                yield key
 
     @override
     def __len__(self, /) -> int:
-        return len(self._delegate)
-
-    @override
-    def keys(self) -> KeysView[str]:
-        return self._delegate.keys()
-
-    @override
-    def items(self) -> ItemsView[str, T]:
-        return self._delegate.items()
+        return len([*self])
