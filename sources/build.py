@@ -270,7 +270,7 @@ def _set_version(
                 try:
                     git_diff = subprocess.check_output(['git', 'diff-index', '--binary', 'HEAD'])
                     metadata += f'.{hashlib.md5(git_diff, usedforsecurity=False).hexdigest()}'
-                except FileNotFoundError, subprocess.CalledProcessError:
+                except FileNotFoundError, ValueError, subprocess.CalledProcessError:
                     metadata += '.dirty'
             release_suffix = f'-alpha+{metadata}'
     name_table = tt_font['name']
