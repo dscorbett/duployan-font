@@ -91,13 +91,13 @@ def add_shims_for_pseudo_cursive(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    marker_lookup = Lookup('dist')
+    marker_lookup = Lookup('rclt')
     deduplicate_marker_lookup = Lookup(
-        'dist',
+        'rclt',
         mark_filtering_set='root_parent_edge',
     )
     space_lookup = Lookup(
-        'dist',
+        'rclt',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_MARKS,
         reverse=True,
     )

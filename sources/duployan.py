@@ -158,37 +158,37 @@ class Builder:
     def _add_lookups(self, class_asts: Mapping[str, fontTools.feaLib.ast.GlyphClassDefinition]) -> None:
         if not self.unjoined:
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.CONTINUING_OVERLAP,
                 flags=0,
                 mark_filtering_set=class_asts[phases.HUB_CLASS],
             )
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.CURSIVE,
                 flags=0,
                 mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
             )
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.PRE_HUB_CONTINUING_OVERLAP,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.HUB_CLASS],
             )
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.POST_HUB_CONTINUING_OVERLAP,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.HUB_CLASS],
             )
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.PRE_HUB_CURSIVE,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
             )
             self._add_lookup(
-                'curs',
+                'blwm',
                 anchors.POST_HUB_CURSIVE,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
