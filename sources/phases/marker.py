@@ -1010,6 +1010,8 @@ def sum_width_markers(
                         assert isinstance(addend_schema.path, Digit)
                         if place != addend_schema.path.place:
                             continue
+                        if addend_schema not in original_schemas:
+                            continue
                         if not (carry_in_is_new or augend_is_new or addend_schema in new_schemas):
                             continue
                         addend = addend_schema.path.digit
