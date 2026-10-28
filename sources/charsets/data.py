@@ -529,6 +529,7 @@ def initialize_schemas(charset: Charset, light_line: float, stroke_gap: float) -
         Schema(0x2001, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x2003, space, 1500, Type.NON_JOINING, side_bearing=1500),
         Schema(0x200C, space, 0, Type.NON_JOINING, side_bearing=0, override_ignored=True),
+        Schema(0x200D, space, 0, anchor=anchors.MIDDLE),
         Schema(0x2010, t, 0.5, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
         Schema(0x2011, t, 0.5, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
         Schema(0x2013, t, 0.6, Type.NON_JOINING, y_min=CAP_HEIGHT / 2 - light_line / 2),
