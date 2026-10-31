@@ -987,11 +987,10 @@ class Space(Shape):
     def get_name(self, size: float, joining_type: Type) -> str:
         if self.angle % 180 == 90:
             return ''
-        return f'''{
-                int(size * math.cos(math.radians(self.angle)))
-            }.{
-                int(size * math.sin(math.radians(self.angle)))
-            }'''.replace('-', 'n')
+        name = f'{int(size * math.cos(math.radians(self.angle)))}'
+        if self.angle % 180 != 0:
+            name += f'.{int(size * math.sin(math.radians(self.angle)))}'
+        return name.replace('-', 'n')
 
     @override
     def group(self) -> Hashable:
