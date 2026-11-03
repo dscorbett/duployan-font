@@ -102,6 +102,7 @@ ignore = [
     "f-string-in-exception",
     "if-else-block-instead-of-if-exp",
     "line-contains-todo",
+    "magic-value-comparison",
     "missing-todo-author",
     "missing-todo-link",
     "non-empty-init-module",
@@ -118,7 +119,6 @@ ignore = [
     "unnecessary-multiline-docstring",
     "yoda-conditions",
     # Too many false positives
-    "magic-value-comparison",  # https://github.com/astral-sh/ruff/issues/10009
     "missing-blank-line-after-summary",
     "raise-vanilla-args",  # https://github.com/astral-sh/ruff/issues/14398
     "redefined-loop-name",  # https://github.com/astral-sh/ruff/issues/17951
@@ -239,8 +239,9 @@ convention = "google"
 
 [tool.uv]
 exclude-newer = "P7D"
-exclude-newer-package = { uv = "2026-10-20T15:12:07Z" }
 
 [tool.uv.pip]
+generate-hashes = true
+require-hashes = true
 universal = true
 upgrade = true

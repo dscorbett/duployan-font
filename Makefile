@@ -40,7 +40,7 @@ endif
 unexport CHARSET
 SUFFIXES = $(VALID_SUFFIXES)
 TALL_TEXT = 𛰋𛱚𛰚‌𛰆𛱁𛰚𛰊
-HB_VERSION = 14.6.0
+HB_VERSION = 15.0.0
 NEXT_VERSION = $$(python -c 'v = "$(VERSION)".split("."); print(f"{v[0]}.{int(v[1]) + 1}")')
 
 CHECK_ARGS = $(if $(filter testing,$(CHARSET)),,--incomplete)
@@ -223,7 +223,7 @@ $(HB_PROGRAMS): %: .hb/harfbuzz-$(HB_VERSION)/build/util/%
 $(patsubst %.in,%.txt,$(wildcard *requirements.in)): %requirements.txt: %requirements.in
 	uv pip compile $< >$@
 	printf '%s\n#\n%s\n' "$$(sed -n '1,/^$$/p' $<)" "$$(cat $@)" >$@
-	-git --no-pager diff $@
+	-git --no-pager diff --color=always $@ | grep -v ' --hash='
 
 .PHONY: release
 release: RELEASE=1
