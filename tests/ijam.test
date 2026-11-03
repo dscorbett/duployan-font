@@ -13,12 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# U+1BC4E DUPLOYAN LETTER SLOAN EE
 1BC02 1BC4E::[u1BC02.p@200,0|u1BC47.e.270n90@0,-100|dupl_.Line.0.rel2@12,-254|_@440,0]
 1BC03 1BC4E::[u1BC03.t@0,200|u1BC47.e.0n180@500,0|dupl_.Line.90.rel2@754,12|_@994,0]
 1BC04 1BC4E::[u1BC04.f@0,0|u1BC47.e.300n120@115,-150|dupl_.Line.30.rel2@253,-314|_@645,0]
 1BC05 1BC4E::[u1BC05.k@290,0|u1BC47.e.240n60@103,-50|dupl_.Line.150.rel2@0,-214|_@817,0]
 1BC06 1BC4E::[u1BC06.l@0,0|u1BC47.e.45p225@359,500|dupl_.Line.135.rel2@548,689|_@911,0]
 
+# Not repositioned on ligatures
+1BC4D 1BC41::[u1BC47.e.270p90.d1@0,0|dupl_.Dot.1.rel2@86,-168|u1BC41.a.90n90.d2@200,0|_@640,0]
+1BC4E 1BC41::[u1BC47.e.270p90.d1@0,0|dupl_.Line.0.rel2@12,-154|u1BC41.a.90n90.d2@200,0|_@640,0]
+
+# Consonants with perpendicular strokes
 1BC1D::[u1BC19.m@112,0|u1BC9E.double@0,360|_@652,0]
 1BC1E::[u1BC1A.n@0,0|u1BC9E.double@188,360|_@653,0]
 1BC1F::[u1BC1B.j@0,0|u1BC9E_.double.90@360,188|_@960,0]

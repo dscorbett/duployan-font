@@ -584,7 +584,7 @@ class Schema:
     def diacritic_angles(self) -> Mapping[str, float]:
         """The path’s diacritic angles.
         """
-        return self.path.calculate_diacritic_angles()
+        return self.path.calculate_diacritic_angles(self.diphthong_1, self.diphthong_2)
 
     @functools.cached_property
     def without_marks(self) -> Self:

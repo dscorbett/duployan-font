@@ -278,11 +278,17 @@ class Shape:
         """
         raise NotImplementedError
 
-    def calculate_diacritic_angles(self) -> Mapping[str, float]:
+    def calculate_diacritic_angles(self, diphthong_1: bool, diphthong_2: bool) -> Mapping[str, float]:
         """Returns a map of this shape’s diacritic angles.
 
         The keys are anchor names. The values are angles by which this
         shape should be rotated at each anchor.
+
+        Args:
+            diphthong_1: Whether this shape is a non-final element of a
+                diphthong ligature.
+            diphthong_2: Whether this shape is a non-initial element of
+                a diphthong ligature.
         """
         return {}
 
@@ -1708,7 +1714,7 @@ class Line(Shape):
         return self.clone(angle=angle)
 
     @override
-    def calculate_diacritic_angles(self) -> Mapping[str, float]:
+    def calculate_diacritic_angles(self, diphthong_1: bool, diphthong_2: bool) -> Mapping[str, float]:
         angle = float(self.angle % 180)
         return {
             anchors.RELATIVE_NARROW: angle,
@@ -2134,6 +2140,18 @@ class Curve(Shape):
             angle_to_overlap_point += delta
         return angle_to_overlap_point % 360
 
+    def _middle_mark_angle(
+        self,
+        diphthong_1: bool,
+        diphthong_2: bool,
+    ) -> float:
+        final_abs_da = abs(self.get_da())
+        unsmoothed_offset_1 = 90 if diphthong_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
+        unsmoothed_offset_2 = 90 if diphthong_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
+        unsmoothed_offset_angle_in = (self.angle_in - unsmoothed_offset_2 * (1 if self.clockwise else -1)) % 360
+        unsmoothed_offset_angle_out = (self.angle_out + unsmoothed_offset_1 * (1 if self.clockwise else -1)) % 360
+        return sum(self.get_normalized_angles(*self._pre_stretch(unsmoothed_offset_angle_in, unsmoothed_offset_angle_out)[0])) / 2
+
     @override
     def draw(
         self,
@@ -2151,11 +2169,6 @@ class Curve(Shape):
     ) -> tuple[float, float, float, float] | None:
         pen = glyph.glyphPen()
         final_abs_da = abs(self.get_da())
-        unsmoothed_offset_1 = 90 if diphthong_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
-        unsmoothed_offset_2 = 90 if diphthong_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
-        unsmoothed_offset_angle_in = (self.angle_in - unsmoothed_offset_2 * (1 if self.clockwise else -1)) % 360
-        unsmoothed_offset_angle_out = (self.angle_out + unsmoothed_offset_1 * (1 if self.clockwise else -1)) % 360
-        relative_mark_angle = sum(self.get_normalized_angles(*self._pre_stretch(unsmoothed_offset_angle_in, unsmoothed_offset_angle_out)[0])) / 2
         offset_1 = 90 if diphthong_1 else self.SMOOTH_DELTA if self.smooth_1 else -final_abs_da / 2 if diphthong_2 and final_abs_da < 180 else 0
         offset_2 = 90 if diphthong_2 else self.SMOOTH_DELTA if self.smooth_2 else -final_abs_da / 2 if diphthong_1 and final_abs_da < 180 else 0
         offset_angle_in = (self.angle_in - offset_2 * (1 if self.clockwise else -1)) % 360
@@ -2166,6 +2179,8 @@ class Curve(Shape):
             scale_x,
             scale_y,
         ) = self._pre_stretch(self.angle_in, self.angle_out, offset_angle_in, offset_angle_out)
+        unsmoothed_a1, unsmoothed_a2, _ = self._get_normalized_angles_and_da(pre_stretch_angle_in, pre_stretch_angle_out, final_circle, initial_circle)
+        relative_mark_angle = (unsmoothed_a1 + unsmoothed_a2) / 2
         exit_delta_scalar = (abs(math.tan(math.radians(pre_stretch_angle_out - (1 if self.clockwise else -1) * pre_stretch_offset_angle_out)))
             if offset_1 != 90
             else math.sin(math.radians(final_abs_da / 2))
@@ -2300,7 +2315,7 @@ class Curve(Shape):
                     if abs(da) > 180
                     else _rect(r, math.radians(a1 + child_interval * (max_tree_width + 1))),
             )
-        glyph.addAnchorPoint(anchors.MIDDLE, 'base', *_rect(r, math.radians(relative_mark_angle)))
+        glyph.addAnchorPoint(anchors.MIDDLE, 'base', *_rect(r, math.radians(self._middle_mark_angle(diphthong_1, diphthong_2))))
         if not anchor:
             inner_relative_anchor = anchors.RELATIVE_NARROW
             outer_relative_anchor = anchors.RELATIVE_WIDE
@@ -2499,12 +2514,16 @@ class Curve(Shape):
         return Context(self.angle_out, self.clockwise)
 
     @override
-    def calculate_diacritic_angles(self) -> Mapping[str, float]:
-        halfway_angle = (self.angle_in + self.angle_out) / 2 % 180
+    def calculate_diacritic_angles(self, diphthong_1: bool, diphthong_2: bool) -> Mapping[str, float]:
+        diacritic_rounding_base = 5
+        pre_stretch_angle_in, pre_stretch_angle_out = self._pre_stretch(self.angle_in, self.angle_out)[0]
+        a1, a2, _ = self._get_normalized_angles_and_da(pre_stretch_angle_in, pre_stretch_angle_out)
+        raw_relative_angle = (a1 + a2) / 2 + 90
+        relative_angle = round(raw_relative_angle / diacritic_rounding_base) * diacritic_rounding_base % 180
         return {
-            anchors.RELATIVE_NARROW: halfway_angle,
-            anchors.RELATIVE_WIDE: halfway_angle,
-            anchors.MIDDLE: (halfway_angle + 90) % 180,
+            anchors.RELATIVE_NARROW: relative_angle,
+            anchors.RELATIVE_WIDE: relative_angle,
+            anchors.MIDDLE: round(self._middle_mark_angle(diphthong_1, diphthong_2) / diacritic_rounding_base) * diacritic_rounding_base % 180,
             anchors.SECANT: self.angle_out % 180,
         }
 
@@ -3736,10 +3755,10 @@ class Complex(Shape):
         return next(op for op in reversed(self.instructions) if not callable(op))[1].context_out()
 
     @override
-    def calculate_diacritic_angles(self) -> Mapping[str, float]:
+    def calculate_diacritic_angles(self, diphthong_1: bool, diphthong_2: bool) -> Mapping[str, float]:
         if self._base_shape is not None:
-            return self._base_shape.calculate_diacritic_angles()
-        return super().calculate_diacritic_angles()
+            return self._base_shape.calculate_diacritic_angles(diphthong_1, diphthong_2)
+        return super().calculate_diacritic_angles(diphthong_1, diphthong_2)
 
 
 class ComplexCurve(Complex):
