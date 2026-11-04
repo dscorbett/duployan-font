@@ -3244,6 +3244,10 @@ class Complex(Shape):
             self.rotation,
         )
 
+    @override
+    def invisible(self) -> bool:
+        return all(callable(op) or op.skip_drawing or op.shape.invisible() for op in self.instructions)
+
     @functools.cached_property
     def base_index(self) -> int | None:
         """The index of this shape’s main component.
@@ -3711,7 +3715,7 @@ class Complex(Shape):
         for op in self.instructions:
             if callable(op):
                 continue
-            return op.shape.invisible()
+            return op.shape.invisible() or op.shape.fixed_y()
         return False
 
     @override
