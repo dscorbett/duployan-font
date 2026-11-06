@@ -1436,6 +1436,23 @@ def copy_maximum_left_bound_to_start(
     return [lookup]
 
 
+def turn_hubs_into_joiners(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup('dist')
+    for schema in new_schemas:
+        match schema:
+            case Schema(path=Hub() as path):
+                add_rule(lookup, Rule([schema], [schema.clone(path=path.clone(joiner=True))]))
+    return [lookup]
+
+
 def dist(
     builder: Builder,
     original_schemas: OrderedSet[Schema],
@@ -1484,5 +1501,6 @@ PHASE_LIST = [
     mark_maximum_bounds,
     expand_start_markers,
     copy_maximum_left_bound_to_start,
+    turn_hubs_into_joiners,
     dist,
 ]

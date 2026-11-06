@@ -457,6 +457,6 @@ if __name__ == '__main__':
     assert isinstance(args.view, bool)  # type: ignore[misc]
     passed_all = run_tests(args.tests, args.font, Shaper.OT, args.incomplete, args.view)
     if passed_all and supports_core_text():
-        run_tests(args.tests, args.font, Shaper.CORE_TEXT, args.incomplete, args.view)
+        passed_all = run_tests(args.tests, args.font, Shaper.CORE_TEXT, args.incomplete, args.view)
     if not passed_all:
         sys.exit(1)

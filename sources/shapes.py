@@ -299,8 +299,8 @@ class Shape:
         return None
 
 
-class InvisibleMark(Shape):
-    """An invisible combining mark.
+class InvisibleMarker(Shape):
+    """An invisible marker.
     """
 
     @override
@@ -315,6 +315,11 @@ class InvisibleMark(Shape):
     @override
     def invisible(self) -> bool:
         return True
+
+
+class InvisibleMark(InvisibleMarker):
+    """An invisible combining mark.
+    """
 
     @final
     @override
@@ -457,7 +462,7 @@ class HubPriority(enum.Enum):
         return self.value < other.value
 
 
-class Hub(InvisibleMark):
+class Hub(InvisibleMarker):
     """A candidate for which letter to place on the baseline.
 
     A hub precedes each candidate for which letter to place on the
@@ -472,6 +477,8 @@ class Hub(InvisibleMark):
         priority: The priority level.
         initial_secant: Whether this hub marks a letter after an initial
             secant. This determines which set of cursive anchors to use.
+        joiner: Whether this hub should get a joiner glyph, as opposed
+            to a mark glyph.
     """
 
     @override
@@ -480,15 +487,18 @@ class Hub(InvisibleMark):
         priority: HubPriority,
         *,
         initial_secant: bool = False,
+        joiner: bool = False,
     ) -> None:
         """Initializes this `Hub`.
 
         Args:
             priority: The ``priority`` attribute.
             initial_secant: The ``initial_secant`` attribute.
+            joiner: The ``joiner`` attribute.
         """
         self.priority: Final = priority
         self.initial_secant: Final = initial_secant
+        self.joiner: Final = joiner
 
     @override
     def clone(
@@ -496,10 +506,12 @@ class Hub(InvisibleMark):
         *,
         priority: CLONE_DEFAULT | HubPriority = CLONE_DEFAULT,
         initial_secant: CLONE_DEFAULT | bool = CLONE_DEFAULT,
+        joiner: CLONE_DEFAULT | bool = CLONE_DEFAULT,
     ) -> Self:
         return type(self)(
             priority=self.priority if priority is CLONE_DEFAULT else priority,
             initial_secant=self.initial_secant if initial_secant is CLONE_DEFAULT else initial_secant,
+            joiner=self.joiner if joiner is CLONE_DEFAULT else joiner,
         )
 
     @override
@@ -507,7 +519,7 @@ class Hub(InvisibleMark):
         priority_name = self.priority.name
         if not self.initial_secant:
             priority_name = priority_name.lower()
-        return f'hub.{priority_name}'
+        return ('HUB.' if self.joiner else 'hub.') + priority_name
 
     @staticmethod
     @override
@@ -536,6 +548,10 @@ class Hub(InvisibleMark):
             glyph.addAnchorPoint(anchors.PRE_HUB_CURSIVE, 'entry', 0, 0)
             glyph.addAnchorPoint(anchors.POST_HUB_CURSIVE, 'exit', 0, 0)
         return None
+
+    @override
+    def guaranteed_glyph_class(self) -> GlyphClass | None:
+        return GlyphClass.JOINER if self.joiner else GlyphClass.MARK
 
 
 class Selvage(Shape):
