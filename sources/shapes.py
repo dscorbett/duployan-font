@@ -583,6 +583,7 @@ class Selvage(Shape):
         diphthong_2: bool,
     ) -> tuple[float, float, float, float] | None:
         glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
+        glyph.addAnchorPoint(anchors.SELVAGE, 'exit', 0, 0)
         return None
 
     @override
@@ -1617,6 +1618,7 @@ class Line(Shape):
         elif self.secant:
             glyph.addAnchorPoint(anchors.CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
             glyph.addAnchorPoint(anchors.PRE_HUB_CONTINUING_OVERLAP, 'exit', length * self.secant, end_y)
+            glyph.addAnchorPoint(anchors.SELVAGE, 'entry', 0, 0)
         else:
             if joining_type != Type.NON_JOINING:
                 max_tree_width = self.max_tree_width(size)

@@ -464,6 +464,7 @@ def add_width_markers(
     selvage = next((s for s in schemas if isinstance(s.path, Selvage)), None)
     if selvage is None:
         selvage = Schema(None, Selvage(), 0)
+        classes[phases.SELVAGE_CLASS].append(selvage)
     hubs: MutableMapping[HubPriority, list[Schema]] = {HubPriority.NEVER: []}
     for hub_priority in HubPriority:
         if hub_priority == HubPriority.NEVER:
@@ -1207,6 +1208,7 @@ def mark_hubs_after_initial_secants(
             classes['all'].append(schema)
         elif isinstance(schema.path, Line) and schema.path.secant and schema.glyph_class == GlyphClass.JOINER:
             classes['secant'].append(schema)
+            classes[phases.SELVAGE_CLASS].append(schema)
     for hub in hubs:
         assert isinstance(hub.path, Hub)
         initial_secant_hub = hub.clone(path=hub.path.clone(initial_secant=True))

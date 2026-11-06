@@ -161,6 +161,11 @@ HUB_CLASS: Final[str] = 'global..hub'
 CONTINUING_OVERLAP_OR_HUB_CLASS: Final[str] = 'global..cont_or_hub'
 
 
+#: The name of the glyph class containing all initial secants and
+#: selvage.
+SELVAGE_CLASS: Final[str] = 'global..selvage'
+
+
 class FreezableList[T: Hashable](list[T]):
     """A list that can be frozen, making it immutable.
 

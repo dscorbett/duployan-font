@@ -114,6 +114,9 @@ POST_HUB_CURSIVE: Final[str] = 'hub2cursive'
 CURSIVE: Final[str] = 'cursive'
 
 
+SELVAGE: Final[str] = 'selvage'
+
+
 ALL_CURSIVE: Final[Collection[str]] = (
     PRE_HUB_CURSIVE,
     POST_HUB_CURSIVE,

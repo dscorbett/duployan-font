@@ -37,6 +37,7 @@ from shapes import Circle
 from shapes import HubPriority
 from shapes import Line
 from shapes import Notdef
+from shapes import Selvage
 import sifting
 from utils import BOLD_LIGHT_LINE
 from utils import BRACKET_HEIGHT
@@ -171,6 +172,12 @@ class Builder:
             )
             self._add_lookup(
                 'blwm',
+                anchors.SELVAGE,
+                flags=0,
+                mark_filtering_set=class_asts[phases.SELVAGE_CLASS],
+            )
+            self._add_lookup(
+                'blwm',
                 anchors.PRE_HUB_CONTINUING_OVERLAP,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
                 mark_filtering_set=class_asts[phases.HUB_CLASS],
@@ -185,13 +192,13 @@ class Builder:
                 'blwm',
                 anchors.PRE_HUB_CURSIVE,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-                mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
+                mark_filtering_set=class_asts[phases.HUB_CLASS],
             )
             self._add_lookup(
                 'blwm',
                 anchors.POST_HUB_CURSIVE,
                 flags=fontTools.otlLib.builder.LOOKUP_FLAG_RIGHT_TO_LEFT,
-                mark_filtering_set=class_asts[phases.CONTINUING_OVERLAP_OR_HUB_CLASS],
+                mark_filtering_set=class_asts[phases.HUB_CLASS],
             )
             for layer_index in range(MAX_TREE_DEPTH - 1):
                 for child_index in range(MAX_TREE_WIDTH):
@@ -383,6 +390,7 @@ class Builder:
         )
         anchor_tests[anchors.CURSIVE] = schema.joining_type != Type.NON_JOINING and not schema.is_secant
         anchor_tests[anchors.PRE_HUB_CONTINUING_OVERLAP] = schema.is_secant
+        anchor_tests[anchors.SELVAGE] = schema.is_secant or isinstance(schema.path, Selvage)
         anchor_tests[anchors.POST_HUB_CONTINUING_OVERLAP] = (
             anchor_tests[anchors.CONTINUING_OVERLAP] and (schema.can_be_child() or isinstance(schema.path, Line) and schema.path.dots is not None))
         anchor_tests[anchors.PRE_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != HubPriority.NORMAL and not schema.pseudo_cursive
@@ -418,6 +426,11 @@ class Builder:
                     glyph.addAnchorPoint(anchor_class_name, 'base', x_center, y_min - (stroke_width / 2 + self.stroke_gap + self.light_line / 2))
                 else:
                     assert False, f'{glyph.glyphname}: {anchor_class_name}: {has_anchor} != {should_have_anchor}'
+        if anchor_tests[anchors.SELVAGE]:
+            glyph.anchorPoints = [
+                (anchor_class_name, anchor_type, x if anchor_class_name != anchors.SELVAGE else 0, *anchor_details)  # type: ignore[misc]
+                for anchor_class_name, anchor_type, x, *anchor_details in glyph.anchorPoints
+            ]
 
     def _create_glyph(
         self,
