@@ -45,6 +45,7 @@ from shapes import InvalidStep
 from shapes import Line
 from shapes import Ou
 from shapes import ParentEdge
+from shapes import Punctuation
 from shapes import RomanianU
 from shapes import RootOnlyParentEdge
 from shapes import RotatedComplex
@@ -1013,7 +1014,7 @@ def reposition_punctuation(
                 classes['c'].append(schema)
             case Schema(path=Space(), joining_type=Type.JOINING):
                 classes['nbsp'].append(schema)
-            case _ if schema.cmap in {0x0021, 0x003F, 0x2E3C}:
+            case Schema(path=Punctuation(), cmap=int()):
                 classes['i'].append(schema)
                 classes['o'].append(schema.clone(cmap=None, joining_type=Type.JOINING, encirclable=False))
     zwnj = Schema(None, Space(0, margins=True), 0, Type.NON_JOINING, side_bearing=0)
