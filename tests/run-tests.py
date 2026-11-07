@@ -38,6 +38,7 @@ import unicodedata2 as unicodedata
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from collections.abc import Iterable
     from collections.abc import Set as AbstractSet
     from concurrent.futures import Future
     from typing import IO
@@ -55,6 +56,9 @@ DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ: AbstractSet[int] = {
 DISAMBIGUATION_SUFFIX_PATTERN = re.compile(r'\._[0-9A-F]+$')
 
 
+DTLS_PATTERN = re.compile(r'[\[|]u1BC9D\.')
+
+
 GLYPH_POSITION_PATTERN = re.compile(r'@-?[0-9]+,-?[0-9]+')
 
 
@@ -62,6 +66,9 @@ NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
 
 
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
+
+
+SPACE_PATTERN = re.compile(r'[\[|](space|u200C\.zwnj)@[^|\]]*')
 
 
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)(\.su[bp]s)?')
@@ -97,6 +104,18 @@ def parse_color(color: Color) -> bool:
             return True
         case _:
             assert_never(color)
+
+
+@enum.unique
+class Shaper(enum.Enum):
+    """A shaper backend.
+    """
+
+    #: HarfBuzz’s default shaper.
+    OT = 'ot'
+
+    #: Core Text.
+    CORE_TEXT = 'coretext'
 
 
 class Glyph(TypedDict):
@@ -160,6 +179,7 @@ def munge(output: str, regular: bool, incomplete: bool) -> str:
     Returns:
         The modified test string.
     """
+    output = SPACE_PATTERN.sub('', output)
     if incomplete:
         output = UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
     if not regular:
@@ -196,6 +216,7 @@ def print_diff(
     options: str,
     actual_output: str,
     expected_output: str,
+    shaper: Shaper,
     color: bool,
 ) -> None:
     """Prints a diff between the actual and expected outputs.
@@ -206,6 +227,7 @@ def print_diff(
         options: The HarfBuzz options of the test’s input.
         actual_output: The actual test output.
         expected_output: The expected test output.
+        shaper: The shaper used for the test.
         color: Whether to print the diff in color.
     """
     if color:
@@ -228,6 +250,8 @@ def print_diff(
         actual_output = ''.join(highlighted_actual_output)
         expected_output = ''.join(highlighted_expected_output)
     print()
+    if shaper != Shaper.OT:
+        print(f'Shaper:   {shaper.value}')  # type: ignore[misc]
     print(f'Input:    {code_points}:{options}')
     print('Actual:   ' + actual_output)
     print('Expected: ' + expected_output)
@@ -236,6 +260,7 @@ def print_diff(
 def run_test(
     font: str,
     line: str,
+    shaper: Shaper,
     png_path_prefix: Path,
     incomplete: bool,
     view_all: bool,
@@ -245,9 +270,11 @@ def run_test(
     Args:
         font: The path of the font to test.
         line: A test line from a test file.
+        shaper: Which shaper to use for the test.
         png_path_prefix: The path of the generated PNG file, to which
-            are appended a hyphen-separated code point sequence and
-            ``'.png'``. By default, only failed tests get PNGs.
+            are appended the lowercased shaper name, a hyphen-separated
+            code point sequence, and ``'.png'``. By default, only failed
+            tests get PNGs.
         incomplete: Whether the font uses a subset of the available
             glyphs such that glyph names cannot be tested and must be
             ignored, and whether some test failures are acceptable.
@@ -266,28 +293,36 @@ def run_test(
            or ``None`` if there is no diff to print.
     """
     code_points, options, expected_output = line.split(':')
-    p = subprocess.Popen(
-        [
-            'hb-shape',
-            font,
-            '-u',
-            code_points,
-            '-O',
-            'json',
-            '--remove-default-ignorables',
-            *options.split(),
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env={**os.environ, 'HB_SHAPER_LIST': ''},
-    )
-    stdout_data, stderr_data = p.communicate()
-    print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
-    actual_output = f'[{"|".join(parse_json(stdout_data.decode("utf-8")))}]'
-    regular = font.endswith('-Regular.otf')
-    passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
-        or incomplete and may_fail(code_points, actual_output)
-    )
+    if shaper == Shaper.CORE_TEXT and (
+        {int(cp_str, 16) for cp_str in code_points.split()} & {0x2044, 0x1BCA0, 0x1BCA1, 0x1BCA2, 0x1BCA3}
+        or DTLS_PATTERN.search(expected_output)
+    ):
+        actual_output = expected_output
+        passed = True
+    else:
+        p = subprocess.Popen(
+            [
+                'hb-shape',
+                font,
+                '-u',
+                code_points,
+                '--shapers',
+                shaper.value,
+                '-O',
+                'json',
+                *options.split(),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ, 'HB_SHAPER_LIST': ''},
+        )
+        stdout_data, stderr_data = p.communicate()
+        print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
+        actual_output = f'[{'|'.join(parse_json(stdout_data.decode('utf-8')))}]'
+        regular = font.endswith('-Regular.otf')
+        passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
+            or incomplete and may_fail(code_points, actual_output)
+        )
     diff: tuple[str, str, str, str] | None = None
     if not passed or view_all:
         if not passed:
@@ -303,9 +338,10 @@ def run_test(
                     'upem',
                     '-u',
                     f'E000 {code_points} E000',
-                    '--remove-default-ignorables',
+                    '--shapers',
+                    shaper.value,
                     '-o',
-                    f'{png_path_prefix}-{code_points.replace(" ", "-")}.png',
+                    f'{png_path_prefix}-{shaper.value}-{code_points.replace(' ', '-')}.png',
                     '-O',
                     'png',
                     '--margin',
@@ -322,6 +358,73 @@ def run_test(
             assert stderr is not None
             print(stderr.read(), end='', file=sys.stderr)
     return passed, f'{code_points}:{options}:{actual_output}', diff
+
+
+def supports_core_text() -> bool:
+    """Returns whether HarfBuzz supports the Core Text backend.
+    """
+    return 'coretext' in subprocess.check_output(['hb-shape', '--list-shapers'], encoding='utf-8').split('\n')
+
+
+def run_tests(
+    tests: Iterable[Path],
+    font: str,
+    shaper: Shaper,
+    incomplete: bool,
+    view_all: bool,
+) -> bool:
+    """Runs multiple tests.
+
+    Args:
+        tests: The files to test.
+        font: The path of the font to test.
+        shaper: Which shaper to use for the tests.
+        incomplete: Whether the font uses a subset of the available
+            glyphs such that glyph names cannot be tested and must be
+            ignored, and whether some test failures are acceptable.
+        view_all: Whether to generate PNGs regardless of the test
+            results.
+
+    Returns:
+        Whether all the tests passed.
+    """
+    passed_all = True
+    for fn in tests:
+        lines: list[tuple[int, str]] = []
+        with fn.open(encoding='utf-8') as f:
+            for line_number, line in enumerate(f, start=1):
+                lines.append((line_number, line.rstrip()))
+        futures: list[Future[tuple[bool, str, tuple[str, str, str, str] | None]] | None] = []
+        with ThreadPoolExecutor() as executor:
+            for line_number, line in lines:
+                if line and line[0] != '#':
+                    futures.append(executor.submit(
+                        run_test,
+                        font,
+                        line,
+                        shaper,
+                        failed_dir / 'png' / fn.name / f'{line_number:03}',
+                        incomplete,
+                        view_all,
+                    ))
+                else:
+                    futures.append(None)
+        result_lines = []
+        passed_file = True
+        for (_, line), future in zip(lines, futures, strict=True):
+            if future is not None:
+                passed_line, result_line, diff = future.result()
+                if diff is not None:
+                    print_diff(*diff, shaper, color)
+                passed_file = passed_file and passed_line
+                result_lines.append(result_line + '\n')
+            else:
+                result_lines.append(line + '\n')
+        if not passed_file:
+            with (failed_dir / fn.name).open('w', encoding='utf-8') as f:
+                f.writelines(result_lines)
+        passed_all = passed_all and passed_file
+    return passed_all
 
 
 if __name__ == '__main__':
@@ -346,47 +449,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     assert isinstance(args.color, Color)  # type: ignore[misc]
     color = parse_color(args.color)
-    passed_all = True
     assert isinstance(args.font, str)  # type: ignore[misc]
     failed_dir = Path(sys.argv[0]).parent / 'failed' / Path(args.font).name
     failed_dir.mkdir(parents=True, exist_ok=True)
     assert isinstance(args.tests, list)  # type: ignore[misc]
     assert isinstance(args.incomplete, bool)  # type: ignore[misc]
     assert isinstance(args.view, bool)  # type: ignore[misc]
-    for fn in args.tests:
-        assert isinstance(fn, Path)
-        lines: list[tuple[int, str]] = []
-        with fn.open(encoding='utf-8') as f:
-            for line_number, line in enumerate(f, start=1):
-                lines.append((line_number, line.rstrip()))
-        futures: list[Future[tuple[bool, str, tuple[str, str, str, str] | None]] | None] = []
-        with ThreadPoolExecutor() as executor:
-            for line_number, line in lines:
-                if line and line[0] != '#':
-                    futures.append(executor.submit(
-                        run_test,
-                        args.font,
-                        line,
-                        failed_dir / 'png' / fn.name / f'{line_number:03}',
-                        args.incomplete,
-                        args.view,
-                    ))
-                else:
-                    futures.append(None)
-        result_lines = []
-        passed_file = True
-        for (_, line), future in zip(lines, futures, strict=True):
-            if future is not None:
-                passed_line, result_line, diff = future.result()
-                if diff is not None:
-                    print_diff(*diff, color)
-                passed_file = passed_file and passed_line
-                result_lines.append(result_line + '\n')
-            else:
-                result_lines.append(line + '\n')
-        if not passed_file:
-            with (failed_dir / fn.name).open('w', encoding='utf-8') as f:
-                f.writelines(result_lines)
-        passed_all = passed_all and passed_file
+    passed_all = run_tests(args.tests, args.font, Shaper.OT, args.incomplete, args.view)
+    if passed_all and supports_core_text():
+        run_tests(args.tests, args.font, Shaper.CORE_TEXT, args.incomplete, args.view)
     if not passed_all:
         sys.exit(1)
