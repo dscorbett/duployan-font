@@ -538,6 +538,58 @@ class Hub(InvisibleMark):
         return None
 
 
+class Selvage(Shape):
+    """A prefix marker for a stenogram with a non-initial hub.
+
+    This is itself an invisible cursive glyph. It is necessary in Core
+    Text when the hub is not the first character, as in <U+1BC03,
+    U+1BC03, U+1BC02>. When HarfBuzz detects a new cursive root (e.g.
+    U+1BC02) it repositions all glyphs in the cursive tree accordingly,
+    but Core Text fails to reposition the first character (the original
+    root). This schema represents a sacrificial invisible glyph whose
+    position under Core Text does not matter.
+
+    If the hub is the first character, this marker should not be used,
+    because it would preempt the cursive connection between a hub marker
+    and the hub character.
+    """
+
+    @override
+    def get_name(self, size: float, joining_type: Type) -> str:
+        return 'selv'
+
+    @staticmethod
+    @override
+    def name_implies_type() -> bool:
+        return True
+
+    @override
+    def invisible(self) -> bool:
+        return True
+
+    @override
+    def draw(
+        self,
+        glyph: fontforge.glyph,
+        stroke_width: float,
+        light_line: float,
+        stroke_gap: float,
+        size: float,
+        anchor: str | None,
+        joining_type: Type,
+        initial_circle: bool,
+        final_circle: bool,
+        diphthong_1: bool,
+        diphthong_2: bool,
+    ) -> tuple[float, float, float, float] | None:
+        glyph.addAnchorPoint(anchors.CURSIVE, 'exit', 0, 0)
+        return None
+
+    @override
+    def guaranteed_glyph_class(self) -> GlyphClass | None:
+        return GlyphClass.JOINER
+
+
 class End(Shape):
     """The end of a cursively joined sequence.
     """

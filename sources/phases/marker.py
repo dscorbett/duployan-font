@@ -47,6 +47,7 @@ from shapes import Line
 from shapes import MarkAnchorSelector
 from shapes import ParentEdge
 from shapes import RightBoundDigit
+from shapes import Selvage
 from shapes import SeparateAffix
 from shapes import Space
 from shapes import Start
@@ -460,6 +461,9 @@ def add_width_markers(
     if start is None:
         start = Schema(None, Start(), 0)
         classes[phases.CONTINUING_OVERLAP_OR_HUB_CLASS].append(start)
+    selvage = next((s for s in schemas if isinstance(s.path, Selvage)), None)
+    if selvage is None:
+        selvage = Schema(None, Selvage(), 0)
     hubs: MutableMapping[HubPriority, list[Schema]] = {HubPriority.NEVER: []}
     for hub_priority in HubPriority:
         if hub_priority == HubPriority.NEVER:
@@ -642,6 +646,7 @@ def add_width_markers(
             glyph_class_selector,
             *mark_anchor_selector,
             *hubs[schema.hub_priority],
+            *([selvage] if schema.glyph_class == GlyphClass.JOINER else []),
             schema,
             *[*get_width_digits(digit_path, width) for width, digit_path in widths],
             end,
@@ -1225,12 +1230,12 @@ def find_real_hub(
     named_lookups: PrefixView[Lookup],
     add_rule: AddRule,
 ) -> Sequence[Lookup]:
-    lookup = Lookup(
+    lookup_1 = Lookup(
         'dist',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
     )
-    remove_steps_lookup = Lookup(
+    lookup_2 = Lookup(
         'dist',
         flags=fontTools.otlLib.builder.LOOKUP_FLAG_IGNORE_LIGATURES,
         mark_filtering_set='all',
@@ -1241,8 +1246,8 @@ def find_real_hub(
         match schema:
             case Schema(path=Dummy()):
                 dummy = schema
-            case Schema(path=Hub() as path):
-                hubs[path.priority].append(schema)
+            case Schema(path=Hub(priority=priority)):
+                hubs[priority].append(schema)
                 classes['all'].append(schema)
             case Schema(path=InitialSecantMarker()):
                 classes['all'].append(schema)
@@ -1254,18 +1259,18 @@ def find_real_hub(
             for hub_a in hubs_a:
                 assert isinstance(hub_a.path, Hub)
                 if not hub_a.path.initial_secant:
-                    add_rule(lookup, Rule([continuing_overlap], [hub_a], [], [dummy]))
+                    add_rule(lookup_1, Rule([continuing_overlap], [hub_a], [], [dummy]))
                 for hub_b in hubs_b:
                     assert isinstance(hub_b.path, Hub)
                     if hub_b.path.initial_secant:
                         continue
                     if priority_b == HubPriority.STEP:
-                        add_rule(remove_steps_lookup, Rule([hub_a], [hub_b], [], [dummy]))
+                        add_rule(lookup_2, Rule([hub_a], [hub_b], [], [dummy]))
                     elif priority_a >= priority_b:
-                        add_rule(lookup, Rule([hub_a], [hub_b], [], [dummy]))
+                        add_rule(lookup_1, Rule([hub_a], [hub_b], [], [dummy]))
                     else:
-                        add_rule(lookup, Rule([], [hub_a], [hub_b], [dummy]))
-    return [lookup, remove_steps_lookup]
+                        add_rule(lookup_2, Rule([], [hub_a], [hub_b], [dummy]))
+    return [lookup_1, lookup_2]
 
 
 def expand_start_markers(
@@ -1285,6 +1290,41 @@ def expand_start_markers(
         *(Schema(None, LeftBoundDigit(place, 0, DigitStatus.DONE), 0) for place in range(WIDTH_MARKER_PLACES)),
         start,
     ]))
+    return [lookup]
+
+
+def remove_false_selvage(
+    builder: Builder,
+    original_schemas: OrderedSet[Schema],
+    schemas: OrderedSet[Schema],
+    new_schemas: OrderedSet[Schema],
+    classes: PrefixView[FreezableList[Schema]],
+    named_lookups: PrefixView[Lookup],
+    add_rule: AddRule,
+) -> Sequence[Lookup]:
+    lookup = Lookup(
+        'dist',
+        mark_filtering_set='all',
+        reverse=True,
+    )
+    selvage = None
+    dummy = None
+    start = None
+    for schema in schemas:
+        match schema:
+            case Schema(path=Selvage()):
+                selvage = schema
+            case Schema(path=Dummy()):
+                dummy = schema
+            case Schema(path=Start()):
+                classes['all'].append(schema)
+                start = schema
+            case Schema(path=Hub()):
+                classes['all'].append(schema)
+    if selvage is None or dummy is None or start is None:
+        return []
+    add_rule(lookup, Rule([start], [selvage], [], [selvage]))
+    add_rule(lookup, Rule([selvage], [dummy]))
     return [lookup]
 
 
@@ -1438,6 +1478,7 @@ PHASE_LIST = [
     remove_false_start_markers,
     mark_hubs_after_initial_secants,
     find_real_hub,
+    remove_false_selvage,
     mark_maximum_bounds,
     expand_start_markers,
     copy_maximum_left_bound_to_start,
