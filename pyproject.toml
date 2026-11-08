@@ -146,6 +146,13 @@ builtins-ignorelist = [
     "input",
 ]
 
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+unicodedata2 = "unicodedata"
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "single"
+
 [tool.ruff.lint.flake8-self]
 extend-ignore-names = [
     "_h_e_a_d",
@@ -154,10 +161,6 @@ extend-ignore-names = [
     "_n_a_m_e",
     "_p_o_s_t",
 ]
-
-[tool.ruff.lint.flake8-quotes]
-inline-quotes = "single"
-multiline-quotes = "single"
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.cast".msg = "Use a type annotation or `# type: ignore` instead"

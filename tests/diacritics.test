@@ -188,6 +188,6 @@
 
 # U+034F COMBINING GRAPHEME JOINER does not block mark substitution or
 # positioning.
-0021 034F 20DD::[exclam@398,0|u20DD_.enclosing_circle.Z@758,0|_@1064,0]
-25CC 034F 0307 034F 0323::[u25CC.dotted_circle@0,0|u0307_.dot_above.1.Z@209,654|u0323_.dot_below.1.Z@209,-171|_@686,0]
-1BC03 1BC9E 034F 1BC9E::[u1BC03.t@0,0|u1BC9E_u1BC9E_.2double.90@194,-113|_@740,0]
+0021 034F 20DD::[exclam@398,0|u200D.zwj@1064,0|u20DD_.enclosing_circle.Z@758,0|_@1064,0]
+25CC 034F 0307 034F 0323::[u25CC.dotted_circle@0,0|u200D.zwj@686,0|u0307_.dot_above.1.Z@209,654|u200D.zwj@686,0|u0323_.dot_below.1.Z@209,-171|_@686,0]
+1BC03 1BC9E 034F 1BC9E::[u1BC03.t@0,0|u1BC9E_u1BC9E_.2double.90@194,-113|u200D.zwj@740,0|_@740,0]

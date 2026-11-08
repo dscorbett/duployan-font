@@ -29,6 +29,8 @@ import fontTools.merge.unicode
 import unicodedata2 as unicodedata
 
 import anchors
+from charsets import Charset
+import charsets.filtering
 from shapes import AnchorWidthDigit
 from shapes import Circle
 from shapes import CircleRole
@@ -453,7 +455,14 @@ class Schema:
         most informative, and the most likely match for the original
         code point sequence.
         """
-        cmap_string = '' if self.cmap is None else chr(self.cmap)
+        if self.cmap is None:
+            cmap_string = ''
+            charset_index = len(Charset)
+        else:
+            cmap_string = chr(self.cmap)
+            for charset_index, charset in enumerate(Charset):  # ruff: ignore[unused-loop-control-variable]
+                if charsets.filtering.contains(charset, self):
+                    break
         return (
             not self.cps and not self.path.name_implies_type(),
             bool(self.cps) and any(unicodedata.category(chr(cp)) == 'Co' for cp in self.cps),
@@ -463,6 +472,7 @@ class Schema:
             not self.cps,
             len(self.cps),
             not isinstance(self.path, self.original_shape),
+            charset_index,
             self.cps,
         )
 

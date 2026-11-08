@@ -44,7 +44,7 @@
 0031 0031 2044 0032 0032 2044 0033 0033 2044 0034 0034::[one.numr@0,0|one.numr@337,0|u2044_.fraction_slash.frac@674,0|two.dnom@838,0|two.dnom@1289,0|u2044_.fraction_slash.frac@1740,0|three.dnom@1904,0|three.dnom@2366,0|u2044_.fraction_slash.frac@2828,0|four.dnom@2992,0|four.dnom@3504,0|_@4016,0]
 
 # Fraction delimited by default ignorable code points not present in the font
-0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@404,0|two.numr@808,0|two.numr@1259,0|u2044_.fraction_slash.frac@1710,0|three.dnom@1874,0|three.dnom@2336,0|four@2798,0|four@3496,0|_@4194,0]
+0031 0031 2064 0032 0032 2044 0033 0033 2064 0034 0034::[one@0,0|one@404,0|space@808,0|two.numr@808,0|two.numr@1259,0|u2044_.fraction_slash.frac@1710,0|three.dnom@1874,0|three.dnom@2336,0|space@2798,0|four@2798,0|four@3496,0|_@4194,0]
 
 # Vertical fractions
 0030 2044 0030:--features afrc:[zero.numr.afrc@85,0|u2044.fraction_slash.afrc@534,0|zero.dnom.afrc@85,0|_@619,0]

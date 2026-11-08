@@ -47,6 +47,9 @@ if TYPE_CHECKING:
 CI = os.getenv('CI') == 'true'
 
 
+CORE_TEXT_SPACE_PATTERN = re.compile(r'(?<=[\[|])(space|u200C\.zwnj|u200D.zwj)@[^|\]]+')
+
+
 DEFAULT_IGNORABLE_CODE_POINTS_IN_HARFBUZZ: AbstractSet[int] = {
     0x00AD, 0x034F, 0x061C, 0x17B4, 0x17B5, *range(0x180B, 0x180F + 1), *range(0x200B, 0x200F + 1), *range(0x202A, 0x202E + 1), *range(0x2060, 0x206F + 1),
     *range(0xFE00, 0xFE0F + 1), 0xFEFF, *range(0xFFF0, 0xFFF8 + 1), *range(0x1D173, 0x1D17A + 1), *range(0xE0000, 0xE0FFF + 1),
@@ -66,9 +69,6 @@ NOTDEF_PATTERN = re.compile(r'[\[|]\.notdef@')
 
 
 NAME_PREFIX = r'(?:(?:dupl|u(?:ni(?:[0-9A-F]{4})+|[0-9A-F]{4,6})(?:_[^.]*)?)\.)'
-
-
-SPACE_PATTERN = re.compile(r'[\[|](space|u200C\.zwnj)@[^|\]]*')
 
 
 UNSTABLE_NAME_COMPONENT_PATTERN = re.compile(fr'(?<=[\[|])(?:{NAME_PREFIX}[0-9A-Za-z_]+|(?!{NAME_PREFIX})[0-9A-Za-z_]+)(\.su[bp]s)?')
@@ -163,7 +163,7 @@ def parse_json(s: str) -> Generator[str]:
     yield f'_@{x},{y}'
 
 
-def munge(output: str, regular: bool, incomplete: bool) -> str:
+def munge(output: str, regular: bool, incomplete: bool, shaper: Shaper) -> str:
     """Modifies a test string before comparing the expected output to
     the actual output.
 
@@ -175,11 +175,13 @@ def munge(output: str, regular: bool, incomplete: bool) -> str:
         incomplete: Whether the font uses a subset of the available
             glyphs such that glyph names cannot be tested and must be
             ignored.
+        shaper: The shaper used for the test.
 
     Returns:
         The modified test string.
     """
-    output = SPACE_PATTERN.sub('', output)
+    if shaper == Shaper.CORE_TEXT:
+        output = CORE_TEXT_SPACE_PATTERN.sub('space', output)
     if incomplete:
         output = UNSTABLE_NAME_COMPONENT_PATTERN.sub('dupl', output)
     if not regular:
@@ -320,7 +322,7 @@ def run_test(
         print(stderr_data.decode('utf-8'), end='', file=sys.stderr)
         actual_output = f'[{'|'.join(parse_json(stdout_data.decode('utf-8')))}]'
         regular = font.endswith('-Regular.otf')
-        passed = (munge(actual_output, regular, incomplete) == munge(expected_output, regular, incomplete)
+        passed = (munge(actual_output, regular, incomplete, shaper) == munge(expected_output, regular, incomplete, shaper)
             or incomplete and may_fail(code_points, actual_output)
         )
     diff: tuple[str, str, str, str] | None = None
