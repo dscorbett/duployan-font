@@ -417,11 +417,7 @@ def tweak_font(
         _set_unique_id(name_table, os2_table.achVendID)
         if 'CFF ' in tt_font:
             _set_cff_data(name_table.names, post_table.underlineThickness, cff_table.cff)
-        copy_metrics.update_metrics(
-            tt_font,
-            max(os2_table.usWinAscent, head_table.yMax),
-            max(os2_table.usWinDescent, -head_table.yMin),
-        )
+        copy_metrics.update_metrics(tt_font)
 
         _set_style_attributes(tt_font, noto, unjoined, bold)
 

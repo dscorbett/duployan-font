@@ -1,7 +1,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
-# Copyright (c) 2025 David Corbett
+# Copyright (c) 2025-2026 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ from _typeshed import FileDescriptorOrPath
 from fontTools.misc.configTools import AbstractConfig
 from fontTools.misc.configTools import Option
 from fontTools.ttLib.tables.DefaultTable import DefaultTable
+from fontTools.ttLib.ttGlyphSet import _TTGlyphSet
 
 class TTFont:
     def __init__(
@@ -74,5 +75,7 @@ class TTFont:
     def __setitem__(self, tag: str, table: DefaultTable) -> None: ...
 
     def __delitem__(self, tag: str) -> None: ...
+
+    def getGlyphSet(self) -> _TTGlyphSet: ...
 
 def newTable(tag: str) -> DefaultTable: ...

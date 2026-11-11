@@ -16,9 +16,11 @@
 # limitations under the License.
 
 import argparse
+import math
 from typing import TYPE_CHECKING
 
 import fontTools.misc.psCharStrings
+import fontTools.pens.boundsPen
 import fontTools.ttLib.tables.C_F_F_
 import fontTools.ttLib.tables.O_S_2f_2
 import fontTools.ttLib.tables._h_e_a_d
@@ -55,10 +57,31 @@ def cast_cff_number(number: float) -> float:
     return i
 
 
-def update_metrics(
+def update_metrics(tt_font: fontTools.ttLib.ttFont.TTFont) -> None:
+    """Sets a font’s vertical metrics consistently with `Noto’s
+    requirements
+    <https://github.com/notofonts/noto-source/blob/ec575e4a32479faae41f314da4d3e9c2eb107d21/FONT_CONTRIBUTION.md#noto-font-metrics-requirements>`_.
+
+    The values considered are the OS/2 table’s usWinAscent and
+    usWinDescent, the 'head' table’s yMax and yMin, and the glyphs’
+    control point bounding boxes. A positive descent means a descent
+    below the baseline.
+
+    The font is assumed to already contain all the tables relevant to
+    vertical metrics. It is not saved to disk.
+
+    Args:
+        tt_font: A font.
+    """
+    _set_metrics(tt_font, *_get_metrics(tt_font))
+
+
+def _set_metrics(
     tt_font: fontTools.ttLib.ttFont.TTFont,
     ascent: int,
     descent: int,
+    control_ascent: float | None = None,
+    control_descent: float | None = None,
 ) -> None:
     """Sets a font’s vertical metrics consistently with `Noto’s
     requirements
@@ -72,6 +95,10 @@ def update_metrics(
         ascent: The ascent (“A” in the Noto requirements).
         descent: The descent (“B” in the Noto requirements). This is a
             positive number for descents that reach below the baseline.
+        control_ascent: head.yMax. It may be less than `ascent`. If
+            ``None``, yMax is not set.
+        control_descent: The negation of head.yMin. It may be less than
+            `descent`. If ``None``, yMin is not set.
     """
     if 'CFF ' in tt_font:
         cff_table = tt_font['CFF ']
@@ -92,38 +119,61 @@ def update_metrics(
     post_table = tt_font['post']
     assert isinstance(post_table, fontTools.ttLib.tables._p_o_s_t.table__p_o_s_t)
     post_table.underlinePosition = -descent
+    if control_ascent is not None or control_descent is not None:
+        head_table = tt_font['head']
+        assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+        if control_ascent is not None:
+            head_table.yMax = math.ceil(control_ascent)
+        if control_descent is not None:
+            head_table.yMin = -math.ceil(control_descent)
 
 
-def get_metrics(
-    path: StrOrBytesPath,
-    font: fontTools.ttLib.ttFont.TTFont,
-    text: str | None,
-) -> tuple[int, int]:
-    """Gets a font’s most extreme ascent and descent values.
-
-    The values considered are the OS/2 table’s usWinAscent and
-    usWinDescent, the 'head' table’s yMax and yMin, and the bounding box
-    of a string (if provided). A positive descent means a descent below
-    the baseline.
+def _get_control_metrics(font: fontTools.ttLib.ttFont.TTFont) -> tuple[float, float]:
+    """Returns a font’s most extreme control point y values.
 
     Args:
-        path: A path to a font.
-        font: The font at `path`.
-        text: A string to shape with the font to get its bounding box.
-            If ``None``, shaping is skipped, and it has no effect on the
-            return value.
+        font: A font.
 
     Returns:
-        A tuple of the most extreme ascent and descent values attested
-        for a font.
+        A tuple of the most extreme ascent and descent control points
+        in `font`. A positive descent means a descent below the
+        baseline.
     """
-    os2_table = font['OS/2']
-    assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
-    head_table = font['head']
-    assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
-    ascent = max(os2_table.usWinAscent, head_table.yMax)
-    descent = max(os2_table.usWinDescent, -head_table.yMin)
-    if text is not None:
+    glyph_set = font.getGlyphSet()
+    y_min = float('inf')
+    y_max = float('-inf')
+    pen = fontTools.pens.boundsPen.ControlBoundsPen(glyph_set)
+    for glyph in glyph_set.values():
+        pen.init()
+        glyph.draw(pen)
+        if bounds := pen.bounds:
+            if (new_y_min := bounds[1]) < y_min:
+                y_min = new_y_min
+            if (new_y_max := bounds[3]) > y_max:
+                y_max = new_y_max
+    return y_max, -y_min
+
+
+def _get_text_metrics(
+    path: StrOrBytesPath | None,
+    text: str | None,
+) -> tuple[float, float]:
+    """Returns the y extrema of a string shaped with a font.
+
+    Args:
+        path: A path to a font. If ``None``, shaping is skipped, and
+            it has no effect on the return value.
+        text: A string to shape with the font to get its bounding box.
+            If ``None``, shaping is skipped.
+
+    Returns:
+        A tuple of the most extreme rendered ascent and descent visible
+        points (as opposed to control points) of `text` shaped with
+        `font`. A positive descent means a descent below the baseline.
+    """
+    y_min = float('inf')
+    y_max = float('-inf')
+    if path is not None is not text:
         buffer = uharfbuzz.Buffer()
         buffer.add_str(text)
         buffer.guess_segment_properties()
@@ -136,9 +186,44 @@ def get_metrics(
             dy = position.y_offset
             yb = extents.y_bearing
             h = extents.height
-            ascent = max(ascent, dy + yb)
-            descent = max(descent, -(dy + yb + h))
-    return ascent, descent
+            y_max = max(y_max, dy + yb)
+            y_min = min(y_min, dy + yb + h)
+    return y_max, -y_min
+
+
+def _get_metrics(
+    font: fontTools.ttLib.ttFont.TTFont,
+    path: StrOrBytesPath | None = None,
+    text: str | None = None,
+) -> tuple[int, int, float, float]:
+    """Gets a font’s most extreme ascent and descent values.
+
+    The values considered are the OS/2 table’s usWinAscent and
+    usWinDescent, the 'head' table’s yMax and yMin, the glyphs’ control
+    point bounding boxes, and the bounding box of a string (if
+    provided). A positive descent means a descent below the baseline.
+
+    Args:
+        font: A font.
+        path: The path to `font`. If ``None``, shaping is skipped, and
+            it has no effect on the return value.
+        text: A string to shape with the font to get its bounding box.
+            If ``None``, shaping is skipped.
+
+    Returns:
+        A tuple of the most extreme ascent and descent values attested
+        for a font, and its most extreme contour points’ ascent and
+        descent values.
+    """
+    os2_table = font['OS/2']
+    assert isinstance(os2_table, fontTools.ttLib.tables.O_S_2f_2.table_O_S_2f_2)
+    head_table = font['head']
+    assert isinstance(head_table, fontTools.ttLib.tables._h_e_a_d.table__h_e_a_d)
+    control_ascent, control_descent = _get_control_metrics(font)
+    text_ascent, text_descent = _get_text_metrics(path, text)
+    ascent = math.ceil(max(os2_table.usWinAscent, head_table.yMax, control_ascent, text_ascent))
+    descent = math.ceil(max(os2_table.usWinDescent, -head_table.yMin, control_descent, text_descent))
+    return ascent, descent, control_ascent, control_descent
 
 
 def copy_metrics(
@@ -166,11 +251,11 @@ def copy_metrics(
     descent = 0
     for source in [main_source, *metrics_sources]:
         with fontTools.ttLib.ttFont.TTFont(source, recalcBBoxes=False) as source_font:
-            source_ascent, source_descent = get_metrics(source, source_font, text)
+            source_ascent, source_descent, _, _ = _get_metrics(source_font, source, text)
             ascent = max(ascent, source_ascent)
             descent = max(descent, source_descent)
     with fontTools.ttLib.ttFont.TTFont(main_source, recalcBBoxes=False, recalcTimestamp=False) as target_font:
-        update_metrics(target_font, ascent, descent)
+        _set_metrics(target_font, ascent, descent)
         target_font.save(target)
 
 
