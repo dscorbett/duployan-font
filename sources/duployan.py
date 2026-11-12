@@ -377,7 +377,11 @@ class Builder:
             self._convert_base_to_basemark(glyph)
         if not schema.path.invisible():
             glyph.anchorPoints = [a for a in glyph.anchorPoints if (
-                a[0] not in {*anchors.PARENT_EDGES, *[*child_layer for child_layer in anchors.CHILD_EDGES[1:]]}
+                a[0] not in {
+                    *anchors.PARENT_EDGES,
+                    *[*child_layer for child_layer in anchors.CHILD_EDGES[1 if schema.max_tree_width else 0:]],
+                    *[*child_layer[schema.max_tree_width:] for child_layer in anchors.CHILD_EDGES],
+                }
                     if schema.anchor or schema.glyph_class != GlyphClass.MARK
                     else a[1] not in {'entry', 'exit'} and a[0] not in anchors.CHILD_EDGES[0]
             ) and (not self.unjoined or a[0] in anchors.ALL_MKMK)]
