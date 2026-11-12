@@ -31,23 +31,16 @@ import unicodedata2 as unicodedata
 import anchors
 from charsets import Charset
 import charsets.filtering
-from shapes import AnchorWidthDigit
 from shapes import Circle
 from shapes import CircleRole
 from shapes import Complex
 from shapes import Component
 from shapes import Curve
-from shapes import GlyphClassSelector
-from shapes import Hub
 from shapes import HubPriority
-from shapes import IngressWidthDigit
 from shapes import InvalidStep
-from shapes import LeftBoundDigit
 from shapes import Line
-from shapes import MarkAnchorSelector
 from shapes import Notdef
 from shapes import Ou
-from shapes import RightBoundDigit
 from shapes import RotatedComplex
 from utils import CAP_HEIGHT
 from utils import CLONE_DEFAULT
@@ -474,39 +467,6 @@ class Schema:
             not isinstance(self.path, self.original_shape),
             charset_index,
             self.cps,
-        )
-
-    def glyph_id_sort_key(self) -> SupportsRichComparison:
-        """Returns a sortable key representing the glyph ID of this
-        schema’s glyph.
-
-        This is used to determine the best ordering of glyph IDs for the
-        schemas created by marker phases. The sort key is designed to
-        produce runs of schemas whose glyphs should be adjacent, which
-        helps optimize range-based coverage tables to single ranges.
-        """
-        shape = type(self.path)
-        digit_shapes = (AnchorWidthDigit, IngressWidthDigit, LeftBoundDigit, RightBoundDigit)
-        if shape in digit_shapes:
-            assert isinstance(self.path, digit_shapes)
-            status = self.path.status.value
-            place = self.path.place
-            digit_shape_index = digit_shapes.index(shape)
-            digit = self.path.digit
-            other_shape_index = -1
-        else:
-            status = -1
-            place = -1
-            digit_shape_index = -1
-            digit = -1
-            other_shapes = [Hub, MarkAnchorSelector, GlyphClassSelector]
-            other_shape_index = other_shapes.index(shape) if shape in other_shapes else -1
-        return (
-            status,
-            place,
-            digit_shape_index,
-            digit,
-            other_shape_index,
         )
 
     def clone(

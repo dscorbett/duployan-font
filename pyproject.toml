@@ -155,8 +155,10 @@ multiline-quotes = "single"
 
 [tool.ruff.lint.flake8-self]
 extend-ignore-names = [
+    "_c_m_a_p",
     "_h_e_a_d",
     "_h_h_e_a",
+    "_h_m_t_x",
     "_m_e_t_a",
     "_n_a_m_e",
     "_p_o_s_t",

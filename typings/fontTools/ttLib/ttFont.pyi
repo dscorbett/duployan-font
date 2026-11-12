@@ -1,7 +1,7 @@
 # MIT License
 #
 # Copyright (c) 2017 Just van Rossum
-# Copyright (c) 2025-2026 David Corbett
+# Copyright (c) 2025 David Corbett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from collections.abc import Sequence
 from io import IOBase
 from types import NotImplementedType
 from types import TracebackType
@@ -76,6 +77,12 @@ class TTFont:
 
     def __delitem__(self, tag: str) -> None: ...
 
+    def getGlyphOrder(self) -> list[str]: ...
+
     def getGlyphSet(self) -> _TTGlyphSet: ...
+
+    def getBestCmap(self, cmapPreferences: Sequence[tuple[int, int]] = ...) -> dict[int, str] | None: ...
+
+    def reorderGlyphs(self, new_glyph_order: list[str]) -> None: ...
 
 def newTable(tag: str) -> DefaultTable: ...

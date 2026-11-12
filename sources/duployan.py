@@ -27,6 +27,7 @@ import fontTools.ttLib.ttFont
 import anchors
 import charsets
 import charsets.data
+from ordering import optimize_glyph_order
 import phases.main
 import phases.marker
 import phases.middle
@@ -687,7 +688,7 @@ class Builder:
         ) = phases.run_phases(self, [*map(self._glyph_to_schema, self.font.glyphs())], self._marker_phases, classes)
         lookups_with_phases += more_lookups_with_phases
         classes |= more_classes
-        for schema in schemas.sorted(key=Schema.glyph_id_sort_key):
+        for schema in schemas:
             if schema.glyph is None:
                 self._create_marker(schema, cmapped_anchors)
         self._convert_classes(more_classes, class_asts)
@@ -726,3 +727,4 @@ class Builder:
                 tt_font,
                 self._fea,
                 ['GDEF', 'GPOS', 'GSUB'])
+        optimize_glyph_order(tt_font)
