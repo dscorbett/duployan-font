@@ -1538,7 +1538,7 @@ def join_circle_with_adjacent_nonorienting_glyph(
 ) -> Sequence[Lookup]:
     lookup = Lookup(
         'rclt',
-        mark_filtering_set='ignored_for_topography',
+        mark_filtering_set='all',
         reverse=True,
     )
     contexts_out: OrderedSet[Context] = OrderedSet()
@@ -1557,6 +1557,8 @@ def join_circle_with_adjacent_nonorienting_glyph(
             context_out = Context(context_out.angle, context_out.clockwise)
             contexts_out.add(context_out)
             classes[f'c_{context_out}'].append(schema)
+    classes['all'].extend(classes[phases.CONTINUING_OVERLAP_CLASS])
+    classes['all'].extend(classes['ignored_for_topography'])
     for context_out in contexts_out:
         output_class_name = f'o_{context_out}'
         for circle in classes['i']:
