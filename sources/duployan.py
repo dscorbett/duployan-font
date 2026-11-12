@@ -402,6 +402,8 @@ class Builder:
         anchor_tests[anchors.POST_HUB_CURSIVE] = anchor_tests[anchors.CURSIVE] and schema.hub_priority != HubPriority.NEVER
         if schema.encirclable:
             glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.MIDDLE]
+        if schema.feature_suffix in {'.dnom', '.dnom.afrc'}:
+            glyph.anchorPoints = [a for a in glyph.anchorPoints if a[0] != anchors.ABOVE]
         anchor_class_names = {a[0] for a in glyph.anchorPoints}
         x_min, y_min, x_max, y_max = glyph.boundingBox()
         if x_min == x_max == 0:
