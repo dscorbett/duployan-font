@@ -28,8 +28,8 @@ permissions:
   contents: read
 env:
   FONTFORGE_COMMIT: aa062f4cbd1db21e27b2620f16993ebe4c540ab6
-  FONTSPECTOR_VERSION: &fontspector_version 1.9.0
-  HARFBUZZ_VERSION: &harfbuzz_version 15.0.0
+  FONTSPECTOR_VERSION: &fontspector_version 1.9.1
+  HARFBUZZ_VERSION: &harfbuzz_version 15.1.0
   PYTHON_VERSION: 3.15
 jobs:
   main:

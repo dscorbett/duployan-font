@@ -22,9 +22,10 @@ exclude_checks = [
     "googlefonts/render_own_name",
     "googlefonts/repo/dirname_matches_nameid_1",
     "googlefonts/vertical_metrics",
+    "gpos_kerning_info",
     "ligature_carets",
     "math_signs_width",
-    "gpos_kerning_info",
+    "opentype/hmtx_cff_num_glyphs",
     "rupee",
 #ifndef NOTO
     "googlefonts/font_names",
@@ -32,6 +33,11 @@ exclude_checks = [
     "googlefonts/vendor_id",
 #endif
 ]
+
+#ifndef NOTO
+["name/repeating_characters"]
+name_ids_to_be_skipped = [13]
+#endif
 
 [[overrides]]
 code = "legacy-long-names"
