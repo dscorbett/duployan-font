@@ -2018,7 +2018,7 @@ class Curve(Shape):
                 }{
                     'r' if self.reversed_circle else ''
                 }{
-                    '.ee' if not self.entry_position == self.exit_position == 1 else ''
+                    '.E' if not self.entry_position == self.exit_position == 1 else ''
                 }'''
         else:
             name = ''
@@ -2571,8 +2571,8 @@ class Curve(Shape):
             angle_out=candidate_angle_out,
             clockwise=candidate_clockwise,
             # TODO: Track the precise output angle instead of assuming that the exit
-            # should be halfway along the curve.
-            exit_position=0.5 if would_flip and self.may_reposition_cursive_endpoints else CLONE_DEFAULT,
+            # should be at the start of the curve.
+            exit_position=0 if would_flip and self.may_reposition_cursive_endpoints else CLONE_DEFAULT,
         )
 
     @override

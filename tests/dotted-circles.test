@@ -42,6 +42,6 @@
 # model does not allow that. They get glyphs with early exit anchor points
 # instead of dotted circles. Some orienting sequences might also need flipping,
 # but nothing happens for them.
-1BC03 1BC46 0307 1BC19::[u1BC03.t@0,620|u1BC46.i.0p180.ee@500,620|u0307.dot_above@536,925|u1BC19.m@300,0|_@840,0]
-1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC47.e.270n90.ee@0,-100|u0323.dot_below@86,-234|u1BC03.t@100,-100|_@840,0]
+1BC03 1BC46 0307 1BC19::[u1BC03.t@0,720|u1BC46.i.0p180.E@500,720|u0307.dot_above@536,1025|u1BC19.m@200,0|_@840,0]
+1BC02 1BC47 0323 1BC03::[u1BC02.p@200,0|u1BC47.e.270n90.E@0,-100|u0323.dot_below@86,-234|u1BC03.t@200,0|_@940,0]
 1BC02 1BC47 1BC47 1BC03::[u1BC02.p@400,0|u1BC47.e.270n90@200,-100|u1BC47.e.90p270@0,0|u1BC03.t@0,0|_@740,0]
