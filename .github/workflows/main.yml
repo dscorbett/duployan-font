@@ -38,7 +38,7 @@ jobs:
       matrix:
         include:
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: testing
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
@@ -54,29 +54,29 @@ jobs:
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: standard
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: noto
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: testing
             unjoined: unjoined
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: standard
             unjoined: unjoined
             fontspector-version: *fontspector_version
             harfbuzz-version: *harfbuzz_version
           - build-venv: dev
-            optimize: -O
+            optimize: -OO
             charset: noto
             unjoined: unjoined
             fontspector-version: *fontspector_version
@@ -282,27 +282,27 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-testing-
           path: fonts
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-standard-
           path: fonts
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-noto-
           path: fonts
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-testing-unjoined
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-testing-unjoined
           path: fonts
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-standard-unjoined
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-standard-unjoined
           path: fonts
       - uses: actions/cache/restore@v5
         with:
-          key: ${{ github.run_id }}-${{ github.run_number }}--O-noto-unjoined
+          key: ${{ github.run_id }}-${{ github.run_number }}--OO-noto-unjoined
           path: fonts
       - name: Move the fonts from the optimized builds
         run: mv fonts fonts-PYTHONOPTIMIZE
